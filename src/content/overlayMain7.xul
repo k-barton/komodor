@@ -1,0 +1,414 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+ Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+ The contents of this file are subject to the Mozilla Public License
+ Version 1.1 (the "License"); you may not use this file except in
+ compliance with the License. You may obtain a copy of the License at
+ http://www.mozilla.org/MPL/
+
+ Software distributed under the License is distributed on an "AS IS"
+ basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ License for the specific language governing rights and limitations
+ under the License.
+
+ The Original Code is SciViews-K by Philippe Grosjean et al.
+
+ Contributor(s):
+   Kamil Barton
+   Philippe Grosjean
+   Romain Francois
+   ActiveState Software Inc (code inspired from)
+
+ Alternatively, the contents of this file may be used under the terms of
+ either the GNU General Public License Version 2 or later (the "GPL"), or
+ the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ in which case the provisions of the GPL or the LGPL are applicable instead
+ of those above. If you wish to allow use of your version of this file only
+ under the terms of either the GPL or the LGPL, and not to allow others to
+ use your version of this file under the terms of the MPL, indicate your
+ decision by deleting the provisions above and replace them with the notice
+ and other provisions required by the GPL or the LGPL. If you do not delete
+ the provisions above, a recipient may use your version of this file under
+ the terms of any one of the MPL, the GPL or the LGPL.
+
+ ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay PUBLIC "-//MOZILLA//DTD XUL V1.0//EN"
+	"http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" [
+	<!ENTITY % komodoDTD SYSTEM "chrome://komodo/locale/komodo.dtd">
+	%komodoDTD;
+	<!ENTITY % komodorDTD SYSTEM "chrome://komodor/locale/komodor.dtd">
+	%komodorDTD;
+	<!ENTITY % console SYSTEM "chrome://global/locale/console.dtd"> %console;
+]>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/global/global.p.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/bindings/buttons.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
+
+<overlay id="sciviewskOverlay"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/array.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/main.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/prefs.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/rconnection.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/io.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/r.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/r-help.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/commands.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/misc.js"/>
+
+
+<broadcasterset id="broadcasterset_global">
+	<broadcaster id="sv_r_is_running" disabled="false"/>
+	
+	<broadcaster id="cmd_viewkomodotoolbar" 
+	key="key_cmd_viewkomodotoolbar" 
+	desc="User Interface: Show/Hide Komodo Resources Toolbar" 
+	autoCheck="false" 
+	checked="true" 
+	persist="checked" 
+	oncommand="ko.commands.doCommandAsync('cmd_viewkomodotoolbar', event)"/>
+	
+	<broadcaster
+		id="cmd_viewrtoolbar" key="key_cmd_viewrtoolbar"
+		desc="&userInterfaceShowHideRToolbar.desc;"
+		autoCheck="false"
+		checked="true"
+		persist="checked"
+		oncommand="ko.commands.doCommandAsync('cmd_viewrtoolbar', event)"
+	/>
+	<broadcaster id="cmd_svRStarted"
+		oncommand="ko.commands.doCommand(sv.r.running? 'cmd_svQuitR' : 'cmd_svStartR');"
+		/>
+</broadcasterset>
+
+<commandset id="allcommands">
+	<commandset id="cmdset_rApp" commandupdater="true"
+		oncommandupdate="ko.commands.updateCommandset(this);"
+		events="r_app_started_closed">
+		<command id="cmd_svStartR" key="key_cmd_svStartR"
+			oncommand="ko.commands.doCommand('cmd_svStartR');"
+			desc="R: &StartR;" label="&StartR;" accesskey="&StartR.key;"
+			/>
+		<command id="cmd_svQuitR" key="key_cmd_svQuitR"
+			oncommand="ko.commands.doCommand('cmd_svQuitR');"
+			desc="R: &QuitR;" label="&QuitR;" accesskey="&QuitR.key;"/>
+		<command id="cmd_svREscape" key="key_cmd_svREscape"
+			oncommand="ko.commands.doCommand('cmd_svREscape');"
+			desc="R: &rEscape;" label="&rEscape;" accesskey="&rEscape.key;"/>
+		<command id="cmd_svOpenPkgManager" key="key_cmd_svOpenPkgManager"
+			oncommand="ko.commands.doCommand('cmd_svOpenPkgManager');" disabled="false"
+			desc="R: &pkgMgr;" label="&pkgMgr;" accesskey="&pkgMgr.key;"/>
+		<command id="cmd_svOpenHelp" key="key_cmd_svOpenHelp"
+			oncommand="ko.commands.doCommand('cmd_svOpenHelp');"
+			desc="R: &helpStart;" label="&helpStart;" accesskey="&helpStart.key;"/>
+		<command id="cmd_svBrowseWD" key="key_cmd_svBrowseWD"
+			oncommand="ko.commands.doCommand('cmd_svBrowseWD');"
+			desc="R: &svBrowseWD;" label="&svBrowseWD;" accesskey="&svBrowseWD.key;"/>
+		<command id="cmd_svSessionMgr" key="key_cmd_svSessionMgr"
+			oncommand="ko.commands.doCommand('cmd_svSessionMgr');"
+			desc="R: &svOpenSessMgr;" label="&svOpenSessMgr;" accesskey="&svOpenSessMgr.key;"/>
+	</commandset>
+
+<!-- event names changed in Komodo 6: keeping the old one for compatibility
+(current_view_language_changed)
+-->
+<commandset id="cmdset_r_control" commandupdater="true"
+  events="current_view_language_changed,language_changed,current_view_changed,r_app_started_closed"
+  oncommandupdate="ko.commands.updateCommandset(this);">
+	
+	<command id="cmd_sv_tab_source" key="key_cmd_sv_tab_source"
+		oncommand="ko.commands.doCommand('cmd_svRRunAll')"
+		desc="R: &rSendFile;"
+		label="&rSendFile;"
+		/>
+	
+	<command id="cmd_svRRunAll" key="key_cmd_svRRunAll"
+		oncommand="ko.commands.doCommand('cmd_svRRunAll')"
+		desc="R: &rSendFile;" label="&rSendFile;" accesskey="&rSendFile.key;"/>
+	<command id="cmd_svRSourceAll" key="key_cmd_svRSourceAll"
+		oncommand="ko.commands.doCommand('cmd_svRSourceAll')"
+		desc="R: &rSrcFile;" label="&rSrcFile;" accesskey="&rSrcFile.key;"/>
+	<command id="cmd_svRRunBlock" key="key_cmd_svRRunBlock"
+		oncommand="ko.commands.doCommand('cmd_svRRunBlock')"
+		desc="R: &rSendBlock;" label="&rSendBlock;" accesskey="&rSendBlock.key;"/>
+	<command id="cmd_svRRunFunction" key="key_cmd_svRRunFunction"
+		oncommand="ko.commands.doCommand('cmd_svRRunFunction')"
+		desc="R: &rSendFun;" label="&rSendFun;" accesskey="&rSendFun.key;"/>
+	<command id="cmd_svRRunLine" key="key_cmd_svRRunLine"
+		oncommand="ko.commands.doCommand('cmd_svRRunLine')"
+		desc="R: &rSendLine;" label="&rSendLine;" accesskey="&rSendLine.key;"/>
+	<command id="cmd_svRRunPara" key="key_cmd_svRRunPara"
+		oncommand="ko.commands.doCommand('cmd_svRRunPara')"
+		desc="R: &rSendPara;" label="&rSendPara;" accesskey="&rSendPara.key;"/>
+	<command id="cmd_svRSourceBlock" key="key_cmd_svRSourceBlock"
+		oncommand="ko.commands.doCommand('cmd_svRSourceBlock')"
+		desc="R: &rSrcBlock;" label="&rSrcBlock;" accesskey="&rSrcBlock.key;"/>
+	<command id="cmd_svRSourceFunction" key="key_cmd_svRSourceFunction"
+		oncommand="ko.commands.doCommand('cmd_svRSourceFunction')"
+		desc="R: &rSrcFun;" label="&rSrcFun;" accesskey="&rSrcFun.key;"/>
+	<command id="cmd_svRSourcePara" key="key_cmd_svRSourcePara"
+		oncommand="ko.commands.doCommand('cmd_svRSourcePara')"
+		desc="R: &rSrcPara;" label="&rSrcPara;" accesskey="&rSrcPara.key;"/>
+	<command id="cmd_svRRunLineOrSelection" key="key_cmd_svRRunLineOrSelection"
+		oncommand="ko.commands.doCommand('cmd_svRRunLineOrSelection')"
+		desc="R: &rSendLineOrSelection;" label="&rSendLineOrSelection;"
+		accesskey="&rSendLineOrSelection.key;"/>
+	<command id="cmd_svRSourceLineOrSelection" key="key_cmd_svRSourceLineOrSelection"
+		oncommand="ko.commands.doCommand('cmd_svRSourceLineOrSelection')"
+		desc="R: &rSrcLineOrSelection;" label="&rSrcLineOrSelection;"
+		accesskey="&rSrcLineOrSelection.key;"/>
+
+	<commandset id="cmdset_r_control2" commandupdater="false" events="select"
+		oncommandupdate="ko.commands.updateCommandset(this);">
+		<command id="cmd_svRRunSelection" key="key_cmd_svRRunSelection"
+			oncommand="ko.commands.doCommand('cmd_svRRunSelection')"
+			desc="R: &rSendSel;" label="&rSendSel;" accesskey="&rSendSel.key;"/>
+		<command id="cmd_svRSourceSelection" key="key_cmd_svRSourceSelection"
+			oncommand="ko.commands.doCommand('cmd_svRSourceSelection')"
+			desc="R: &rSrcSel;" label="&rSrcSel;" accesskey="&rSrcSel.key;"/>
+	</commandset>
+</commandset>
+</commandset>
+
+<menubar id="menubar_main">
+	<menu id="sciviews_menu" label="R" accesskey="R"
+		insertbefore="menu_window,help_menu">
+		<menupopup id="popup_sciviews_main">
+			<menuitem id="r_start_console_menu" observes="cmd_svStartR"
+				class="menuitem-iconic r-run-command-icon"/>
+			<menuitem id="r_quit_console_menu" observes="cmd_svQuitR"
+				class="menuitem-iconic r-quit-command-icon"/>
+			<menuitem id="r_start_help" observes="cmd_svOpenHelp"
+					  class="menuitem-iconic help-icon"/>
+			<menuitem id="r_browse_wd" observes="cmd_svBrowseWD"
+				class="menuitem-iconic r-working-dir-icon"/>
+			<menuitem id="r_session_mgr" observes="cmd_svSessionMgr"
+				class="menuitem-iconic r-session-dir-icon"/>
+			<menuseparator/>
+			<menuitem id="r_start_pkg_manager" observes="cmd_svOpenPkgManager"
+				class="menuitem-iconic r-pkg-manager"/>
+			<menu class="menuitem-iconic robjects-pkg-icon"
+				label="R packages">
+				<menupopup>
+					<menuitem id="r_pkg_load" label="Load packages..."
+						accesskey="l" class="menuitem-iconic r-pkg-load-icon"
+						oncommand="sv.r.pkg.load();"/>
+					<menuitem id="r_pkg_load" label="Attach workspace..."
+						accesskey="a" class="menuitem-iconic r-data-attach"
+						oncommand="sv.r.loadWorkspace(null, true);"/>
+					<menuitem id="r_pkg_install" label="Install..."
+						accesskey="i" class="menuitem-iconic r-pkg-install-icon"
+						oncommand="sv.r.pkg.install();"/>
+					<menuitem id="r_pkg_installLocal" label="Install from local files..."
+						accesskey="c" class="menuitem-iconic r-pkg-install-local-icon"
+						oncommand="sv.r.pkg.install(null, 'local');"/>
+					<menuitem id="r_pkg_update" label="Update"
+						accesskey="u" class="menuitem-iconic r-pkg-update-icon"
+						oncommand="sv.r.pkg.update();"/>
+					<menuitem id="r_pkg_remove" label="Remove..."
+						accesskey="r" class="menuitem-iconic r-pkg-remove-icon"
+						oncommand="sv.r.pkg.remove();"/>
+				</menupopup>
+			</menu>
+
+			<menuseparator/>
+			<menuitem id="r_send_line_sel_menu" observes="cmd_svRRunLineOrSelection"
+				class="menuitem-iconic r-run-selection-icon"/>
+			<menuitem id="r_send_all_menu" observes="cmd_svRRunAll"
+				class="menuitem-iconic r-run-all-icon"/>
+			<menuitem id="r_src_all_menu" observes="cmd_svRSourceAll"
+				class="menuitem-iconic r-source-all-icon"/>
+			<menuitem id="r_send_block_menu" observes="cmd_svRRunBlock"
+				class="menuitem-iconic r-run-block-icon"/>
+			<menuitem id="r_src_block_menu" observes="cmd_svRSourceBlock"
+				class="menuitem-iconic r-source-block-icon"/>
+			<menuitem id="r_send_para_menu" observes="cmd_svRRunPara"
+				class="menuitem-iconic r-run-para-icon"/>
+			<menuitem id="r_src_para_menu" observes="cmd_svRSourcePara"
+				class="menuitem-iconic r-source-para-icon"/>
+			<menuitem id="r_send_function_menu" observes="cmd_svRRunFunction"
+				class="menuitem-iconic r-run-function-icon"/>
+			<menuitem id="r_src_function_menu" observes="cmd_svRSourceFunction"
+				class="menuitem-iconic r-source-function-icon"/>
+		</menupopup>
+	</menu>
+</menubar>
+
+<toolboxrow id="main-toolboxrow">
+	<toolbar
+		id="RToolbar"
+		class="chromeclass-toolbar"
+		toolboxid="toolbox_main"
+		align="center"
+		broadcaster="cmd_viewrtoolbar"
+		grippyhidden="true"
+		kohidden="false"
+		mode="icons"
+		persist="kohidden collapsed buttonstyle mode"
+		buttonstyle="pictures"
+		tooltiptext="R Toolbar"
+		customizable="true"
+		>
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&StartR;"
+					   type="checkbox"
+					   autoCheck="false"
+					   persist="buttonstyle"
+					   class="r-run-command-icon"
+					   observes="cmd_svRStarted"
+					   id="RToolbarStartR"
+					   label="&StartR;" />
+
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rEscape;"
+					   persist="buttonstyle"
+					   class="stop-icon"
+					   observes="cmd_svREscape"
+					   id="RToolbarEscape"
+					   label="&rEscape;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSendLineOrSelection;"
+					   persist="buttonstyle"
+					   class="r-run-selection-icon"
+					   observes="cmd_svRRunLineOrSelection"
+					   id="RToolbarRunLineOrSelection"
+					   label="&rSendLineOrSelection;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSendFile;"
+					   persist="buttonstyle"
+					   class="r-run-all-icon"
+					   observes="cmd_svRRunAll"
+					   id="RToolbarRunAll"
+					   label="&rSendFile;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSrcFile;"
+					   persist="buttonstyle"
+					   class="r-source-all-icon"
+					   observes="cmd_svRSourceAll"
+					   id="RToolbarSourceAll"
+					   label="&rSrcFile;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSendBlock;"
+					   persist="buttonstyle"
+					   class="r-run-block-icon"
+					   observes="cmd_svRRunBlock"
+					   id="RToolbarRunBlock"
+					   label="&rSendBlock;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSrcBlock;"
+					   persist="buttonstyle"
+					   class="r-source-block-icon"
+					   observes="cmd_svRSourceBlock"
+					   id="RToolbarSourceBlock"
+					   label="&rSrcBlock;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSendPara;"
+					   persist="buttonstyle"
+					   class="r-run-para-icon"
+					   observes="cmd_svRRunPara"
+					   id="RToolbarRunPara"
+					   label="&rSendPara;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSrcPara;"
+					   persist="buttonstyle"
+					   class="r-source-para-icon"
+					   observes="cmd_svRSourcePara"
+					   id="RToolbarSourcePara"
+					   label="&rSrcPara;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSendFun;"
+					   persist="buttonstyle"
+					   class="r-run-function-icon"
+					   observes="cmd_svRRunFunction"
+					   id="RToolbarRunFunction"
+					   label="&rSendFun;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rSrcFun;"
+					   persist="buttonstyle"
+					   class="r-source-function-icon"
+					   observes="cmd_svRSourceFunction"
+					   id="RToolbarSourceFunction"
+					   label="rSrcFun;" />
+	</toolbar>
+</toolboxrow>
+
+<menupopup id="context-toolbox-menu">
+	<menuitem id="context_viewrtoolbar"
+		label="&RToolbar.label;"
+		type="checkbox"
+		observes="cmd_viewrtoolbar"
+		key="key_viewRToolbar"
+		/>
+</menupopup>
+
+<menupopup id="popup_toolbars">
+	<menuitem id="menu_viewrtoolbar"
+		label="&RToolbar.label;"
+		observes="cmd_viewrtoolbar"
+		persist="checked"
+		checked="true"
+		type="checkbox"
+		/>
+</menupopup>
+
+
+<!-- Ko7 -->
+<ko-pane id="workspace_left_area">
+<browser type="ko-widget"
+	id="rbrowser_tabpanel"
+	label="&rBrowser.tab;"
+	src="chrome://komodor/content/rbrowser-pane.xul"
+	tab_onfocus="sv.rbrowser.focus();"
+	icon="chrome://komodor/skin/images/R.png"
+	/>
+</ko-pane>
+
+
+<ko-pane id="workspace_bottom_area">
+<browser type="ko-widget"
+	id="errorconsole_tabpanel"
+	label="&errorConsole.title;"
+	src="chrome://global/content/console.xul"
+	/>
+</ko-pane>
+
+<menupopup id="tabContextMenu">
+<menuseparator id="tabContextMenu_sv_separator1" />
+ <menuitem id="sv-tabContextMenu-source-r"
+                    class="menuitem-iconic-wide"
+                    command="cmd_sv_tab_source"
+					/>
+<!--o
+bserves="cmd_placeView_showCurrent_TabInPlaces"
+  oncommand="ko.commands.doCommand('cmd_placeView_showCurrent_TabInPlaces', event)"
+-->
+</menupopup>
+
+	
+
+<!--<ko-pane id="workspace_right_area">
+<browser type="ko-widget"
+	id="rhelp_tabpanel"
+	label="R Help"
+	src="chrome://komodor/content/RHelpWindow.xul"
+	/>
+</ko-pane>-->
+
+<!-- <ko-pane id="workspace_bottom_area">
+<browser type="ko-widget"
+	id="pyshell_tabpanel"
+	label="Python shell"
+	src="chrome://extensiondev/content/pyshell.xul"
+	/>
+</ko-pane> -->
+
+</overlay>

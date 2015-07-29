@@ -1,0 +1,44 @@
+<!ENTITY sv.tab "R Objects">
+<!ENTITY sv.tip "R objects explorer">
+<!ENTITY sv.refresh "Reload">
+<!ENTITY sv.refresh.tip "Reload R object list">
+<!ENTITY sv.showHide "Search path">
+<!ENTITY sv.showHide.tip "Show/hide search path">
+<!ENTITY sv.filter.tip "Filter by regular expression">
+<!ENTITY sv.Name "Name">
+<!ENTITY sv.Dims "Dims">
+<!ENTITY sv.Group "Group">
+<!ENTITY sv.Class "Class">
+<!ENTITY sv.FullName "Full name">
+<!ENTITY sv.foldAll "Fold all objects of current branch">
+<!ENTITY sv.unfoldAll "Unfold all objects of current branch">
+
+<!ENTITY sv.insName "Insert name into text">
+<!ENTITY sv.insFullName "Insert full name">
+<!ENTITY sv.rmObj "Insert code to remove objects">
+<!ENTITY sv.loadPkg "Load package">
+<!ENTITY sv.detach "Detach package">
+<!ENTITY sv.clrFilter "Clear filter text">
+<!ENTITY sv.filterByDims "Filter dimensions">
+<!ENTITY sv.filterByGroup "Filter group">
+<!ENTITY sv.filterByClass "Filter class">
+<!ENTITY sv.filterByName "Filter name">
+<!ENTITY sv.filterEmptyText "Filter name...">
+<!ENTITY sv.help "Help">
+<!ENTITY sv.names "Names">
+<!ENTITY sv.str "Structure">
+<!ENTITY sv.plot "Plot">
+<!ENTITY sv.print "Print">
+<!ENTITY sv.summary "Summary">
+<!ENTITY sv.write_table "Write to textfile">
+<!ENTITY sv.save "Save objects">
+
+<!ENTITY sv.deleteNow "Delete immediately">
+<!ENTITY sv.deleteNow.acc "D">
+<!ENTITY sv.insertQuoted "Insert quoted">
+<!ENTITY sv.insertQuoted.acc "Q">
+<!ENTITY sv.selectAll "Select all">
+<!ENTITY sv.selectAll.acc "A">
+<!ENTITY sv.selectSiblings "Select current level">
+<!ENTITY sv.selectSiblings.acc "L">
+

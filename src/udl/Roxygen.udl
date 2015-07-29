@@ -1,0 +1,106 @@
+family tpl
+sublanguage Roxygen
+
+initial IN_R_ROXYGEN_COMMENT
+
+pattern WS = ' \t'
+pattern LTR = 'a-zA-Z\x80-\xff'
+pattern NAMESTART = '[$LTR\.`]'
+pattern NM = '[$LTR\.][$LTR\d\._]*' 
+pattern NBQ = '`([^`]|\\.)+`'
+pattern BRACEE = '\)\]'
+pattern BRACES = '\(\['
+pattern OP = '!%&\*\+,-\/;<=>\?\^\{\}~|'
+
+#=== Default state =============================================================
+
+state IN_R_ROXYGEN_COMMENT:
+/[\r\n]/  : paint(upto, TPL_COMMENTBLOCK), spop_check, => IN_R_DEFAULT
+/@(?!@)/ : paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_TAG_1
+# /\\[a-zA-Z]+(?=[\{\[])/: \
+/\\[^\s\{\[]+/: paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_VARIABLE), \
+    spush_check(IN_R_ROXYGEN_COMMENT), => IN_R_ROXYGEN_RDTAG_1
+
+# TODO:
+#/\\code(\{)/ : paint(include, TPL_COMMENTBLOCK), \
+#    set_opposite_delimiter(1), spush_check(IN_R_ROXYGEN_COMMENT), => IN_R_DEFAULT
+    
+state IN_R_ROXYGEN_RDMACRO:
+'{' :  paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_EXAMPLES_CONTENT
+	
+	
+state IN_R_ROXYGEN_TAG_1:
+/param(?=[$WS])/ : paint(include, TPL_WORD), => IN_R_ROXYGEN_PARAMNAME_1
+/examples(?=[$WS\r\n])/ : paint(include, TPL_WORD), => IN_R_ROXYGEN_EXAMPLES_1
+/[$LTR\d]+/ : # stay
+/[$WS\r\n]/ : paint(upto, TPL_WORD), => IN_R_ROXYGEN_COMMENT
+/./ : redo, => IN_R_ROXYGEN_COMMENT
+# /[\r\n]/  : paint(upto, TPL_COMMENTBLOCK), => IN_R_ROXYGEN_COMMENT
+
+state IN_R_ROXYGEN_EXAMPLES_1:
+/$/ : paint(upto, TPL_COMMENTBLOCK), => IN_R_ROXYGEN_EXAMPLES_2
+/[$WS]/ : 
+
+state IN_R_ROXYGEN_EXAMPLES_2:
+/^[$WS]*#'/ : paint(upto, TPL_COMMENT), paint(include, TPL_COMMENT), \
+	 => IN_R_ROXYGEN_EXAMPLES_CONTENT
+/^/ : paint(upto, TPL_STRING), => IN_R_DEFAULT
+
+state IN_R_ROXYGEN_EXAMPLES_CONTENT:
+/\\dont(run|show)(?={)/ : paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_VARIABLE), \
+	spush_check(IN_R_ROXYGEN_EXAMPLES_CONTENT), => IN_R_ROXYGEN_EXAMPLES_RDDONT_1
+/@(?!@)/ : paint(upto, TPL_COMMENTBLOCK), redo, => IN_R_ROXYGEN_COMMENT
+/$/ : paint(upto, TPL_STRING), => IN_R_ROXYGEN_EXAMPLES_2
+/\\./ : #stay
+'}' : paint(upto, TPL_STRING), spop_check, => IN_R_ROXYGEN_EXAMPLES_CONTENT
+/./ : #stay
+
+state IN_R_ROXYGEN_EXAMPLES_RDDONT_1:
+'{' :  paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_EXAMPLES_CONTENT
+
+state IN_R_ROXYGEN_EXAMPLES_RDDONT_2:
+/\\./ : #stay
+/^\s*#'/ : paint(upto, TPL_STRING), paint(include, TPL_COMMENTBLOCK)
+/^/ : paint(upto, TPL_STRING), spop_check,  => IN_R_DEFAULT
+/@(?!@)/ : paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_TAG_1
+'}' : paint(upto, M_PI), paint(include, TPL_OPERATOR), spop_check, => IN_R_ROXYGEN_EXAMPLES_CONTENT
+/./ : #stay
+/\z/ : #stay
+
+state IN_R_ROXYGEN_PARAMNAME_1:
+/[$WS]/ : 
+/(?<=[$WS])[$LTR\.][$LTR\d\._]*/ : paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_IDENTIFIER), \
+    => IN_R_ROXYGEN_PARAMNAME_2
+/./ : redo, => IN_R_ROXYGEN_COMMENT
+/[\r\n]/  : paint(upto, TPL_COMMENTBLOCK), => IN_R_ROXYGEN_COMMENT
+
+state IN_R_ROXYGEN_PARAMNAME_2:
+',' : paint(upto, TPL_IDENTIFIER)  # stay, multiple arguments like x,y (no spaces)
+/[$LTR\.][$LTR\d\._]*/ : paint(upto, TPL_OPERATOR), paint(include, TPL_IDENTIFIER)
+/./ : redo, => IN_R_ROXYGEN_COMMENT
+/[\r\n]/  : paint(upto, TPL_COMMENTBLOCK), => IN_R_ROXYGEN_COMMENT
+
+state IN_R_ROXYGEN_RDTAG_1:
+'{' : paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_RDTAG_CONTENT
+'[' : paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_RDTAG_2
+/[.\r\n]/ : paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_VARIABLE), spop_check, => IN_R_ROXYGEN_COMMENT
+
+state IN_R_ROXYGEN_RDTAG_2:
+/\\./ : #stay
+']' :  paint(upto, TPL_STRING), paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_RDTAG_3
+/[.\r\n]/ : paint(upto, TPL_COMMENTBLOCK), spop_check, => IN_R_ROXYGEN_COMMENT
+
+state IN_R_ROXYGEN_RDTAG_3:
+'{' : paint(include, TPL_OPERATOR), => IN_R_ROXYGEN_RDTAG_CONTENT
+/[.\r\n]/ : paint(upto, TPL_COMMENTBLOCK), spop_check, => IN_R_ROXYGEN_COMMENT
+
+state IN_R_ROXYGEN_RDTAG_CONTENT:
+/^\s*#'/ : paint(upto, TPL_STRING), paint(include, TPL_COMMENTBLOCK)
+/^/ paint(upto, TPL_STRING), spop_check, => IN_R_DEFAULT
+/\\[a-zA-Z\d]+(?=[\{\[])/ : paint(upto, TPL_COMMENTBLOCK), paint(include, TPL_VARIABLE), \
+    spush_check(IN_R_ROXYGEN_RDTAG_CONTENT), => IN_R_ROXYGEN_RDTAG_1
+/\\./ : paint(include, TPL_STRING) #stay
+'}' : paint(upto, TPL_STRING), paint(include, TPL_OPERATOR), spop_check, => IN_R_ROXYGEN_COMMENT
+/[.\r\n]/ : #stay
+
+# <eof>

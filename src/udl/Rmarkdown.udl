@@ -1,0 +1,74 @@
+family markup
+sublanguage Rmarkdown
+
+initial IN_RMD_DEFAULT
+
+pattern WS = '\s\t\r\n'
+
+state IN_RMD_DEFAULT:
+/(```+){[$WS]*r/ : paint(upto, M_DEFAULT), set_delimiter(1), \
+	paint(include, M_STAGO), => IN_RMD_R_CODETAG
+/(`+)[$WS]*r/ : paint(upto, M_DEFAULT), paint(include, M_TAGNAME), \
+	set_delimiter(1), => IN_R_DEFAULT
+/\$(?![$WS])/ : paint(upto, M_DEFAULT), paint(include, M_STAGO), \
+	=> IN_RMD_EQUATION
+/([_\*]{1,2})(?![$WS\*])/ : paint(upto, M_DEFAULT), paint(include, M_STAGO), \
+	set_delimiter(1), => IN_RMD_STRONG
+/^#(?=[\t ])/ : paint(upto, M_DEFAULT), paint(include, M_TAGNAME), \
+	 => IN_RMD_HEADER
+/~~(?![$WS\*])/ : paint(upto, M_DEFAULT), paint(include, M_STAGO), \
+	=> IN_RMD_STRIKETHROUGH
+/~(?![$WS\*])/ : paint(upto, M_DEFAULT), paint(include, M_STAGC), \
+	=> IN_RMD_SUBSCRIPT
+	
+# state IN_RMD_SUPERSCRIPT:
+
+state IN_RMD_SUBSCRIPT:
+/~~(?![$WS])/ :  paint(include, M_STAGC), \
+	spush_check(IN_RMD_STRONG), => IN_RMD_STRIKETHROUGH
+/~(?!~)/ : paint(upto, SSL_VARIABLE), paint(include, M_ETAGC), \
+	spop_check, => IN_RMD_DEFAULT
+	 
+state IN_RMD_STRONG:
+/~~(?![$WS])/ :  paint(include, M_STAGC), \
+	spush_check(IN_RMD_STRONG), => IN_RMD_STRIKETHROUGH
+/(`+)[$WS]*r/ : paint(upto, M_DEFAULT), paint(include, M_TAGNAME), \
+	set_delimiter(1), spush_check(IN_RMD_STRONG), => IN_R_DEFAULT
+delimiter : paint(include, M_TAGNAME), \
+	 => IN_RMD_DEFAULT
+/./ : paint(include, M_STRING)
+# /\z/ : paint(upto, M_STRING), paint(include, M_STRING)
+
+state IN_RMD_STRIKETHROUGH:
+'~~' : paint(upto, SSL_VARIABLE), paint(include, M_ETAGC), \
+	spop_check, => IN_RMD_DEFAULT
+
+	 
+state IN_RMD_EQUATION:
+'$' : paint(upto, SSL_NUMBER), paint(include, M_ETAGC), \
+	spop_check, => IN_RMD_DEFAULT
+
+state IN_RMD_HEADER:
+/[\r\n]+/ : paint(upto, M_STRING) => IN_RMD_DEFAULT
+/\z/ : paint(include, M_STRING)
+
+state IN_RMD_R_CODETAG:
+'}' : paint(upto, M_PI), paint(include, M_ETAGO) => IN_R_DEFAULT
+
+state IN_RMD_R_CODE1:
+'`' : paint(upto, M_CDATA), paint(include, M_ETAGO) => IN_RMD_DEFAULT
+
+state IN_RMD_R_CODETAG:
+'}' : paint(upto, M_PI), paint(include, M_ETAGO) => IN_R_DEFAULT
+
+# jumping out of R:
+state IN_RMD_R_CODE_END:
+delimiter : paint(include, M_ETAGC) => IN_RMD_DEFAULT
+
+## for debugging only:
+#/(["'])/ : paint(upto, M_DEFAULT), set_delimiter(1), paint(include, M_TAGNAME), \
+#	=> IN_TEST_STRING
+
+#state IN_TEST_STRING:
+#/\\./ : paint(upto, M_STRING) #stay
+#delimiter :  paint(upto, M_STRING), paint(include, M_TAGNAME), => IN_RMD_DEFAULT

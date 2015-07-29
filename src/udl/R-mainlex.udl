@@ -1,0 +1,12 @@
+language R
+
+include "R.udl"
+include "Roxygen.udl"
+
+#===============================================================================
+family markup
+sublanguage none
+initial IN_M_DEFAULT
+state IN_M_DEFAULT:
+/./ : redo, => IN_R_DEFAULT
+

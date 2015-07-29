@@ -1,0 +1,47 @@
+<!DOCTYPE overlay PUBLIC "-//MOZILLA//DTD XUL V1.0//EN"
+	"http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" [
+	<!ENTITY % komodoDTD SYSTEM "chrome://komodo/locale/komodo.dtd">
+	%komodoDTD;
+	<!ENTITY % komodorDTD SYSTEM "chrome://komodor/locale/komodor.dtd">
+	%komodorDTD;
+]>
+
+<?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
+
+<overlay id="sciviewskOverlay"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<menupopup id="places-files-popup">
+	<menuseparator id="placesContextMenu_separatorR"
+		testEval_HideIf="!parent.sv.command.places.anyRFilesSelected &amp;&amp; !parent.sv.command.places.anyRDataFilesSelected"
+	/>
+<menuitem oncommand="parent.sv.command.places.sourceSelection()"
+		  hideIf="folder project"
+		  class="menuitem-iconic"
+		  id="placesContextMenu_Rsource"
+		  label="Source into R"
+		  testEval_HideIf="!parent.sv.command.places.anyRFilesSelected"
+/>
+
+<menuitem oncommand="parent.sv.command.places.loadSelection()"
+		  hideIf="folder project"
+		  class="menuitem-iconic"
+		  id="placesContextMenu_Rload"
+		  label="Load into R"
+		  testEval_HideIf="!parent.sv.command.places.anyRDataFilesSelected"
+/>
+
+<menuitem oncommand="parent.sv.command.places.setWorkingDir()"
+		  hideIf="file"
+		  testDisableIf="t:multipleSelection t:isRemote"
+		  testEval_DisableIf="!parent.sv.r.running"
+		  class="menuitem-iconic"
+		  id="placesContextMenu_Rsetwd"
+		  label="Set as R working directory"
+/>
+
+</menupopup>
+
+</overlay>

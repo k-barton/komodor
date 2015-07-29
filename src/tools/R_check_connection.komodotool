@@ -1,0 +1,15 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "R: check connection", 
+  "language": "JavaScript", 
+  "trigger_enabled": 0, 
+  "rank": 100, 
+  "trigger": "trigger_postopen", 
+  "value": [
+    "sv.command.updateRStatus(sv.rconn.testRAvailability());"
+  ], 
+  "version": "1.0.7", 
+  "async": 1, 
+  "type": "macro", 
+  "icon": "chrome://komodor/skin/images/R.png"
+}

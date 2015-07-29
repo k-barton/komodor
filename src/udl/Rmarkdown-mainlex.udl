@@ -1,0 +1,11 @@
+language Rmarkdown
+
+include "R2Rmarkdown.udl"
+include "Rmarkdown.udl"
+
+family markup
+
+initial IN_M_DEFAULT
+
+state IN_M_DEFAULT:
+/./ : redo, => IN_RMD_DEFAULT

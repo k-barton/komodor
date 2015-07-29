@@ -1,0 +1,51 @@
+<!ENTITY pkgMgr "Package manager">
+<!ENTITY pkgMgr.key "M">
+<!ENTITY rSendBlock "Run marked block">
+<!ENTITY rSendBlock.key "B">
+<!ENTITY rSendFile "Run all file">
+<!ENTITY rSendFile.key "A">
+<!ENTITY rSendFun "Run function">
+<!ENTITY rSendFun.key "F">
+<!ENTITY rSendLine "Run active line">
+<!ENTITY rSendLine.key "L">
+
+<!ENTITY rSendLineOrSelection "Run line/selection">
+<!ENTITY rSendLineOrSelection.key "C">
+<!ENTITY rSrcLineOrSelection "Source line/selection">
+<!ENTITY rSrcLineOrSelection.key "T">
+
+<!ENTITY rSendPara "Run paragraph">
+<!ENTITY rSendPara.key "P">
+<!ENTITY rSendSel "Run selection">
+<!ENTITY rSendSel.key "S">
+<!ENTITY rSrcBlock "Source marked block">
+<!ENTITY rSrcBlock.key "O">
+<!ENTITY rSrcFile "Source all file">
+<!ENTITY rSrcFile.key "I">
+<!ENTITY rSrcFun "Source function">
+<!ENTITY rSrcFun.key "U">
+<!ENTITY rSrcPara "Source paragraph">
+<!ENTITY rSrcPara.key "A">
+<!ENTITY rSrcSel "Source selection">
+<!ENTITY rSrcSel.key "E">
+<!ENTITY StartR "Start R">
+<!ENTITY StartR.key "R">
+<!ENTITY QuitR "Quit R">
+<!ENTITY QuitR.key "Q">
+
+<!ENTITY svBrowseWD "Working directory">
+<!ENTITY svBrowseWD.key "D">
+
+<!ENTITY helpStart "R Help start">
+<!ENTITY helpStart.key "h">
+
+<!ENTITY svOpenSessMgr "Session directory">
+<!ENTITY svOpenSessMgr.key "S">
+
+<!ENTITY rEscape "Escape current calculation">
+<!ENTITY rEscape.key "E">
+
+<!ENTITY RToolbar.label "R toolbar">
+<!ENTITY userInterfaceShowHideRToolbar.desc "Show/Hide R toolbar">
+
+<!ENTITY rBrowser.tab "R objects">

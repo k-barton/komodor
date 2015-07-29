@@ -1,0 +1,237 @@
+.r-run-command-icon {
+	list-style-image: url("chrome://komodor/skin/images/R.png");
+}
+
+.r-run-command-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/R_disabled.png");
+}
+
+.r-quit-command-icon {
+	list-style-image: url("chrome://komodor/skin/images/quitR.png");
+}
+
+.r-pkg-manager {
+	list-style-image: url("chrome://komodor/skin/images/box-label.png");
+}
+
+.r-working-dir-icon {
+	list-style-image: url("chrome://komodor/skin/images/folder_home.png");
+}
+
+.r-session-dir-icon {
+	list-style-image: url("chrome://komodor/skin/images/folder_wrench.png");
+}
+
+.r-run-all-icon {
+	list-style-image: url("chrome://komodor/skin/images/run_all.png");
+}
+
+.r-run-all-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/run_all_disabled.png");
+}
+
+.r-run-selection-icon {
+	list-style-image: url("chrome://komodor/skin/images/run_line.png");
+}
+
+.r-run-selection-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/run_line_disabled.png");
+}
+
+.r-run-block-icon {
+	list-style-image: url("chrome://komodor/skin/images/run_block.png");
+}
+
+.r-run-block-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/run_block_disabled.png");
+}
+
+.r-run-function-icon {
+	list-style-image: url("chrome://komodor/skin/images/run_function.png");
+}
+
+.r-run-function-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/run_function_disabled.png");
+}
+
+.r-run-line-icon {
+	list-style-image: url("chrome://komodor/skin/images/run_line.png");
+}
+
+.r-run-line-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/run_line_disabled.png");
+}
+
+.r-run-para-icon {
+	list-style-image: url("chrome://komodor/skin/images/run_para.png");
+}
+
+.r-run-para-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/run_para_disabled.png");
+}
+
+.r-source-all-icon {
+	list-style-image: url("chrome://komodor/skin/images/source.png");
+}
+
+.r-source-all-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/source_disabled.png");
+}
+
+.r-source-selection-icon {
+	list-style-image: url("chrome://komodor/skin/images/source_sel.png");
+}
+
+.r-source-selection-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/source_sel_disabled.png");
+}
+
+.r-source-block-icon {
+	list-style-image: url("chrome://komodor/skin/images/source_block.png");
+}
+
+.r-source-block-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/source_block_disabled.png");
+}
+
+.r-source-function-icon {
+	list-style-image: url("chrome://komodor/skin/images/source_function.png");
+}
+
+.r-source-function-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/source_function_disabled.png");
+}
+
+.r-source-line-icon {
+	list-style-image: url("chrome://komodor/skin/images/source_sel.png");
+}
+
+.r-source-line-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/source_sel_disabled.png");
+}
+
+.r-source-para-icon {
+	list-style-image: url("chrome://komodor/skin/images/source_para.png");
+}
+
+.r-source-para-icon[disabled="true"] {
+	list-style-image: url("chrome://komodor/skin/images/source_para_disabled.png");
+}
+
+
+.robjects-pkg-icon {
+	list-style-image: url("chrome://komodor/skin/images/box.png");
+}
+
+.r-pkg-load-icon {
+	list-style-image: url("chrome://komodor/skin/images/box--arrow.png");
+}
+
+.r-pkg-install-icon {
+	list-style-image: url("chrome://komodor/skin/images/box--plus.png");
+}
+
+.r-pkg-install-local-icon{
+	list-style-image: url("chrome://komodor/skin/images/box--plus.png");
+}
+
+.r-pkg-update-icon {
+	list-style-image: url("chrome://komodor/skin/images/box--asterisk.png");
+}
+
+.r-pkg-remove-icon {
+	list-style-image: url("chrome://komodor/skin/images/box--minus.png");
+}
+
+.r-data-attach {
+	list-style-image: url("chrome://komodor/skin/images/database_link.png");
+}
+
+/*.searchPath-icon:hover{
+	list-style-image : url("chrome://komodo/skin/images/bulletlist_hover.png");
+}*/
+
+.write-table-icon {
+	list-style-image: url("chrome://komodor/skin/images/table-export.png");
+}
+
+
+.refresh-icon{
+	list-style-image: url("chrome://komodo/skin/global/images/refresh.png");
+}
+
+.r-escape-icon {
+	list-style-image: url("chrome://komodor/skin/images/cross.png");
+}
+
+.find-icon {
+	list-style-image: url("chrome://komodor/skin/images/find.png");
+}
+
+.home-icon {
+	list-style-image: url("chrome://komodor/skin/images/home.png");
+}
+
+
+.r-web-icon {
+	list-style-image: url("chrome://komodor/skin/images/globe-green-chain.png");
+}
+
+.go-icon {
+	list-style-image: url("chrome://komodor/skin/images/navigation.png");
+}
+
+.go-icon:hover,
+.go-icon:hover:active {
+	list-style-image: url("chrome://komodor/skin/images/navigation-hover.png");
+}
+
+.search-icon {
+	list-style-image: url("chrome://komodor/skin/images/light-bulb.png");
+}
+
+.search-icon:hover,
+.search-icon:hover:active {
+	list-style-image: url("chrome://komodor/skin/images/light-bulb-off.png");
+}
+
+
+.stop-icon {
+	list-style-image: url("chrome://komodor/skin/images/stop.png");
+}
+
+.stop-icon:hover,
+.stop-icon:hover:active {
+	list-style-image: url("chrome://komodor/skin/images/stop_a.png");
+}
+
+.stop-icon[disabled="true"],
+.stop-icon[disabled="true"]:hover,
+.stop-icon[disabled="true"]:hover:active {
+	list-style-image: url("chrome://komodor/skin/images/stop_disabled.png");
+}
+
+.reload-icon {
+  list-style-image: url("chrome://komodor/skin/images/arrow_refresh.png");
+}
+
+.reload-icon:hover {
+  list-style-image : url("chrome://komodor/skin/images/arrow_refresh_hover.png");
+}
+
+.reload-icon[disabled="true"],
+.reload-icon[disabled="true"]:hover,
+.reload-icon[disabled="true"]:hover:active {
+  list-style-image : url("chrome://komodor/skin/images/arrow_refresh_disabled.png");
+}
+
+.r-escape-icon[disabled="true"],
+.r-escape-icon[disabled="true"]:hover,
+.r-escape-icon[disabled="true"]:hover:active {
+	list-style-image: url("chrome://komodor/skin/images/r_escape_disable.png");
+}
+
+.languageicon[language="R"],
+treechildren::-moz-tree-image(LanguageR) {
+  list-style-image: url("chrome://komodor/skin/images/r_16x16.png");
+}

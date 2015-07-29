@@ -1,0 +1,311 @@
+<?xml version="1.0"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+Version: MPL 1.1/GPL 2.0/LGPL 2.1
+
+The contents of this file are subject to the Mozilla Public License
+Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.mozilla.org/MPL/
+
+Software distributed under the License is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations
+under the License.
+
+The Original Code is SciViews-K
+
+Contributor(s):
+Kamil Barton
+Philippe Grosjean
+Romain Francois
+ActiveState Software Inc (code inspired from)
+
+Alternatively, the contents of this file may be used under the terms of
+either the GNU General Public License Version 2 or later (the "GPL"), or
+the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+in which case the provisions of the GPL or the LGPL are applicable instead
+of those above. If you wish to allow use of your version of this file only
+under the terms of either the GPL or the LGPL, and not to allow others to
+use your version of this file under the terms of the MPL, indicate your
+decision by deleting the provisions above and replace them with the notice
+and other provisions required by the GPL or the LGPL. If you do not delete
+the provisions above, a recipient may use your version of this file under
+the terms of any one of the MPL, the GPL or the LGPL.
+
+***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE overlay PUBLIC "-//MOZILLA//DTD XUL V1.0//EN"
+"http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" [
+  <!ENTITY % rbrowserDTD SYSTEM "chrome://komodor/locale/rbrowser.dtd">
+%rbrowserDTD;
+]>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/platform.css" type="text/css"?>
+<!--<?xml-stylesheet href="chrome://komodo/skin/bindings/sidebar.css" type="text/css"?>-->
+<?xml-stylesheet href="chrome://places/skin/places.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/rbrowser.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/rbrowser8.css" type="text/css"?>
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/x-javascript">
+<![CDATA[
+if (window.parent && window.parent.sv) sv = window.parent.sv;
+]]>
+</script>
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/array.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/>
+<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/robjects.js"/>
+
+<popupset id="extensionPopupSet">
+	<menupopup id="rObjectsContext" onpopupshowing="sv.rbrowser.contextOnShow(event)">
+		<menuitem id="menu_rbrowser_insertname"
+			label="&sv.insName;"
+			oncommand="sv.rbrowser.insertName(false)"
+			accesskey="I"
+			acceltext="Ins" />
+		<menuitem id="menu_rbrowser_insertquoted"
+			label="&sv.insertQuoted;"
+			oncommand="sv.rbrowser.insertName(false, true)"
+			accesskey="&sv.insertQuoted.acc;"
+			acceltext="Shift+Ins" />
+		<menuitem id="menu_rbrowser_insertfullname"
+			class="primary_menu_item"
+			oncommand="sv.rbrowser.insertName(true)"
+			accesskey="F"
+			label="&sv.insFullName;"
+			acceltext="Ctrl+Ins" />
+
+		<menuseparator keep="false" intoplevel="true"/>
+		<menuitem id="cmd_rbrowser_removeobj"
+			label="&sv.rmObj;"
+			oncommand="sv.rbrowser.removeSelected(event.shiftKey)"
+			accesskey="R"
+			acceltext="Del"
+			testDisableIf="t:noDelete"
+			key="key_cmd_delete" />
+		<menuitem id="menu_rbrowser_deletenow"
+			label="&sv.deleteNow;"
+			oncommand="sv.rbrowser.removeSelected(true)"
+			class="menuitem-iconic list-item-remove-icon"
+			acceltext="Shift+Del"
+			testDisableIf="t:noDelete"
+			accesskey="&sv.deleteNow.acc;" />
+
+		<menuseparator keep="false" intoplevel="true"/>
+		<menuitem id="cmd_rbrowser_summary"
+			label="&sv.summary;"
+			oncommand="sv.rbrowser.do('summary')"
+			testDisableIf="t:isFunction t:isEnvironment"
+			accesskey="S" />
+		<menuitem id="cmd_rbrowser_print"
+			label="&sv.print;"
+			oncommand="sv.rbrowser.do('print')"
+			testDisableIf="t:isPackage"
+			accesskey="P" />
+		<menuitem id="cmd_rbrowser_plot"
+			label="&sv.plot;"
+			oncommand="sv.rbrowser.do('plot')"
+			testDisableIf="t:isFunction t:isEnvironment"
+			accesskey="O"/>
+		<menuitem id="cmd_rbrowser_str"
+			label="&sv.str;"
+			oncommand="sv.rbrowser.do('str')"
+			testDisableIf="t:isPackage"
+			accesskey="T"/>
+
+		<menuseparator keep="false" intoplevel="true"/>
+		<menuitem id="menu_rbrowser_selectall"
+			label="&sv.selectAll;"
+			oncommand="sv.rbrowser.selection.selectAll()"
+			accesskey="&sv.selectAll.acc;"
+			acceltext="Ctrl+A" />
+		<menuitem id="menu_rbrowser_selectsiblings"
+			label="&sv.selectSiblings;"
+			oncommand="sv.rbrowser.selectAllSiblings(sv.rbrowser.selection.currentIndex)"
+			accesskey="&sv.selectSiblings.acc;"
+			acceltext="Ctrl+Shift+A" />
+
+		<menuseparator keep="false" intoplevel="true"/>
+		<menuitem id="menu_rbrowser_write_table"
+			class="menuitem-iconic write-table-icon"
+			label="&sv.write_table;"
+			oncommand="sv.rbrowser.do('write.table')"
+			testDisableIf="t:cannotSaveToFile"
+			accesskey="T"/>
+
+		<menuitem id="menu_rbrowser_save"
+			class="menuitem-iconic save-buffer-icon"
+			label="&sv.save;"
+			oncommand="sv.rbrowser.do('save')"
+			testDisableIf="t:cannotSave"
+			accesskey="S" />
+
+		<menuseparator keep="false" intoplevel="true"/>
+		<menuitem id="menu_rbrowser_help"
+			label="&sv.help;"
+			oncommand="sv.rbrowser.do('help')"
+			testDisableIf="t:multipleSelection t:noHelp"
+			accesskey="H" />
+	</menupopup>
+</popupset>
+
+
+<vbox flex="1" id="rbrowserViewbox_rbrowserWrapper">
+	<vbox flex="99" id="rbrowserViewbox_rbrowser">
+		<hbox align="center" id="rbrowserToolbar" class="toolbar-box"
+			type="icons">
+			<toolbarbutton id="rbrowser_refresh_button"
+				tooltiptext="&sv.refresh.tip;"
+				buttonstyle="pictures"
+				class="refresh-icon"
+				oncommand="sv.rbrowser.refreshAll()"/>
+
+				<toolbarbutton id="rbrowser_foldAll_button"
+					buttonstyle="pictures"
+					class="robjects-fold-all-icon"
+					oncommand="sv.rbrowser.foldAll(true)"
+					tooltiptext="&sv.foldAll;"/>
+				<toolbarbutton id="rbrowser_ExpandAll_button"
+					buttonstyle="pictures"
+					class="robjects-expand-all-icon"
+					oncommand="sv.rbrowser.foldAll(false)"
+					tooltiptext="&sv.unfoldAll;"/>
+
+				<toolbarseparator style="min-width:10px;" flex="1"/>
+
+		<!--		<toolbarbutton id="rbrowser_filter"
+					tooltiptext="&sv.filter.tip;"
+					buttonstyle="pictures" type="menu" orient="horizontal"
+					class="rightarrow-button-a r-objects-filter">
+					<menupopup id="rbrowser_filterPopup">
+						<menuitem id="rbrowser_context_filterByName"
+							label="&sv.filterByName;"
+							checked="true" accesskey="n" type="checkbox"
+							oncommand="sv.rbrowser.setFilterBy(this, 'name')"/>
+						<menuitem id="rbrowser_context_filterByClass"
+							label="&sv.filterByClass;"
+							accesskey="c" type="checkbox"
+							oncommand="sv.rbrowser.setFilterBy(this, 'class')"/>
+						<menuitem id="rbrowser_context_filterByGroup"
+							label="&sv.filterByGroup;"
+							accesskey="g" type="checkbox"
+							oncommand="sv.rbrowser.setFilterBy(this, 'group')"/>
+						<menuseparator/>
+						<menuitem id="rbrowser_context_clrFilter"
+							label="&sv.clrFilter;" accesskey="l"
+							oncommand="document.getElementById('rbrowser_filterbox').value = ''; sv.rbrowser.applyFilter();"/>
+					</menupopup>
+				</toolbarbutton>-->
+				<textbox id="rbrowser_filterbox" flex="1"
+					type="search" timeout="500"
+					tooltiptext="&sv.filter.tip;"
+					style="min-width: 40px; max-width: 200px; margin-right: 0px;"
+					class="search-box"
+					oncommand="sv.rbrowser.applyFilter();"
+					emptytext="&sv.filterEmptyText;"
+					/>
+
+				<toolbarbutton type="radio" group="filter"
+							   id="rbrowser_filterByName_button"
+							   checked="true"
+							   class="toolbarbutton-iconic"
+							   oncommand="sv.rbrowser.setFilterBy(this, 'name')"
+							   label="&sv.filterByName;"
+							   tooltiptext="&sv.filterByName;"
+							   />
+				<toolbarbutton id="rbrowser_filterByClass_button"
+							   type="radio" group="filter"
+							   oncommand="sv.rbrowser.setFilterBy(this, 'class')"
+							   label="&sv.filterByClass;"
+							   tooltiptext="&sv.filterByClass;"
+							   />
+
+			</hbox>
+
+			<vbox flex="5">
+				<tree flex="1" id="rbrowser_objects_tree"
+					persist="sortDirection sortResource"
+					sortDirection="ascending" sortResource="r-name"
+					enableColumnDrag="true"
+					onselect="sv.rbrowser.onEvent(event);"
+					onkeypress="sv.rbrowser.onEvent(event);">
+					<treecols>
+						<treecol id="r-name" label="&sv.Name;"
+							primary="true" sortActive="true"
+							persist="width ordinal hidden"
+							onclick="sv.rbrowser.sort(this);" ordinal="1" flex="4"/>
+						<splitter class="tree-splitter" ordinal="2"/>
+						<treecol id="r-dims" label="&sv.Dims;"
+							persist="width ordinal hidden"
+							onclick="sv.rbrowser.sort(this);" flex="1" ordinal="3"/>
+						<splitter class="tree-splitter" ordinal="4"/>
+						<treecol id="r-group" label="&sv.Group;"
+							flex="2" hidden="true" persist="width ordinal hidden"
+							onclick="sv.rbrowser.sort(this);" ordinal="5"/>
+						<splitter class="tree-splitter" ordinal="6"/>
+						<treecol id="r-class" label="&sv.Class;"
+							flex="2" hidden="true" persist="width ordinal hidden"
+							onclick="sv.rbrowser.sort(this);" ordinal="7"/>
+						<splitter class="tree-splitter" ordinal="8"/>
+						<treecol id="r-fullName" label="&sv.FullName;"
+							persist="width ordinal hidden" flex="1" hidden="true" ordinal="9"/>
+					</treecols>
+					<treechildren id="rbrowser_objects_tree_main"
+						ondraggesture="nsDragAndDrop.startDrag(event, sv.rbrowser.listObserver)"
+						ondragdrop="nsDragAndDrop.drop(event, sv.rbrowser.listObserver)"
+						ondragover="nsDragAndDrop.dragOver(event, sv.rbrowser.listObserver)"
+						onclick="sv.rbrowser.onEvent(event)"
+						ondblclick="sv.rbrowser.onEvent(event)"
+						context="rObjectsContext">
+					</treechildren>
+				</tree>
+			</vbox>
+			<splitter id="rbrowserSubpanelSplitter"
+				orient="vertical"
+				resizeafter="farthest"
+				ondblclick="sv.rbrowser.toggleViewSearchPath()"
+				collapse="none">
+				<hbox id="rbrowserSubpanelSplitterHbox"
+					  flex="1"
+					  align="center">
+				  <!-- Using a deck inside a splitter causes layout problems on Linux,
+					   see bug 88126. This is unfortunate, as it makes it near
+					   impossible to overlay with another widget.
+					-->
+				  <label id="rbrowserSubpanelSplitterProjectLabel"
+						 value="R search path" />
+				  <!-- Note: We intentionally do not use a child 'menupopup' element
+					here because there is some interaction with the containing
+					splitter such that you can't invoke the menu entries, at least
+					on Mac. Using a separate 'popup' outside of the splitter is
+					a workaround. -->
+				  <!-- Note #2: this menu comes from popup_project
+					   via ko.places.projects.initProjectMRUCogMenu_MPV()
+					 -->
+				  <toolbarbutton id="rbrowserSubpanelToggle"
+					  buttonstyle="pictures"
+					  oncommand="sv.rbrowser.toggleViewSearchPath()"
+					  persist="state"
+					  state="collapsed" />
+				</hbox>
+			</splitter>
+
+			<vbox id="rbrowserSubpanelBox"
+				persist="height collapsed" collapsed="true" flex="1">
+				<listbox flex="1" id="rbrowser_searchpath_listbox"
+					ondragdrop="nsDragAndDrop.drop(event, sv.rbrowser.packageListObserver);"
+					ondragover="nsDragAndDrop.dragOver(event, sv.rbrowser.packageListObserver);"
+					ondraggesture="nsDragAndDrop.startDrag(event, sv.rbrowser.packageListObserver);"
+					onkeypress="sv.rbrowser.packageListKeyEvent(event);"
+					oncommand="sv.rbrowser.packageSelectedEvent(event);"/>
+			</vbox>
+		</vbox>
+	</vbox>
+</page>

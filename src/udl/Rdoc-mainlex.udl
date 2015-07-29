@@ -1,0 +1,175 @@
+language Rdoc
+
+initial IN_RD_DEFAULT
+
+#===============================================================================
+family ssl
+sublanguage R
+#{{
+
+start_style SSL_DEFAULT
+end_style SSL_VARIABLE
+
+pattern WS = ' \t\r\n'
+pattern LTR = 'a-zA-Z\d'
+pattern OP = '\{\}'
+
+
+state IN_R_DEFAULT :
+/\\dont(run|show)(?=\{)/ : paint(upto, SSL_DEFAULT), paint(include, TPL_WORD), => IN_R_RDDONTTAG # \dontrun{
+/\\[$OP]/ : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)          # \{ 
+/\\[$LTR]+\b/ : paint(upto, SSL_DEFAULT), paint(include, SSL_REGEX)         # \xxxx
+/\\./ : #paint(upto, SSL_DEFAULT), paint(include, SSL_DEFAULT)
+
+/[$WS]+/  : #stay
+'#' : paint(upto, SSL_DEFAULT), paint(include, SSL_COMMENT), at_eol(IN_R_DEFAULT), => IN_R_COMMENT
+/[$LTR]/ : paint(upto, SSL_DEFAULT), redo, => IN_R_NAME
+
+'(' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_PARENS_2
+/[,\)]/ : paint(upto, SSL_DEFAULT), redo, spop_check, => IN_R_PARENS_BAD
+
+'{' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), spush_check(IN_R_CLOSEBRACE), => IN_R_DEFAULT
+'}' : paint(upto, SSL_DEFAULT), redo, spop_check, => IN_R_CLOSEBRACE_BAD
+
+state IN_R_RDDONTTAG :
+'{' : paint(include, TPL_OPERATOR), spush_check(IN_R_RDDONTTAG_CLOSEBRACE), => IN_R_DEFAULT
+/./ : redo, => IN_R_DEFAULT
+/[\r\n]/ : => IN_R_DEFAULT
+
+state IN_R_RDDONTTAG_CLOSEBRACE :
+'}' : paint(include, TPL_OPERATOR), => IN_R_DEFAULT
+/./ : redo, => IN_R_DEFAULT
+/[\r\n]/ : => IN_R_DEFAULT
+
+state IN_R_CLOSEBRACE :
+'}' : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+/./ : redo, => IN_R_DEFAULT
+/[\r\n]/ : => IN_R_DEFAULT
+
+state IN_R_CLOSEBRACE_BAD:
+'}' : redo, => IN_RD_EXAMPLES_END
+/./ : redo, => IN_R_DEFAULT
+/[\r\n]/ : => IN_R_DEFAULT
+
+state IN_R_COMMENT:
+/$/ : paint(upto, SSL_COMMENT), => IN_R_DEFAULT
+
+state IN_R_NAME:
+/function\b/ : paint(include, SSL_WORD), => IN_R_EXPECT_FUNPARENS_1
+/[$LTR]+/ : paint(include, SSL_IDENTIFIER), => IN_R_EXPECT_PARENS_1
+/./ : redo, => IN_R_DEFAULT
+
+# IN_R_NAME IN_R_EXPECT_PARENS_1 IN_R_PARENS_2 IN_R_DEFAULT IN_R_PARENS_1 IN_R_PARENS_2
+#       xxxx                     (            arg             ,       (redo) ,            arg
+ 
+state IN_R_EXPECT_FUNPARENS_1:
+/[$WS]+/  : #stay
+'(' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_FUNPARENS_2
+/./ : redo, => IN_R_DEFAULT
+
+state IN_R_EXPECT_PARENS_1:
+/[$WS]+/  : #stay
+'(' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_PARENS_2
+/./ : redo, => IN_R_DEFAULT
+
+state IN_R_FUNPARENS_1:
+',' : paint(include, SSL_OPERATOR), => IN_R_FUNPARENS_2
+')' : paint(include, SSL_OPERATOR),  => IN_R_DEFAULT
+/./ : redo, => IN_R_DEFAULT
+/[\r\n]/ : paint(upto, SSL_DEFAULT), => IN_R_DEFAULT
+
+state IN_R_PARENS_1:
+',' : paint(include, SSL_OPERATOR), => IN_R_PARENS_2
+')' : paint(include, SSL_OPERATOR),  => IN_R_DEFAULT
+/./ : redo, => IN_R_DEFAULT
+/[\r\n]/ : paint(upto, SSL_DEFAULT), => IN_R_DEFAULT
+
+state IN_R_FUNPARENS_2: # ",< XXXX> ...."
+/[$WS]+/  : #stay
+/[$LTR]+/ :  paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE), spush_check(IN_R_FUNPARENS_1), => IN_R_DEFAULT
+/./ : paint(include, SSL_REGEX), spush_check(IN_R_FUNPARENS_1), => IN_R_DEFAULT
+/[\r\n]/ : paint(upto, SSL_DEFAULT), => IN_R_DEFAULT
+
+state IN_R_PARENS_2: # ",<> ...."
+/[$WS]+/ : 
+/./ : redo, spush_check(IN_R_PARENS_1), => IN_R_DEFAULT
+
+state IN_R_PARENS_BAD:
+/[,\)\]]/ : paint(include, SSL_REGEX), => IN_R_DEFAULT
+/[$WS]/  : redo, => IN_R_DEFAULT
+
+
+#}}
+#===============================================================================
+family tpl
+sublanguage Rdoc
+#{{
+
+start_style TPL_DEFAULT
+end_style TPL_VARIABLE
+
+pattern WS = ' \t\r\n'
+pattern LTR = 'a-zA-Z\d'
+pattern OP = '\{\}'
+
+keyword_style TPL_IDENTIFIER => TPL_WORD
+
+#=== Default state =============================================================
+state IN_RD_DEFAULT:
+/\\examples(?=\{)/ : paint(upto, TPL_DEFAULT), paint(include, TPL_IDENTIFIER), => IN_RD_EXAMPLES_BEGIN
+/\\(?=[$LTR])/ :  paint(upto, TPL_DEFAULT), paint(include, TPL_OPERATOR), spush_check(IN_RD_DEFAULT), => IN_RD_TAG_1
+'%' : paint(upto, TPL_DEFAULT), paint(include, TPL_COMMENT), at_eol(IN_RD_DEFAULT), => IN_RD_COMMENT
+/[$WS]+/ :
+/./ :
+
+state IN_RD_TAG_1:
+/[$LTR]+/ : paint(include, TPL_IDENTIFIER), => IN_RD_TAG_2
+/./ : redo, spop_check, => IN_RD_DEFAULT
+
+state IN_RD_TAG_2:
+'[' : paint(include, TPL_OPERATOR), => IN_RD_TAG_3
+'{' : paint(include, TPL_OPERATOR), => IN_RD_TAG_CONTENT
+/./ : redo, spop_check, => IN_RD_DEFAULT
+
+state IN_RD_TAG_3:
+'%' : paint(upto, TPL_STRING), paint(include, TPL_COMMENT), at_eol(IN_RD_TAG_3), => IN_RD_COMMENT
+']{' : paint(upto, TPL_VARIABLE), paint(include, TPL_OPERATOR), => IN_RD_TAG_CONTENT
+']' : paint(upto, TPL_VARIABLE), paint(include, TPL_OPERATOR), spop_check, => IN_RD_DEFAULT
+/./ : 
+
+state IN_RD_TAG_CONTENT:
+'%' : paint(upto, TPL_STRING), paint(include, TPL_COMMENT), at_eol(IN_RD_TAG_CONTENT), => IN_RD_COMMENT
+/\\(?=[$LTR])/ : paint(upto, TPL_STRING), paint(include, TPL_OPERATOR), spush_check(IN_RD_TAG_CONTENT), => IN_RD_TAG_1 
+/\\./ : 
+'{' : paint(upto, TPL_STRING), paint(include, TPL_OPERATOR), spush_check(IN_RD_TAG_CONTENT), => IN_RD_TAG_CONTENT
+'}{' : paint(upto, TPL_STRING), paint(include, TPL_OPERATOR)
+'}' : paint(upto, TPL_STRING), paint(include, TPL_OPERATOR), spop_check, => IN_RD_DEFAULT
+/./ :
+
+state IN_RD_COMMENT:
+/$/ : paint(upto, TPL_COMMENT), => IN_RD_DEFAULT
+
+state IN_RD_EXAMPLES_BEGIN:
+'{' : paint(include, TPL_OPERATOR), => IN_R_DEFAULT
+
+state IN_RD_EXAMPLES_END:
+'}' : paint(include, TPL_OPERATOR), => IN_RD_DEFAULT
+/./ : redo, => IN_R_DEFAULT
+
+
+#=== Fold info ==================================================================
+fold "{" TPL_OPERATOR +
+fold "}" TPL_OPERATOR -
+fold "%{{" TPL_COMMENT +
+fold "%}}" TPL_COMMENT -
+#}}
+
+#===============================================================================
+#{{
+family markup
+sublanguage xxx
+initial IN_M_DEFAULT
+state IN_M_DEFAULT:
+/./ : redo, => IN_RD_DEFAULT
+#}}
+

@@ -1,0 +1,11 @@
+radio.iconic .radio-check-box1,
+radio.iconic .radio-label {
+	display: none;
+}
+
+
+radio.iconic[selected=true] {
+	background-color: Highlight;
+	@import:
+}
+

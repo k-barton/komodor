@@ -1,0 +1,153 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/content/pkgman/pkgman.css" type="text/css"?>
+<!--<?xml-stylesheet href="file:///temp/pkgman/pkgman.css" type="text/css"?>-->
+
+<window id="svRRepositories" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	title="Set R repositories" persist="screenX screenY width height">
+<script type="application/x-javascript">
+<![CDATA[
+var sv, ko;
+if (window.parent && window.parent.sv) {
+	sv = window.parent.sv;
+	ko = window.parent.ko;
+}
+if(!sv) {
+	var p = parent;
+	while (p = p.opener) {
+		if (p.ko) {
+			sv = p.sv;
+			ko = p.ko;
+			break;
+	}}
+}
+//
+//function JSONDecode(str) {
+//	var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
+//			.createInstance(Components.interfaces.nsIJSON);
+//	try {
+//		return nativeJSON.decode(str);
+//	} catch(e) {
+//		return null;
+//	}
+//}
+
+sv.repositories = {};
+
+function pkgManGetRepositories() {
+	try {
+		var res = sv.io.JSONDecode(sv.rconn.evalAtOnce("sv_pkgManGetRepositories()"));
+	} catch(e) {
+		return;
+	}
+	var ret = {};
+	for(var i in res) ret[i] = res[i]['Contrib.URL'];
+	return ret;
+}
+
+
+function object2DOMElement(tagName, obj) {
+	var item = document.createElement("richlistitem");
+	for(i in obj) item.setAttribute(i, obj[i]);
+	return item;
+}
+
+function onLoad() {
+	try {
+		var res = sv.io.JSONDecode(sv.rconn.evalAtOnce("sv_pkgManGetRepositories()"));
+	} catch(e) {
+		return;
+	}
+	var list = document.getElementById("rRepositoryList");
+	list.parentNode.selectedIndex = 1;
+	var item, reposObj, selected;
+	for(var i in res) {
+		reposObj = res[i];
+		item = document.createElement("richlistitem");
+		item.id = i;
+		selected = reposObj.default.indexOf("TRUE") != -1;
+		item.setAttribute("checked", selected);
+		item.setAttribute("label", reposObj.menu_name);
+		item.setAttribute("url", reposObj.URL);
+		item.setAttribute("contribUrl", reposObj['Contrib.URL']);
+		list.appendChild(item);
+		sv.repositories[i] = reposObj['Contrib.URL'];
+		//item.reposUrl = reposObj.URL;
+	}
+		//var item = item0.cloneNode(true);
+		//
+		//
+		//var iname =  res[i]["menu_name"];
+		//item.setAttribute("control", iname + "-default");
+		//item.id = iname;
+		//for(var j in res[i]) {
+		//	elements = item.getElementsByAttribute("anonid", j);
+		//	if(elements.length) {
+		//		el = elements[0];
+		//		if(el.tagName == "checkbox") {
+		//			el.setAttribute("checked", res[i][j].trim() == "TRUE");
+		//			el.id = iname + "-" + j;
+		//		} else {
+		//			el.setAttribute("value", res[i][j]);
+		//		}
+		//	}
+		//}
+	//}
+	//list.addEventListener("select", onListSelect, false);
+}
+
+function applyRepositories() {
+	var list = document.getElementById("rRepositoryList");
+	sv.cmdout.clear();
+	var res = [];
+	for(var i = 0, l = list.itemCount; i < l; i++) {
+		var item = list.getItemAtIndex(i);
+		if(item.checked)
+			res.push('"' + item.id  + '"="' + 	item.reposUrl + '"');
+	}
+	if(!res.length)
+		ko.alert("At least one repository must be selected.");
+	else
+		sv.r.eval('options(repos=c(' + res.join(',\n\t')  + '))');
+}
+
+//function onListSelect(el) {
+//	//alert(el.target.id);
+//	var list = document.getElementById("rRepositoryList");
+//	document.getElementById(list.selectedItem.getAttribute("control")).focus();
+//	sv.cmdout.append(list.selectedItem.id);
+//	sv.cmdout.append(list.selectedItem.getAttribute("control"));
+//
+//}
+
+addEventListener("load", onLoad, false);
+
+]]>
+</script>
+	<!--<richlistitem id="dummy000" onselect="alert(this.id)">-->
+	<!--	<hbox pack="start" align="left">-->
+	<!--	<checkbox anonid="default" />-->
+	<!--	<label anonid="menu_name" id="menuName"-->
+	<!--		style="font-weight: bold;"/>-->
+	<!--	<vbox>-->
+	<!--	<label anonid="URL" />-->
+	<!--	<label anonid="Contrib.URL" />-->
+	<!--	</vbox>-->
+	<!--	</hbox>-->
+	<!---->
+	<!--</richlistitem>-->
+
+<hbox>
+<button label="Apply changes" oncommand="applyRepositories()" />
+</hbox>
+<deck selectedIndex="0" flex="1">
+<box flex="1" pack="center">
+<vbox pack="center">
+	<label value="Not loaded" />
+	<button label="Refresh" oncommand="onLoad()" />
+</vbox>
+</box>
+<richlistbox id="rRepositoryList" class="rRepositoryList"
+		flex="1" />
+</deck>
+</window>

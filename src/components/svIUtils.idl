@@ -1,0 +1,59 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+#include "nsISimpleEnumerator.idl"
+#include "ISciMoz.idl"
+//#include "koIRunService.idl"
+
+// This is implemented in sv.rconn's JavaScript code.
+[scriptable, uuid(CA1BCF00-394D-11E0-BD69-0002A5D5C51B)]
+interface svIStuffListener: nsISupports {
+    AUTF8String onStuff(in AUTF8String data);
+};
+
+[scriptable, uuid(22D0115A-0BC6-609F-194A-6F79EEA56633)]
+interface svICommandInfo: nsISupports {
+    readonly attribute ACString commandId;
+    readonly attribute AUTF8String command;
+    readonly attribute ACString mode;
+	attribute AUTF8String message;
+	attribute AUTF8String result;
+	ACString styledResult();
+};
+
+[scriptable, uuid(a8495e7c-4a1a-4d44-a872-4b25abd2c417)]
+interface svIUtils : nsISupports {
+    nsISimpleEnumerator getproc(in string propertyName);
+	AUTF8String evalInR(in AUTF8String command, in ACString mode, in double timeout);
+	void evalInRNotify(in AUTF8String command, in ACString mode, in ACString uid);
+	long startSocketServer(in svIStuffListener requestHandler);
+	void stopSocketServer();
+	void setSocketInfo(in ACString host, in long port, in boolean outgoing);
+	readonly attribute AUTF8String lastCommand;
+	readonly attribute AUTF8String lastResult;
+	readonly attribute AUTF8String lastMessage;
+	readonly attribute svICommandInfo lastCommandInfo;
+	attribute ISciMoz outScimoz;
+	void printResult(in svICommandInfo cmdinfo);
+	boolean serverIsUp();
+	wstring pushLeft(in AUTF8String text, in ACString eol, in long indent, in long tabwidth);
+	ACString uid();
+	//ACString makeStyledText(in AUTF8String text);
+    void escape();
+    //void calltip(in AUTF8String text);
+    //void complete(in AUTF8String text);
+
+	void x_talk(in AUTF8String rcode);
+	void x_start(in long port);
+	void x_cout(in AUTF8String s);
+
+};
+
+//[scriptable, uuid(16F32A31-EA47-5079-2F26-D98DC068E776)]
+//interface svRunService : nsISupports {
+//	koIRunProcess RunAndNotify(in wstring command, in wstring cwd,
+//        in wstring env, in AString input);
+//	koIRunProcess RunInTerminalAndNotify(in wstring command, in wstring cwd,
+//        in wstring env, in AString input);
+//};

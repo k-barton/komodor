@@ -1,0 +1,162 @@
+#=== Names and functions =======================================================
+state IN_R_NAME :
+/function/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), spush_check(IN_R_DEFAULT), => IN_R_FUNDEF_BEFOREPARENS
+/$NM(?=\s*::)/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), spush_check(IN_R_DEFAULT) => IN_R_FUN_BEFOREPARENS
+/$NM/ : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER), spush_check(IN_R_DEFAULT) => IN_R_FUN_BEFOREPARENS
+/`/ : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER),	spush_check(IN_R_FUN_AFTERBQNAME) => IN_R_BQNAME
+/./ :  => IN_R_DEFAULT
+
+state IN_R_FUN_AFTERBQNAME:
+/./ : redo, spush_check(IN_R_DEFAULT), => IN_R_FUN_BEFOREPARENS # spush_check important!
+
+state IN_R_FUNDEF_BEFOREPARENS:
+'(' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_FUNDEF_PARENS
+/[$WS]/ : # stay
+/./ : redo, spop_check, => IN_R_DEFAULT
+
+state IN_R_FUN_BEFOREPARENS: # ~ IN_R_AFTER_NAME
+/[$BRACES]/ : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_FUN_PARENS
+/[$WS]/ : # stay
+/(?:[\$@]|::)/ : paint(upto, SSL_DEFAULT), redo, spush_check(IN_R_FUN_BEFOREPARENS), => IN_R_EXTRACTOR
+/./ : redo, spop_check, => IN_R_DEFAULT
+
+state IN_R_PARENS:
+/(?<=[$BRACEE])/ : spop_check, => IN_R_DEFAULT
+/[$WS]+/ : paint(include, SSL_DEFAULT) # stay
+/./ : redo, spush_check(IN_R_PARENS), redo, => IN_R_DEFAULT
+
+state IN_R_FUNDEF_PARENS:
+/(?<=\))/ : spop_check, => IN_R_DEFAULT
+',' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)
+/$NAMESTART/ : paint(upto, SSL_DEFAULT), spush_check(IN_R_FUNDEF_PARENS_ARGVAL), redo, => IN_R_PARENS_ARGNAME
+/[$WS]+/ :  # stay
+/./ : redo, => IN_R_FUNDEF_PARENS_ARGVAL
+
+state IN_R_FUN_PARENS:
+/(?<=[$BRACEE])/ : spop_check, => IN_R_DEFAULT
+/(?:$NM|$NBQ)(?:\s*=[^=])/ : paint(upto, SSL_DEFAULT), spush_check(IN_R_FUN_PARENS_ARGVAL), redo, => IN_R_PARENS_ARGNAME
+',' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)
+/[$WS]+/ :  # stay
+/./ : spush_check(IN_R_FUN_PARENS), redo, => IN_R_DEFAULT
+
+state IN_R_PARENS_ARGNAME:
+/$NM/ : paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE) # stay
+'`' : paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE),  spush_check(IN_R_PARENS_ARGNAME), => IN_R_BQARGNAME
+'=' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), spop_check, => IN_R_DEFAULT
+'#' : paint(upto, SSL_DEFAULT), paint(include, SSL_COMMENT), at_eol(IN_R_PARENS_ARGNAME), => IN_R_COMMENT
+/[$WS]+/ :  # stay
+/./ : redo, spop_check, => IN_R_DEFAULT
+
+state IN_R_FUNDEF_PARENS_ARGVAL:
+/(?<=[$BRACEE])/ : spop_check, => IN_R_DEFAULT
+',' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_FUNDEF_PARENS
+/[$WS]+/ :  # stay
+/./ : spush_check(IN_R_FUNDEF_PARENS), redo, => IN_R_DEFAULT
+
+state IN_R_FUN_PARENS_ARGVAL:
+/(?<=[$BRACEE])/ : spop_check, => IN_R_DEFAULT
+',' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), => IN_R_FUN_PARENS
+/[$WS]+/ :  # stay
+/./ : spush_check(IN_R_FUN_PARENS), redo, => IN_R_DEFAULT
+
+#=== Sub-elements [$/@/::] =====================================================
+state IN_R_EXTRACTOR:
+/[\$@]/ token_check : paint(include, SSL_OPERATOR), => IN_R_ELEMENTOF
+# Paint as sth wrong and go back (avoiding infinite redo loop):
+/[\$@]/ : paint(include, SSL_REGEX), spop_check, => IN_R_DEFAULT
+/:::?/  : paint(include, SSL_OPERATOR), => IN_R_NAME
+/[$WS]+/ : paint(include, SSL_DEFAULT), spop_check, => IN_R_DEFAULT
+/./ : redo, spop_check, => IN_R_DEFAULT
+/\z/ : paint(include, SSL_DEFAULT), spop_check, => IN_R_DEFAULT
+
+state IN_R_ELEMENTOF:
+/[$LTR\.][$LTR\d\._]*/ : paint(upto, SSL_DEFAULT),  no_keyword, \
+    paint(include, SSL_VARIABLE), spop_check, => IN_R_DEFAULT
+'`' : paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE), => IN_R_BQVARIABLE
+'#' : paint(upto, SSL_DEFAULT), paint(include, SSL_COMMENT), \
+    at_eol(IN_R_ELEMENTOF), => IN_R_COMMENT
+/[$WS]+/ :  # stay
+/./ : redo, spop_check, => IN_R_DEFAULT
+
+
+#=== Comment ===================================================================
+
+state IN_R_COMMENT:
+/$/  : paint(upto, SSL_COMMENT), => IN_R_DEFAULT
+
+#=== String-like ===============================================================
+
+state IN_R_BQNAME:
+/\\./ : #stay
+'`' :  paint(include, SSL_IDENTIFIER), spop_check => IN_R_DEFAULT
+
+state IN_R_BQARGNAME:
+/\\./ : #stay
+'`' :  paint(include, SSL_VARIABLE), spop_check => IN_R_DEFAULT
+
+state IN_R_BQVARIABLE:
+/\\./ : #stay
+'`' :  paint(include, SSL_VARIABLE), spop_check => IN_R_DEFAULT
+
+state IN_R_DSTRING:
+/\\./ : #stay
+'"' :  paint(include, SSL_STRING), => IN_R_DEFAULT
+
+state IN_R_SSTRING:
+/\\./ : 
+'\'' :  paint(include, SSL_STRING), => IN_R_DEFAULT
+
+#=== Numbers ===================================================================
+
+state IN_R_NUMBER_1 :
+'.' : => IN_R_NUMBER_2
+/[\d]/ : #stay
+/[Ee][-+]?/ : => IN_R_NUMBER_3
+'L' : paint(include, SSL_NUMBER), => IN_R_DEFAULT
+/./ : paint(upto, SSL_NUMBER), redo, => IN_R_DEFAULT
+
+state IN_R_NUMBER_2:
+/[\d]/ : #stay
+/[Ee][-+]?/ : => IN_R_NUMBER_3
+'L' : paint(include, SSL_NUMBER), => IN_R_DEFAULT
+/./ : paint(upto, SSL_NUMBER), redo, => IN_R_DEFAULT
+
+state IN_R_NUMBER_3:
+'L' : paint(include, SSL_NUMBER), => IN_R_DEFAULT
+/[^\d]/ : paint(upto, SSL_NUMBER), redo, => IN_R_DEFAULT
+
+#=== Operators =================================================================
+
+state IN_R_OP1:
+/%[^%]*(?:%|$)/ : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+
+# Single-char operator
+/[$OP](?:(?![$OP])|$)/ : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+
+# Otherwise look from longest to smallest
+'>=' : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+'<=' : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+'!=' : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+'==' : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+/[$OP]/ : paint(include, SSL_OPERATOR), => IN_R_DEFAULT
+
+#=== Token check rules =========================================================
+# When to accept extractors "$" and "@"
+token_check:
+SSL_OPERATOR: accept [")", "]", "}"]
+SSL_WORD: accept all
+SSL_VARIABLE: accept all
+SSL_IDENTIFIER: accept all
+SSL_DEFAULT: skip all
+SSL_COMMENT: skip all
+SSL_COMMENTBLOCK: skip all
+
+#=== Fold info ==================================================================
+fold "{" SSL_OPERATOR +
+fold "}" SSL_OPERATOR -
+
+fold "(" SSL_OPERATOR +
+fold ")" SSL_OPERATOR -
+
+fold "#{{" SSL_COMMENT +
+fold "#}}" SSL_COMMENT -

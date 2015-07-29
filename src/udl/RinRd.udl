@@ -1,0 +1,61 @@
+family ssl
+sublanguage R
+
+include "Rkeywords.udl"
+
+keyword_style SSL_IDENTIFIER => SSL_WORD
+
+# initial IN_R_DEFAULT
+
+pattern WS = '\s\t\r\n'
+pattern LTR = 'a-zA-Z\x80-\xff'
+pattern NAMESTART = '[$LTR\.`]'
+pattern NM = '[$LTR\.][$LTR\d\._]*' 
+pattern NBQ = '`([^`]|\\.)+`'
+pattern BRACEE = '\)\]'
+pattern BRACES = '\(\['
+pattern OP = '!%&\*\+,-\/;<=>\?\^\{\}~|'
+
+# required for token_check:
+start_style SSL_DEFAULT
+end_style SSL_VARIABLE
+
+#=== Default state =============================================================
+state IN_R_DEFAULT:
+'#' : paint(upto, SSL_DEFAULT), at_eol(IN_R_DEFAULT), => IN_R_COMMENT
+
+/\\dont(run|show)(?=\{)/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), => IN_R_DEFAULT
+/\\[$OP]/ : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)
+
+/[$WS]+/  : #stay
+
+/0[Xx][0-9a-fA-F]+L?/ : paint(upto, SSL_DEFAULT), paint(include, SSL_NUMBER)
+/\d/ : paint(upto, SSL_DEFAULT), => IN_R_NUMBER_1
+/\.\d/ : paint(upto, SSL_DEFAULT), => IN_R_NUMBER_2
+/[-+]\./ : paint(upto, SSL_DEFAULT), => IN_R_NUMBER_2
+
+'"' : paint(upto, SSL_DEFAULT), => IN_R_DSTRING
+'\'' : paint(upto, SSL_DEFAULT), => IN_R_SSTRING
+
+/$NAMESTART/ : paint(upto, SSL_DEFAULT), redo, => IN_R_NAME
+
+# First track braces
+'{' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), \
+	spush_check(IN_CLOSEBRACE), => IN_R_DEFAULT
+'}' : paint(upto, SSL_DEFAULT), redo, spop_check, => IN_R_DEFAULT  
+
+/[\$@]/ : paint(upto, SSL_DEFAULT), redo, => IN_R_EXTRACTOR
+
+# on ',])' return to 'IN_R_*_PARENS' if it is a parent state:
+/[,$BRACEE]/ : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), spop_check, => IN_R_DEFAULT
+# expression parentheses, not after a name:
+/[$BRACES]/ : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), spush_check(IN_R_DEFAULT), => IN_R_PARENS
+
+/[$OP]/ : paint(upto, SSL_DEFAULT), redo, => IN_R_OP1
+
+state IN_CLOSEBRACE :
+'}' : paint(include, SSL_OPERATOR), => IN_R_DEFAULT  
+
+include "R-common.udl"
+
+# <eof>
