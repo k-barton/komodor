@@ -1,4 +1,4 @@
-#![KomodoR logo](src/skin/images/appicon.png) komodor
+#![KomodoR logo](src/skin/images/appicon.png) KomodoR
 ===========================
 
 
