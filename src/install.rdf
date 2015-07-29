@@ -5,12 +5,13 @@
 		<em:unpack>true</em:unpack>
         <em:id>komodor@komodor</em:id>
         <em:name>R interface</em:name>
-        <em:version>1.1.148</em:version>
+        <em:version>0.1.148</em:version>
         <em:description>Integrate R with Komodo</em:description>
 	    <em:creator>Kamil Barto&#324;</em:creator>
         <em:contributor>Philippe Grosjean</em:contributor>
 		<em:contributor>Romain Francois</em:contributor>
         <em:iconURL>chrome://komodor/skin/images/appicon.png</em:iconURL>
+        <em:homepageURL>https://github.com/k-barton/komodor</em:homepageURL>
         <em:type>2</em:type> <!-- type=extension -->
         <em:targetApplication>
             <Description>

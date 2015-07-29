@@ -14,7 +14,7 @@ Philippe Grosjean, but it has been almost completely rewritten since.
 packages are required. In R environment, socket server is implemented in Tcl, so
 your R installation needs to have Tcl capability (`capabilities("tcltk")`).
 
-## **KomodoR**'s features:
+## *KomodoR*'s features:
 * execution of R code from within Komodo:
       * execute/source line, selection, bookmark delimited block, function at 
         cursor, or whole file 
@@ -42,6 +42,9 @@ properly (at least on Windows) and need to kill the process.
     * Preferences->R->R application: dissappears on refresh
     * R package manager: available packages list does not show
     * R help window: search from address box does not work
+    * Remove bookmark margin click preferences
+    * Remove unused preferences
+    * On Komodo9 .R files open as Text
 
 
 
