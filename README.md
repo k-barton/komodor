@@ -38,6 +38,9 @@ your R installation needs to have Tcl capability (`capabilities("tcltk")`).
  in **R** console.
 * Problems with connection with Komodo server in R may cause R will not exit 
 properly (at least on Windows) and need to kill the process.
+* Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
+  colouring dissappears occassionally. This seems to be related to brace 
+  counting in UDL (spush_check/spop_check).
 * FIXMEs:
     * Preferences->R->R application: dissappears on refresh
     * R package manager: available packages list does not show
