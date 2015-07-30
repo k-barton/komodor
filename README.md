@@ -1,4 +1,4 @@
-#![KomodoR logo](src/skin/images/appicon.png)
+![KomodoR logo](src/skin/images/appicon.png)
 This extension provides language support and interface for [R](https://www.r-project.org/) in Komodo.
 
 It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
