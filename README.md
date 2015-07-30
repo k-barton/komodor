@@ -9,9 +9,10 @@ Philippe Grosjean, but it has been almost completely rewritten since.
 
 **Features:**
 
+* start R from Komodo
 * execution of code in R from within editor:
       * output is shown in the Command output pane  
-      * execute (or `source`) current line or selection, bookmark delimited block, function at 
+      * execute (or `source`) current line or selection, bookmark-delimited block, function at 
         cursor, or whole file 
 * syntax highlighting:
       * R including Roxygen tags
@@ -20,33 +21,34 @@ Philippe Grosjean, but it has been almost completely rewritten since.
 * code completion
 * syntax checking
 * R object browser (sidebar)
-* R toolbar
+* toolbar with commonly used commands
 * R help window inside Komodo
 * R package manager
+* change R working directory from Places 
 * execute a JavaScript command in Komodo from within R (use `koCmd` function in R)
 
-**KomodoR** uses socket connection to communicate with **R**. No additional R 
-packages are required. The socket server in R environment is implemented in Tcl, so
+A socket connection is used to communicate with **R**. No additional R 
+packages are required, however the socket server in R environment is implemented in Tcl, so
 your R installation needs to have Tcl capability (`capabilities("tcltk")`).
-
 
 **Known issues:**
 
-* Output from R is displayed in the command output pane only at the end of operation
+* Output from R is displayed in the command output pane only at the end of operation 
+  (and this is unlikely to change with the current method of communication with R)
 * Debugging R's functions using `browser()`: code using `browser` executed
- from within Komodo interrupts the communication and no output will be 
- displayed. Code containing `browser` calls should be used directly 
- in R console.
+  from within Komodo interrupts the communication and no output will be 
+  displayed. Code containing `browser` calls should be used directly 
+  in R console.
 * Problems with connection with Komodo server in R may cause R will not exit 
-properly (at least on Windows) and need to kill the process.
+  properly (at least on Windows) and need to kill the R process.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
   counting in UDL (spush_check/spop_check).
 * Minor bugs :
     * Preferences->R->R application: dissappears on refresh
     * R package manager: available packages list does not show
-    * R help window: search from address box does not work
+    * R help window: search from address bar does not work with current version of R
     * Dead bookmark margin click preference
     * Some preferences are unused
-    * On Komodo9 .R files open as Text
+    * On Komodo 9, .R files opened as "Text" (need to set language manually to "R")
 
