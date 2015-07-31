@@ -49,10 +49,28 @@ in Tcl, so your R installation needs to have Tcl capability
 * Output from R is displayed in the command output pane only at the end of 
   operation (and this is unlikely to change with the current way of 
   communication with R)
-* Debugging R's functions using `browser()`: code using `browser` executed
-  from within Komodo interrupts the communication and no output will be 
+* Debugging in R using `browser()` or `recover`: these functions executed
+  from within Komodo interrupt the communication and no output will be 
   displayed. Code containing `browser` calls should be used directly 
-  in R console.
+  in R console. Currently the only way to debug code within a function in a 
+  similar way as `browser()` does is to change the current execution environment
+  using `svSetEnv(sys.frame())` within the function and afterwards set it back 
+  to `.GlobalEnv` with `svSetEnv()`. Example:
+
+```r
+        in.GlobalEnv <- TRUE
+        test <- function(d = 1, e = 2) {
+            in.test <- TRUE
+            svSetEnv(sys.frame(sys.nframe()))
+        }
+
+        test()
+        ls() # inside 'test'
+        #> [1] "d"     "e"     "f"     "in.test"
+        svSetEnv()
+        ls() #  back to .GlobalEnv
+        #> [1] "f1"           "f2"           "in.GlobalEnv"
+```
 * Problems with connection with Komodo server in R may cause R will not exit 
   properly (at least on Windows) and need to kill the R process.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
