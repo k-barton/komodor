@@ -58,18 +58,19 @@ in Tcl, so your R installation needs to have Tcl capability
   to `.GlobalEnv` with `svSetEnv()`. Example:
 
 ```r
-        in.GlobalEnv <- TRUE
-        test <- function(d = 1, e = 2) {
-            in.test <- TRUE
-            svSetEnv(sys.frame(sys.nframe()))
-        }
+    in.GlobalEnv <- TRUE
+    test <- function(arg1 = 1, arg2 = 2) {
+        in.test <- TRUE
+        svSetEnv(sys.frame(sys.nframe())) # instead of 'browser()'
+    }
 
-        test()
-        ls() # inside 'test'
-        #> [1] "d"     "e"     "f"     "in.test"
-        svSetEnv()
-        ls() #  back to .GlobalEnv
-        #> [1] "f1"           "f2"           "in.GlobalEnv"
+    test()
+    ls() # we're inside 'test' now
+    #> [1] "arg1"     "arg2"     "in.test"
+    
+    svSetEnv()
+    ls() #  back to .GlobalEnv
+    #> [1] "f1"           "f2"           "in.GlobalEnv"
 ```
 * Problems with connection with Komodo server in R may cause R will not exit 
   properly (at least on Windows) and need to kill the R process.
