@@ -1,36 +1,28 @@
 <?xml version="1.0"?>
 <!-- ***** BEGIN LICENSE BLOCK *****
- Version: MPL 1.1/GPL 2.0/LGPL 2.1
+This file is part of "KomodoR", a Komodo add-on.
 
- The contents of this file are subject to the Mozilla Public License
- Version 1.1 (the "License"); you may not use this file except in
- compliance with the License. You may obtain a copy of the License at
- http://www.mozilla.org/MPL/
+"KomodoR" is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
 
- Software distributed under the License is distributed on an "AS IS"
- basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
- License for the specific language governing rights and limitations
- under the License.
+"KomodoR" is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
- The Original Code is SciViews-K by Philippe Grosjean et al.
+You should have received a copy of the GNU General Public License
+along with Foobar.
+	
+	If not, see <http://www.gnu.org/licenses/>.
 
- Contributor(s):
-   Philippe Grosjean
-   ActiveState Software Inc (code inspired from)
-
- Alternatively, the contents of this file may be used under the terms of
- either the GNU General Public License Version 2 or later (the "GPL"), or
- the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- in which case the provisions of the GPL or the LGPL are applicable instead
- of those above. If you wish to allow use of your version of this file only
- under the terms of either the GPL or the LGPL, and not to allow others to
- use your version of this file under the terms of the MPL, indicate your
- decision by deleting the provisions above and replace them with the notice
- and other provisions required by the GPL or the LGPL. If you do not delete
- the provisions above, a recipient may use your version of this file under
- the terms of any one of the MPL, the GPL or the LGPL.
-
- ***** END LICENSE BLOCK ***** -->
+Contributors:
+   Kamil Barton
+   This code is based on the original Sciviews-K code by Philippe Grosjean and
+     Kamil Barton
+ 
+***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE overlay PUBLIC "-//MOZILLA//DTD XUL V1.0//EN"
 	"http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" [
@@ -274,54 +266,15 @@ function rHelpSearch(topic) {
         );
 }
 
-//var cont = window._content;
-//var sel = cont.getSelection();
-//var text = sel.anchorNode.textContent;
-//var pos = sel.anchorOffset;
-//print(text.charCodeAt(pos));
-//
-//
-//var start = text[pos - 1] == '\n' ? pos - 1 : text.substr(0, pos - 1).lastIndexOf("\n") + 1;
-//if(start == -1) start = 0;
-//var end = pos + text.substr(pos, text.length).indexOf("\n");
-//
-//if(end == -1) end= text.length;
-//print(start + "," + end) print("*" + text.substring(start, end) + "*");
-//pos = cont.getSelection().anchorOffset;
-//for(var i = -3; i < 4; i++)
-//	print(i + "\t" + text[pos + i] + "//"+ text.charCodeAt(pos + i));
-//-1 //10
-
 function _getHomePage(browser, goTo) {
 	var isWin = navigator.platform.search(/Win\d+$/) === 0;
-    // Everything is changed in R 2.10
-	// Old code...
-	//var cmd = 'suppressMessages(make.packages.html()); ';
-	//cmd += 'options(htmlhelp = TRUE); ';
-	//cmd += "cat(" + (isWin? "R.home()" : "tempdir()") + ");";
-
-	// If it is the http server, we know that the help server is launched
-	// (it is the same), and we also know the port!
 	var res = false;
 	var cmd = "";
-	// Use only one type of connection for both client and server!
-	//if (sv.r.server == "http") {
-	/*if (sv.pref.getPref("sciviews.client.type", "socket") == "http") {
-        var port = sv.pref.getPref("sciviews.r.port", 8888);
-		var path = "http://127.0.0.1:" + port + "/doc/html/index.html";
-		browser.homePage = sv.helpStartURI = path;
-		//alert(browser.homePage);
-		if (goTo) go(path);
-	} else {*/ // socket, we must start the help server and ask for its port
-	    // return the home page of R >= 2.10 help system
+
 	cmd = 'cat(getHelpURL())';
 
-	res = sv.r.evalCallback(cmd, function (path) {
+	res = sv.r.evalAsync(cmd, function (path) {
 		path = sv.string.removeLastCRLF(path);
-		// Old treatment for R < 2.10
-		//path = sv.file.getfile(path,
-		//	[(isWin ? null : ".R"), "doc", "html", "index.html"]);
-		//path = sv.file.getURI(path);
 
 		// Get just the last line, get rid of the help.start's message
 		path = path.substring(path.lastIndexOf("\n") + 1);
@@ -360,7 +313,7 @@ function OnLoad (event) {
 		if (typeof(args[1]) != "undefined") page = args[1];
 	} else {
 		var p = parent;
-		while (p = p.opener) {
+		while ((p = p.opener)) {
 			if (p.sv) {
 				sv = p.sv;
 				break;

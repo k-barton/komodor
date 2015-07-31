@@ -29,12 +29,10 @@
 #
 # ***** END LICENSE BLOCK *****
 
-
-## This is an interface for communication with R through socket connection
-## with additional utilities
+# This is an interface for communication with R through socket connection
+# with additional utilities
 
 from xpcom import components, nsError, COMException
-# from xpcom._xpcom import getProxyForObject, PROXY_SYNC, PROXY_ALWAYS, PROXY_ASYNC
 from xpcom.server import WrapObject #, UnwrapObject
 import os, sys, re
 import string
@@ -248,7 +246,6 @@ class svUtils:
         result = result.rstrip()
         message = ''
         if useJSON:
-            ## TODO: try 'jsonlite' in R 
             # Fix bad JSON: R escapes nonprintable characters as octal numbers
             # (\OOO), but json needs unicode notation (\uHHHH).
             result = re.sub('(?<=\\\\)[0-9]{3}',
@@ -279,7 +276,6 @@ class svUtils:
         self.lastResult = result
         self.lastCommandInfo = WrapObject(cmdInfo, components.interfaces.svICommandInfo)
         if notify:
-            # self._proxiedObsSvc.notifyObservers(
             self.notifyObservers(
                 WrapObject(cmdInfo, components.interfaces.svICommandInfo),
                 'r-command-executed',
@@ -338,7 +334,6 @@ class svUtils:
         t.start()
         log.debug('Serving on port %d' % port)
         self.notifyObservers(self._asSInt(port), 'r-server-started', None)
-        # self._proxiedObsSvc.notifyObservers(self._asSInt(port), 'r-server-started', None)
         return port
 
     def stopSocketServer(self):
@@ -353,9 +348,6 @@ class svUtils:
         # requestHandler is a Javascript object with component 'onStuff'
         # which is a function accepting one argument (string), and returning
         # a string
-        #requestHandlerProxy = getProxyForObject(1L,
-        #    components.interfaces.svIStuffListener,
-        #    requestHandler, PROXY_ALWAYS | PROXY_SYNC)
         try:
             self.serverConn.listen(1)
             log.debug('Socket server listening at %d' % self.socketIn[1])
@@ -387,24 +379,22 @@ class svUtils:
                 conn.shutdown(socket.SHUT_RD)
                 log.debug('conn finished reading')
                 try:
-                    # result = requestHandlerProxy.onStuff(data_all)
                     result = self.requestHandlerEvent(requestHandler, data_all)
                 except Exception, e:
                     result = e.args[0]
                     log.debug('JS request exception: %s' % result)
                 if (result == None): conn.send('\n')
                 else: conn.send(result + '\n')
-                #log.debug('result was \'%s\'' % result)                
+            
                 conn.shutdown(socket.SHUT_RDWR)
                 conn.close()
                 log.debug('conn closed')
         except Exception, e:
             log.debug(e.args)
         self.stopSocketServer()
-        #self.serverConn.close()
+
         log.debug("Exiting after %d connections" % count)
         try:
-            # self._proxiedObsSvc.notifyObservers(None, 'r-server-stopped', None)
             self.notifyObservers(None, 'r-server-stopped', None)
         except Exception, e:
             log.debug(e)

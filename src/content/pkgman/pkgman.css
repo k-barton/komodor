@@ -51,7 +51,6 @@
 
 
 #viewGroup radio {
-  /*-moz-binding: url("file:///E:/Dokumenty/R-Forge/sciviews/komodo/SciViews-K-dev/content/pkgman/pkgman.xbl#viewbutton");*/
   -moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#viewbutton");
   -moz-box-orient: vertical;
   -moz-box-align: center;
@@ -223,14 +222,9 @@ richlistitem[installed][selected] {
 	/*opacity: 0.3;*/
 }
 
-
-
 richlistitem:not([selected])[old] {
 	background-color: #d3ffa8;
 }
-
-
-
 
 tab:first-child {
 	-moz-border-radius: 6px 6px 0px 0px;

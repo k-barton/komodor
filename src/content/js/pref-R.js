@@ -81,8 +81,6 @@ function PrefR_menulistSetValue(menuList, value, attrName, vdefault) {
 	}
 }
 
-//sv.command.openHelp("http://finzi.psych.upenn.edu/library/base/html/Startup.html")
-
 // List of R applications
 // Constructor
 function _App(id, name, path, app, required, platform) {
@@ -102,9 +100,6 @@ new _App("r-gnome-term", "in Gnome terminal", "gnome-terminal --hide-menubar --w
 new _App("r-kde-term", "in Konsole", "konsole --workdir '%cwd%' --title %title% -e \"%Path%\" %args%", "R", "konsole,R", "Lin"),
 new _App("r-xfce4-term", "in XFCE terminal", "xfce4-terminal --title \"%title%\" -x \"%Path%\" %args%", "R",  "xfce4-terminal,R", "Lin"),
 new _App("r-app", "R app", "open -a \"%Path%\" \"%cwd%\"", "R.app", "/Applications/R.app", "Mac"),
-new _App("r64-app", "R64 app", "open -a \"%Path%\" \"%cwd%\"", "R64.app", "/Applications/R64.app", "Mac"),
-new _App("svr-app", "SciViews R app", "open -a \"%Path%\" \"%cwd%\"", "SciViews R.app", "/Applications/SciViews R.app", "Mac"),
-new _App("svr64-app", "SciViews R64 app", "open -a \"%Path%\" \"%cwd%\"", "SciViews R64.app", "/Applications/SciViews R64.app", "Mac"),
 new _App("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "Win"),
 new _App("r-tk", "R Tk GUI", "\"%Path%\" --interactive --gui:Tk %args%", "R", "R", "Lin,Mac")
 ];
@@ -326,9 +321,6 @@ function PrefR_updateCommandLine(update) {
 
     var cmdArgs = document.getElementById("svRArgs").value;
 	var args1 = "";
-
-	//if(document.getElementById("sciviews.pkgs.sciviews").checked)
-		//args1 += " --svStartPkgs=SciViews,MASS,ellipse";
 
    	var cwd = sv.file.path("ProfD", "extensions",
 		"komodor@komodor", "R");

@@ -1,16 +1,18 @@
-# 'imports'
-compareVersion <- utils::compareVersion
-available.packages <- utils::available.packages
-installed.packages <- utils::installed.packages
-install.packages <- utils::install.packages
-remove.packages <- utils::remove.packages
-old.packages <- utils::old.packages
-packageDescription <- utils::packageDescription
-getCRANmirrors <- utils::getCRANmirrors
-write.table <- utils::write.table
-contrib.url <- utils::contrib.url
+# <LICENSE BLOCK:KomodoR>
 
-sv_pkgManGetDescription <- function(pkg, print=TRUE) {
+# this should be evaluated in "komodoConnection" environment
+# 'imports'
+fromEnv <- asNamespace("utils")
+toEnv <- as.environment("komodoConnection")
+for(x in c("compareVersion", "available.packages", "installed.packages",
+"install.packages", "remove.packages", "old.packages", "packageDescription",
+"getCRANmirrors", "write.table", "contrib.url"))
+	assign(x, get(x, fromEnv), envir = toEnv)
+rm(fromEnv, toEnv, x)
+
+
+sv_pkgManGetDescription <-
+function(pkg, print = TRUE) {
 	if (pkg %in% rownames(installed.packages())) {
 		desc <- packageDescription(pkg)
 	} else {

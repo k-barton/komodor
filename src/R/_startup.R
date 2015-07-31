@@ -1,7 +1,9 @@
-options(json.method="R")
+# <LICENSE BLOCK:KomodoR>
 
-if(exists("stopAllConnections", mode="function")) stopAllConnections()
-if(exists("stopAllServers", mode="function")) stopAllServers()
+options(json.method = "R")
+
+if (exists("stopAllConnections", mode = "function")) stopAllConnections()
+if (exists("stopAllServers", mode = "function")) stopAllServers() 
 
 if("komodoConnection" %in% search()) detach("komodoConnection")
 attach(new.env(), name = "komodoConnection")
@@ -11,19 +13,17 @@ with(as.environment("komodoConnection"), {
 	sv_CurrentEnvir <- .GlobalEnv
 	svSetEnv <- function(envir = .GlobalEnv) {
 		assign("sv_CurrentEnvir", envir, envir = as.environment("komodoConnection"))
-	}
+	} 
 
+	`koMsg` <- function(...) cat(..., "\n")
 
-	`koMsg` <- function(...) {
-		cat(..., "\n")
-	}
-
-	`svPager` <- function (files, header, title, delete.file) {
+	svPager <- function(files, header, title, delete.file) {
 		files <- gsub("\\", "\\\\", files[1L], fixed = TRUE)
-		tryCatch(koCmd(sprintf('sv.r.pager("%1$s", "%2$s", %3$s)',
-			 files, title, if (delete.file) 'true' else 'false')),
-			error=function(e) utils::browseURL(files, NULL))
-	}
+		tryCatch(koCmd(sprintf("sv.r.pager(\"%1$s\", \"%2$s\", %3$s)",
+			files, title,
+			if (delete.file)  "true" else "false")),
+			error = function(e) utils::browseURL(files, NULL))
+	} 
 
 	`svBrowser` <- function(url) {
 		url <- gsub("\\", "\\\\", url, fixed = TRUE)
@@ -36,20 +36,17 @@ with(as.environment("komodoConnection"), {
 			)
 	}
 	
-	#XXX: does not work:
+	# XXX: does not work:
 	local({
 		tryCatch({
 			require(utils)
-			`readline` <- function (prompt = "")
-				paste(koCmd(sprintf("ko.dialogs.prompt('%s', '', '', 'R asked a question', 'R-readline')", prompt),
-				timeout=0), collapse = " ")
+			readline <- function(prompt = "") paste(koCmd(sprintf("ko.dialogs.prompt('%s', '', '', 'R asked a question', 'R-readline')", prompt), timeout = 0), collapse = " ")
 		}, error = function(e) {
 			# Nothing...
 		})
-	})
+	}) 
 
 	options(browser = svBrowser, pager = svPager)
-
 
 	# a way round to get the url:
     `getHelpURL` <-
@@ -66,8 +63,7 @@ with(as.environment("komodoConnection"), {
         if(missing(topic)){
               host <- "http://127.0.0.1"
             helpURI <- if(is.null(package)) {
-                paste(host, ":", httpdPort, "/doc/html/index.html",
-                  sep = "")
+                paste0(host, ":", httpdPort, "/doc/html/index.html")
             } else {
                 package <- package[1L]
                 if(system.file("html/00Index.html", package = package) != "")
@@ -141,7 +137,7 @@ local({
 
 	if(.Platform$GUI == "Rgui") {
 		##if(file.exists("Rconsole"))	utils:::loadRconsole("Rconsole")
-		utils::setWindowTitle("talking to Komodo")
+		utils::setWindowTitle("[connected to Komodo]")
 	}
 
 	#sys.load.image(".RData", FALSE)
@@ -160,7 +156,7 @@ local({
 			"sv.cmdout.clear()",
 			sprintf("sv.cmdout.append('%s is started')", R.version.string),
 			"sv.command.updateRStatus(true)",
-			# "sv.rbrowser.smartRefresh(true)", # not before workspace is loaded
+			# "sv.rbrowser.refresh(true)", # not before workspace is loaded
 			sprintf("sv.pref.setPref('sciviews.r.port', %s)", portstr),
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
 				&& file.exists(".RData")) {
@@ -174,17 +170,16 @@ local({
 	}
 
 	assign(".First", function() {
-			invisible(koCmd("sv.rbrowser.smartRefresh(true)"))
-			#cat("Komodo is refreshed \n")
+			invisible(koCmd("sv.rbrowser.refresh(true)"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct
 		}, .GlobalEnv)
 
 
 	assign(".Last", function() {
 		tryCatch({
-		koCmd("sv.addNotification(\"R says bye!\"); sv.command.updateRStatus(false);")
-		stopAllServers()
-		stopAllConnections()
-		}, error = function(...) NULL)
+			koCmd("sv.addNotification(\"R says bye!\"); sv.command.updateRStatus(false);")
+			stopAllServers()
+			stopAllConnections()
+			}, error = function(...) NULL)
 	}, .GlobalEnv)
 })

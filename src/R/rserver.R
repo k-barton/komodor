@@ -1,8 +1,13 @@
-#
+# <LICENSE BLOCK:KomodoR->Rserver>
+
 # Simple communication between R and a client through a socket connection
 # (c) 2011-2012 Kamil Barton
 #
-# Files: 'rserver.R' 'rserver.tcl' 'sv_captureAll.R' (or package svMisc)
+# Files: 
+#    rserver.R
+#    rserver.tcl
+#    sv_captureAll.R
+# 
 # Result is evaluated in R and sent back in JSON format
 # Client should format the data in a following way:
 # - escape newline, carriage returns, formfeeds and backslashes with a backslash
@@ -92,27 +97,8 @@ tcl <- tcltk::tcl
 #-------------------------------------------------------------------------------
 `TclReval` <- function(x, id, mode) {
 
-	#command format "\x01.[eHhuQq][<uid>][ESC] code to be evaluated....\r\n"
-	## DEBUG
-	#cl <- match.call()
-	#cl[[1]] <- as.name("TclReval")
-	#cl <- deparse(cl)
-	#Encoding(cl) <- "UTF-8"
-	#cat(cl, "\n")
-	## DEBUG
-
 	if (x != "") {
 		Encoding(x) <- "UTF-8"
-		# This is now done by Tcl (DoServe)
-		#if(substr(x, 1L, 1L) == '\x01') {
-			#xmode <- substr(x, 2L, 2L)
-		#	x <- substr(x, 3L, nchar(x))
-		#} else {
-		#	x <- gsub("^((<<<[\\w=]+>>>)+)", "", x, perl=TRUE) # TODO: mode handling
-		#	x <- gsub("<<<n>>>", "\n", x, fixed=TRUE)
-		#	xmode <- 'e'
-		#}
-
 		prevcodeVarName <- paste("part", id, sep = ".")
 		.tempEnv <- TempEnv()
 
@@ -120,7 +106,6 @@ tcl <- tcltk::tcl
 			get(prevcodeVarName, .tempEnv, inherits = FALSE) else NULL
 
 		## check for ESCape character at the beginning. If one, break multiline
-		#print(x)
 		if(substr(x, 1L, 1L) == "\x1b") {
 			cat("ESC!\n")
 			x <- substr(x, 2L, nchar(x))
@@ -141,18 +126,13 @@ tcl <- tcltk::tcl
 				msg <- 'Parse error'
 			} else {
 				ret <- sv_captureAll(expr, markStdErr = TRUE, envir = sv_CurrentEnvir)
-				#browser()
-				#ret <- eval(call("sv_captureAll", expr, markStdErr=TRUE), envir=.GlobalEnv)
+				
 				msg <- 'Done'
-				# TODO: later
-				#lapply(unlist(strsplit(c(prevcode, x), "(\r?\n|\r)")), function(entry)
-				#	.Internal(addhistory(entry)))
 			}
 
 			if(exists(prevcodeVarName, .tempEnv, inherits = FALSE))
 				rm(list = prevcodeVarName, envir = .tempEnv)
 		}
-		###########
 		tcl("set", "retval", sv_toJSON(list(result = c(ret), message = msg)))
 	} else {
 		tcl("set", "retval", "") # is set in the function scope
@@ -196,7 +176,6 @@ tcl <- tcltk::tcl
 			if(exists(prevcodeVarName, .tempEnv, inherits = FALSE))
 				rm(list = prevcodeVarName, envir = .tempEnv)
 		}
-		###########
 		tcl("set", "retval", sv_toJSON(list(result = c(ret), message = msg)))
 	} else {
 		tcl("set", "retval", "") # is set in the function scope

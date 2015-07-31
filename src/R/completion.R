@@ -1,3 +1,6 @@
+# <LICENSE BLOCK:KomodoR>
+
+
 # 'getFunArgs': returns function argument names, if 'object' is provided and 'f'
 #    is generic (either S3 or S4), returns only arguments for an appropriate
 #    method and/or default method if not found.
@@ -14,7 +17,7 @@
 
 # 'completeSpecial' prints newline separated completions for some special cases.
 #    currently package, namespace, graphical parameters, 'options' names
-#    and quoted items for  use with `[` or `[[`
+#    and quoted items for use with `[` or `[[`
 
 
 # "imports":
@@ -23,17 +26,6 @@ getS3method <- utils::getS3method
 findGeneric <- utils:::findGeneric
 argNames <- utils:::argNames
 
-#
-#FUNC.NAME <- "density"
-#cl <- quote(sv_completeArgs("density", x))
-#
-#sv_completeArgs("density", x)
-#
-#methods(density)
-#density
-#
-#eval(utils::getS3method("density", "default"), as.environment("komodoConnection"))
-#debug(sv_completeArgs)
 
 .getS3method <- function(f, class, envir = .GlobalEnv)
 	eval(call("getS3method", f, class, optional = TRUE), envir = envir)
@@ -61,11 +53,9 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		if(is.null(envir)) return(invisible(NULL))
 		inherit <- FALSE
 	} else {
-		##
 		envir <- sv_CurrentEnvir
 		inherit <- TRUE
 	}
-	#cat(FUNC.NAME, "\n")
 
 	if(exists(FUNC.NAME, envir = envir, mode = "function", inherits = inherit)) {
 		fun <- get(FUNC.NAME, envir = envir, mode = "function", inherits = inherit)
@@ -91,11 +81,9 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 			}
 		}
 
-		#browser()
 
 		if(is.na(cls[1L])) {
 			ret <- argNames(.getS3method(FUNC.NAME, "default"))
-			#cat("Default method\n")
 		} else {
 			# XXX:  always include 'default' arguments??
 			cls <- c(cls, "default")
@@ -140,7 +128,6 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		envir <- sv_CurrentEnvir
 		inherit <- TRUE
 	}
-	#cat(FUNC.NAME, "\n")
 
 	if(exists(FUNC.NAME, envir = envir, mode = "function", inherits = inherit)) {
 		fun <- get(FUNC.NAME, envir = envir, mode = "function", inherits = inherit)
@@ -150,7 +137,6 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	if(is.null(fun) || mode(fun) != "function") return(NULL)
 	ret <- character()
 	if (findGeneric(FUNC.NAME, envir) != "" || is.primitive(fun)) {
-		#cat(FUNC.NAME, "is generic\n")
 
 		cl <- sys.call()
 		cl$field.sep <- NULL
@@ -178,8 +164,6 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		}
 	}
 	ret <- unique(ret, argNames(FUNC.NAME))
-	#if (length(ret) > 1L && (FUNC.NAME == "[" || FUNC.NAME == "[["))
-		#ret <- ret[-1L]
 	if(FUNC.NAME %in% names(.sv_completion_specfun)) {
 		ret <- unique(c(ret, .sv_completion_specfun[[FUNC.NAME]]))
 	}
@@ -331,11 +315,10 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	"NA_real_", "NA_complex_", "NA_character_")
 
 
-## Similar to "find" but `what` can be a vector
+## Similar to `find` but "what" can be a vector
 ## also, this one only searches in packages (position of the search path
-## matching '^package:') and only gives one result per what
-.find.multiple <- function (what)
-{
+## matching '^package:') and only gives one result per "what"
+.find.multiple <- function (what) {
     stopifnot(is.character(what))
     sp <- grep( "^package:", search(), value = TRUE)
     out <- rep( "" , length(what))

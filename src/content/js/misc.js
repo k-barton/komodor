@@ -1,29 +1,8 @@
-// SciViews-K miscellaneous functions
 // Define the 'sv.misc' namespace
-// Copyright (c) 2008-2010, Ph. Grosjean (phgrosjean@sciviews.org) & K. Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// sv.misc.sessionData(data);       // Create/open a .csv dataset from session
-// sv.misc.sessionScript(script);   // Create/open a .R script from session
-// sv.misc.sessionReport(rep);      // Create/open a .odt report from session
-// sv.misc.closeAllOthers();        // Close all buffer except current one
-// sv.misc.colorPicker.pickColor(); // Invoke a color picker dialog box
-// sv.misc.moveLineDown();          // Move current line down
-// sv.misc.moveLineUp();            // Move current line up
-// sv.misc.searchBySel();           // Search next using current selection
-// sv.misc.showConfig();            // Show Komodo configuration page
-// sv.misc.swapQuotes();            // Swap single/double quotes in selection
-// sv.misc.pathToClipboard();       // Copy file path to clipboard
-// sv.misc.unixPathToClipboard();   // Copy UNIX file path to clipboard
-// sv.misc.timeStamp();             // Stamp text with current date/time
-////////////////////////////////////////////////////////////////////////////////
-
-// Define the 'sv.misc' namespace
-if (typeof(sv.misc) == "undefined") sv.misc = {};
+sv.misc = {};
 
 /*
  * JavaScript macro to provide a basic color picker for hexadecimal colors.
- * Assign a useful keybinding to this macro and ka-zam, funky color picking!
  *
  * Version: 1.0
  *
@@ -51,8 +30,8 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		// Moreover, positioning does not seem to work anyway.
 		var newcolor = sysUtils.pickColorWithPositioning(color, -1, -1);
 		//Note pickColor was fixed in Komodo 5.2.3
-
 		if (newcolor) {
+		   // TODO: add if condition for currentView
 		   var scimoz = ko.views.manager.currentView.scimoz;
 		   scimoz.replaceSel(newcolor);
 		   scimoz.anchor = scimoz.currentPos;
@@ -75,7 +54,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 } else {
 
-	function _colorPicker_onchange (event, cp) {
+	function _colorPicker_onchaange (event, cp) {
 		var scimoz = ko.views.manager.currentView.scimoz;
 		scimoz.insertText(scimoz.currentPos, cp.color);
 		// Move cursor position to end of the inserted color
@@ -136,135 +115,6 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 }).apply(sv.misc.colorPicker);
 
-// Move Line Down, adapted by Ph. Grosjean from code by "mircho"
-sv.misc.moveLineDown = function () {
-    var currentView = ko.views.manager.currentView;
-    if (currentView) {
-        currentView.scintilla.focus();
-        var ke = currentView.scimoz;
-        var currentLine = ke.lineFromPosition(ke.currentPos);
-        // Check if we are not at the last line
-        if (currentLine < (ke.lineCount - 1)) {
-            ke.lineDown();
-            ke.lineTranspose();
-        }
-    }
-}
-
-// Move Line Up, adapted by Ph. Grosjean from code by "mircho"
-sv.misc.moveLineUp = function () {
-    var currentView = ko.views.manager.currentView;
-    if (currentView) {
-        currentView.scintilla.focus();
-        var ke = currentView.scimoz;
-        var currentLine = ke.lineFromPosition(ke.currentPos);
-        // Check if we are not at the first line
-        if (currentLine > 0) {
-            ke.lineTranspose();
-            ke.lineUp();
-        }
-    }
-}
-
-// Search next using current selection
-sv.misc.searchBySel = function () {
-    var currentView = ko.views.manager.currentView;
-    if (currentView) {
-        currentView.scintilla.focus();
-        var ke = currentView.scimoz;
-        var searchText = ke.selText;
-        if (!searchText.length) {
-            // Use last pattern used
-            searchText = ko.mru.get("find-patternMru");
-        }
-
-        // Search with last user find preferences
-        var findSvc = Components.classes["@activestate.com/koFindService;1"]
-            .getService(Components.interfaces.koIFindService);
-        var context = Components.classes["@activestate.com/koFindContext;1"]
-            .createInstance(Components.interfaces.koIFindContext);
-        context.type = findSvc.options.preferredContextType;
-        Find_FindNext(window, context, searchText);
-    }
-}
-
-// Show current Komodo configuration page
-sv.misc.showConfig = function () {
-    try {
-        ko.open.URI('about:config','browser');
-    } catch(e) {
-        sv.logger.exception(e, "sv.misc.showConfig() error");
-    }
-}
-
-// Swap quotes by 'Nicto', adapted in SciViews-K by Ph. Grosjean
-sv.misc.swapQuotes = function() {
-    try {
-        var currentView = ko.views.manager.currentView;
-        if (currentView) {
-            currentView.scintilla.focus();
-            var scimoz = currentView.scimoz;
-            scimoz.beginUndoAction();
-
-            // Retain these so we can reset the selection after the replacement
-            var curAnchor = scimoz.anchor;
-            var curPos = scimoz.currentPos;
-
-            // Replace the currently selected text
-            scimoz.replaceSel (
-                // Find all single and double quote characters
-                scimoz.selText.replace( /[\'\"]/g, function (value) {
-                    // Return whatever the value isn't
-                    return(value == '"' ? "'" : '"');
-                })
-            );
-
-            // Reset the selection
-            scimoz.setSel(curAnchor, curPos);
-        }
-    } catch (e) {
-        sv.logger.exception(e, "sv.misc.swapQuotes() error");
-    } finally {
-        ko.views.manager.currentView.scimoz.endUndoAction();
-    }
-}
-
-// Copy the path of current file to the clipboard
-sv.misc.pathToClipboard = function (unix) {
-    var ch = Components.classes["@mozilla.org/widget/clipboardhelper;1"].
-        getService(Components.interfaces.nsIClipboardHelper);
-    try {
-        var path = ko.views.manager.currentView.koDoc.file.path;
-		if (unix) path = path.replace(/\\/g, "/");
-		ch.copyString(path);
-    } catch(e) {
-        sv.alert("Copy path to clipboard",
-            "Unable to copy file path to clipboard (unsaved file?)")
-    }
-}
-
-// Copy UNIX version (using '/' as sep) path of current file to the clipboard
-sv.misc.unixPathToClipboard = function () sv.misc.pathToClipboard(true);
-
-// Stamp the current text with date - time
-sv.misc.timeStamp = function (format) {
-    try {
-        var ke = ko.views.manager.currentView.scimoz;
-
-		// Adapted from setDateFormatExample() in
-		// chrome://komodo/content/pref/pref-intl.js
-		var timeSvc = Components.classes["@activestate.com/koTime;1"]
-			.getService(Components.interfaces.koITime);
-		var secsNow = timeSvc.time();
-		var timeTupleNow = timeSvc.localtime(secsNow, new Object());
-		if (!format) format = sv.pref.getPref("defaultDateFormat");
-		var timeStr = timeSvc.strftime(format, timeTupleNow.length, timeTupleNow);
-		ke.replaceSel(timeStr);
-    } catch(e) {
-        sv.logger.exception(e, "sv.misc.timeStamp() error");
-    }
-}
-
 // Custom margin click behaviour
 sv.misc.onMarginClick = function sv_onMarginClick(modifiers, position, margin) {
     var s = this.scimoz;
@@ -296,9 +146,8 @@ sv.misc.onMarginClick = function sv_onMarginClick(modifiers, position, margin) {
     this._mouseButton = -1;
 }
 
-
 function marginClickViewChangedObserver(event) {
 	var view = event.originalTarget;
 	if(view) view.onMarginClick = sv.misc.onMarginClick;
 }
-window.addEventListener("current_view_changed", marginClickViewChangedObserver, false);
+//window.addEventListener("current_view_changed", marginClickViewChangedObserver, false);

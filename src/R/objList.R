@@ -1,11 +1,11 @@
 sv_objList <-
 function (id = "default", envir = sv_CurrentEnvir, object = NULL,
 all.names = FALSE, pattern = "", group = "", all.info = FALSE, sep = "\t",
-path = NULL, compare = TRUE, ...) {
+compare = TRUE, ...) {
 	## Make sure that id is character
-	id <- as.character(id)[1]
+	id <- as.character(id)[1L]
 	if (id == "") id <- "default"
-	ename <- NA
+	ename <- NA_character_
 
 	## Format envir as character (use only first item provided!)
 	if (!is.environment(envir)){
@@ -31,14 +31,13 @@ path = NULL, compare = TRUE, ...) {
 
 	## Object to return in case of empty data
 	# This is ~15x faster than data.frame...
-	Nothing <- structure(list(Name = character(0),
-		Dims = character(0), Group = character(0), Class = character(0),
-		Recursive = logical(0), stringsAsFactors = FALSE),
-			class=c("objList", "data.frame"),
-			all.info= all.info, envir=ename, object=object
-		)
-		if (isTRUE(all.info)) Nothing <- cbind(Envir = character(0), Nothing)
+	Nothing <- structure(list(Name = character(0L), Dims = character(0L),
+							  Group = character(0L), Class = character(0L),
+							  Recursive = logical(0L), stringsAsFactors = FALSE),
+						 class = c("objList", "data.frame"),
+						 all.info = all.info, envir = ename, object = object)
 
+	if (isTRUE(all.info)) Nothing <- cbind(Envir = character(0L), Nothing)
 
 	if (is.null(envir)) return(Nothing)
 
@@ -47,20 +46,20 @@ path = NULL, compare = TRUE, ...) {
 	} else {
 		## Get the list of objects in this environment
 		Items <- ls(envir = envir, all.names = all.names, pattern = pattern)
-		if (length(Items) == 0) return(Nothing)
+		if (length(Items) == 0L) return(Nothing)
 
 		res <- data.frame(Items, t(vapply(Items, function(x) .objDescr(envir[[x]]),
-				character(4))), stringsAsFactors = FALSE, check.names = FALSE)
+				character(4L))), stringsAsFactors = FALSE, check.names = FALSE)
 		colnames(res) <-  c("Name", "Dims", "Group", "Class", "Recursive")
 
 		# Quote non-syntactic names
 		nsx <- res$Name != make.names(res$Name)
 		res$Full.name[!nsx] <- res$Name[!nsx]
 		res$Full.name[nsx] <- paste("`", res$Name[nsx], "`", sep = "")
-		res <- res[, c(1, 6, 2:5)]
+		res <- res[, c(1L, 6L, 2L:5L)]
 	}
 
-	if (NROW(res) == 0) return(Nothing)
+	if (NROW(res) == 0L) return(Nothing)
 
 	if (isTRUE(all.info)) res <- cbind(Envir = ename, res)
 
@@ -114,39 +113,16 @@ path = NULL, compare = TRUE, ...) {
 	attr(res, "object") <- object
 	attr(res, "class") <- c("objList", "data.frame")
 
-	if (is.null(path)) {  # Return results or "" if not changed
-		return(if (Changed) res else Nothing)
-	} else if (Changed) {  # Write to files in this path
-		return(write.objList(res, path = path, sep = sep, ...))
-	} else {
-		return(Nothing)  # Not changed
-	}
+	return(if (Changed) res else Nothing)
 }
 
-write.objList <-
-function (x, path, sep = "\t", ...) {
-	id <- attr(x, "id")
-	ListF <- file.path(path, sprintf("List_%s.txt", id))
-	ParsF <- file.path(path, sprintf("Pars_%s.txt", id))
-
-	write.table(as.data.frame(x), row.names = FALSE, col.names = FALSE,
-		sep = sep, quote = FALSE, file = ListF)
-
-	## Write also in the Pars_<id>.txt file in the same directory
-	cat(sprintf("envir=%s\nall.names=%s\npattern=%s\ngroup=%s",
-		attr(x, "envir"), attr(x, "all.names"), attr(x, "pattern"),
-		attr(x, "group")), file = ParsF, append = FALSE)
-
-	return(invisible(ListF))
-}
-
-print.objList <-
+registerS3method("print", "objList", 
 function (x, sep = NA, eol = "\n", header = !attr(x, "all.info"),
 		  raw.output = !is.na(sep), ...) {
 	if (!inherits(x, "objList"))
 		stop("x must be an 'objList' object")
 
-	empty <- NROW(x) == 0
+	empty <- NROW(x) == 0L
 
 	if (!raw.output)
 		cat(if (empty) "An empty objects list\n" else "Objects list:\n")
@@ -165,20 +141,23 @@ function (x, sep = NA, eol = "\n", header = !attr(x, "all.info"),
 	if (!empty) {
 		if (is.na(sep)) {
 			print(as.data.frame(x))
-		} else if (!is.null(nrow(x)) && nrow(x) > 0) {
+		} else if (!is.null(nrow(x)) && nrow(x) > 0L) {
 			utils::write.table(x, row.names = FALSE, col.names = FALSE, sep = sep,
 				eol = eol, quote = FALSE)
+			cat("\n")
 		}
 	}
 	return(invisible(x))
-}
+})
 
 ## Called by objList() when object is provided
 .lsObj <-
 function (objname, envir, ...) {
-	obj <- try(eval(parse(text = objname), envir = as.environment(envir)),
-		silent = TRUE)
-	if (inherits(obj, "try-error")) return(NULL)
+	error <- FALSE
+	obj <- tryCatch(eval(parse(text = objname), envir = as.environment(envir)),
+			error = function(e) error <<- TRUE)
+	
+	if (error) return(NULL)
 
 	if (is.environment(obj)) obj <- as.list(obj)
 
@@ -187,7 +166,7 @@ function (objname, envir, ...) {
 	} else if (is.function(obj)) {
 		ret <- .lsObjFunction(obj, objname)
 	} else {  # S3
-		if (!(mode(obj) %in% c("list", "pairlist")) || length(obj) == 0)
+		if (!(mode(obj) %in% c("list", "pairlist")) || length(obj) == 0L)
 			return(NULL)
 
 		itemnames <- fullnames <- names(obj)
@@ -205,7 +184,7 @@ function (objname, envir, ...) {
 		}
 
 		ret <- data.frame(itemnames, fullnames,
-			t(vapply(seq_along(obj), function (i) .objDescr(obj[[i]]), character(4))),
+			t(vapply(seq_along(obj), function (i) .objDescr(obj[[i]]), character(4L))),
 			stringsAsFactors = FALSE, check.names = FALSE)
 	}
 	if (!is.null(ret))
@@ -221,7 +200,7 @@ function (obj, objname = deparse(substitute(obj))) {
 	obj <- formals(args(obj))
 	objname <- paste("formals(args(", objname, "))", sep = "")
 
-	if(length(obj) == 0) return(NULL)
+	if(length(obj) == 0L) return(NULL)
 
 	itemnames <- fullnames <- names(obj)
 	nsx <- itemnames != make.names(itemnames) # non-syntactic names
@@ -240,7 +219,7 @@ function (obj, objname = deparse(substitute(obj))) {
 			o.mode <- ""
 		}
 
-		ret <- c(paste(d, collapse = "x"), o.class,	o.mode, FALSE)
+		ret <- c(paste0(d, collapse = "x"), o.class, o.mode, FALSE)
 		return(ret)
 	}))
 
@@ -256,8 +235,10 @@ function (obj, objname = deparse(substitute(obj))) {
 	itemnames[nsx] <- paste("`", itemnames[nsx], "`", sep = "")
 	fullnames <- paste(objname, "@", itemnames, sep = "")
 
-	ret <- t(vapply(itemnames, function (i) .objDescr(slot(obj, i)), character(4)))
-	ret <- data.frame(itemnames, fullnames, ret, stringsAsFactors = FALSE, check.names = FALSE)
+	ret <- t(vapply(itemnames, function (i) .objDescr(slot(obj, i)),
+		character(4L)))
+	ret <- data.frame(itemnames, fullnames, ret, stringsAsFactors = FALSE,
+		check.names = FALSE)
 	return(ret)
 }
 
@@ -268,10 +249,10 @@ function (x) {
 	if (is.null(d)) d <- length(x)
 
 	return(c(dims = paste(d, collapse = "x"),
-		mode = mode(x), class = class(x)[1],
+		mode = mode(x), class = class(x)[1L],
 		rec = mode(x) == "S4" || is.function(x) ||
-			(is.recursive(x)
-			 && (class(x) != 'POSIXlt')
-			 && !is.language(x)
-			 && sum(d) != 0)))
+			(is.recursive(x) &&
+			 (class(x) != 'POSIXlt') &&
+			 !is.language(x) &&
+			 sum(d) != 0)))
 }

@@ -17,10 +17,10 @@ function _getWindowByURI(uri) {
 			win = en.getNext();
 			if ((win.location.href == uri) ||
 				(win.location.href.lastIndexOf(uri) == win.location.href.length
-				- uri.length)) return(win);
+				- uri.length)) return win;
 		}
 	}
-	return(null);
+	return null;
 }
 
 var rHelpWin, sv;
@@ -36,7 +36,7 @@ function askR(topic) {
 		'}; ' +
 		'rm(svtmp); }); ';
 
-	sv.r.evalCallback(cmd, displayResults);
+	sv.r.evalAsync(cmd, displayResults);
 }
 
 function appendElem(parent, tagName, textContent, attributes) {
@@ -60,7 +60,7 @@ function appendElem(parent, tagName, textContent, attributes) {
 			}
 		}
 	}
-	return(el);
+	return el;
 }
 
 function displayResults(data) {
@@ -102,7 +102,7 @@ function rHelp (topic, pkg) {
 	var res = false;
 
 	if (!topic && !pkg) {
-		return(false);
+		return false;
 	} else {
 		var cmd = '';
 		cmd += pkg? ' package = "' + pkg + '", ' : "";
@@ -111,12 +111,12 @@ function rHelp (topic, pkg) {
 		// For R 2.10:
 		cmd = 'cat(getHelpURL(help(' + cmd + ' help_type = "html")))';
 
-		res = sv.r.evalCallback(cmd, function(path) {
+		res = sv.r.evalAsync(cmd, function(path) {
 			rHelpWin.go(path, Components.interfaces.nsIWebNavigation
 				.LOAD_FLAGS_REPLACE_HISTORY);
 		});
 	}
-	return(res);
+	return res;
 }
 
 

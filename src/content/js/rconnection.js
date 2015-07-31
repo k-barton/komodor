@@ -173,8 +173,8 @@ this.escape = function(command) _this.eval("\x1b");
 this.testRAvailability = function(checkProc) {
 	var connectionUp;
 	try {
-		var result = _this.evalAtOnce("cat(123L)");
-		connectionUp = result.indexOf("123") != -1;
+		var result = _this.evalAtOnce("cat('" + ko.version + "')");
+		connectionUp = result.indexOf(ko.version) != -1;
 	} catch(e) {
 		connectionUp = false;
 	}
@@ -202,7 +202,6 @@ var defaultRequestHandler = function(str) {
 	} catch(e) {
 		return e.message;
 	}
-	//sv.cmdout.append(">>> " + str); // DEBUG
 	return "Received: [" + str + "]"; // echo
 }
 
@@ -270,7 +269,6 @@ var _socketPrefs = {
 this.socketPrefs = function rConnSocketPrefs(name) {
 	return _socketPrefs[name];
 };
-
 
 
 function _updateSocketInfo() {
@@ -477,8 +475,7 @@ this.cleanUp = function sv_conn_debugCleanup() {
 
 }).apply(sv.rconn);
 
-
-//sv.r.evalCallback = function(cmd, procfun, context) {
+//sv.r.evalAsync = function(cmd, procfun, context) {
 //	var args = Array.apply(null, arguments)
 //	args.splice(2,  0, true, null, false)
 //	sv.rconn.eval.apply(sv.rconn, args)
@@ -489,7 +486,3 @@ this.cleanUp = function sv_conn_debugCleanup() {
 
 // seems to be no problem with encoding (!!?)
 //sv.rconn.eval("cat('pchn¹æ w tê ³ódŸ je¿a i óœm skrzyñ fig')") // Note this is CP1250 encoding
-
-
-//sv.rconn.rEval("cat(1:10)", ko.dialogs.alert);
-//result = sv.rconn.rEvalQuick("cat(1:10)");

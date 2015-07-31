@@ -41,10 +41,9 @@
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	class="kodialog" orient="vertical">
 	<groupbox orient="vertical">
-		<caption label="SciViews-K"/>
+		<caption label="KomodoR"/>
 		<description style="margin-top: 10px;">
-			KomodoR provides tools to interact with R environment. It is 
-			a lightweight fork of SciViews-K developed by Philippe Grosjean.
+			KomodoR provides interface to R environment.
 		</description>
 	</groupbox>
 	<separator class="thin"/>

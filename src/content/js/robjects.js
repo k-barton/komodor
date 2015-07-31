@@ -1,112 +1,22 @@
-//{ SciViews-K R objects explorer functions
-//  Define the 'sv.rbrowser' tree and implement RObjectsOverlay functions
-//  Copyright (c) 2009, Kamil Barton & Ph. Grosjean (phgrosjean@sciviews.org)
-//  License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// sv.rbrowser properties and methods
-//TODO: complete this documentation
-//
-///// These variables store all the information ////////////////////////////////
-// treeData - original tree data
-// visibleData - displayed data
-//
-///// Functions/properties to implement the tree view object ///////////////////
-// treeBox - treeBoxObject
-// selection - tree selection object
-// toggleOpenState
-// rowCount
-// setTree
-// setCellText
-// setCellValue
-// getCellText
-// isContainer
-//isContainerOpen
-// isContainerEmpty
-//isSeparator
-// isSorted
-// isEditable
-// getParentIndex
-// getLevel
-// hasNextSibling
-// getImageSrc
-// getProgressMode - not used, not really needed
-// getCellValue
-// cycleHeader
-// selectionChanged
-// cycleCell - not used, not really needed
-// performAction
-// performActionOnCell
-// getRowProperties
-// getCellProperties
-// getColumnProperties
-// canDrop - always false (but may be later, with svIO functions?)
-// drop - not needed so far
-//
-///// Other ////////////////////////////////////////////////////////////////////
-///// Private methods
-// _createVisibleData () - create visibleData from treeData
-// _addObjectList(pack)
-// _removeObjectList(pack)
-// _addSubObject(obj)
-// _parseSubObjectList(data, obj)
-// _getFilter()
-// _addVItems(item, parentIndex, level, parentUid)
-// _addVIChildren(vItem, parentIndex, isOpen)
-// _getVItem(obj, index, level, first, last, parentIndex)
-//
-///// Private properties
-// iconTypes - icons to display
-// debug - well, you know...
-// isInitialized
-// atomSvc
-//
-///// Public methods not belonging to the tree object implementation
-// sort
-// applyFilter
-// filter
-// foldAll
-// getSelectedRows
-// toString - textual representation of the tree for debugging purposes
-// init - initialize
-// refreshAll()
-// refreshGlobalEnv(data); // R sends data to refresh the global environment
-// removeSelected
-// getSelectedNames
-// insertName
-// setFilterBy
-//
-///// Event handling
-// contextOnShow
-// do
-// onEvent
-// listObserver - drag & drop handler
-//
-///// Search path box methods
-// _processPackageList - private method
-// getPackageList
-// clearPackageList - clear the list of packages and object explorer content
-// toggleViewSearchPath
-// displayPackageList
-// packageSelectedEvent
-// packageListObserver
-// packageListKeyEvent
-// searchPath
-//
-////////////////////////////////////////////////////////////////////////////////
-//TODO: identify packages by pos rather than name (allow for non-unique names)
-//TODO: context menu for search-paths list
-//TODO: renaming objects on the list - editable names
-//TODO: add context menu item for environments: remove all objects
-//TODO: add a checkbutton to show also hidden objects (starting with a dot)
-//TODO: automatic refresh of the browser from R
-////////////////////////////////////////////////////////////////////////////////
-// TODO: make this a sv.robjects.tree instead!
-//}}
+/*
+ *   SciViews-K R objects browser functions
+ *   Define the 'sv.rbrowser' tree and implement RObjectsOverlay functions
+ *   Copyright (c) 2009-2015 Kamil Barton & Philippe Grosjean
+ *   License: GPL 2.0
+ */
 
 /*
+ * TODO: identify packages by pos rather than name (allow for non-unique names)
+ * TODO: context menu for search-paths list
+ * TODO: renaming objects on the list - editable names
+ * TODO: add context menu item for environments: remove all objects
+ * TODO: add a checkbutton to show also hidden objects (starting with a dot)
+ * TODO: automatic refresh of the browser from R
+ * TODO: make this a sv.robjects.tree instead!
+ */
 
+/*
 JSON transport:
-
 var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
 	.createInstance(Components.interfaces.nsIJSON);
 var result = sv.rconn.evalAtOnce('cat(toJSON(apply(sv_objList(compare=F), 1, as.list)))')
@@ -115,27 +25,30 @@ var objects = nativeJSON.decode(result)
 for(i in objects) {
  objects[i]
 // Fields: Class, Dims, Full.name, Group, Name, Recursive
-}
-
 */
-//var sv = parent.sv;
 
 sv.rbrowser = {};
 
-
-
+//\x15 - connection error
+//\x03 - stderr
+//\x02 - stdout
+//robjects:
+//\x1e - record separator
+//\x1f - unit separator
+//\x1d - group separator
 // sv.rbrowser constructor
 (function () {
 
 	// Item separator for sv_objList
-	var sep = ";;";
+
+	// FIXME: sep is also defined as sv.r.sep
+	var sep = "\x1f"; // ";;"
+	var recordSep = "\x1e"; 
+	//var recordSep = "\n"; //"\x1e"; 
 
 	var cmdPattern = 'print(sv_objList(id = "%ID%_%ENV%_%OBJ%", envir = "%ENV%",' +
 	' object = "%OBJ%", all.info = FALSE, compare = FALSE), sep = "' + sep +
-	'", eol = "\\n")';
-
-	//var print = sv.cmdout.append;	/// XXX DEBUG
-	//var clear = sv.cmdout.clear;	/// XXX DEBUG
+	'", eol = "' + recordSep + '")';
 
 	// This should be changed if new icons are added
 	var iconTypes = ['array', 'character', 'data.frame', 'Date', 'dist',
@@ -145,8 +58,8 @@ sv.rbrowser = {};
 		'formula'];
 
 	// Used in .contextOnShow
-	var nonDetachable = [".GlobalEnv", "TempEnv", "package:svGUI",
-		"package:svMisc", "package:svSocket", "package:svGUI", "package:base"];
+	var nonDetachable = [".GlobalEnv", "TempEnv", "package:utils", "package:base",
+						 "komodoConnection"];
 
 	// Reference to parent object for private functions
 	var _this = this;
@@ -170,7 +83,7 @@ sv.rbrowser = {};
 		if (!isInitialized) return;
 
 		var rowsBefore = _this.visibleData.length;
-		var firstVisibleRow =  _this.treeBox? _this.treeBox.getFirstVisibleRow() : 0;
+		var firstVisibleRow =  _this.treeBox ? _this.treeBox.getFirstVisibleRow() : 0;
 
 		_this.visibleData = [];
 		_addVItems(_this.treeData, -1, 0);
@@ -213,12 +126,11 @@ function RObjectLeaf(env, obj, arr, index, parentElement) {
 		this.group = arr[3];
 		try {
 			this.class = arr[4];
-
-		this.env = env;
-		this.list = (arr[5] == "TRUE");
-		if (this.list) this.children = [];
-		this.sortData = [this.name.toLowerCase(), dimNumeric, this.class.toLowerCase(),
-			this.group.toLowerCase(), index];
+			this.env = env;
+			this.list = (arr[5] == "TRUE");
+			if (this.list) this.children = [];
+			this.sortData = [this.name.toLowerCase(), dimNumeric, this.class.toLowerCase(),
+				this.group.toLowerCase(), index];
 		} catch(e) {
 			//print(e); //DEBUG
 			//print(arr);
@@ -266,7 +178,7 @@ this.getRObjTreeLeafByName = function(name, env) {
 
 _this.getRowByName = function(name, env) {
 	var vd = _this.visibleData;
-	var i; for (i = 0; i < vd.length; i++)
+	var i; for (i = 0; i < vd.length; ++i)
 		if(name == vd[i].labels[4] && env == vd[i].origItem.env) break;
 	return i >= vd.length ? undefined : i;
 }
@@ -292,13 +204,13 @@ this.parseObjListResult = function _parseObjListResult (data, rebuild, scrollToR
 	});
 
 	if(rebuild) _this.treeData = [];
-	var envName, objName, line, sep = ';;';
+	var envName, objName, line;
 	var treeBranch, lastAddedRootElement;
 	data = data.trim();
 	if (!data) return;
 	var lines = data.split(/[\r\n]{1,2}/);
 
-	for (var i = 0; i < lines.length; i++) {
+	for (var i = 0; i < lines.length; ++i) {
 		if (lines[i].indexOf(sep) == -1) { // Parse list header
 			if (lines[i].indexOf("Env=") == 0) {
 				envName = lines[i].substr(4).trim();
@@ -326,14 +238,21 @@ this.parseObjListResult = function _parseObjListResult (data, rebuild, scrollToR
 		if(!treeBranch) continue; // this object is missing, skip all children
 		if(i >= lines.length) break;
 		if(lines[i].indexOf('Env') == 0) {
-			i--; continue;
+			--i;
+			continue;
 		}
 		try {
-			var leaf = new RObjectLeaf(envName, true, lines[i].split(sep), i, treeBranch);
-			treeBranch.children.push(leaf);
-		} catch(e) { sv.logger.exception(e); }
+			var objlist = lines[i].split(recordSep);
+			for(var k = 0; k < objlist.length; ++k) {
+				if(objlist[k].length == 0) break;
+				var leaf = new RObjectLeaf(envName, true, objlist[k].split(sep), k /* or i?*/, treeBranch);
+				treeBranch.children.push(leaf);
+			}
+		}
+		catch(e) {
+			sv.logger.exception(e);
+			}
 	}
-
 
 	_this.sort(); // .index'es are generated here
 
@@ -373,7 +292,7 @@ function _getObjListCommand(env, objName) {
 };
 this._getObjListCommand = _getObjListCommand; // XXX
 
-this.smartRefresh = function(force) {
+this.refresh = function(force) {
 
 	_this.getPackageList();
 
@@ -392,16 +311,13 @@ this.smartRefresh = function(force) {
 	isInitialized = true;
 	if (init) document.getElementById("rbrowser_objects_tree").view = this;
 
-	//print(cmd);
 	sv.rconn.eval(cmd, this.parseObjListResult, true);
-	//this.parseObjListResult(data);
-	/////if (init) this.treeBox.scrollToRow(0);
 }
 
 // END NEW =====================================================================
 
 function _removeObjectList (pack) {
-	for (var i = 0; i < _this.treeData.length; i++) {
+	for (var i = 0; i < _this.treeData.length; ++i) {
 		if (_this.treeData[i].name == pack) {
 			_this.treeData.splice(i, 1);
 			break;
@@ -411,12 +327,12 @@ function _removeObjectList (pack) {
 };
 
 function _addObject(env, objName, callback, obj) {
-	//sv.r.evalCallback(_getObjListCommand(env, objName), callback, obj);
+	//sv.r.evalAsync(_getObjListCommand(env, objName), callback, obj);
 	// callback is always 'parseObjListResult' so far.
 	var scrollToRoot = !objName; // if no object name - we are adding a package
 								 // so, scroll to its item
 
-	sv.r.evalCallback(_getObjListCommand(env, objName), callback,
+	sv.r.evalAsync(_getObjListCommand(env, objName), callback,
 		// args for callback:
 		false, scrollToRoot);
 };
@@ -428,15 +344,15 @@ function _getFilter () {
 	text = tb.value;
 	not = (text[0] == "~");
 	if (not) text = text.substr(1);
-	if (!text) return(function (x) true);
+	if (!text) return function (x) true;
 	try {
 		obRx = new RegExp(text, "i");
 		tb.className = "";
-		if (not) return(function (x) !(obRx.test(x)));
-			else return(function (x) obRx.test(x));
+		if (not) return function (x) !(obRx.test(x));
+			else return function (x) obRx.test(x);
 	} catch (e) {
 		tb.className = "badRegEx";
-		return (function(x) (x.indexOf(text) > -1));
+		return function(x) (x.indexOf(text) > -1);
 	}
 };
 
@@ -448,22 +364,20 @@ this.applyFilter = function () {
 this.filter = function (x) true;
 
 function _addVItems (item, parentIndex, level) {
-	if (item === undefined) return(parentIndex);
+	if (item === undefined) return parentIndex;
 	if (level === undefined) level = -1;
 	if (!parentIndex) parentIndex = 0;
 
 	var idx = parentIndex;
 	var len = item.length;
 
-	//print("_addVItems = " + item);
-
-	for (var i = 0; i < len; i++) {
+	for (var i = 0; i < len; ++i) {
 		//item[i].class != "package" &&
 		if (level == 1 && !_this.filter(item[i].sortData[filterBy])) {
 			item[i].index = -1;
 			continue;
 		}
-		idx++;
+		++idx;
 		var vItem = _getVItem(item[i], idx, level, i == 0, i == len - 1,
 			parentIndex);
 		_this.visibleData[idx] = vItem;
@@ -478,7 +392,7 @@ function _addVItems (item, parentIndex, level) {
 			}
 		}
 	}
-	return(idx);
+	return idx;
 };
 
 // Attach one level list of child items to an item
@@ -488,7 +402,7 @@ function _addVIChildren (vItem, parentIndex, isOpen) {
 	var len = children.length;
 	vItem.children = [];
 	var idx = parentIndex;
-	for (var i = 0; i < len; i++) {
+	for (var i = 0; i < len; ++i) {
 		if (vItem.level == 0 && !_this.filter(children[i].name)) {
 			children[i].index = -1;
 			continue;
@@ -526,45 +440,8 @@ function _getVItem (obj, index, level, first, last, parentIndex) {
 	vItem.labels = [obj.name, obj.dims, obj.group, obj.class, obj.fullName];
 	vItem.origItem = obj;
 	vItem.origItem.index = index;
-	return(vItem);
+	return vItem;
 };
-
-//function _VisibleTreeItem (oi, index, parentIndex) {
-//	this.isList = (oi.group == "list") || (oi.group == "function")
-//		|| (oi.list);
-//	this.isContainer = this.isList || (oi.children !== undefined);
-//	this.isContainerEmpty = this.isContainer && (oi.children.length == 0);
-//
-//	var level;
-//	for (var obj1 = oi, level = 0;
-//		obj1.parentObject && (obj1 = obj1.parentObject) != _this.treeData;
-//		level++);
-//	this.level = level;
-//
-//	this.first = oi == oi.parentObject.children[0];
-//	this.last = oi == oi.parentObject.children[oi.parentObject.children.length - 1];
-//	this.labels = [oi.name, oi.dims, oi.group, oi.class, oi.fullName];
-//	this.origItem = oi;
-//	this.parentIndex = parentIndex;
-//	this.origItem.index = index;
-//};
-//_VisibleTreeItem.prototype = {
-//	isContainer:  true,
-//	isContainerEmpty:  false,
-//	get isOpen() this.origItem.isOpen,
-//	set isOpen(open) {
-//		this.origItem.isOpen = open;
-//		this.parentIndex = open? ......
-//		},
-//	get childrenLength() (this.isContainer? (this.origItem.children ? this.origItem.children.length : 0) : 0),
-//	isList: false,
-//	parentIndex:  -1,
-//	level:  -1,
-//	first:  true,
-//	last:  false,
-//	labels:  null,
-//	origItem:  null
-//}
 
 this.sort = function sort (column, root) {
 	var columnName, currentElement, tree, sortDirection, realOrder, order,
@@ -612,18 +489,18 @@ this.sort = function sort (column, root) {
 
 		if (sCol != defaultSortCol) {
 			if (a.sortData[defaultSortCol] > b.sortData[defaultSortCol])
-			return(1);
+			return 1;
 			if (a.sortData[defaultSortCol] < b.sortData[defaultSortCol])
-			return(-1);
+			return -1;
 		}
-		return(0);
+		return 0;
 	}
 
 	function _sortComparePkgs (a, b) {
 		// Index 1 is the package's position in the search path
-		if (a.sortData[1] > b.sortData[1]) return(1);
-		if (a.sortData[1] < b.sortData[1]) return(-1);
-		return(0);
+		if (a.sortData[1] > b.sortData[1]) return 1;
+		if (a.sortData[1] < b.sortData[1]) return -1;
+		return 0;
 	}
 
 	function _sortRecursive (arr) {
@@ -642,7 +519,7 @@ this.sort = function sort (column, root) {
 	tree.setAttribute("sortResource", columnName);
 
 	var cols = tree.getElementsByTagName("treecol");
-	for (var i = 0; i < cols.length; i++)
+	for (var i = 0; i < cols.length; ++i)
 		cols[i].removeAttribute("sortDirection");
 	document.getElementById(columnName).setAttribute("sortDirection", sortDirection);
 
@@ -679,7 +556,7 @@ this.foldAll = function (open) {
 		} else {
 			siblings = parentObject;
 		}
-		for (var i = 0; i < siblings.length; i++) {
+		for (var i = 0; i < siblings.length; ++i) {
 			if (siblings[i].isOpen == open)
 			this.toggleOpenState(siblings[i].index);
 		}
@@ -698,7 +575,6 @@ this.toggleOpenState = function (idx) {
 	}
 	var rowsChanged;
 	var iLevel = item.level;
-	//print("childrenLength = " + item.childrenLength);
 	if (!item.childrenLength) {
 		item.isContainer = item.origItem.isOpen = false;
 		return;
@@ -712,11 +588,11 @@ this.toggleOpenState = function (idx) {
 		item.children = vd.splice(idx + 1, rowsChanged);
 
 		// Make parentIndexes of child rows relative
-		for (var i = 0; i < item.children.length; i++)
+		for (var i = 0; i < item.children.length; ++i)
 		item.children[i].parentIndex -= idx;
 
 		// Decrease parentIndexes of subsequent rows
-		for (var i = idx + 1; i < vd.length; i++) {
+		for (var i = idx + 1; i < vd.length; ++i) {
 			if (vd[i].parentIndex > idx)
 			vd[i].parentIndex -= rowsChanged;
 			vd[i].origItem.index = i;
@@ -727,22 +603,20 @@ this.toggleOpenState = function (idx) {
 
 		// Filter child items
 		var insertItems = [];
-		for (var i = 0; i < item.children.length; i++) {
-			//if (this.filter(item.children[i].origItem.name)) {
+		for (var i = 0; i < item.children.length; ++i) {
 			insertItems.push(item.children[i]);
-			//}
 		}
 
 		rowsChanged = insertItems.length;
 		// Change parentIndexes of child rows from relative to absolute
-		for (var i = 0; i < insertItems.length; i++) {
+		for (var i = 0; i < insertItems.length; ++i) {
 			insertItems[i].parentIndex += idx;
 			insertItems[i].origItem.index = i + idx + 1;
 		}
 
 		var vd2 = vd.slice(0, idx + 1).concat(insertItems, vd.slice(idx + 1));
 		// Increase parentIndexes of subsequent rows:
-		for (var i = idx + 1 + insertItems.length; i < vd2.length; i++) {
+		for (var i = idx + 1 + insertItems.length; i < vd2.length; ++i) {
 			if (vd2[i].parentIndex > idx)
 			vd2[i].parentIndex += rowsChanged;
 			vd2[i].origItem.index = i;
@@ -758,7 +632,9 @@ this.toggleOpenState = function (idx) {
 };
 
 this.setTree = function (treeBox) { _this.treeBox = treeBox; }
-this.setCellText = function (idx, col, value) { _this.visibleData[idx].labels[col.index] = value; }
+this.setCellText = function (idx, col, value) {
+	_this.visibleData[idx].labels[col.index] = value;
+	}
 this.setCellValue = function (idx, col, value) { };
 this.getCellText = function (idx, column) _this.visibleData[idx].labels[column.index];
 this.isContainer = function (idx) _this.visibleData[idx].isContainer;
@@ -779,11 +655,11 @@ this.getImageSrc = function (row, col) {
 			Class = "environment";
 		} else if (iconTypes.indexOf(Class) == -1) {
 			Class = this.visibleData[row].origItem.group;
-			if (iconTypes.indexOf(Class) == -1) return("");
+			if (iconTypes.indexOf(Class) == -1) return "";
 		}
-		return("chrome://komodor/skin/images/" + Class + ".png");
+		return "chrome://komodor/skin/images/" + Class + ".png";
 	} else
-	return("");
+	return "";
 };
 this.getCellValue = function (idx, column) 1;
 this.getColumnValue = function (idx, column) 1;
@@ -794,7 +670,7 @@ this.performAction = function (action) { };
 this.performActionOnCell = function (action, index, column) { };
 
 this.getRowProperties = function (idx, props) {
-	if(!(idx in _this.visibleData)) return;
+	if(!(idx in _this.visibleData)) return null;
 	var item = _this.visibleData[idx];
 	var origItem = item.origItem;
 	
@@ -804,12 +680,13 @@ this.getRowProperties = function (idx, props) {
 		if (item.last) props += " lastChild";
 		if (item.first) props += " firstChild";
 		return props;
-	} else { // Obsolete since Gecko 22
+	} else { // XXX: Obsolete since Gecko 22 (komodo 9)
 		props.AppendElement(atomSvc.getAtom("type-" + origItem.type));
 		props.AppendElement(atomSvc.getAtom("class-" + origItem.class));
 		if (item.last) props.AppendElement(atomSvc.getAtom("lastChild"));
-		if (item.first) props.AppendElement(atomSvc.getAtom("firstChild"));		
+		if (item.first) props.AppendElement(atomSvc.getAtom("firstChild"));
 	}
+	return null;
 };
 
 this.getCellProperties = function (idx, column, props) {
@@ -824,7 +701,7 @@ this.getCellProperties = function (idx, column, props) {
 			if (item.isContainerEmpty && origItem.class == "package")
 				props += " empty_package";
 			return props;
-		} else {  // Obsolete since Gecko 22
+		} else {  // XXX: Obsolete since Gecko 22 (komodo 9)
 			props.AppendElement(atomSvc.getAtom("icon"));
 			props.AppendElement(atomSvc.getAtom("type-" + origItem.type));
 			props.AppendElement(atomSvc.getAtom("class-" + origItem.class));
@@ -833,19 +710,21 @@ this.getCellProperties = function (idx, column, props) {
 				props.AppendElement(atomSvc.getAtom("empty_package"));
 		}
 	}
+	return null;
 };
+
 this.getColumnProperties = function (column, element, prop) { };
 this.getSelectedRows = function () {
 	var start = new Object();
 	var end = new Object();
 	var rows = new Array();
 	var numRanges = _this.selection.getRangeCount();
-	for (var t = 0; t < numRanges; t++) {
+	for (var t = 0; t < numRanges; ++t) {
 		_this.selection.getRangeAt(t, start, end);
-		for (var v = start.value; v <= end.value; v++)
+		for (var v = start.value; v <= end.value; ++v)
 		rows.push(v);
 	}
-	return(rows);
+	return rows;
 };
 
 // Drag'n'drop support
@@ -856,7 +735,7 @@ this.listObserver = {
 		transferData.data = new TransferData();
 		transferData.data.addDataForFlavour("text/unicode",
 		namesArr.join(', '));
-		return(true);
+		return true;
 	},
 
 	onDrop: function (event, transferData, session) {
@@ -865,15 +744,15 @@ this.listObserver = {
 		if (transferData.flavour.contentType == "text/unicode") {
 			path = new String(transferData.data).trim();
 		} else {
-			return(false);
+			return false;
 		}
 		pos = _this.searchPath.indexOf(path);
-		if (pos == -1) return(false);
+		if (pos == -1) return false;
 
 		document.getElementById("rbrowser_searchpath_listbox")
 			.getItemAtIndex(pos).checked = true;
 		_addObject(path, "", this.parseObjListResult);
-		return(true);
+		return true;
 	},
 
 	onDragOver: function (event, flavour, session) {
@@ -885,7 +764,7 @@ this.listObserver = {
 		var flavours = new FlavourSet();
 		flavours.appendFlavour("text/x-r-package-name");
 		flavours.appendFlavour("text/unicode");
-		return(flavours);
+		return flavours;
 	}
 };
 
@@ -895,7 +774,8 @@ this.drop = function (idx, orientation) { };
 // Get the list of packages on the search path from R
 this.getPackageList = function () {
 	try {
-		var data = sv.rconn.evalAtOnce('cat(sv_objSearch(sep="' + sep + '", compare=FALSE))');
+		var data = sv.rconn.evalAtOnce('cat(sv_objSearch(sep="'
+			+ sep + '", compare=FALSE))');
 	} catch(e) {
 		return;
 	}
@@ -916,7 +796,7 @@ this.displayPackageList = function() {
 
 	if(!selectedPackages.length) selectedPackages.push(".GlobalEnv");
 
-	for(var i = 0; i < packs.length; i++) {
+	for(var i = 0; i < packs.length; ++i) {
 		pack = packs[i];
 		var item = document.createElement("listitem");
 		item.setAttribute("type", "checkbox");
@@ -926,7 +806,7 @@ this.displayPackageList = function() {
 	}
 
 	if (selectedLabel != null) {
-		for(var i = 0; i < node.itemCount; i++) {
+		for(var i = 0; i < node.itemCount; ++i) {
 			if (node.getItemAtIndex(i).label == selectedLabel) {
 				node.selectedIndex = i;
 				break;
@@ -953,7 +833,7 @@ this.toggleViewSearchPath = function () {
 		case "collapsed":
 			button.setAttribute("state", "open");
 			deck.removeAttribute("collapsed");
-			_this.smartRefresh();
+			_this.refresh();
 			break;
 		case "open":
 		default:
@@ -976,8 +856,6 @@ this.packageSelectedEvent = function (event) {
 	}
 };
 
-this.refreshAll = _this.smartRefresh; /// XXX - merge all *refresh* into one
-
 this.refreshGlobalEnv = function refreshGlobalEnv(data) {
 	if(!data) {
 		_addObject(".GlobalEnv", "", this.parseObjListResult);
@@ -991,7 +869,7 @@ this.removeSelected = function (doRemove) {
 	var rmItems = {}, ObjectsToRemove = {}, envToDetach = [];
 	var ObjectsToSetNull = {};
 	var rows = this.getSelectedRows();
-	if (rows.length == 0) return(false);
+	if (rows.length == 0) return false;
 
 	var rxBackticked = /^`.*`$/;
 
@@ -1078,9 +956,9 @@ this.removeSelected = function (doRemove) {
 
 	if (doRemove) {
 		// Remove immediately
-		sv.r.evalCallback(cmd.join("\n"), function(res) {
+		sv.r.evalAsync(cmd.join("\n"), function(res) {
 			sv.cmdout.append(res);
-			if(envToDetach.length) _this.smartRefresh();
+			if(envToDetach.length) _this.refresh();
 		});
 	} else {
 		// Insert commands to current document
@@ -1125,7 +1003,7 @@ this.getSelectedNames = function (fullNames, extended) {
 		}
 		namesArr.push(cellText);
 	}
-	return(namesArr);
+	return namesArr;
 }
 
 this.insertName = function (fullNames, extended) {
@@ -1134,8 +1012,8 @@ this.insertName = function (fullNames, extended) {
 	var view = ko.views.manager.currentView;
 	if (!view) return;
 	var text = _this.getSelectedNames(fullNames, extended).join(', ');
-	//view.setFocus();
 	var scimoz = view.scimoz;
+	if (!scimoz) return;
 	var length = scimoz.length;
 
 	if (scimoz.getWCharAt(scimoz.selectionStart - 1)
@@ -1211,12 +1089,12 @@ this.contextOnShow = function (event) {
 	var testDisableIf, disable = false;
 
 
-	for(var i = 0; i < menuItems.length; i++) {
+	for(var i = 0; i < menuItems.length; ++i) {
 		if (!menuItems[i].hasAttribute('testDisableIf')) continue;
 		testDisableIf = menuItems[i].getAttribute('testDisableIf').split(/\s+/);
 		disable = false;
 
-		for(var j = 0; j < testDisableIf.length && !disable; j++) {
+		for(var j = 0; j < testDisableIf.length && !disable; ++j) {
 			switch(testDisableIf[j]){
 				case 't:multipleSelection':
 					disable = multipleSelection;
@@ -1245,7 +1123,6 @@ this.contextOnShow = function (event) {
 				default: ;
 			}
 		}
-		//print( menuItems[i].id + ": " + testDisableIf + " = " + disable);
 		menuItems[i].setAttribute('disabled', disable);
 	}
 
@@ -1333,13 +1210,6 @@ this.do = function (action) {
 		}
 		sv.r.eval(cmd.join("\n"));
 	}
-
-	//var view = ko.views.manager.currentView;
-	//if (!view) return;
-	//var scimoz = view.scimoz;
-	//view.setFocus();
-	//scimoz.insertText(scimoz.currentPos, res.join(";" +
-	//    ["\r\n", "\n", "\r"][scimoz.eOLMode]));
 }
 
 this.selectedItemsOrd = [];
@@ -1353,7 +1223,7 @@ this.onEvent = function on_Event(event) {
 			if (selectedRows.some(function(x) x >= _this.visibleData.length))
 				return false;
 
-			for (var i = 0; i < selectedRows.length; i++)
+			for (var i = 0; i < selectedRows.length; ++i)
 				selectedItems.push(_this.visibleData[selectedRows[i]].origItem);
 			var curRowIdx = selectedRows.indexOf(_this.selection.currentIndex);
 
@@ -1361,12 +1231,12 @@ this.onEvent = function on_Event(event) {
 			// added to selection
 			var prevItems = _this.selectedItemsOrd;
 			var newItems = [];
-			for (var i = 0; i < prevItems.length; i++) {
+			for (var i = 0; i < prevItems.length; ++i) {
 				var j = selectedItems.indexOf(prevItems[i]);
 				if (j != -1) // Present in Prev, but not in Cur
 				newItems.push(prevItems[i])
 			}
-			for (var i = 0; i < selectedItems.length; i++) {
+			for (var i = 0; i < selectedItems.length; ++i) {
 				if (prevItems.indexOf(selectedItems[i]) == -1) {
 					// Present in Cur, but not in Prev
 					newItems.push(selectedItems[i]);
@@ -1385,7 +1255,6 @@ this.onEvent = function on_Event(event) {
 					return false;
 				case 45: // Insert
 				case 32: // Space
-					//sv.logger.debug("Insert");
 					break;
 				case 65: // Ctrl + A
 				case 97: // Ctrl + a
@@ -1447,7 +1316,6 @@ this.packageListObserver = {
 
 		// Attach the file if it is an R workspace
 		if (path.search(/\.RData$/i) > 0) {
-			//sv.alert("will attach: " + path);
 			sv.r.loadWorkspace(path, true, function (message) {
 				_this.getPackageList();
 				sv.alert(sv.translate("Attach workspace, R said:"), message);
@@ -1455,11 +1323,12 @@ this.packageListObserver = {
 		} else {
 			path = path.replace(/^package:/, "");
 
-			sv.r.evalCallback("tryCatch(library(\"" + path +
+			sv.r.evalAsync("tryCatch(library(\"" + path +
 				"\"), error = function(e) {cat(\"<error>\"); message(e)})",
 			function (message) {
-				if (message.indexOf('<error>') > -1) {
-					message = message.replace('<error>', '');
+					var pos;
+					if ((pos = message.indexOf('<error>')) > -1) {
+						message = message.substring(pos + 7);
 				} else {
 					_this.getPackageList();
 				}
@@ -1468,26 +1337,21 @@ this.packageListObserver = {
 			}
 			);
 		}
-		return(true);
+		return true;
 	},
-	//	onDragEnter: function (event, flavour, session) {
-	//		sv.logger.debug(event.type + ":" + session;
-	//		//sv.xxx = session;
-	//	},
-	//
+	//onDragEnter: function (event, flavour, session) {
 	//onDragExit: function (event, session) {
-	//	//sv.logger.debug(event.type + ":" + session);
-	//},
+
 onDragStart: function (event, transferData, action) {
 	if (event.target.tagName != 'listitem')
-	return(false);
+	return false;
 
 	var text = _this.searchPath[document
 		.getElementById("rbrowser_searchpath_listbox")
 		.selectedIndex];
 	transferData.data = new TransferData();
 	transferData.data.addDataForFlavour("text/unicode", text);
-	return(true);
+	return true;
 },
 
 onDragOver: function (event, flavour, session) {
@@ -1499,7 +1363,7 @@ getSupportedFlavours: function () {
 	var flavours = new FlavourSet();
 	flavours.appendFlavour("application/x-moz-file","nsIFile");
 	flavours.appendFlavour("text/unicode");
-	return(flavours);
+	return flavours;
 }
 } // End .packageListObserver
 
@@ -1513,7 +1377,7 @@ this.packageListKeyEvent = function (event) {
 
 		if (pkg == ".GlobalEnv" || pkg == "TempEnv") return;
 
-		sv.r.evalCallback(
+		sv.r.evalAsync(
 			'tryCatch(detach("' + pkg.addslashes() +
 			'", unload=TRUE), error=function(e) cat("<error>"));',
 			function _packageListKeyEvent_callback (data) {
@@ -1521,9 +1385,9 @@ this.packageListKeyEvent = function (event) {
 				if (data.trim() != "<error>") {
 					_removeObjectList(pkg);
 					listbox.removeChild(listItem);
-					sv.cmdout.append(sv.translate("Database \"%S\" detached.", pkg));
+					sv.cmdout.append(sv.translate("R: Database \"%S\" detached.", pkg));
 				} else {
-					sv.cmdout.append(sv.translate("Database \"%S\" could not be detached.", pkg));
+					sv.cmdout.append(sv.translate("R: Database \"%S\" could not be detached.", pkg));
 				}
 			});
 		return;
@@ -1539,14 +1403,12 @@ this.selectAllSiblings = function(idx, augment) {
 	for (endIndex = startIndex;
 	endIndex < _this.visibleData.length &&
 	_this.visibleData[endIndex].level >= curLvl;
-	endIndex++) { }
-	endIndex--;
+		++endIndex) { }
+	--endIndex;
 	_this.selection.rangedSelect(startIndex, endIndex, augment)
 }
 
-this.focus = function() {
-
-}
+this.focus = function() {}
 
 //_setOnEvent("rbrowser_searchpath_listbox", "ondragdrop",
 //		"nsDragAndDrop.drop(event, sv.rbrowser.packageListObserver);"
@@ -1566,5 +1428,16 @@ this.focus = function() {
 //_setOnEvent("rbrowser_objects_tree_main", "ondragdrop",
 //		"nsDragAndDrop.drop(event, sv.rbrowser.listObserver);"
 	//		);
+
+
+this.onLoad = function(event) {
+	setTimeout(function() {
+		if(sv.r.running) _this.refresh(true);
+	}, 666);
+}
+
+addEventListener("load", _this.onLoad, false);
+	
+	
 
 }).apply(sv.rbrowser);

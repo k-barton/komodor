@@ -66,7 +66,7 @@ sv.getText = function (includeChars) {
 sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 
 	var currentView = ko.views.manager.currentView;
-	if (!currentView) return("");
+	if (!currentView) return "";
 	currentView.setFocus();
 	var scimoz = currentView.scimoz;
 	var text = "";
@@ -103,14 +103,11 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 
 			var wordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" + includeChars;
 
-			function wordCharTest(s) {
-				return((s.charCodeAt(0) > 0x80) || wordChars.indexOf(s) > -1);
-			}
-
+			function wordCharTest(s) (s.charCodeAt(0) > 0x80) || wordChars.indexOf(s) > -1;
+			
 			for (pStart = scimoz.positionBefore(curPos);
 				 (pStart > 0) && wordCharTest(scimoz.getWCharAt(pStart));
-			pStart = scimoz.positionBefore(pStart)) {
-			};
+				 pStart = scimoz.positionBefore(pStart)) {}
 
 			// PhG: correction for infinite loop if the name is at the beginning
 			// of the document
@@ -118,8 +115,7 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 
 			for (pEnd = scimoz.currentPos;
 				 (pEnd < scimoz.length) && wordCharTest(scimoz.getWCharAt(pEnd));
-			pEnd = scimoz.positionAfter(pEnd)) {
-			}
+			     pEnd = scimoz.positionAfter(pEnd)) { }
 		}
 		break;
 	 case "function":

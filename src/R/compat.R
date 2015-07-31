@@ -1,3 +1,4 @@
+# <LICENSE BLOCK:KomodoR>
 
 if(!exists("getSrcFilename", where="package:utils", mode="function")) {
 	getSrcref <- function (x) {

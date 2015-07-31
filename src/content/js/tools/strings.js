@@ -23,13 +23,13 @@ if (typeof(sv.string) == 'undefined') sv.string = {};
 sv.string.replaceCRLF = function (str, code) {
 	// Replace all \r\n by 'code' in cmd
 	str = str.replace(/(\r?\n|\r)/g, code);
-	return(str);
+	return str;
 }
 
 // Remove the last line feed and or carriage return in the text
 sv.string.removeLastCRLF = function (str) {
 	if(str) str = str.replace(/[\n\r]{1,2}$/, "");
-    return(str);
+    return str;
 }
 
 // changes a string to a regular expression
@@ -39,7 +39,7 @@ sv.string.toRegex = function (str) {
 		.replace(/\t/g, "\\t")	//.replace(/ /, "\\s")
 		.replace(/\n/g, "\\n")	.replace(/\r/g, "\\r")
 		.replace(/\f/g, "\\f");
-	return(str);
+	return str;
 }
 
 // Get filename or last directory name in a file path
@@ -52,13 +52,13 @@ sv.string.filename = function (str) {
 	// Split into components
 	items = str.split("/");
 	// Return last component
-	return(items[items.length - 1]);
+	return items[items.length - 1];
 }
 
 sv.string.addslashes = function(str) {
 	// original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-	return(str.replace(/([\\"'])/g, "\\$1")
-		.replace(/\x00/g, "\\0").replace(/\u0000/g, "\\0"));
+	return str.replace(/([\\"'])/g, "\\$1")
+		.replace(/\x00/g, "\\0").replace(/\u0000/g, "\\0");
 }
 
 
@@ -76,10 +76,9 @@ sv.string.trim = function (str, which) {
 		rx = /^\s+|\s+$/g;
 		break;
 	}
-	return(str.replace(rx, ""));
+	return str.replace(rx, "");
 }
 
-//// Additional methods to String objects //////////////////////////////////////
 // Trim function for String
 String.prototype.trim = function() sv.string.trim(this);
 

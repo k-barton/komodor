@@ -123,7 +123,7 @@ function _installHandler(res, pkg) {
 				_notify('R is now busy installing the requested packages. ' +
 						'No output will be shown in Komodo before the operation finishes.',
 						'r-is-busy', 'info');
-				//sv.r.evalCallback(cmd, updateInfo, "installed");
+				//sv.r.evalAsync(cmd, updateInfo, "installed");
 				n.close();
 			}
 		}, {
@@ -138,13 +138,13 @@ function _installHandler(res, pkg) {
 
 function pkgManRemove(pkg) {
 	var cmd = 'cat(simpsON(sv_pkgManRemovePackage("' + pkg + '")))';
-	//sv.r.evalCallback(cmd, updateInfo, "removed");
+	//sv.r.evalAsync(cmd, updateInfo, "removed");
 	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "removed");
 }
 
 function pkgManDetach(pkg) {
 	var cmd = 'cat(simpsON(sv_pkgManDetachPackage("' + pkg + '")))';
-	//sv.r.evalCallback(cmd, updateInfo, "detached");
+	//sv.r.evalAsync(cmd, updateInfo, "detached");
 	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "detached");
 
 }
@@ -162,7 +162,7 @@ function pkgManUpgrade(pkg) {
 
 function pkgManLoad(pkg) {
 	var cmd = 'cat(simpsON(sv_pkgManLoadPackage("' + pkg + '")))';
-	sv.r.evalCallback(cmd, updateInfo, "loaded");
+	sv.r.evalAsync(cmd, updateInfo, "loaded");
 }
 
 function getUpdateable() {
@@ -304,7 +304,7 @@ function updateInfo(res, what) {
 
 function getDescriptionFor(el) {
 	var pkg = el.label;
-	sv.r.evalCallback('sv_pkgManGetDescription("' + pkg + '")', function(desc, el) {
+	sv.r.evalAsync('sv_pkgManGetDescription("' + pkg + '")', function(desc, el) {
 		el.desc = desc;
 	}, el);
 };

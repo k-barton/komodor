@@ -21,16 +21,6 @@ if(!sv) {
 			break;
 	}}
 }
-//
-//function JSONDecode(str) {
-//	var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
-//			.createInstance(Components.interfaces.nsIJSON);
-//	try {
-//		return nativeJSON.decode(str);
-//	} catch(e) {
-//		return null;
-//	}
-//}
 
 sv.repositories = {};
 

@@ -1,6 +1,7 @@
-# 'imports'
+# <LICENSE BLOCK:KomodoR->Rserver>
 
-if(exists("getSrcFilename", where="package:utils", mode="function")) {
+# 'imports'
+if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
 	getSrcFilename <- utils::getSrcFilename
 }
 
@@ -42,7 +43,6 @@ if(exists("getSrcFilename", where="package:utils", mode="function")) {
     invisible(x)
 }
 
-
 # use ngettext instead of gettext, which fails to translate many strings in "R" domain
 # bug in R or a weird feature?
 `.gettextfx` <- function (fmt, ..., domain = "R")
@@ -54,16 +54,13 @@ sprintf(ngettext(1, fmt, "", domain = domain), ...)
 }
 
 unsink <- function() {
-# DEBUG
-sink(type="m");sink(type="o")
-#browser()
-# END DEBUG
+    sink(type = "m")
+    sink(type = "o")
 }
-
 
 # inspired by 'capture.output' and utils:::.try_silent
 # Requires: R >= 2.13.0 [??]
-`sv_captureAll` <- function(expr, split = FALSE, file = NULL, markStdErr=FALSE,
+`sv_captureAll` <- function(expr, split = FALSE, file = NULL, markStdErr = FALSE,
 		envir = sv_CurrentEnvir) {
 	# TODO: support for 'file' and 'split'
 
@@ -104,10 +101,6 @@ sink(type="m");sink(type="o")
 					inStdOut <<- TRUE
 					do.mark <- TRUE
 			}}
-
-			#if(do.mark)
-			#marks <<- c(marks, list(c(pos = sum(nchar(rval)), stream = to.stdout)))
-			#cat("<", id, inStdOut, ">")
 		}
 	} else 	putMark <- function(to.stdout, id) {}
 
@@ -127,7 +120,6 @@ sink(type="m");sink(type="o")
 			calls[seq.int(cfrom, cto, by=-1L)]
 
 		putMark(FALSE, 1L)
-		#cat(.makeMessage(e, domain="R"))
 		cat(as.character.error(e))
 		if(getWarnLev() == 0L && length(last.warning) > 0L)
 			cat(.gettextx("In addition: "))
@@ -151,9 +143,6 @@ sink(type="m");sink(type="o")
 					if(!missing(resval)) {
 						printfun <- as.name(if(isS4(resval)) "show" else "print")
 						if(is.language(resval)) {
-							#browser()
-							#eval(substitute(printfun(resval)), envir)
-							#utils::str(resval)
 							eval(substitute(printfun(quote(resval))), envir)
 						}	else
 							eval(substitute(printfun(resval)), envir)
@@ -254,7 +243,6 @@ sink(type="m");sink(type="o")
 	}
 	return(rval)
 }
-
 
 `captureAllQ` <- function(expr, ...)
 	sv_captureAll(as.expression(substitute(expr)), ...)

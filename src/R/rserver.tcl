@@ -1,5 +1,4 @@
-# Note: this script relies on functions defined from R: 'Rprint' and 'Reval'
-
+# <LICENSE BLOCK:Rserver>
 
 namespace eval Rserver {
 
@@ -9,7 +8,7 @@ variable Connection; array set Connection {}
 
 namespace export Start Stop CloseAllConnections Rprint
 
-
+# This code relies on functions defined from R: 'Rprint' and 'Reval'
 # Just to avoid errors, define dummy functions here
 proc Rprint {args} {}
 proc Reval {args} {}
