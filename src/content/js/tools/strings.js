@@ -16,7 +16,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 if (typeof(sv) == 'undefined') sv = {};
-if (typeof(sv) == 'undefined') sv = {};
 if (typeof(sv.string) == 'undefined') sv.string = {};
 
 // Replace line feed and carriage return by 'code'

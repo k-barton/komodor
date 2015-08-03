@@ -19,12 +19,14 @@ var _this = this;
 this.evalAsync = function(cmd) {
 	var args = Array.apply(null, arguments);
 	args.splice(2,  0, true, false);
-	sv.rconn.eval.apply(sv.rconn, args);
+	sv.rconn.evalAsync.apply(sv.rconn, args);
 }
 
-this.eval = function(cmd) sv.rconn.eval.call(sv.rconn, cmd);
+this.eval = function(cmd) sv.rconn.evalAsync.call(sv.rconn, cmd);
+
+// XXX: remove in favour of sv.r.eval(cmd, hidden)
 this.evalHidden = function(cmd)
-	sv.rconn.eval.call(sv.rconn, cmd, null, true);
+	sv.rconn.evalAsync.call(sv.rconn, cmd, null, true);
 this.escape = function (cmd) sv.rconn.escape(cmd);
 
 // Set the current working directory (to current buffer dir, or ask for it)
@@ -73,14 +75,14 @@ this.setwd = function (dir, ask, type) {
 	}
 	if (getDirFromR) {
 		try {
-			dir = sv.rconn.evalAtOnce("cat(path.expand(" + getDirFromR + "))");
+			dir = sv.rconn.eval("cat(path.expand(" + getDirFromR + "))");
 		} catch(e) {
 			dir = "";
 		}
 		if (!dir) {
 			sv.alert(sv.translate("Cannot retrieve directory from R." +
 				" Make sure R is running."));
-				return(null);
+				return null;
 		}
 		if (navigator.platform.search(/^Win/) == 0) dir = dir.replace(/\//g, '\\');
 	}
@@ -89,66 +91,68 @@ this.setwd = function (dir, ask, type) {
 		dir = ko.filepicker.getFolder(dir, sv.translate("Choose working directory"));
 
 	if (dir != null) sv.r.eval(".odir <- setwd(\"" + dir.addslashes() + "\")");
-    return(dir);
+    return dir;
+}
+
+this._getCurrentScimoz = function() {
+	var view = ko.views.manager.currentView;
+	if (!view) return null;
+	view.setFocus();
+	var scimoz = view.scimoz;
+	if (!scimoz) return null;
+	return scimoz;
 }
 
 // Run current selection or line buffer in R
 this.run = function () {
 	try {
-		var view = ko.views.manager.currentView;
-		if (!view) return(false); // No current view, do nothing!
-		view.setFocus();
-
+		var scimoz = _this._getCurrentScimoz;
+		if (scimoz === null) return false;
 		var text = sv.getTextRange("sel", true);
 		if(!text) { // No selection
-			var scimoz = view.scimoz;
 			var currentLine = scimoz.lineFromPosition(scimoz.currentPos);
-			var scimoz = view.scimoz;
-			var oText = { value: ''};
+			var oText = { value: '' };
 			var lineCount =	scimoz.lineCount;
 			while(currentLine < lineCount && !(text = oText.value.trim()))
 				scimoz.getLine(currentLine++, oText);
 			scimoz.gotoLine(currentLine);
 			text = oText.value.trim();
 		}
-
-		if(text) 	return(sv.rconn.eval(text));
-		return(false);
-
-	} catch(e) { return(e); }
-
+		if(text) return sv.rconn.evalAsync(text);
+		return false;
+	} catch(e) {
+		return e;
+	}
 }
 
 // Run current line (or selection) up to position and optionally add line feed
 this.runEnter = function (breakLine) {
 	try {
-		var view = ko.views.manager.currentView;
-		if (!view) return(false);
-		view.setFocus();
-		var scimoz = view.scimoz;
+		var scimoz = _this._getCurrentScimoz;
+		if (scimoz === null) return false;
 		var text = sv.getTextRange("sel", true);
 		if (!text) {	// Only proceed if selection is empty
 			// Get text from a line and move caret to the eol
 			// Do we want to break line here or execute it to the end?
-			text = sv.getTextRange(breakLine? "linetobegin" : "line", true);
+			text = sv.getTextRange(breakLine ? "linetobegin" : "line", true);
 		}
 		ko.commands.doCommand('cmd_newlineExtra');
 		var res = _this.eval(text);
+		return res;
+	} catch(e) {
+		return e;
+	}
 
-	} catch(e) { return(e); }
-	return(res);
 }
 
 // Source the current buffer or some part of it
 this.source = function (what) {
 	var res = false;
 	try {
+		var scimoz = _this._getCurrentScimoz;
+		if (scimoz === null) return false;
 		var view = ko.views.manager.currentView;
-		if (!view) return(false);
-		view.setFocus();
-		var scimoz = view.scimoz;
 		var doc = view.koDoc;
-
 		var file;
 		if (!doc.isUntitled && doc.file) {
 			file = doc.file.path.addslashes();
@@ -187,32 +191,28 @@ this.source = function (what) {
 			_this.evalAsync(cmd, function(ret) sv.cmdout.append(ret + "\n:>"));
 		}
 	} catch(e) {
-		sv.logger.exception(e, "Unknown error while sourcing R code in"
+		sv.logger.exception(e, "Error while sourcing R code in"
 		+ " sv.r.source():\n\n (" + e + ")", true);
 	}
-	return(res);
+	return res;
 }
 
 // Send whole or a part of the current buffer to R and place cursor at next line
 this.send = function (what) {
-	//sv.logger.debug("sv.r.send " + what);
-	var res = false;
-	var view = ko.views.manager.currentView;
-	if (!view) return(false); // No current view, do nothing!
-	view.setFocus();
-	var scimoz = view.scimoz;
+	var scimoz = _this._getCurrentScimoz;
+	if (scimoz === null) return false;
 
 	try {
 		if (!what) what = "all"; // Default value
 
 		var cmd = sv.getTextRange(what, what.indexOf("sel") == -1).rtrim();
-		if (cmd) res = sv.rconn.eval(cmd);
+		if (cmd) res = sv.rconn.evalAsync(cmd);
 
 		if (what == "line" || what == "linetoend") // || what == "para"
 			scimoz.charRight();
 
-	} catch(e) { return(e); }
-	return(res);
+	} catch(e) { return e; }
+	return res;
 }
 
 // Get help in R (HTML format)
@@ -233,7 +233,7 @@ function _getHelpURI(topic, pkg) {
 	cmd += pkg ? ' package=' + pkg + '' : "";
 	cmd = 'cat(getHelpURL(' + cmd + '), "\\f\\f")';
 	try {
-		res = sv.rconn.evalAtOnce(cmd);
+		res = sv.rconn.eval(cmd);
 	} catch(e) {
 		return null;
 	}
@@ -283,7 +283,7 @@ this.example = function (topic) {
 	if (typeof(topic) == "undefined" | topic == "")
 	topic = sv.getTextRange("word");
 	if (topic == "") {
-		sv.addNotification(sv.translate("Selection is empty..."));
+		sv.addNotification(sv.translate("Selection is empty"));
 	} else {
 		res = _this.eval("example(" + topic + ")");
 		sv.addNotification(sv.translate("R example run for \"%S\"", topic));
@@ -310,7 +310,7 @@ this.pager = function(file, title, cleanUp) {
 this.search = function (topic) {
 	topic = sv.string.trim(topic);
 	if(topic == "") return;
-	sv.rconn.eval('help.search("' + sv.string.addslashes(topic) +  '")', null, 
+	sv.rconn.evalAsync('help.search("' + sv.string.addslashes(topic) +  '")', null, 
 		true, false);
 }
 
@@ -373,10 +373,8 @@ this.saveDataFrame = function _saveDataFrame(name, fileName, objName, dec, sep) 
 		sv.string.addslashes(fileName) +
 		'", dec="' + dec + '", sep="' + sep + '", col.names=NA)';
 	sv.r.eval(cmd);
-	return(cmd);
+	return cmd;
 }
-
-
 
 }).apply(sv.r);
 

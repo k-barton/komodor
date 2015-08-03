@@ -273,7 +273,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			}
 		} else {
 			try {
-				uri = sv.rconn.evalAtOnce("cat(getHelpURL())");
+				uri = sv.rconn.eval("cat(getHelpURL())");
 			} catch (e) {
 				uri = sv.pref.getPref('r.remote.help') + 'doc/index.html';
 			}
@@ -529,7 +529,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			var cmd = files.map(function (x)
 				"source('" +
 				sv.string.addslashes(x) + "')").join("\n");
-			sv.rconn.eval(cmd, function (z) {
+			sv.rconn.evalAsync(cmd, function (z) {
 				sv.rbrowser.refresh(true);
 			}, false);
 		},
@@ -545,7 +545,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			var cmd = files.map(function (x)
 				"load('" +
 				sv.string.addslashes(x) + "')").join("\n");
-			sv.rconn.eval(cmd, function (z) {
+			sv.rconn.evalAsync(cmd, function (z) {
 				sv.rbrowser.refresh(true);
 			}, false);
 		},
@@ -563,7 +563,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 				path = dir.file.path;
 			}
 			var cmd = "setwd('" + sv.string.addslashes(path) + "')";
-			sv.rconn.eval(cmd, function (z) {
+			sv.rconn.evalAsync(cmd, function (z) {
 				sv.rbrowser.refresh(true);
 			}, false);
 		}

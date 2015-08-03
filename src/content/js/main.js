@@ -27,7 +27,7 @@
 
 
 // Create the 'sv' namespace
-if (typeof(sv) == "undefined") sv = {};
+if (typeof sv == "undefined") sv = {};
 
 //sv._version
 /*= (function() {
@@ -42,24 +42,21 @@ try { // Komodo 7
 		sv._version = addon.version; });
 } catch(e) {
 	sv._version = Components.classes["@mozilla.org/extensions/manager;1"]
-	.getService(Components.interfaces.nsIExtensionManager)
-	.getItemForID("komodor@komodor").version;
+		.getService(Components.interfaces.nsIExtensionManager)
+		.getItemForID("komodor@komodor").version;
 }
 sv.__defineGetter__("version", function() sv._version);
 
-sv.logger = ko.logging.getLogger("SciViews-K");
+// TODO: use dafault logger:
+sv.logger = ko.logging.getLogger("KomodoR");
 sv.logger.setLevel = ko.logging.LOG_DEBUG;
 
-//// Other functions directly defined in the 'sv' namespace ////////////////////
+//// Other functions directly defined in the 'sv' namespace
 // Our own alert box
-sv.alert = function (header, text) ko.dialogs.alert(header, text, "SciViews-K");
-
-// Gets current selection, or word under the cursor in the active buffer
-sv.getText = function (includeChars) {
-	sv.logger.deprecated("sv.getText is DEPRECATED, use sv.getTextRange");
-	throw("sv.getText is DEPRECATED, use sv.getTextRange");
+sv.alert = function (header, text) {
+	// DEPRECATED
+	ko.dialogs.alert(header, text, "R interface");
 }
-
 
 // Select a part of text in the current buffer and return it
 // differs from sv.getPart that it does not touch the selection
@@ -87,7 +84,7 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 		var nSelections = scimoz.selections;
 		if(nSelections > 1) { // rectangular selection
 			var msel = [];
-			for (var i = 0; i < scimoz.selections; i++) {
+			for (var i = 0; i < scimoz.selections; ++i) {
 				msel.push(scimoz.getTextRange(scimoz.getSelectionNStart(i), scimoz.getSelectionNEnd(i)));
 			}
 			text = msel.join("\n");
@@ -199,13 +196,13 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 		break;
 	 case "block":
 		// Select all content between two bookmarks
-		var Mark1, Mark2;
-		Mark1 = scimoz.markerPrevious(curLine, 64);
-		if (Mark1 == -1) Mark1 = 0;
+		var mark1, mark2;
+		mark1 = scimoz.markerPrevious(curLine, 64);
+		if (mark1 == -1) mark1 = 0;
 		Mark2 = scimoz.markerNext(curLine, 64);
 		if (Mark2 == -1) Mark2 = scimoz.lineCount - 1;
 
-		pStart = scimoz.positionFromLine(Mark1);
+		pStart = scimoz.positionFromLine(mark1);
 		pEnd = scimoz.getLineEndPosition(Mark2);
 
 		break;
@@ -267,7 +264,7 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 
 // file open dialog, more customizable replacement for ko.filepicker.open
 sv.fileOpen = function (directory, filename, title, filter, multiple, save,
-filterIndex) {
+	filterIndex) {
 	const nsIFilePicker = Components.interfaces.nsIFilePicker;
     var fp = Components.classes["@mozilla.org/filepicker;1"]
 		.createInstance(nsIFilePicker);
@@ -343,6 +340,7 @@ filterIndex) {
     return(null);
 }
 
+// TODO: REMOVE
 // Browse for the URI, either in an internal, or external (default) browser
 sv.browseURI = function (URI, internal) {
 	if (URI == "") {
@@ -420,9 +418,8 @@ sv.translate = function (textId) {
 		if (arguments.length > 1) {
 			param = [];
 
-			for (var i = 1; i < arguments.length; i++)
+			for (var i = 1; i < arguments.length; ++i)
 				param = param.concat(arguments[i]);
-			//return(strbundle.getFormattedString(textId, param));
 			return(bundle.formatStringFromName(textId, param, param.length));
 
 		} else {
@@ -433,8 +430,8 @@ sv.translate = function (textId) {
 		// fallback if no translation found
 		if (param) { // a wannabe sprintf, just substitute %S and %nS patterns:
 			var rx;
-			for (var i = 0; i < param.length; i++) {
-				rx = new RegExp("%("+ (i + 1) +")?S");
+			for (var i = 0; i < param.length; ++i) {
+				rx = new RegExp("%(" + (i + 1) + ")?S");
 				textId = textId.replace(rx, param[i]);
 			}
 		}

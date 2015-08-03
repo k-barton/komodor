@@ -494,7 +494,7 @@ orient="horizontal">
 					oncommand="go('@CRAN@');"/>
 				<menuitem id="rhelp-menu-vignettes" label="Browse vignettes"
 					accesskey="v"
-					oncommand="sv.rconn.eval('browseVignettes()');"/>
+					oncommand="sv.rconn.evalAsync('browseVignettes()');"/>
 				<menuitem id="rhelp-menu-bioconductor" label="Bioconductor"
 					accesskey="b"
 					oncommand="go('http://www.bioconductor.org/');"/>

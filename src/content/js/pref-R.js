@@ -15,7 +15,7 @@ function editMenulist(el, value) {
 	var curValue = (!value)?  sv.string.trim(el.value) : value;
 	if (!curValue) return;
 	var values = [], val;
-	for (var j = 0; j < el.itemCount; j++) {
+	for (var j = 0; j < el.itemCount; ++j) {
 		val = el.getItemAtIndex(j).value;
 		if (val == curValue) {
 			el.selectedIndex = j;
@@ -31,7 +31,7 @@ function menuListSetValues(attribute) {
 	if (!attribute) attribute = 'values';
 	var ml = document.getElementsByTagName('menulist');
 	var el, values, v;
-	for (var i = 0; i < ml.length; i++) {
+	for (var i = 0; i < ml.length; ++i) {
 		el = ml[i];
 		if (el.hasAttribute(attribute)) {
 			values = el.getAttribute(attribute).split(/\s+/);
@@ -49,11 +49,11 @@ function menuListGetValues(attribute) {
 	if (!attribute) attribute = 'values';
 	var ml = document.getElementsByTagName('menulist');
 	var el, values;
-	for (var i = 0; i < ml.length; i++) {
+	for (var i = 0; i < ml.length; ++i) {
 		el = ml[i];
 		if (el.editable && el.hasAttribute(attribute)) {
 			values = [];
-			for (var k = 0; k < el.itemCount; k++) {
+			for (var k = 0; k < el.itemCount; ++k) {
 				values.push(escape(el.getItemAtIndex(k).value));
 			}
 
@@ -138,7 +138,6 @@ function PrefR_OnLoad() {
     // update cran mirror list (first local, then tries remote at CRAN)
 	PrefR_UpdateCranMirrorsAsync();
 		
-
 	menuListSetValues(); // Restores saved menu values
 	sv.checkAllPref(); // Check if all preference values are ok, if not, restore defaults
     PrefR_PopulateRInterps();
@@ -146,8 +145,34 @@ function PrefR_OnLoad() {
 	// 		 is not among the options, do some checking here
 	parent.hPrefWindow.onpageload();
     PrefR_updateCommandLine(true);
-}
+// FIXME:
+//   [2015-08-03 13:22:55,197] [ERROR] KomodoR: 
+//   -- EXCEPTION START --
+//   Number of columns (1) does not match the header (5).
+//   + 0 (string) Number of columns (1) does not match the header (5).
+//   -- EXCEPTION END --
+//   [2015-08-03 13:23:02,888] [ERROR] prefs: Could not set widget 'CRANMirror' (pref ids 'CRANMirror') to values 'http://cran.r-project.org/'Traceback from ERROR in 'prefs' logger:
+//       <top>
+//       [anonymous]@chrome://komodo/content/library/logging.js:247
+//       [anonymous]@chrome://komodo/content/pref/koPrefWindow.js:520
+//       [anonymous]@chrome://komodo/content/pref/koPrefWindow.js:848
+//       PrefR_OnLoad@chrome://komodor/content/js/pref-R.js:146
+//       onload@chrome://komodor/content/pref-R.xul:1
+//       [anonymous]@null:0
+//   
+//   [2015-08-03 13:23:02,888] [ERROR] prefs: 
+//   -- EXCEPTION START --
+//   Error: Invalid preference
+//   + fileName (string) 'chrome://komodo/content/pref/koPrefWindow.js'
+//   + lineNumber (number) 521
+//   + stack
+//       ([object XULElement])@chrome://komodo/content/pref/koPrefWindow.js:521
+//       ()@chrome://komodo/content/pref/koPrefWindow.js:848
+//       PrefR_OnLoad([object Event])@chrome://komodor/content/js/pref-R.js:146
+//       onload([object Event])@chrome://komodor/content/pref-R.xul:1
+//   -- EXCEPTION END --
 
+}
 
 //TODO: check if there is new R version installed and ask whether to switch to it.
 function PrefR_PopulateRInterps() {
@@ -168,9 +193,7 @@ function PrefR_PopulateRInterps() {
 			//rs.sort(); rs.reverse();
 			break;
         case "mac":
-			//FIXME: as I understand there are only 2 options on Mac, is it right?:
-			rs = ["/Applications/R.app", "/Applications/R64.app"];
-			// What about "SciViews R*.app" ???
+			rs = ["/Applications/R.app"];
 			break;
         case "posix":
         default:
@@ -376,14 +399,11 @@ function PrefR_UpdateCranMirrors(localOnly) {
 	// Get data in as CSV:
 	var csvName = "CRAN_mirrors.csv";
 	var localDir = svFile.path("PrefD", "extensions", "komodor@komodor");
-	var path, csvContent;
-	var arrData;
-
-	var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
-		.createInstance(Components.interfaces.nsIJSON);
 
 	var jsonFile = svFile.path(localDir, "CRAN_mirrors.json");
-	var alreadyCached = false;
+	var isCached = false;
+	var arrData;
+	var path, csvContent;
 	
 	if (!localOnly) {
 		try {
@@ -393,10 +413,9 @@ function PrefR_UpdateCranMirrors(localOnly) {
 	}
 	if (!csvContent) {
 		// First, check if there is serialized version:
-		alreadyCached = svFile.exists(jsonFile);
-		if (alreadyCached) {
-			arrData = nativeJSON.decode(svFile.read(jsonFile));
-			//sv.cmdout.append("Read from: JSON");
+		isCached = svFile.exists(jsonFile);
+		if (isCached) {
+			arrData = JSON.parse(svFile.read(jsonFile));
 		} else {
 			var localPaths = [ ];
 
@@ -451,10 +470,10 @@ function PrefR_UpdateCranMirrors(localOnly) {
 	}
 	if (!arrData) return(false);
 
-	if (!localOnly || !alreadyCached) {
+	if (!localOnly || !isCached) {
 		// If updated from web, or not cached yet,
 		// serialize and save to file for faster later use:
-		svFile.write(jsonFile, nativeJSON.encode(arrData), 'utf-8');
+		svFile.write(jsonFile, JSON.stringify(arrData), 'utf-8');
 	}
 
 	// Put arrData into MenuList
@@ -470,7 +489,6 @@ function PrefR_UpdateCranMirrors(localOnly) {
 }
 
 function PrefR_UpdateCranMirrorsAsync() {
-	//alert("PrefR_UpdateCranMirrorsAsync!");
 	var button = document.getElementById("RefreshCRANMirrors");
 	button.setAttribute("label", "Updating mirrors...");
 	button.disabled = true;

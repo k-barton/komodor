@@ -166,7 +166,7 @@ function pkgManLoad(pkg) {
 }
 
 function getUpdateable() {
-	sv.rconn.eval("sv_pkgManGetUpdateable()", populateUpdateablePkgs, true, true);
+	sv.rconn.evalAsync("sv_pkgManGetUpdateable()", populateUpdateablePkgs, true, true);
 }
 
 function populateUpdateablePkgs(rOutput) {
@@ -312,7 +312,7 @@ function getDescriptionFor(el) {
 function setCranMirror(url) {
 	if(!url) url = sv.pref.getPref("CRANMirror").trim();
 	try {
-		sv.rconn.eval("sv_pkgManSetCRANMirror(\"" + url + "\")", null, true);
+		sv.rconn.evalAsync("sv_pkgManSetCRANMirror(\"" + url + "\")", null, true);
 		sv.pref.setPref("CRANMirror", url);
 	} catch(e) {
 		return;
@@ -357,7 +357,7 @@ function populateCranMirrorsList(rOutput) {
 }
 
 function getCranMirrors() {
-	sv.rconn.eval("sv_pkgManGetMirrors()", populateCranMirrorsList, true, true);
+	sv.rconn.evalAsync("sv_pkgManGetMirrors()", populateCranMirrorsList, true, true);
 }
 
 function makePkgItem(name, version, repositoryName, installedVersion, status, installed, old,
@@ -375,7 +375,7 @@ function makePkgItem(name, version, repositoryName, installedVersion, status, in
 }
 
 function getInstalledPkgs() {
-	sv.rconn.eval("sv_pkgManGetInstalled(sep='\\x1e')", populateInstalledPkgs, true, true);
+	sv.rconn.evalAsync("sv_pkgManGetInstalled(sep='\\x1e')", populateInstalledPkgs, true, true);
 }
 
 //sv_pkgManGetInstalled()
@@ -438,7 +438,7 @@ function getAvailablePkgs(page, reload) {
 	searchPattern = sv.string.toRegex(searchPattern);
 	var cmd = 'sv_pkgManGetAvailable("' + page + '", sep="\\x1e", pattern="' +
 		searchPattern + '", reload=' + (reload ? 'TRUE': 'FALSE') + ')';
-	sv.rconn.eval(cmd, populateAvailablePkgs, true, true);
+	sv.rconn.evalAsync(cmd, populateAvailablePkgs, true, true);
 }
 
 function populateAvailablePkgs(rOutput) {

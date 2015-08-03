@@ -12,11 +12,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with Foobar.
-	
-	If not, see <http://www.gnu.org/licenses/>.
-
 Contributors:
    Kamil Barton
    This code is based on the original Sciviews-K code by Philippe Grosjean,
@@ -35,23 +30,46 @@ Contributors:
 <?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/platform.css" type="text/css"?>
-<!--<?xml-stylesheet href="chrome://komodo/skin/bindings/sidebar.css" type="text/css"?>-->
-<?xml-stylesheet href="chrome://places/skin/places.css" type="text/css"?>
+<!--<?xml-stylesheet href="chrome://places/skin/places.css" type="text/css"?>-->
 <?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/rbrowser.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/rbrowser8.css" type="text/css"?>
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<!--<script type="application/x-javascript" src="chrome://komodor/content/js/tools/array.js"/>-->
+<!--<script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>-->
+<!--<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/>-->
+<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript">
 <![CDATA[
-if (window.parent && window.parent.sv) sv = window.parent.sv;
+var sv;
+
+var p = self;
+do {
+	p = p.parent;
+	if (p.sv) {
+		sv = p.sv;
+		break;
+	}
+} while(p.parent != p);
+if (typeof(sv) == 'undefined')
+while ((p = p.opener)) {
+	if (p.sv) {
+		sv = p.sv;
+		break;
+	}
+}
+
+//self.addEventListener("DOMContentLoaded", function(event) {
+//}, false);
+alert("// sv =" + (typeof sv));
+
+//alert("/DOMContentLoaded/ sv =" + typeof sv);
 ]]>
 </script>
-<script type="application/x-javascript" src="chrome://komodor/content/js/tools/array.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/>
-<script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/robjects.js"/>
+<!--<script type="application/x-javascript" src="file:///E:/kb/Projects/komodo-r/trunk/src/content/js/robjects.js"/>-->
 
 <popupset id="extensionPopupSet">
 	<menupopup id="rObjectsContext" onpopupshowing="sv.rbrowser.contextOnShow(event)">
@@ -146,7 +164,6 @@ if (window.parent && window.parent.sv) sv = window.parent.sv;
 	</menupopup>
 </popupset>
 
-
 <vbox flex="1" id="rbrowserViewbox_rbrowserWrapper">
 	<vbox flex="99" id="rbrowserViewbox_rbrowser">
 		<hbox align="center" id="rbrowserToolbar" class="toolbar-box"
@@ -198,7 +215,7 @@ if (window.parent && window.parent.sv) sv = window.parent.sv;
 					tooltiptext="&sv.filter.tip;"
 					style="min-width: 40px; max-width: 200px; margin-right: 0px;"
 					class="search-box"
-					oncommand="sv.rbrowser.applyFilter();"
+					oncommand="sv.rbrowser.applyFilter()"
 					emptytext="&sv.filterEmptyText;"
 					/>
 
@@ -224,25 +241,25 @@ if (window.parent && window.parent.sv) sv = window.parent.sv;
 					persist="sortDirection sortResource"
 					sortDirection="ascending" sortResource="r-name"
 					enableColumnDrag="true"
-					onselect="sv.rbrowser.onEvent(event);"
-					onkeypress="sv.rbrowser.onEvent(event);">
+					onselect="sv.rbrowser.onEvent(event)"
+					onkeypress="sv.rbrowser.onEvent(event)">
 					<treecols>
 						<treecol id="r-name" label="&sv.Name;"
 							primary="true" sortActive="true"
 							persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this);" ordinal="1" flex="4"/>
+							onclick="sv.rbrowser.sort(this)" ordinal="1" flex="4"/>
 						<splitter class="tree-splitter" ordinal="2"/>
 						<treecol id="r-dims" label="&sv.Dims;"
 							persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this);" flex="1" ordinal="3"/>
+							onclick="sv.rbrowser.sort(this)" flex="1" ordinal="3"/>
 						<splitter class="tree-splitter" ordinal="4"/>
 						<treecol id="r-group" label="&sv.Group;"
 							flex="2" hidden="true" persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this);" ordinal="5"/>
+							onclick="sv.rbrowser.sort(this)" ordinal="5"/>
 						<splitter class="tree-splitter" ordinal="6"/>
 						<treecol id="r-class" label="&sv.Class;"
 							flex="2" hidden="true" persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this);" ordinal="7"/>
+							onclick="sv.rbrowser.sort(this)" ordinal="7"/>
 						<splitter class="tree-splitter" ordinal="8"/>
 						<treecol id="r-fullName" label="&sv.FullName;"
 							persist="width ordinal hidden" flex="1" hidden="true" ordinal="9"/>
@@ -290,11 +307,11 @@ if (window.parent && window.parent.sv) sv = window.parent.sv;
 			<vbox id="rbrowserSubpanelBox"
 				persist="height collapsed" collapsed="true" flex="1">
 				<listbox flex="1" id="rbrowser_searchpath_listbox"
-					ondragdrop="nsDragAndDrop.drop(event, sv.rbrowser.packageListObserver);"
-					ondragover="nsDragAndDrop.dragOver(event, sv.rbrowser.packageListObserver);"
-					ondraggesture="nsDragAndDrop.startDrag(event, sv.rbrowser.packageListObserver);"
-					onkeypress="sv.rbrowser.packageListKeyEvent(event);"
-					oncommand="sv.rbrowser.packageSelectedEvent(event);"/>
+					ondragdrop="nsDragAndDrop.drop(event, sv.rbrowser.packageListObserver)"
+					ondragover="nsDragAndDrop.dragOver(event, sv.rbrowser.packageListObserver)"
+					ondraggesture="nsDragAndDrop.startDrag(event, sv.rbrowser.packageListObserver)"
+					onkeypress="sv.rbrowser.packageListKeyEvent(event)"
+					oncommand="sv.rbrowser.packageSelectedEvent(event)"/>
 			</vbox>
 		</vbox>
 	</vbox>

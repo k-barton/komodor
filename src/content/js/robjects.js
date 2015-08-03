@@ -12,16 +12,10 @@
  * TODO: add context menu item for environments: remove all objects
  * TODO: add a checkbutton to show also hidden objects (starting with a dot)
  * TODO: automatic refresh of the browser from R
- * TODO: make this a sv.robjects.tree instead!
+ * TODO: make this a sv.robjects.tree instead
  */
 
 /*
-JSON transport:
-var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
-	.createInstance(Components.interfaces.nsIJSON);
-var result = sv.rconn.evalAtOnce('cat(toJSON(apply(sv_objList(compare=F), 1, as.list)))')
-var objects = nativeJSON.decode(result)
-
 for(i in objects) {
  objects[i]
 // Fields: Class, Dims, Full.name, Group, Name, Recursive
@@ -38,8 +32,6 @@ sv.rbrowser = {};
 //\x1d - group separator
 // sv.rbrowser constructor
 (function () {
-
-	// Item separator for sv_objList
 
 	// FIXME: sep is also defined as sv.r.sep
 	var sep = "\x1f"; // ";;"
@@ -300,18 +292,33 @@ this.refresh = function(force) {
 	init = force || !_this.treeData.length || !_this.treeBox;
 
 	if(init) {
-		this.getPackageList();
+		_this.getPackageList();
 		cmd = _this._getObjListCommand(".GlobalEnv", "");
 	} else {
-		var cmd1 = this.getOpenItems(true);
-		var cmd2 = this.treeData.map(function(x) _getObjListCommand(x.fullName,""));
+		var cmd1 = _this.getOpenItems(true);
+		var cmd2 = _this.treeData.map(function(x) _getObjListCommand(x.fullName,""));
 		cmd = sv.array.unique(cmd1.concat(cmd2)).join("\n");
 	}
 
-	isInitialized = true;
-	if (init) document.getElementById("rbrowser_objects_tree").view = this;
+	// Komodo9:
+	// panel = ko.widgets.getWidget("rbrowser_tabpanel")
+	// Komodo7+9:
+	// panel = document.getElementById("rbrowser_tabpanel")
+	// panel.contentWindow.document.getElementById("rbrowser_objects_tree").tree
+	// panel.contentWindow.sv.rbrowser.refresh()
+	
+	// sl.loadSubScript("chrome://komodor/content/js/rbrowser.js")
+	if (init) {
+		var thisWindow = self;
+		//if (thisWindow.location.pathname != "rbrowser_tabpanel") { // in main window
+		if (thisWindow.location.pathname.indexOf("komodo.xul") != -1) { // in main window
+			thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
+		}
+		thisWindow.document.getElementById("rbrowser_objects_tree").view = this;
+	}
 
-	sv.rconn.eval(cmd, this.parseObjListResult, true);
+	sv.rconn.evalAsync(cmd, this.parseObjListResult, true);
+	isInitialized = true;
 }
 
 // END NEW =====================================================================
@@ -714,6 +721,7 @@ this.getCellProperties = function (idx, column, props) {
 };
 
 this.getColumnProperties = function (column, element, prop) { };
+
 this.getSelectedRows = function () {
 	var start = new Object();
 	var end = new Object();
@@ -722,7 +730,7 @@ this.getSelectedRows = function () {
 	for (var t = 0; t < numRanges; ++t) {
 		_this.selection.getRangeAt(t, start, end);
 		for (var v = start.value; v <= end.value; ++v)
-		rows.push(v);
+			rows.push(v);
 	}
 	return rows;
 };
@@ -774,7 +782,7 @@ this.drop = function (idx, orientation) { };
 // Get the list of packages on the search path from R
 this.getPackageList = function () {
 	try {
-		var data = sv.rconn.evalAtOnce('cat(sv_objSearch(sep="'
+		var data = sv.rconn.eval('cat(sv_objSearch(sep="'
 			+ sep + '", compare=FALSE))');
 	} catch(e) {
 		return;
@@ -1128,6 +1136,8 @@ this.contextOnShow = function (event) {
 
 }
 
+
+//TODO: rename to doCommand
 this.do = function (action) {
 	var obj = _this.selectedItemsOrd;
 	var command;
@@ -1149,7 +1159,7 @@ this.do = function (action) {
 				.replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
 
 			try {
-				var dir = sv.file.path(sv.rconn.evalAtOnce("cat(getwd())"));
+				var dir = sv.file.path(sv.rconn.eval("cat(getwd())"));
 			} catch(e) {
 				return;
 			}
@@ -1431,13 +1441,14 @@ this.focus = function() {}
 
 
 this.onLoad = function(event) {
+	alert("sv.rbrowser.onLoad");
 	setTimeout(function() {
 		if(sv.r.running) _this.refresh(true);
 	}, 666);
 }
 
-addEventListener("load", _this.onLoad, false);
-	
-	
+alert("sv.rbrowser defined");
+
+//addEventListener("load", _this.onLoad, false);
 
 }).apply(sv.rbrowser);

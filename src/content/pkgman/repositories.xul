@@ -26,7 +26,7 @@ sv.repositories = {};
 
 function pkgManGetRepositories() {
 	try {
-		var res = sv.io.JSONDecode(sv.rconn.evalAtOnce("sv_pkgManGetRepositories()"));
+		var res = sv.io.JSONDecode(sv.rconn.eval("sv_pkgManGetRepositories()"));
 	} catch(e) {
 		return;
 	}
@@ -44,7 +44,7 @@ function object2DOMElement(tagName, obj) {
 
 function onLoad() {
 	try {
-		var res = sv.io.JSONDecode(sv.rconn.evalAtOnce("sv_pkgManGetRepositories()"));
+		var res = sv.io.JSONDecode(sv.rconn.eval("sv_pkgManGetRepositories()"));
 	} catch(e) {
 		return;
 	}

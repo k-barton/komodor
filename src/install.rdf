@@ -5,7 +5,7 @@
 		<em:unpack>true</em:unpack>
         <em:id>komodor@komodor</em:id>
         <em:name>R interface</em:name>
-        <em:version>0.1.160</em:version>
+        <em:version>0.1.172</em:version>
         <em:description>Integrate R with Komodo</em:description>
 	    <em:creator>Kamil Barto&#324;</em:creator>
         <em:contributor>Philippe Grosjean</em:contributor>

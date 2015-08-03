@@ -5,8 +5,8 @@
 //.result (Read only) last result returned
 //.listRProcesses(property) get information on currently running R processes
 //		(property is one of 'Handle','ProcessId' or 'CommandLine'
-//.eval(command, ...) evaluate in R, optional further arguments (see below)
-//.evalAtOnce(command) - do 'quick' evaluation in R, and
+//.evalAsync(command, ...) evaluate in R, optional further arguments (see below)
+//.eval(command) - do 'quick' evaluation in R, and
 //		return the result
 //.startSocketServer(requestHandler) - optional 'requestHandler' is a function that
 //		handles the received data and returns a string
@@ -97,7 +97,7 @@ this.listRProcesses = function(property) {
 }
 
 // Evaluate in R
-this.eval = function(command, callback, hidden, stdOut) { //, ...
+this.evalAsync = function(command, callback, hidden, stdOut) { //, ...
 	var handlers = _this.handlers, keep = false;
 	var args = Array.apply(null, arguments);
 
@@ -113,7 +113,7 @@ this.eval = function(command, callback, hidden, stdOut) { //, ...
 
 // Evaluate in R instantaneously and return result
 // stdOut - if true, stderr stream is omitted
-this.evalAtOnce = function(command, timeout, stdOut) {
+this.eval = function(command, timeout, stdOut) {
 	if(timeout === undefined) timeout = .5;
 	if(stdOut === undefined) stdOut = false;
 	var res = _svuSvc.evalInR(command, 'json h', timeout);
@@ -144,10 +144,10 @@ this.defineResultHandler = function(id, callback, stdOut) {
 	return id;
 }
 
-this.escape = function(command) _this.eval("\x1b");
+this.escape = function(command) _this.evalAsync("\x1b");
 
 //this.testRAvailability = function(checkProc) {
-//	var result = _this.evalAtOnce("cat(1)").trim();
+//	var result = _this.eval("cat(1)").trim();
 //	var connectionUp = result == "1";
 //	var rProcess = checkProc? _this.getRProc() : undefined;
 //	var rProcessCount = (rProcess == undefined)? -1 : rProcess.length;
@@ -173,7 +173,7 @@ this.escape = function(command) _this.eval("\x1b");
 this.testRAvailability = function(checkProc) {
 	var connectionUp;
 	try {
-		var result = _this.evalAtOnce("cat('" + ko.version + "')");
+		var result = _this.eval("cat('" + ko.version + "')");
 		connectionUp = result.indexOf(ko.version) != -1;
 	} catch(e) {
 		connectionUp = false;
@@ -197,8 +197,6 @@ var defaultRequestHandler = function(str) {
 			//sv.cmdout.append("JS request handler result:" + result);
 			return result;
 		}
-		 //else if(str.indexOf("<<<rjsonp>>>") == 0)
-			//return sv.rjson.eval(str.substring(12));
 	} catch(e) {
 		return e.message;
 	}
@@ -227,10 +225,10 @@ this.startSocketServer = function(requestHandler) {
 	} else if (port > 0) {
 		sv.addNotification('Server started at port ' + port);
 		sv.pref.setPref("sciviews.ko.port", port, true, true);
-		_this.eval("options(ko.port=" + port + ")", null, true);
+		_this.evalAsync("options(ko.port=" + port + ")", null, true);
 		//setTimeout(function() {
 			//try {
-				//_this.evalAtOnce("options(ko.port=" + port + ")");
+				//_this.eval("options(ko.port=" + port + ")");
 			//} catch(e) { }
 		//}, 1000);
 	}
@@ -446,6 +444,7 @@ for(var i in _socketPrefs) {
 }
 
 _updateSocketInfo();
+
 this.cleanUp = function sv_conn_debugCleanup() {
 	["r-command-sent", "r-command-executed", "r-command-chunk",
 	 'r-server-stopped'].forEach(function(notification) {
@@ -478,11 +477,11 @@ this.cleanUp = function sv_conn_debugCleanup() {
 //sv.r.evalAsync = function(cmd, procfun, context) {
 //	var args = Array.apply(null, arguments)
 //	args.splice(2,  0, true, null, false)
-//	sv.rconn.eval.apply(sv.rconn, args)
+//	sv.rconn.evalAsync.apply(sv.rconn, args)
 //}
-//sv.r.eval = function(cmd) sv.rconn.eval.call(sv.rconn, cmd)
-//sv.r.evalHidden = function(cmd, earlyExit) sv.rconn.eval.call(sv.rconn, cmd)
+//sv.r.evalAsync = function(cmd) sv.rconn.evalAsync.call(sv.rconn, cmd)
+//sv.r.evalHidden = function(cmd, earlyExit) sv.rconn.evalAsync.call(sv.rconn, cmd)
 //
 
 // seems to be no problem with encoding (!!?)
-//sv.rconn.eval("cat('pchn¹æ w tê ³ódŸ je¿a i óœm skrzyñ fig')") // Note this is CP1250 encoding
+//sv.rconn.evalAsync("cat('pchn¹æ w tê ³ódŸ je¿a i óœm skrzyñ fig')") // Note this is CP1250 encoding
