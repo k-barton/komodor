@@ -54,16 +54,16 @@ in Tcl, so your R installation needs to have Tcl capability
   displayed. Code containing `browser` calls should be used directly 
   in R console. Currently the only way to debug code within a function in a 
   similar way as `browser()` does is to change the current execution environment
-  using `svSetEnv(sys.frame())` within the function and afterwards set it back 
+  using `svBrowseHere()` within the function and afterwards set it back 
   to `.GlobalEnv` with `svSetEnv()`.  Note that the original call stack (i.e. 
-  `sys.frames()` etc.) will not be preserved.
+  `sys.frames()` or `sys.calls()` etc.) will not be preserved.
   Example:
 
 ```r
     in.GlobalEnv <- TRUE
     test <- function(arg1 = 1, arg2 = 2) {
         in.test <- TRUE
-        svSetEnv(sys.frame(sys.nframe())) # instead of 'browser()'
+        svBrowseHere() # instead of 'browser()'
     }
 
     test()
