@@ -1,15 +1,11 @@
-// SciViews-K command functions
-// Define the 'sv.command' namespace
-// Copyright (c) 2009-2010, K. Barton & Ph. Grosjean (phgrosjean@sciviews.org)
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// sv.command.startR();			// Start the preferred R app and connect to it
-// TODO: sv.command.quitR(saveWorkspace)
-// sv.command.openPkgManager(); // Open the package manager window
-// sv.command.openHelp(webpage);// Open the R Help window at this web page
-// sv.command.setControllers(); // Set controllers for R related commands
-// sv.command.setKeybindings(clearOnly); // Set default keybindings
-///////////////////////////////////////////////////////////////////////////////
+/* SciViews-K command functions
+ * Define 'sv.command' object
+ * Copyright (c) 2009-2015, K. Barton & Ph. Grosjean (phgrosjean@sciviews.org) */
+
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
 if (typeof (sv) == 'undefined') sv = {};
 if (typeof (sv.command) == 'undefined') sv.command = {};
 
@@ -163,8 +159,6 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		}
 
 		var rDir = svfile.path("ProfD", "extensions", "komodor@komodor", "R");
-		
-		
 		svfile.write(svfile.path(rDir, "_init.R"),
 			"setwd('" + svstr.addslashes(sv.command.getCwd(false)) +
 			"')\n" + "options(" +

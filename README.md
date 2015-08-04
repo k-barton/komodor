@@ -22,15 +22,15 @@ It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
       * R documentation (.Rd files, *work in progress*)
       * [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
         (.Rmd files, *work in progress*)
-* code completion
 * syntax checking
+* code completion
 * R object browser (sidebar)
 * toolbar with commonly used commands
-* R help window inside Komodo
+* R help window
 * R package manager
-* change R working directory from Places
+* change R working directory from Places (context menu)
 
-A socket connection is used to communicate with **R**. No additional R 
+Socket connection is used to communicate with **R**. No additional R 
 packages are required, however the socket server in R environment is implemented
 in Tcl, so your R installation needs to have Tcl capability 
 (`capabilities("tcltk")`).
@@ -55,7 +55,9 @@ in Tcl, so your R installation needs to have Tcl capability
   in R console. Currently the only way to debug code within a function in a 
   similar way as `browser()` does is to change the current execution environment
   using `svSetEnv(sys.frame())` within the function and afterwards set it back 
-  to `.GlobalEnv` with `svSetEnv()`. Example:
+  to `.GlobalEnv` with `svSetEnv()`.  Note that the original call stack (i.e. 
+  `sys.frames()` etc.) will not be preserved.
+  Example:
 
 ```r
     in.GlobalEnv <- TRUE
@@ -74,15 +76,19 @@ in Tcl, so your R installation needs to have Tcl capability
 ```
 * Problems with connection with Komodo server in R may cause R will not exit 
   properly (at least on Windows) and need to kill the R process.
+* R object browser has to be refreshed manually (click sidebar's refresh button)
+  This is for performance, otherwise a list of object would have to be passed 
+  after each operation.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
-  counting in UDL (spush_check/spop_check).
-* Minor bugs:
-    * Preferences->R->R application: dissappears on refresh
+  counting in UDL (spush_check/spop_check, a bug in Komodo possibly?).
+ 
+  
+* Other TODOS and FIXMEs:
+    * R package manager is not fully functional yet
     * R package manager: available packages list does not show
     * R help window: search from address bar does not work with current version 
       of R
-    * Dead bookmark margin click preference
     * Some preferences are unused
     * On Komodo 9, .R files opened as "REBOL" or"Text" (need to manually replace 
       association for .r (lowercase) to "R")

@@ -116,7 +116,7 @@ compare = TRUE, ...) {
 	return(if (Changed) res else Nothing)
 }
 
-registerS3method("print", "objList", 
+print_objList <-
 function (x, sep = NA, eol = "\n", header = !attr(x, "all.info"),
 		  raw.output = !is.na(sep), ...) {
 	if (!inherits(x, "objList"))
@@ -148,7 +148,8 @@ function (x, sep = NA, eol = "\n", header = !attr(x, "all.info"),
 		}
 	}
 	return(invisible(x))
-})
+}
+
 
 ## Called by objList() when object is provided
 .lsObj <-

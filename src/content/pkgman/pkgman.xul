@@ -12,7 +12,7 @@
  * License for the specific language governing rights and limitations
  * under the License.
  *
- * The Original Code is "SciViews-K(b)" code.
+ * The Original Code is "KomodoR" code.
  *
  * The Initial Developer of the Original Code is ActiveState Software Inc.
  * Portions created by ActiveState Software Inc are Copyright (C) 2008-2009
@@ -44,7 +44,7 @@
 <window id="RPackageManager" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     width="400" height="300" screenX="20" screenY="20"
     persist="screenX screenY width height"
-    title="R package manager (beta)" >
+    title="R package manager" >
 
 <script type="text/javascript">
 <![CDATA[
@@ -331,7 +331,7 @@ function populateCranMirrorsList(rOutput) {
 	while(rl.itemCount) rl.removeItemAt(0);
 	var item, sel = -1;
 
-	for(var i = 0, l = res.length; i < l; i++){
+	for(var i = 0, l = res.length; i < l; ++i){
 		item = res[i];
 		var row = document.createElement('listitem');
 		row.setAttribute('value',  item.url);
@@ -398,7 +398,7 @@ function populateInstalledPkgs(rOutput) {
 	var isLoaded, loadedPkgs = [];
 
 	while(rl.itemCount) rl.removeItemAt(0);
-	for(var i = 0, l = res.length; i < l; i++){
+	for(var i = 0, l = res.length; i < l; ++i){
 		item = res[i];
 		isLoaded = item.loaded.indexOf('TRUE') == 0;
 		if(isLoaded) loadedPkgs.push(item.name);
@@ -407,7 +407,7 @@ function populateInstalledPkgs(rOutput) {
 	}
 
 	if(selectedIndex != -1) {
-		for (var i = 0, l = rl.itemCount; i < l; i++)
+		for (var i = 0, l = rl.itemCount; i < l; ++i)
 			if(rl.getItemAtIndex(i).label == selectedLabel) {
 				rl.selectedIndex = i;
 				break;
@@ -416,7 +416,7 @@ function populateInstalledPkgs(rOutput) {
 	// update also available packages list (set 'loaded')
 	rl = document.getElementById("rAvailablePackageList");
 	var item;
-	for (var i = 0, l = rl.itemCount; i < l; i++) {
+	for (var i = 0, l = rl.itemCount; i < l; ++i) {
 		item = rl.getItemAtIndex(i);
 		if(loadedPkgs.indexOf(item.label) != -1)
 			item.setAttribute("loaded", true);
@@ -476,7 +476,7 @@ function populateAvailablePkgs(rOutput) {
 		prevButton.disabled = true;
 	}
 
-	for(var i = 0, l = res.length; i < l; i++){
+	for(var i = 0, l = res.length; i < l; ++i){
 		item = res[i];
 		rl.appendChild(makePkgItem(item.name, item.version, item.reposName,
 			item.installedVersion, item.status, item.status != '',

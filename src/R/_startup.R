@@ -13,7 +13,12 @@ with(as.environment("komodoConnection"), {
 	sv_CurrentEnvir <- .GlobalEnv
 	svSetEnv <- function(envir = .GlobalEnv) {
 		assign("sv_CurrentEnvir", envir, envir = as.environment("komodoConnection"))
-	} 
+	}
+	
+	svBrowseHere <- function() {
+		eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
+	}
+	
 
 	`koMsg` <- function(...) cat(..., "\n")
 
@@ -164,8 +169,9 @@ local({
 			},
 			sep = ";")))
 		sv.ver <- koCmd("sv.version")
+		ko.ver <- koCmd("ko.version")
 		if(sv.ver != "") {
-			koMsg("This is KomodoR", sv.ver)
+			koMsg("Using R interface ", sv.ver, " on Komodo ", ko.ver, sep = "")
 		} else {}
 	}
 
@@ -177,7 +183,7 @@ local({
 
 	assign(".Last", function() {
 		tryCatch({
-			koCmd("sv.addNotification(\"R says bye!\"); sv.command.updateRStatus(false);")
+			koCmd("sv.addNotification(\"R says bye\"); sv.command.updateRStatus(false);")
 			stopAllServers()
 			stopAllConnections()
 			}, error = function(...) NULL)

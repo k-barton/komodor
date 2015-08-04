@@ -14,8 +14,8 @@ sv.r = {
 (function() {
 var _this = this;
 
-// Evaluate R expression and call procfun in Komodo with the result as argument
-// all additional arguments will be passed to procfun
+// Evaluate R expression and call callback function in Komodo with the result as
+// first argument. All additional arguments will be passed to callback
 this.evalAsync = function(cmd) {
 	var args = Array.apply(null, arguments);
 	args.splice(2,  0, true, false);
@@ -94,19 +94,10 @@ this.setwd = function (dir, ask, type) {
     return dir;
 }
 
-this._getCurrentScimoz = function() {
-	var view = ko.views.manager.currentView;
-	if (!view) return null;
-	view.setFocus();
-	var scimoz = view.scimoz;
-	if (!scimoz) return null;
-	return scimoz;
-}
-
 // Run current selection or line buffer in R
 this.run = function () {
 	try {
-		var scimoz = _this._getCurrentScimoz;
+		var scimoz = sv._getCurrentScimoz();
 		if (scimoz === null) return false;
 		var text = sv.getTextRange("sel", true);
 		if(!text) { // No selection
@@ -128,7 +119,7 @@ this.run = function () {
 // Run current line (or selection) up to position and optionally add line feed
 this.runEnter = function (breakLine) {
 	try {
-		var scimoz = _this._getCurrentScimoz;
+		var scimoz = sv._getCurrentScimoz();
 		if (scimoz === null) return false;
 		var text = sv.getTextRange("sel", true);
 		if (!text) {	// Only proceed if selection is empty
@@ -149,7 +140,7 @@ this.runEnter = function (breakLine) {
 this.source = function (what) {
 	var res = false;
 	try {
-		var scimoz = _this._getCurrentScimoz;
+		var scimoz = sv._getCurrentScimoz();
 		if (scimoz === null) return false;
 		var view = ko.views.manager.currentView;
 		var doc = view.koDoc;
@@ -199,7 +190,7 @@ this.source = function (what) {
 
 // Send whole or a part of the current buffer to R and place cursor at next line
 this.send = function (what) {
-	var scimoz = _this._getCurrentScimoz;
+	var scimoz = sv._getCurrentScimoz();
 	if (scimoz === null) return false;
 
 	try {
@@ -324,11 +315,8 @@ this.quit = function (save) {
 			null, "Exiting R");
 		if (response == "Cancel") return;
 	} else response = save ? "yes" : "no";
-	// Quit R
-	// PhG: in R 2.11, R.app 1.33 q() is not usable any more... one has to
-	// be more explicit with base::q()
+
 	_this.evalHidden('base::q("' + response.toLowerCase() + '")');
-	// Clear the R-relative statusbar message
 	// Clear the objects browser
 	sv.rbrowser.clearPackageList();
 	setTimeout(function() sv.command.updateRStatus(sv.rconn.testRAvailability()),

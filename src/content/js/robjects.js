@@ -23,6 +23,7 @@ for(i in objects) {
 
 sv.rbrowser = {};
 
+// Control characters + separators (make them sv-wide):
 //\x15 - connection error
 //\x03 - stderr
 //\x02 - stdout
@@ -30,6 +31,7 @@ sv.rbrowser = {};
 //\x1e - record separator
 //\x1f - unit separator
 //\x1d - group separator
+
 // sv.rbrowser constructor
 (function () {
 
@@ -38,9 +40,10 @@ sv.rbrowser = {};
 	var recordSep = "\x1e"; 
 	//var recordSep = "\n"; //"\x1e"; 
 
-	var cmdPattern = 'print(sv_objList(id = "%ID%_%ENV%_%OBJ%", envir = "%ENV%",' +
-	' object = "%OBJ%", all.info = FALSE, compare = FALSE), sep = "' + sep +
-	'", eol = "' + recordSep + '")';
+	var cmdPattern = 'print_objList(sv_objList(id = "%ID%_%ENV%_%OBJ%", envir = "%ENV%",' +
+		' object = "%OBJ%", all.info = FALSE, compare = FALSE), sep = "' + sep +
+		'", eol = "' + recordSep + '")'
+		.replace(/%ID%/, sv.uid(1));
 
 	// This should be changed if new icons are added
 	var iconTypes = ['array', 'character', 'data.frame', 'Date', 'dist',
@@ -57,8 +60,6 @@ sv.rbrowser = {};
 	var _this = this;
 	var filterBy = 0; // Filter by name by default
 	var isInitialized = false;
-
-	//this.debug = sv.logger.isAll(); 	// Set debug mode
 
 	this.visibleData = [];
 	this.treeData = [];
@@ -78,14 +79,14 @@ sv.rbrowser = {};
 		var firstVisibleRow =  _this.treeBox ? _this.treeBox.getFirstVisibleRow() : 0;
 
 		_this.visibleData = [];
-		_addVItems(_this.treeData, -1, 0);
+		_addVisibleDataItems(_this.treeData, -1, 0);
 
 		var rowsChanged = _this.visibleData.length - rowsBefore;
 
 		if (rowsChanged) _this.treeBox.rowCountChanged(0, rowsChanged);
 
 		if(_this.treeBox.view.rowCount > _this.visibleData.length)
-			throw new Error("Whoops....");
+			throw new Error("WTF?");
 
 		if(firstVisibleRow < _this.visibleData.length)
 			_this.treeBox.scrollToRow(firstVisibleRow);
@@ -186,7 +187,6 @@ function _objTreeCrawler(name, root) {
 	return null;
 }
 
-// This replaces old _parseObjectList & _parseSubObjectList:
 this.parseObjListResult = function _parseObjListResult (data, rebuild, scrollToRoot) {
 
 	var closedPackages = {};
@@ -274,18 +274,16 @@ this.getOpenItems = function(asRCommand) {
 	return ret;
 }
 
-
 function _getObjListCommand(env, objName) {
-	var id = sv.pref.getPref("sciviews.client.id", "sv");
-	var cmd = cmdPattern.replace(/%ID%/g, id)
-		.replace(/%ENV%/g, new String(env).addslashes())
+	//var cmd = cmdPattern.replace(/%ID%/g, id)
+	var cmd = cmdPattern.replace(/%ENV%/g, new String(env).addslashes())
 		.replace(/%OBJ%/g, objName? objName.replace(/\$/g, "$$$$") : "");
 	return cmd;
 };
-this._getObjListCommand = _getObjListCommand; // XXX
+
+this._getObjListCommand = _getObjListCommand; /// XXX
 
 this.refresh = function(force) {
-
 	_this.getPackageList();
 
 	var cmd, data, init;
@@ -299,25 +297,24 @@ this.refresh = function(force) {
 		var cmd2 = _this.treeData.map(function(x) _getObjListCommand(x.fullName,""));
 		cmd = sv.array.unique(cmd1.concat(cmd2)).join("\n");
 	}
-
+	
 	// Komodo9:
 	// panel = ko.widgets.getWidget("rbrowser_tabpanel")
 	// Komodo7+9:
-	// panel = document.getElementById("rbrowser_tabpanel")
-	// panel.contentWindow.document.getElementById("rbrowser_objects_tree").tree
-	// panel.contentWindow.sv.rbrowser.refresh()
+	// panelWin = document.getElementById("rbrowser_tabpanel").contentWindow
+	// document.getElementById("rbrowser_objects_tree").tree
+	// sv.rbrowser.refresh()
 	
-	// sl.loadSubScript("chrome://komodor/content/js/rbrowser.js")
 	if (init) {
 		var thisWindow = self;
 		//if (thisWindow.location.pathname != "rbrowser_tabpanel") { // in main window
 		if (thisWindow.location.pathname.indexOf("komodo.xul") != -1) { // in main window
 			thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
 		}
-		thisWindow.document.getElementById("rbrowser_objects_tree").view = this;
+		thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
 	}
 
-	sv.rconn.evalAsync(cmd, this.parseObjListResult, true);
+	sv.rconn.evalAsync(cmd, _this.parseObjListResult, true);
 	isInitialized = true;
 }
 
@@ -370,7 +367,7 @@ this.applyFilter = function () {
 
 this.filter = function (x) true;
 
-function _addVItems (item, parentIndex, level) {
+function _addVisibleDataItems (item, parentIndex, level) {
 	if (item === undefined) return parentIndex;
 	if (level === undefined) level = -1;
 	if (!parentIndex) parentIndex = 0;
@@ -391,7 +388,7 @@ function _addVItems (item, parentIndex, level) {
 
 		if (vItem.isContainer && vItem.isOpen && vItem.childrenLength > 0) {
 			var idxBefore = idx;
-			idx = _addVItems(item[i].children, idx, level + 1);
+			idx = _addVisibleDataItems(item[i].children, idx, level + 1);
 
 			// No children is visible
 			if (idxBefore == idx) {
@@ -403,7 +400,7 @@ function _addVItems (item, parentIndex, level) {
 };
 
 // Attach one level list of child items to an item
-function _addVIChildren (vItem, parentIndex, isOpen) {
+function _addVisibleDataChildren (vItem, parentIndex, isOpen) {
 	var children = vItem.origItem.children;
 	vItem.isOpen = isOpen;
 	var len = children.length;
@@ -414,7 +411,7 @@ function _addVIChildren (vItem, parentIndex, isOpen) {
 			children[i].index = -1;
 			continue;
 		}
-		idx++;
+		++idx;
 		vItem.children.push(_getVItem(children[i], idx, vItem.level + 1,
 			i == 0, i == len - 1,
 			// Closed subtree elements have 0-based parentIndex
@@ -571,8 +568,13 @@ this.foldAll = function (open) {
 };
 
 this.toggleOpenState = function (idx) {
-	var vd = this.visibleData;
+	var vd = this.visibleData, vd2;
 	var item = vd[idx];
+	var iLevel = item.level;
+	var rowsChanged;
+	var insertItems = [];
+	
+	
 	if (!item) return;
 
 	_this.selection.select(idx);
@@ -580,17 +582,14 @@ this.toggleOpenState = function (idx) {
 		_addObject(item.origItem.env, item.origItem.fullName, this.parseObjListResult);
 		return;
 	}
-	var rowsChanged;
-	var iLevel = item.level;
 	if (!item.childrenLength) {
 		item.isContainer = item.origItem.isOpen = false;
 		return;
 	}
 
-
 	if (item.origItem.isOpen) { // Closing subtree
 		var k;
-		for (k = idx + 1; k < vd.length && vd[k].level > iLevel; k++) { }
+		for (k = idx + 1; k < vd.length && vd[k].level > iLevel; ++k) { }
 		rowsChanged = k - idx - 1;
 		item.children = vd.splice(idx + 1, rowsChanged);
 
@@ -606,10 +605,9 @@ this.toggleOpenState = function (idx) {
 		}
 	} else { // Opening subtree
 		if (typeof(item.children) == "undefined")
-			_addVIChildren(item, idx, false);
+			_addVisibleDataChildren(item, idx, false);
 
 		// Filter child items
-		var insertItems = [];
 		for (var i = 0; i < item.children.length; ++i) {
 			insertItems.push(item.children[i]);
 		}
@@ -621,7 +619,7 @@ this.toggleOpenState = function (idx) {
 			insertItems[i].origItem.index = i + idx + 1;
 		}
 
-		var vd2 = vd.slice(0, idx + 1).concat(insertItems, vd.slice(idx + 1));
+		vd2 = vd.slice(0, idx + 1).concat(insertItems, vd.slice(idx + 1));
 		// Increase parentIndexes of subsequent rows:
 		for (var i = idx + 1 + insertItems.length; i < vd2.length; ++i) {
 			if (vd2[i].parentIndex > idx)
@@ -747,8 +745,7 @@ this.listObserver = {
 	},
 
 	onDrop: function (event, transferData, session) {
-		var path, pos;
-		var data = transferData;
+		var path, pos, data = transferData;
 		if (transferData.flavour.contentType == "text/unicode") {
 			path = new String(transferData.data).trim();
 		} else {
@@ -1136,9 +1133,7 @@ this.contextOnShow = function (event) {
 
 }
 
-
-//TODO: rename to doCommand
-this.do = function (action) {
+this.doCommand = function (action) {
 	var obj = _this.selectedItemsOrd;
 	var command;
 	switch(action) {
@@ -1438,17 +1433,10 @@ this.focus = function() {}
 //_setOnEvent("rbrowser_objects_tree_main", "ondragdrop",
 //		"nsDragAndDrop.drop(event, sv.rbrowser.listObserver);"
 	//		);
-
-
+	
 this.onLoad = function(event) {
-	alert("sv.rbrowser.onLoad");
-	setTimeout(function() {
-		if(sv.r.running) _this.refresh(true);
-	}, 666);
+	if(sv.r.running) _this.refresh(true);
 }
-
-alert("sv.rbrowser defined");
-
 //addEventListener("load", _this.onLoad, false);
 
 }).apply(sv.rbrowser);

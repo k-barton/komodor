@@ -36,14 +36,10 @@ Contributors:
 <?xml-stylesheet href="chrome://komodor/skin/rbrowser8.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-<!--<script type="application/x-javascript" src="chrome://komodor/content/js/tools/array.js"/>-->
-<!--<script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>-->
-<!--<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/>-->
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 var sv;
-
 var p = self;
 do {
 	p = p.parent;
@@ -59,17 +55,18 @@ while ((p = p.opener)) {
 		break;
 	}
 }
-
-//self.addEventListener("DOMContentLoaded", function(event) {
-//}, false);
-alert("// sv =" + (typeof sv));
-
-//alert("/DOMContentLoaded/ sv =" + typeof sv);
 ]]>
 </script>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/robjects.js"/>
-<!--<script type="application/x-javascript" src="file:///E:/kb/Projects/komodo-r/trunk/src/content/js/robjects.js"/>-->
+<script type="application/x-javascript">
+<![CDATA[
+addEventListener("DOMContentLoaded", function(event) {
+	sv.rbrowser.onLoad();
+}, false);
+]]>
+</script>
+
 
 <popupset id="extensionPopupSet">
 	<menupopup id="rObjectsContext" onpopupshowing="sv.rbrowser.contextOnShow(event)">
@@ -109,22 +106,22 @@ alert("// sv =" + (typeof sv));
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="cmd_rbrowser_summary"
 			label="&sv.summary;"
-			oncommand="sv.rbrowser.do('summary')"
+			oncommand="sv.rbrowser.doCommand('summary')"
 			testDisableIf="t:isFunction t:isEnvironment"
 			accesskey="S" />
 		<menuitem id="cmd_rbrowser_print"
 			label="&sv.print;"
-			oncommand="sv.rbrowser.do('print')"
+			oncommand="sv.rbrowser.doCommand('print')"
 			testDisableIf="t:isPackage"
 			accesskey="P" />
 		<menuitem id="cmd_rbrowser_plot"
 			label="&sv.plot;"
-			oncommand="sv.rbrowser.do('plot')"
+			oncommand="sv.rbrowser.doCommand('plot')"
 			testDisableIf="t:isFunction t:isEnvironment"
 			accesskey="O"/>
 		<menuitem id="cmd_rbrowser_str"
 			label="&sv.str;"
-			oncommand="sv.rbrowser.do('str')"
+			oncommand="sv.rbrowser.doCommand('str')"
 			testDisableIf="t:isPackage"
 			accesskey="T"/>
 
@@ -144,21 +141,21 @@ alert("// sv =" + (typeof sv));
 		<menuitem id="menu_rbrowser_write_table"
 			class="menuitem-iconic write-table-icon"
 			label="&sv.write_table;"
-			oncommand="sv.rbrowser.do('write.table')"
+			oncommand="sv.rbrowser.doCommand('write.table')"
 			testDisableIf="t:cannotSaveToFile"
 			accesskey="T"/>
 
 		<menuitem id="menu_rbrowser_save"
 			class="menuitem-iconic save-buffer-icon"
 			label="&sv.save;"
-			oncommand="sv.rbrowser.do('save')"
+			oncommand="sv.rbrowser.doCommand('save')"
 			testDisableIf="t:cannotSave"
 			accesskey="S" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_help"
 			label="&sv.help;"
-			oncommand="sv.rbrowser.do('help')"
+			oncommand="sv.rbrowser.doCommand('help')"
 			testDisableIf="t:multipleSelection t:noHelp"
 			accesskey="H" />
 	</menupopup>

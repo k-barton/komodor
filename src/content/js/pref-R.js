@@ -44,7 +44,7 @@ function menuListSetValues(attribute) {
 	}
 }
 
-// Used on closing. Store menulist items in an attribute "value"
+// Used on closing. Store menulist items in an attribute "values"
 function menuListGetValues(attribute) {
 	if (!attribute) attribute = 'values';
 	var ml = document.getElementsByTagName('menulist');
@@ -110,6 +110,9 @@ function PrefR_OnLoad() {
 	while (p.opener && (p = p.opener) && !sv) if (p.sv) sv = p.sv;
     //p = parent;
 	//while (p.opener && (p = p.opener) && !ko) if (p.ko) ko = p.ko;
+	
+	sv.pref.setDefaults(); // Check if all preference values are ok, if not, restore defaults
+
 
 	var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
@@ -134,44 +137,27 @@ function PrefR_OnLoad() {
 	} else {
 		menu.removeItemAt(0);
 	}
-
-    // update cran mirror list (first local, then tries remote at CRAN)
-	PrefR_UpdateCranMirrorsAsync();
-		
+	
+	// DEBUGGING in JSShell:
+	// scope(Shell.enumWins[2]) //chrome://komodo/content/pref/pref.xul
+	// scope(document.getElementsByTagName("iframe")[0].contentWindow)
+	
+	PrefR_PopulateRInterps();
+	
+    if (prefset.getStringPref("svRDefaultInterpreter") != "") {
+		// update cran mirror list (first local, then tries remote at CRAN)
+		PrefR_UpdateCranMirrorsAsync();
+	} else {
+		var el = document.getElementById("CRANMirror");
+		el.disabled = true;
+		el.tooltipText = "Select R interpreter first";
+	}
 	menuListSetValues(); // Restores saved menu values
-	sv.checkAllPref(); // Check if all preference values are ok, if not, restore defaults
-    PrefR_PopulateRInterps();
-	// TODO: this raises an exception if pref('svRDefaultInterpreter')
+	
+		// TODO: this raises an exception if pref('svRDefaultInterpreter')
 	// 		 is not among the options, do some checking here
 	parent.hPrefWindow.onpageload();
     PrefR_updateCommandLine(true);
-// FIXME:
-//   [2015-08-03 13:22:55,197] [ERROR] KomodoR: 
-//   -- EXCEPTION START --
-//   Number of columns (1) does not match the header (5).
-//   + 0 (string) Number of columns (1) does not match the header (5).
-//   -- EXCEPTION END --
-//   [2015-08-03 13:23:02,888] [ERROR] prefs: Could not set widget 'CRANMirror' (pref ids 'CRANMirror') to values 'http://cran.r-project.org/'Traceback from ERROR in 'prefs' logger:
-//       <top>
-//       [anonymous]@chrome://komodo/content/library/logging.js:247
-//       [anonymous]@chrome://komodo/content/pref/koPrefWindow.js:520
-//       [anonymous]@chrome://komodo/content/pref/koPrefWindow.js:848
-//       PrefR_OnLoad@chrome://komodor/content/js/pref-R.js:146
-//       onload@chrome://komodor/content/pref-R.xul:1
-//       [anonymous]@null:0
-//   
-//   [2015-08-03 13:23:02,888] [ERROR] prefs: 
-//   -- EXCEPTION START --
-//   Error: Invalid preference
-//   + fileName (string) 'chrome://komodo/content/pref/koPrefWindow.js'
-//   + lineNumber (number) 521
-//   + stack
-//       ([object XULElement])@chrome://komodo/content/pref/koPrefWindow.js:521
-//       ()@chrome://komodo/content/pref/koPrefWindow.js:848
-//       PrefR_OnLoad([object Event])@chrome://komodor/content/js/pref-R.js:146
-//       onload([object Event])@chrome://komodor/content/pref-R.xul:1
-//   -- EXCEPTION END --
-
 }
 
 //TODO: check if there is new R version installed and ask whether to switch to it.
@@ -180,7 +166,7 @@ function PrefR_PopulateRInterps() {
 
     var prefExecutable = prefset.getStringPref('svRDefaultInterpreter');
 
-    var rs = new Array();
+    var rs = [];
     var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
     var menu = document.getElementById("svRDefaultInterpreter");
@@ -214,14 +200,17 @@ function PrefR_PopulateRInterps() {
 		rs.unshift('');
 	}
 
+	var curValue = menu.value;
     menu.removeAllItems();
     for (var i in rs) {
         menu.appendItem(rs[i], rs[i], null);
+		if (curValue == rs[i]) {
+			menu.selectedIndex = i;
+		}
     }
 
     document.getElementById("no-avail-interps-message").hidden =
 		!rs.every(function(x) !x);
-
 }
 
 function OnPreferencePageLoading(prefset) {}
@@ -243,6 +232,9 @@ function OnPreferencePageOK(prefset) {
         return(false);
     }
 	prefset.setStringPref("svRCommand", PrefR_updateCommandLine(false));
+	
+	prefset.setStringPref("CRANMirror", document.getElementById("CRANMirror").value);
+
 
 	if (outDec != prefset.getStringPref('r.csv.dec')
 		|| outSep != prefset.getStringPref('r.csv.sep')) {
@@ -270,16 +262,6 @@ function OnPreferencePageOK(prefset) {
 				sv.rconn.restartSocketServer();
 		}
 	}
-	// Set the client type
-	//var clientType = document.getElementById('sciviews.client.type').value;
-	//prefset.setStringPref("sciviews.client.type", clientType);
-	// Check if selected item is different from current sv.clientType
-	//if (clientType != sv.clientType)
-	//	sv.alert("R server type changed", "The server type you selected will be" +
-	//		" used after restarting of both R and Komodo!");
-
-	//sv.socket.setSocketType(clientType);
-
 	menuListGetValues();
 	return true;
 }
@@ -293,7 +275,8 @@ function svRDefaultInterpreterOnSelect(event) {
 
 	// Just in case
 	if(sv.file.exists(menuInterpreters.value) == sv.file.TYPE_NONE) {
-		ko.dialogs.alert("Cannot find file: " + menuInterpreters.value, null, "R interface preferences");
+		ko.dialogs.alert("Cannot find file: " + menuInterpreters.value, null,
+			"R interface preferences");
 	}
 
     var app = os.path.basename(menuInterpreters.value);
@@ -306,6 +289,11 @@ function svRDefaultInterpreterOnSelect(event) {
     }
 
     PrefR_updateCommandLine(true);
+	
+	var el = document.getElementById("CRANMirror");
+	el.tooltipText = "";
+	el.disabled = false;
+	PrefR_UpdateCranMirrorsAsync();
 }
 
 function PrefR_svRApplicationOnSelect(event) {

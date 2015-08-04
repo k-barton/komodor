@@ -337,6 +337,12 @@ function OnLoad (event) {
 	// Listen to find toolbar attribute modifications:
 	findToolbar.addEventListener("DOMAttrModified",
 		onFindToolbarAttrModified, false);
+	
+
+//[2015-08-03 13:52:26,713] [WARNING] console-logger: Use of Mutation Events is
+//deprecated. Use MutationObserver instead. (1) in
+//chrome://komodor/content/RHelpWindow.xul:337
+
 
 	go(page ? page : "about:blank");
 	_getHomePage(rHelpBrowser, !page);

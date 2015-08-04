@@ -1,6 +1,8 @@
 // Define the 'sv.misc' namespace
 sv.misc = {};
 
+
+sv.misc.colorPicker = {};
 /*
  * JavaScript macro to provide a basic color picker for hexadecimal colors.
  *
@@ -12,8 +14,6 @@ sv.misc = {};
  *              Philippe Grosjean
  *              Kamil Barton
  */
-sv.misc.colorPicker = {};
-
 (function() {
 
 var os_prefix = window.navigator.platform.substring(0, 3).toLowerCase();
@@ -146,6 +146,7 @@ sv.misc.onMarginClick = function sv_onMarginClick(modifiers, position, margin) {
     this._mouseButton = -1;
 }
 
+// TODO: Komodo 9 defines own onMarginClick
 function marginClickViewChangedObserver(event) {
 	var view = event.originalTarget;
 	if(view) view.onMarginClick = sv.misc.onMarginClick;

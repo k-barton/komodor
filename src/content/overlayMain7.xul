@@ -86,32 +86,32 @@
 		oncommand="ko.commands.doCommandAsync('cmd_viewrtoolbar', event)"
 	/>
 	<broadcaster id="cmd_svRStarted"
-		oncommand="ko.commands.doCommand(sv.r.running? 'cmd_svQuitR' : 'cmd_svStartR');"
+		oncommand="ko.commands.doCommand(sv.r.running? 'cmd_svQuitR' : 'cmd_svStartR')"
 		/>
 </broadcasterset>
 
 <commandset id="allcommands">
 	<commandset id="cmdset_rApp" commandupdater="true"
-		oncommandupdate="ko.commands.updateCommandset(this);"
+		oncommandupdate="ko.commands.updateCommandset(this)"
 		events="r_app_started_closed">
 		<command id="cmd_svStartR" key="key_cmd_svStartR"
-			oncommand="ko.commands.doCommand('cmd_svStartR');"
+			oncommand="ko.commands.doCommand('cmd_svStartR')"
 			desc="R: &StartR;" label="&StartR;" accesskey="&StartR.key;"
 			/>
 		<command id="cmd_svQuitR" key="key_cmd_svQuitR"
-			oncommand="ko.commands.doCommand('cmd_svQuitR');"
+			oncommand="ko.commands.doCommand('cmd_svQuitR')"
 			desc="R: &QuitR;" label="&QuitR;" accesskey="&QuitR.key;"/>
 		<command id="cmd_svREscape" key="key_cmd_svREscape"
-			oncommand="ko.commands.doCommand('cmd_svREscape');"
+			oncommand="ko.commands.doCommand('cmd_svREscape')"
 			desc="R: &rEscape;" label="&rEscape;" accesskey="&rEscape.key;"/>
 		<command id="cmd_svOpenPkgManager" key="key_cmd_svOpenPkgManager"
-			oncommand="ko.commands.doCommand('cmd_svOpenPkgManager');" disabled="false"
+			oncommand="ko.commands.doCommand('cmd_svOpenPkgManager')" disabled="false"
 			desc="R: &pkgMgr;" label="&pkgMgr;" accesskey="&pkgMgr.key;"/>
 		<command id="cmd_svOpenHelp" key="key_cmd_svOpenHelp"
-			oncommand="ko.commands.doCommand('cmd_svOpenHelp');"
+			oncommand="ko.commands.doCommand('cmd_svOpenHelp')"
 			desc="R: &helpStart;" label="&helpStart;" accesskey="&helpStart.key;"/>
 		<command id="cmd_svBrowseWD" key="key_cmd_svBrowseWD"
-			oncommand="ko.commands.doCommand('cmd_svBrowseWD');"
+			oncommand="ko.commands.doCommand('cmd_svBrowseWD')"
 			desc="R: &svBrowseWD;" label="&svBrowseWD;" accesskey="&svBrowseWD.key;"/>
 	</commandset>
 
@@ -120,7 +120,7 @@
 -->
 <commandset id="cmdset_r_control" commandupdater="true"
   events="current_view_language_changed,language_changed,current_view_changed,r_app_started_closed"
-  oncommandupdate="ko.commands.updateCommandset(this);">
+  oncommandupdate="ko.commands.updateCommandset(this)">
 	
 	<command id="cmd_sv_tab_source" key="key_cmd_sv_tab_source"
 		oncommand="ko.commands.doCommand('cmd_svRRunAll')"
@@ -165,7 +165,7 @@
 		accesskey="&rSrcLineOrSelection.key;"/>
 
 	<commandset id="cmdset_r_control2" commandupdater="false" events="select"
-		oncommandupdate="ko.commands.updateCommandset(this);">
+		oncommandupdate="ko.commands.updateCommandset(this)">
 		<command id="cmd_svRRunSelection" key="key_cmd_svRRunSelection"
 			oncommand="ko.commands.doCommand('cmd_svRRunSelection')"
 			desc="R: &rSendSel;" label="&rSendSel;" accesskey="&rSendSel.key;"/>
@@ -336,7 +336,7 @@
 	id="rbrowser_tabpanel"
 	label="&rBrowser.tab;"
 	src="chrome://komodor/content/rbrowser-pane.xul"
-	tab_onfocus="sv.rbrowser.focus();"
+	tab_onfocus="sv.rbrowser.focus()"
 	icon="chrome://komodor/skin/images/R.png"
 	/>
 </ko-pane>

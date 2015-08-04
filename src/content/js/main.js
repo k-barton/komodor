@@ -4,15 +4,11 @@
 // License: MPL 1.1/GPL 2.0/LGPL 2.1
 ////////////////////////////////////////////////////////////////////////////////
 // Various functions defined in the 'sv' namespace directly
-// sv.alert(header, text); // Own alert box; text is optional
 // sv.getTextRange(what, gotoend, select);  // Get a part of text in the buffer,
 // but do not operate on selection
 // sv.fileOpen(directory, filename, title, filter, multiple); // file open dlg,
 // more customizable replacement for ko.filepicker.open()
 
-// sv.browseURI(URI, internal); // Show URI in internal or external browser
-// sv.showFile(path, readonly); // Show a file in Komodo, possibly as read-only
-// sv.helpURL(URL); // Display URL help in the default browser
 // sv.translate(textId); // translate messages using data from
 // chrome://komodor/locale/main.properties
 //
@@ -24,6 +20,11 @@
 // SciViews-K logging feature ('sv.logger') /////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
+
+//TODO: rename:
+//key_cmd_sv*
+//cmd_sv*
+//sv_r_*
 
 
 // Create the 'sv' namespace
@@ -47,25 +48,41 @@ try { // Komodo 7
 }
 sv.__defineGetter__("version", function() sv._version);
 
-// TODO: use dafault logger:
+// TODO: use default logger:
 sv.logger = ko.logging.getLogger("KomodoR");
 sv.logger.setLevel = ko.logging.LOG_DEBUG;
 
-//// Other functions directly defined in the 'sv' namespace
-// Our own alert box
+
+// generate unique id (TODO: move to sv.utils or such)
+sv.uid = function(n) {
+	if(!n) n = 1;
+	var rval = "";
+	for(var i = 0; i < n; ++i)
+		rval += Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+	return rval;
+}
+
 sv.alert = function (header, text) {
 	// DEPRECATED
 	ko.dialogs.alert(header, text, "R interface");
 }
 
-// Select a part of text in the current buffer and return it
-// differs from sv.getPart that it does not touch the selection
-sv.getTextRange = function (what, gotoend, select, range, includeChars) {
+sv._getCurrentScimoz = function() {
+	var view = ko.views.manager.currentView;
+	if (!view) return null;
+	view.setFocus();
+	var scimoz = view.scimoz;
+	if (!scimoz) return null;
+	return scimoz;
+}
 
-	var currentView = ko.views.manager.currentView;
-	if (!currentView) return "";
-	currentView.setFocus();
-	var scimoz = currentView.scimoz;
+// Select a part of text in the current buffer and return it
+sv.getTextRange = function (what, gotoend, select, range, includeChars) {
+	sv._getCurrentScimoz();
+	var view = ko.views.manager.currentView;
+	if (!view) return "";
+	view.setFocus();
+	var scimoz = view.scimoz;
 	var text = "";
 	var curPos = scimoz.currentPos;
 	var curLine = scimoz.lineFromPosition(curPos);
@@ -95,8 +112,9 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 		break;
 	 case "word":
 		if (pStart == pEnd) { // only return word if no selection
-			if (!includeChars && currentView.languageObj.name == "R")
-			includeChars = ".";
+			var inR = view.koDoc.languageForPosition(scimoz.currentPos) == "R";
+		
+			if (!includeChars && inR) includeChars = ".";
 
 			var wordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" + includeChars;
 
@@ -340,73 +358,6 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
     return(null);
 }
 
-// TODO: REMOVE
-// Browse for the URI, either in an internal, or external (default) browser
-sv.browseURI = function (URI, internal) {
-	if (URI == "") {
-		sv.alert(sv.translate("Item not found!"));	// Because we call this from
-        // other functions that return "" when they don't find it, see sv.r.help
-	} else {
-		if (internal == null)
-			internal = (sv.pref.getPref("sciviews.r.help",
-				"internal") == "internal");
-		if (internal == true) {
-			// TODO: open this in the R help pane, or in a buffer
-			ko.open.URI(URI, "browser");
-		} else {
-			ko.browse.openUrlInDefaultBrowser(URI);
-		}
-	}
-}
-
-// Show a text file in a buffer, possibly in read-only mode
-sv.showFile = function (path, readonly) {
-	if (path == "") {
-		sv.alert(sv.translate("Item not found!")); // Same as for sv.browseURI()
-	} else {
-		ko.open.URI(path, "editor");
-		if (readonly == true) {
-			var kv = ko.views.manager.currentView;
-			var ke = kv.scimoz;
-			ke.readOnly = true;
-			// TODO: use morekomodo approach
-            // Make the caret a block and hatch the fold margin as indicator
-			ke.caretStyle = 2;
-			ke.setFoldMarginColour(true, 100);
-			kv.setFocus();
-		}
-	}
-}
-
-// Show URL in the default browser with current selection or <keyword>
-sv.helpURL = function (URL) {
-	try {
-		var kv = ko.views.manager.currentView;
-		if (!kv) return(false);
-		kv.setFocus();
-		var ke = kv.scimoz;
-		var sel = ke.selText;
-		if (sel == "") {
-			// Try to get the URL-escaped word under the cursor
-			if (ko.interpolate.getWordUnderCursor(ke) == "") {
-				sv.alert(sv.translate("Nothing is selected!"));
-				return(false);
-			} else {
-				sel = ko.interpolate.interpolateStrings('%W');
-			}
-		} else {
-			// Get the URL-escaped selection
-			sel = ko.interpolate.interpolateStrings('%S');
-		}
-		var helpURL = URL.replace("<keyword>", sel);
-		ko.browse.openUrlInDefaultBrowser(helpURL);
-		return(true);
-	} catch(e) {
-		sv.logger.exception(e, "Unable to show " + URL + " in the browser", true);
-	}
-	return(false);
-}
-
 // translate messages using data from chrome://komodor/locale/main.properties
 sv.translate = function (textId) {
 	var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
@@ -442,10 +393,6 @@ sv.translate = function (textId) {
 //// Control the command output tab ////////////////////////////////////////////
 if (typeof(sv.cmdout) == 'undefined') sv.cmdout = {};
 
-// Append text to the Command Output pane
-// TODO: handle \b correctly to delete char up to the beginning of line
-// TODO: what to do with \a? I already have a bell in R console...
-
 sv.cmdout = {};
 (function() {
 
@@ -455,11 +402,15 @@ this.__defineGetter__('eolChar', function()
 	["\r\n", "\n", "\r"][_this.scimoz.eOLMode]);
 
 this.__defineGetter__('scimoz', function() {
-	if(window.frames["runoutput-desc-tabpanel"]) // Komodo 7
-		return window.frames["runoutput-desc-tabpanel"]
+	if (ko.widgets.getWidget) { // Komodo 9
+		return ko.widgets.getWidget("runoutput-desc-tabpanel")
+			.contentDocument.getElementById("runoutput-scintilla").scimoz;
+	}
+	if(window.frames["runoutput-desc-tabpanel"]) { // Komodo 7
+		return window.frames["runoutput-desc-tabpanel"] 
 			.document.getElementById("runoutput-scintilla").scimoz;
-	else
-		return document.getElementById("runoutput-scintilla").scimoz;
+	}
+	return undefined;
 });
 
 function _rgb(r, g, b) {
@@ -657,25 +608,10 @@ this.message = function (msg, timeout, highlight) {
 	if (timeout > 0) runoutputDesc.timeout = window
 		.setTimeout("sv.cmdout.message('', 0);", timeout);
 }
-
-
 }).apply(sv.cmdout);
 
 
-//sv.addNotification2 = function(msg, severity, timeout) {
-//	var n = ko.notifications.createNotification("sciviews-status-message",
-//		["sciviews-k"], 1, 	window, Ci.koINotificationManager.TYPE_STATUS);
-//	n.log = true;
-//	n.msg = n.description = msg;
-//	n.severity = severity;
-//	n.timeout = timeout;
-//	nm.addNotification(n);
-//}
-//    //n instanceof Ci.koIStatusMessage;
-//    //n instanceof Ci.koINotificationProgress;
-//            //n.maxProgress = Ci.koINotificationProgress.PROGRESS_NOT_APPLICABLE;
-
-if(ko.notifications) {
+if(true || typeof require == "undefined") {
 	sv.addNotification = function(msg, severity, timeout) {
 		var sm = Components.classes["@activestate.com/koStatusMessage;1"]
 			.createInstance(Components.interfaces.koIStatusMessage);
@@ -687,20 +623,9 @@ if(ko.notifications) {
 		ko.notifications.addNotification(sm);
 	}
 } else {
+	// TODO: not implemented properly
+	sv._notify = require("notify/notify");
 	sv.addNotification = function(msg, severity, timeout) {
-		sv.addMessage(msg, "komodor", timeout | 2000, false, false, true);
+		sv._notify.addMessage(msg, "komodor", timeout | 2000, false, false, true);
 	}
 }
-
-// TODO:
-//if (parseInt(ko.version.split('.')[0]) >= 9) {
-//	sv._notify = require("notify/notify");
-//	sv.addMessage = function(msg) {
-//		notify.send(msg, "r-status", {duration: 2000});
-//	}
-//} else {
-//	sv.addMessage = function(msg) {
-//		ko.statusBar.AddMessage(msg, "r-status", 2000, true);
-//		//function (msg, category, timeout, highlight, interactive, log /* true */) 
-//	}
-//}

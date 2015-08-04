@@ -152,7 +152,8 @@ class="kodialog" orient="vertical" onload="PrefR_OnLoad(event);">
 			<hbox align="center">
 				<label value="Default CRAN mirror:" control="CRANMirror" />
 					<menulist id="CRANMirror" sizetopopup="none" width="200"
-							  pref="true" prefattribute="value">
+							  >
+						<!-- /set manually/ pref="true" prefattribute="value"-->
 					<menupopup maxheight="200" />
 				</menulist>
 				<button id="RefreshCRANMirrors"
@@ -174,14 +175,6 @@ class="kodialog" orient="vertical" onload="PrefR_OnLoad(event);">
 	</hbox>
 	<groupbox id="pref-R-advanced" orient="vertical" hidden="true" >
 		<caption label="Connection with R"/>
-		<hbox align="center">
-		  <label value="Connection type:" control="sciviews.conn.type" />
-		  <menulist pref="true" id="sciviews.conn.type"
-		   values="socket http" persist="" editable="false" disabled="true"
-			tooltiptext="Currently only socket connection is supported">
-		   <menupopup />
-		  </menulist>
-		</hbox>
 		<grid>
 		  <columns>
 				<column flex="1"/> <column flex="2"/> <column flex="1"/> <column
@@ -199,14 +192,12 @@ class="kodialog" orient="vertical" onload="PrefR_OnLoad(event);">
 				<row align="center">
 					<label value="Client port #:" control="sciviews.ko.port" />
 					<textbox id="sciviews.ko.port" pref="true" width="50" />
-<!--					<label value="Client Id:" control="sciviews.client.id" />
-					<textbox id="sciviews.client.id" pref="true" width="150" />-->
 				</row>
 		  </rows>
 		</grid>
 	</groupbox>
 
-<groupbox orient="vertical">
+<!--<groupbox orient="vertical">
 	<caption label="Komodo interface"/>
 	<grid>
 		<columns>
@@ -223,18 +214,6 @@ class="kodialog" orient="vertical" onload="PrefR_OnLoad(event);">
 			</row>
 		</rows>
 	</grid>
-</groupbox>
-	
-	
-	<groupbox orient="vertical" align="center">
-		<caption label="About"/>
-		<separator class="thin"/>
-<description>
-KomodoR provides support for R language in Komodo and extends its interface
-into a fontend for R.
-</description>
-		<separator class="thin"/>
-	</groupbox>
-
+</groupbox>-->
 </vbox>
 </window>
