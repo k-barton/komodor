@@ -550,8 +550,8 @@ function pkgMgrOnLoad(event) {
 	document.getElementById("viewGroup").selectedIndex =
 		pmDeck.selectedIndex;
 
-	//if(sv.r.running) window.setTimeout(init, 1);
-	if(sv.r.running) init();
+	//if(sv.r.isRunning) window.setTimeout(init, 1);
+	if(sv.r.isRunning) init();
 	else {
 		ko.dialogs.alert("R must be started to manage its packages.",
 						 null, "R package manager");

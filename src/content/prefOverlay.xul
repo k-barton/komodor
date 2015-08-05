@@ -29,7 +29,7 @@ Contributors:
 
 <?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
 
-<overlay id="SciViewsPrefOverlay"
+<overlay id="svPrefOverlay"
 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <treechildren container="false" id="languagesChildren">
     <treeitem container="false" id="svPrefRItem">

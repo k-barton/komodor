@@ -246,14 +246,21 @@ function (obj, objname = deparse(substitute(obj))) {
 ## Returns a *character* vector with elements: dims, mode, class, rec(ursive)
 .objDescr <-
 function (x) {
-	d <- dim(x)
-	if (is.null(d)) d <- length(x)
-
-	return(c(dims = paste(d, collapse = "x"),
-		mode = mode(x), class = class(x)[1L],
-		rec = mode(x) == "S4" || is.function(x) ||
+    classx <- class(x)
+	if(!is.null(attr(classx, "package")) &&
+		length(find.package(attr(classx, "package"), quiet = TRUE)) == 0) {
+		## class' package not available
+		d <- "?"
+	} else {
+		d <- dim(x)
+		if (is.null(d)) d <- length(x)
+	}
+	modex <- mode(x)
+	return(c(dims = paste0(d, collapse = "x"),
+		mode = modex, class = classx[1L],
+		rec = modex == "S4" || is.function(x) ||
 			(is.recursive(x) &&
-			 (class(x) != 'POSIXlt') &&
+			 !inherits(x, 'POSIXlt') &&
 			 !is.language(x) &&
-			 sum(d) != 0)))
+			 sum(d) != 0L)))
 }

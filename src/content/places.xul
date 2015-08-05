@@ -36,7 +36,7 @@
 <menuitem oncommand="parent.sv.command.places.setWorkingDir()"
 		  hideIf="file"
 		  testDisableIf="t:multipleSelection t:isRemote"
-		  testEval_DisableIf="!parent.sv.r.running"
+		  testEval_DisableIf="!parent.sv.r.isRunning"
 		  class="menuitem-iconic"
 		  id="placesContextMenu_Rsetwd"
 		  label="Set as R working directory"

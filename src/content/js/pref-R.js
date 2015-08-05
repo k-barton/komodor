@@ -68,10 +68,10 @@ function menuListGetValues(attribute) {
 function PrefR_menulistSetValue(menuList, value, attrName, vdefault) {
 	var n = menuList.itemCount;
 	var item;
-	for (var i = 0; i <= n; i++) {
+	for (var i = 0; i <= n; ++i) {
 		item = menuList.getItemAtIndex(i);
 		if (item) {
-			var attr1 = item.hasAttribute(attrName)? item.getAttribute(attrName)
+			var attr1 = item.hasAttribute(attrName) ? item.getAttribute(attrName)
             	: vdefault;
 			if (attr1 == value) {
 				menuList.selectedIndex = i;
@@ -111,8 +111,12 @@ function PrefR_OnLoad() {
     //p = parent;
 	//while (p.opener && (p = p.opener) && !ko) if (p.ko) ko = p.ko;
 	
+	// XXX: seems that different instances of prefset don't get updated immediately
+	//      so set prefset in sv.pref to the PrefWindow's one
+	var prefset = parent.hPrefWindow.prefset;
+	sv.pref.prefset = prefset;
+	
 	sv.pref.setDefaults(); // Check if all preference values are ok, if not, restore defaults
-
 
 	var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
@@ -125,22 +129,25 @@ function PrefR_OnLoad() {
 	for (var i in apps) tmp[apps[i].id] = apps[i];
 	apps = tmp;
 
-	var prefset = parent.hPrefWindow.prefset;
     var menu = document.getElementById("svRApplication");
-    menu.removeAllItems();
-    for (var i in apps) menu.appendItem(apps[i].name, i, null);
 	// Remove the 'Choose...' option on first showing
-	if(!prefset.getStringPref("svRApplication")) {
+	if(prefset.getStringPref("svRApplication") == '') {
 		menu.addEventListener("popupshowing", function(event) {
 			if (menu.getItemAtIndex(0).value == '') menu.removeItemAt(0);
 		}, false);
 	} else {
-		menu.removeItemAt(0);
+		apps.shift();
+		//menu.removeItemAt(0);
 	}
+	menu.removeAllItems();
+    for (var i in apps) menu.appendItem(apps[i].name, i, null);
+	
 	
 	// DEBUGGING in JSShell:
 	// scope(Shell.enumWins[2]) //chrome://komodo/content/pref/pref.xul
 	// scope(document.getElementsByTagName("iframe")[0].contentWindow)
+	
+	//FIXME: sometimes svRApplication is blank
 	
 	PrefR_PopulateRInterps();
 	
@@ -166,7 +173,7 @@ function PrefR_PopulateRInterps() {
 
     var prefExecutable = prefset.getStringPref('svRDefaultInterpreter');
 
-    var rs = [];
+    var rs;
     var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
     var menu = document.getElementById("svRDefaultInterpreter");
@@ -174,8 +181,7 @@ function PrefR_PopulateRInterps() {
     ////////////////////////////////////
     switch (os.name) { //'posix', 'nt', 'mac', 'os2', 'ce', 'java', 'riscos'.
         case "nt":
-			rs = rs.concat(sv.file.whereIs("Rgui"));
-			rs = rs.concat(sv.file.whereIs("R"));
+			rs = sv.file.whereIs("Rgui").concat(sv.file.whereIs("R"));
 			//rs.sort(); rs.reverse();
 			break;
         case "mac":
@@ -183,9 +189,10 @@ function PrefR_PopulateRInterps() {
 			break;
         case "posix":
         default:
-			rs = rs.concat(sv.file.whereIs("R"));
+			rs = sv.file.whereIs("R");
     }
-    rs.unshift(prefExecutable);
+	
+	//if(prefExecutable != "") rs.unshift(prefExecutable);
 
     for (var i in rs) {
         rs[i] = os.path.normpath(rs[i]);
@@ -194,17 +201,18 @@ function PrefR_PopulateRInterps() {
         }
     }
     rs = sv.array.unique(rs); // Get rid of duplicates
-
-	if(rs.indexOf(prefExecutable) == -1) {
-		prefset.setStringPref('svRDefaultInterpreter', '');
-		rs.unshift('');
+	if((prefExecutable == "") || (rs.indexOf(prefExecutable) == -1)) {
+		prefset.setStringPref("svRDefaultInterpreter", "R");
+		prefExecutable = "R";
 	}
+	rs.unshift("R;Find on path");
 
-	var curValue = menu.value;
+	var curValue = menu.value || "R";
     menu.removeAllItems();
-    for (var i in rs) {
-        menu.appendItem(rs[i], rs[i], null);
-		if (curValue == rs[i]) {
+	for (var i in rs) {
+		var r = rs[i].split(";");
+        menu.appendItem(r[0], r[0], r.length < 2 ? null : r[1]);
+		if (curValue == r[0]) {
 			menu.selectedIndex = i;
 		}
     }
@@ -272,19 +280,21 @@ function svRDefaultInterpreterOnSelect(event) {
 
 	var menuApplication = document.getElementById("svRApplication");
     var menuInterpreters = document.getElementById("svRDefaultInterpreter");
+	
+	var value = menuInterpreters.value;
 
 	// Just in case
-	if(sv.file.exists(menuInterpreters.value) == sv.file.TYPE_NONE) {
-		ko.dialogs.alert("Cannot find file: " + menuInterpreters.value, null,
+	if((value != "R") && (sv.file.exists(value) == sv.file.TYPE_NONE)) {
+		ko.dialogs.alert("Cannot find file: " + value, null,
 			"R interface preferences");
 	}
 
-    var app = os.path.basename(menuInterpreters.value);
-
-    if (!(menuApplication.value in apps) || apps[menuApplication.value].app != app) {
+	// FIXME: On Win, if 'R' is selected, this chooses RGui:
+    var exeName = os.path.basename(value);
+    if (!(menuApplication.value in apps) || apps[menuApplication.value].app != exeName) {
         var i;
         for (i in apps)
-			if (apps[i].app == app) break;
+			if (apps[i].app == exeName) break;
         menuApplication.value = i;
     }
 
@@ -484,10 +494,8 @@ function PrefR_UpdateCranMirrorsAsync() {
 	window.setTimeout(function() {
 		if (!PrefR_UpdateCranMirrors(true))
 			PrefR_UpdateCranMirrors(false);
-	
 		button.setAttribute("label", "Refresh list");
 		button.disabled = false;
-	
 	}, 64);	
 }
 

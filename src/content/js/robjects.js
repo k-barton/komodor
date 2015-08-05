@@ -1435,7 +1435,7 @@ this.focus = function() {}
 	//		);
 	
 this.onLoad = function(event) {
-	if(sv.r.running) _this.refresh(true);
+	if(sv.r.isRunning) _this.refresh(true);
 }
 //addEventListener("load", _this.onLoad, false);
 

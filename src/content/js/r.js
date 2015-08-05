@@ -8,7 +8,7 @@ if (typeof(sv.r) == 'undefined')
 sv.r = {
 	RMinVersion: "3.0.0",	// Minimum version of R required
 	sep: ";;",				// Separator used for items
-	running: false			// Indicate if R is currently running
+	isRunning: false        // Indicate if R is currently running
 };
 
 (function() {

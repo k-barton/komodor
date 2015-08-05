@@ -86,7 +86,7 @@
 		oncommand="ko.commands.doCommandAsync('cmd_viewrtoolbar', event)"
 	/>
 	<broadcaster id="cmd_svRStarted"
-		oncommand="ko.commands.doCommand(sv.r.running? 'cmd_svQuitR' : 'cmd_svStartR')"
+		oncommand="ko.commands.doCommand(sv.r.isRunning? 'cmd_svQuitR' : 'cmd_svStartR')"
 		/>
 </broadcasterset>
 

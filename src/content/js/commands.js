@@ -47,7 +47,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	}
 
 	// Private methods
-	function _isRRunning() sv.r.running;
+	function _isRRunning() sv.r.isRunning;
 
 	function _RControl_supported() {
 		var currentView = ko.views.manager.currentView;
@@ -218,13 +218,13 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	this.updateRStatus = function (running) {
 		// Toggle status if no argument
 		if (running === undefined) {
-			running = !sv.r.running; // toggle
+			running = !sv.r.isRunning; // toggle
 		} else {
 			//running =  new Boolean(running); // does not work. why??
 			running = !!running; // convert to boolean
 		}
-		if (running != sv.r.running) {
-			sv.r.running = running;
+		if (running != sv.r.isRunning) {
+			sv.r.isRunning = running;
 			xtk.domutils.fireEvent(window, 'r_app_started_closed');
 			window.updateCommands('r_app_started_closed');
 			sv.addNotification("R is " + (running ? "" : "not ") + "running", 0, 2000);
@@ -322,10 +322,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			XHasSelection = 8;
 		var handlers = {
 			'cmd_svOpenPkgManager': ["sv.command.openPkgManager();", XRRunning],
-			'cmd_svBrowseWD': ['sv.r.setwd(\'current\', true);', XRRunning],
 			'cmd_svQuitR': ['sv.r.quit();', XRRunning],
 			'cmd_svOpenHelp': ["sv.command.openHelp();", XRRunning],
-			'cmd_svSessionMgr': ["sv.command.openSessionMgr();", 0],
 			'cmd_svStartR': ['sv.command.startR();', XRStopped],
 			'cmd_svREscape': ['sv.r.escape();', XRRunning],
 			'cmd_svRRunAll': ['sv.r.send("all");', XisRDoc | XRRunning],
@@ -354,7 +352,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 		// Temporary
 		//function _isRRunning () true;
-		function _isRRunning() sv.r.running;
+		function _isRRunning() sv.r.isRunning;
 
 		function _isRCurLanguage() {
 			return true;
@@ -504,18 +502,18 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	this.places = {
 
 		get anyRFilesSelected()
-		sv.r.running &&
+		sv.r.isRunning &&
 		ko.places.manager.getSelectedItems().some(function (x) x.file.isLocal &&
 			x.file.ext.toLowerCase() == ".r"),
 
 		get anyRDataFilesSelected()
-		sv.r.running &&
+		sv.r.isRunning &&
 		ko.places.manager.getSelectedItems().some(
 			function (x) x.file.isLocal &&
 			(x.file.ext || x.file.leafName).toLowerCase() == ".rdata"),
 
 		sourceSelection: function sv_sourcePlacesSelection() {
-			if (!sv.r.running) return;
+			if (!sv.r.isRunning) return;
 			var files = ko.places.manager.getSelectedItems()
 				.filter(function (x)(x.file.isLocal && x.file.ext.toLowerCase() == ".r"))
 				.map(function (x) x.file.path);
@@ -529,7 +527,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		},
 
 		loadSelection: function sv_loadPlacesSelection() {
-			if (!sv.r.running) return;
+			if (!sv.r.isRunning) return;
 			var files = ko.places.manager.getSelectedItems()
 				.filter(function (x)(x.file.isLocal &&
 					// for '.RData', .ext is ''
@@ -545,7 +543,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		},
 
 		setWorkingDir: function sv_setPlacesSelectionAsWorkingDir() {
-			if (!sv.r.running) return;
+			if (!sv.r.isRunning) return;
 
 			var path;
 			if (ko.places.manager._clickedOnRoot()) {
