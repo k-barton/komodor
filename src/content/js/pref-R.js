@@ -121,14 +121,6 @@ function PrefR_OnLoad() {
 	var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
 
-    var platform = navigator.platform.substr(0,3);
-	apps = apps.filter(function(x) (x.platform.indexOf(platform) != -1)
-					   && (!x.required.length || x.required.every(
-						function(y) sv.file.whereIs(y).length != 0)));
-	var tmp = {};
-	for (var i in apps) tmp[apps[i].id] = apps[i];
-	apps = tmp;
-
     var menu = document.getElementById("svRApplication");
 	// Remove the 'Choose...' option on first showing
 	if(prefset.getStringPref("svRApplication") == '') {
@@ -139,6 +131,14 @@ function PrefR_OnLoad() {
 		apps.shift();
 		//menu.removeItemAt(0);
 	}
+    var platform = navigator.platform.substr(0,3);
+	apps = apps.filter(function(x) (x.platform.indexOf(platform) != -1)
+					   && (!x.required.length || x.required.every(
+						function(y) sv.file.whereIs(y).length != 0)));
+	var tmp = {};
+	for (var i in apps) tmp[apps[i].id] = apps[i];
+	apps = tmp;
+	
 	menu.removeAllItems();
     for (var i in apps) menu.appendItem(apps[i].name, i, null);
 	
@@ -146,6 +146,7 @@ function PrefR_OnLoad() {
 	// DEBUGGING in JSShell:
 	// scope(Shell.enumWins[2]) //chrome://komodo/content/pref/pref.xul
 	// scope(document.getElementsByTagName("iframe")[0].contentWindow)
+	//for(i in sv.pref.defaults) sv.pref.prefset.deletePref(i)
 	
 	//FIXME: sometimes svRApplication is blank
 	

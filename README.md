@@ -83,13 +83,3 @@ in Tcl, so your R installation needs to have Tcl capability
   colouring dissappears occassionally. This seems to be related to brace 
   counting in UDL (spush_check/spop_check, a bug in Komodo possibly?).
  
-  
-* Other TODOS and FIXMEs:
-    * R package manager is not fully functional yet
-    * R package manager: available packages list does not show
-    * R help window: search from address bar does not work with current version 
-      of R
-    * Some preferences are unused
-    * On Komodo 9, .R files opened as "REBOL" or"Text" (need to manually replace 
-      association for .r (lowercase) to "R")
-

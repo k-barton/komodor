@@ -31,7 +31,7 @@ state IN_R_DEFAULT:
 delimiter : paint(upto, SSL_DEFAULT), spop_check => IN_R_DEFAULT
 
 '#\'' : paint(upto, SSL_DEFAULT), => IN_R_ROXYGEN_COMMENT
-'#' : paint(upto, SSL_DEFAULT), => IN_R_COMMENT
+'#' : paint(upto, SSL_DEFAULT), spush_check(IN_R_DEFAULT), => IN_R_COMMENT
 
 /[$WS]+/  : #stay
 

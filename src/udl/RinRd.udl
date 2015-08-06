@@ -22,7 +22,7 @@ end_style SSL_VARIABLE
 
 #=== Default state =============================================================
 state IN_R_DEFAULT:
-'#' : paint(upto, SSL_DEFAULT), at_eol(IN_R_DEFAULT), => IN_R_COMMENT
+'#' : paint(upto, SSL_DEFAULT), spush_check(IN_R_DEFAULT), => IN_R_COMMENT
 
 /\\dont(run|show)(?=\{)/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), => IN_R_DEFAULT
 /\\[$OP]/ : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)

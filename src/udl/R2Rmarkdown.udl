@@ -22,7 +22,7 @@ delimiter : paint(upto, SSL_DEFAULT), redo, keep_delimiter => IN_RMD_R_CODE_END
 # A special mode for function definition
 'function' : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER), => IN_R_FUNDEF
 
-'#' : paint(upto, SSL_DEFAULT),  => IN_R_COMMENT
+'#' : paint(upto, SSL_DEFAULT), => IN_R_COMMENT
 
 /[\$@]/ : paint(upto, SSL_DEFAULT), \
     paint(include, SSL_OPERATOR), => IN_R_VARIABLE_1

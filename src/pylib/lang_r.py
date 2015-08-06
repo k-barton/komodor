@@ -35,7 +35,7 @@ R support for codeintel.
 """
 import os
 import sys
-import logging
+# import logging
 import operator
 
 from codeintel2.common import *
@@ -75,7 +75,7 @@ except ImportError:
 
 #---- Globals
 lang = "R"
-log = logging.getLogger("codeintel.R")
+# log = logging.getLogger("codeintel.R")
 
 
 # These keywords and builtin functions are copied from "Rlex.udl".
@@ -198,9 +198,17 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         acc = buf.accessor
         last_pos = pos - 1
         char = acc.char_at_pos(last_pos)
+        
+        # complete argument names after ,<space>
+        complete_arg = (char in ' \t\n\r') and (acc.char_at_pos(last_pos - 1) == ',')
+        if complete_arg:
+            last_pos -= 1
+            char = ','
+        
         style = acc.style_at_pos(last_pos)
+        
         if style == self.operator_style:
-            if char in '[(,':
+            if complete_arg or (char in '[('):
                 infun = self._in_func(pos, acc)
                 if infun is not None:
                     s, e, funcname, nargs, argnames, firstarg = infun
@@ -248,13 +256,13 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
         ch = acc.char_at_pos(pos)
         prv_ch = acc.char_at_pos(last_pos)
-        log.debug('w = "%s", ch = "%s", prv_ch = "%s", pos = %d, curr_pos = %d ' \
-                  % (w, ch, prv_ch, pos, curr_pos, ))
+        # log.debug('w = "%s", ch = "%s", prv_ch = "%s", pos = %d, curr_pos = %d ' \
+        #          % (w, ch, prv_ch, pos, curr_pos, ))
         if style in self.word_styles:
             if self._is_bquoted(w):
                 return None
             s2, e2, w2 = self._get_word_back(s - 1, acc)
-            log.debug( 'w2 = "%s" ' % (w2, ) )
+            # log.debug( 'w2 = "%s" ' % (w2, ) )
 
             if w2 and w2[-1] in ',(':
                 infun = self._in_func(last_pos, acc)
@@ -299,15 +307,16 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         elif w in ('[', '[['):
             infun = self._in_func(pos, acc)
             if infun is not None:
-                log.debug( 'w = "%s", in_func = "%s" ' % (w, str(infun), ) )
+                # log.debug( 'w = "%s", in_func = "%s" ' % (w, str(infun), ) )
                 s2, e2, funcname, nargs, argnames, firstarg = infun
-                log.debug('arguments for "%s"' % ( infun[2], ))
+                # log.debug('arguments for "%s"' % ( infun[2], ))
                 return Trigger(self.lang, TRG_FORM_CPLN, "args", \
                     pos, False, funcname = funcname, firstarg = firstarg, \
                     nargs = nargs, argnames = argnames)
             else:
-                log.debug( 'w = "%s", in_func is None' % (w, ) )
-        log.debug( 'None? w = "%s" ' % (w, ) )
+                pass
+                # log.debug( 'w = "%s", in_func is None' % (w, ) )
+        # log.debug( 'None? w = "%s" ' % (w, ) )
         return None
 
     def async_eval_at_trg(self, buf, trg, ctlr):
@@ -380,9 +389,9 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             pwd = self._rconn.eval_in_R('cat(getwd())').strip()
             if os.path.exists(pwd):
                 abspath = os.path.join(pwd, abspath)
-        log.debug("complete path: " + abspath);
+        # log.debug("complete path: " + abspath);
         if os.path.exists(abspath):
-            log.debug("Complete abs path: " + abspath)
+            # log.debug("Complete abs path: " + abspath)
             return Trigger(self.lang, TRG_FORM_CPLN, "path",
                 pos - tokenlen, False, text = abspath)
         return None
@@ -390,7 +399,7 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
     def _get_completions_args(self, env, fname, frstarg, nargs, argnames = None,
             text = ''):
         fname = self._unquote(fname)
-        log.debug("fname = '%s'" % (fname, ) )
+        # log.debug("fname = '%s'" % (fname, ) )
 
         if fname in ('library', 'require', 'base::library', 'base::require') \
             and nargs == 1:
@@ -438,7 +447,7 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
     def _get_completions_path(self, text):
         try:
             res = os.listdir(text)
-            log.debug("Complete abs path: %d" % (len(res), ))
+            # log.debug("Complete abs path: %d" % (len(res), ))
             return ('success', [ \
                 ("directory" if os.path.isdir(text + os.sep + x) else \
                  "file", x, ) for x in res ] )
