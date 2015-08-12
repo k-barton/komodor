@@ -47,7 +47,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	rx <- regexpr("^([\\w\\.]+):{2,3}(`|)([\\w\\.\\[\\%]+)\\2$", FUNC.NAME, perl = TRUE)
 	if (rx == 1L) {
 		cs <- attr(rx,"capture.start")
-		fn <- substring(FUNC.NAME, cs, cs - 1L + attr(rx,"capture.length"))[c(1,3)]
+		fn <- substring(FUNC.NAME, cs, cs - 1L + attr(rx,"capture.length"))[c(1L, 3L)]
 		FUNC.NAME <- fn[2L]
 		envir <- tryCatch(asNamespace(fn[1L]), error = function(e) NULL)
 		if(is.null(envir)) return(invisible(NULL))
@@ -120,7 +120,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	rx <- regexpr("^([\\w\\.]+):{2,3}(`|)([\\w\\.\\[\\%]+)\\2$", FUNC.NAME, perl = TRUE)
 	if (rx == 1L) {
 		cs <- attr(rx,"capture.start")
-		fn <- substring(FUNC.NAME, cs, cs - 1L + attr(rx,"capture.length"))[c(1,3)]
+		fn <- substring(FUNC.NAME, cs, cs - 1L + attr(rx,"capture.length"))[c(1L,3L)]
 		FUNC.NAME <- fn[2L]
 		envir <- asNamespace(fn[1L])
 		inherit <- FALSE
@@ -159,7 +159,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		} else {
 			cls <- if(is.na(cls[1L])) "default" else c(cls, "default")
 			s3methods <- paste(FUNC.NAME, cls, sep = ".")
-			funall <- s3methods[!is.na(match(s3methods, methods(FUNC.NAME)))]
+			funall <- s3methods[!is.na(match(s3methods, utils::methods(FUNC.NAME)))]
 			ret <- lapply(funall, argNames)
 		}
 	}

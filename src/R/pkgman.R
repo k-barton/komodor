@@ -192,33 +192,39 @@ sv_pkgManLoadPackage  <- function(pkgName) {
 	list(message = msg, status = as.list(status))
 }
 
+#base::get("getRepositories", "komodoConnection")
 getRepositories <- function() {
 	# from: utils::setRepositories
     p <- file.path(Sys.getenv("HOME"), ".R", "repositories")
-    if (!file.exists(p))
+    if (!file.exists(p)) 
         p <- file.path(R.home("etc"), "repositories")
     a <- tools:::.read_repositories(p)
-    pkgType <- getOption("pkgType")
-    if (length(grep("^mac\\.binary", pkgType)))
-        pkgType <- "mac.binary"
-    thisType <- a[[pkgType]]
+    
+	pkgType <- getOption("pkgType")
+    if (any(grepl("mac.binary", pkgType, fixed = TRUE)))
+		pkgType <- "mac.binary" else
+	if (any(pkgType == "both"))
+		pkgType <- c("source", "win.binary")
+		
+    thisType <- apply(a[, pkgType], 1L, any)
     a <- a[thisType, 1L:3L]
     repos <- getOption("repos")
-    if ("CRAN" %in% row.names(a) && !is.na(CRAN <- repos["CRAN"]))
+
+    if ("CRAN" %in% row.names(a) && !is.na(CRAN <- repos["CRAN"])) 
         a["CRAN", "URL"] <- CRAN
     a[(a[["URL"]] %in% repos), "default"] <- TRUE
     new <- !(repos %in% a[["URL"]])
     if (any(new)) {
         aa <- names(repos[new])
-        if (is.null(aa))
+        if (is.null(aa)) 
             aa <- rep("", length(repos[new]))
         aa[aa == ""] <- repos[new][aa == ""]
-        newa <- data.frame(menu_name = aa, URL = repos[new],
+        newa <- data.frame(menu_name = aa, URL = repos[new], 
             default = TRUE)
         row.names(newa) <- aa
         a <- rbind(a, newa)
     }
-	cbind(a, "Contrib.URL" = contrib.url(a[, "URL"]))
+    cbind(a, Contrib.URL = contrib.url(a[, "URL"]))
 }
 
 sv_pkgManGetRepositories <- function (json = TRUE, sep = ";;") {

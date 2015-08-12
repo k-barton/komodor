@@ -10,7 +10,6 @@
 * remove margin click preference
 
 **Package manager:**
-* available packages do not show
 * implement commands from the dropdown menu
 
 **R help window:**
@@ -23,3 +22,10 @@
 **Code highlighting/completion**
 * completion for Roxygen tags
 * Roxygen: handling R code after @example 
+* Lexer for Sweave and Stan
+* Completion of attribute names in `attr(object, "<|>")`
+
+**R**
+* `svBrowseHere`: make `sys.frames` and `sys.calls` usable.
+* Change prompt ":>" if commands not executed inside `.GlobalEnv`
+  (like in `browser()`: "Browse[N]>")

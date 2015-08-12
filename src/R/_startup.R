@@ -9,83 +9,19 @@ if("komodoConnection" %in% search()) detach("komodoConnection")
 attach(new.env(), name = "komodoConnection")
 
 with(as.environment("komodoConnection"), {
-
+	
+	require(utils)
+	
 	sv_CurrentEnvir <- .GlobalEnv
-	svSetEnv <- function(envir = .GlobalEnv) {
-		assign("sv_CurrentEnvir", envir, envir = as.environment("komodoConnection"))
-	}
-	
-	svBrowseHere <- function() {
-		eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
-	}
-	
-
-	`koMsg` <- function(...) cat(..., "\n")
-
-	svPager <- function(files, header, title, delete.file) {
-		files <- gsub("\\", "\\\\", files[1L], fixed = TRUE)
-		tryCatch(koCmd(sprintf("sv.r.pager(\"%1$s\", \"%2$s\", %3$s)",
-			files, title,
-			if (delete.file)  "true" else "false")),
-			error = function(e) utils::browseURL(files, NULL))
-	} 
-
-	`svBrowser` <- function(url) {
-		url <- gsub("\\", "\\\\", url, fixed = TRUE)
-		## If the URL starts with '/', assume a file path
-		## on Unix or Mac and prepend 'file://'
-		url <- sub("^/", "file:///", url)
-		tryCatch(koCmd(sprintf("sv.command.openHelp(\"%s\")", url)),
-			warning = function(e) utils::browseURL(url, NULL),
-			error = function(e) utils::browseURL(url, NULL)
-			)
-	}
-	
+		
 	# XXX: does not work:
 	local({
 		tryCatch({
-			require(utils)
 			readline <- function(prompt = "") paste(koCmd(sprintf("ko.dialogs.prompt('%s', '', '', 'R asked a question', 'R-readline')", prompt), timeout = 0), collapse = " ")
 		}, error = function(e) {
-			# Nothing...
+			# do nothing
 		})
 	}) 
-
-	options(browser = svBrowser, pager = svPager)
-
-	# a way round to get the url:
-    `getHelpURL` <-
-    function(topic, package = NULL) {
-        httpdPort <- if(is.function(tools:::httpdPort)) tools:::httpdPort() else
-            tools:::httpdPort
-        if(httpdPort == 0L) httpdPort <- suppressMessages(tools:::startDynamicHelp(TRUE))
-        helpURI <- NULL
-        if(httpdPort == 0L) return("")
-        oBrowser <- options(browser = function(uri) helpURI <<- uri)
-        on.exit(options(oBrowser))
-
-   
-        if(missing(topic)){
-              host <- "http://127.0.0.1"
-            helpURI <- if(is.null(package)) {
-                paste0(host, ":", httpdPort, "/doc/html/index.html")
-            } else {
-                package <- package[1L]
-                if(system.file("html/00Index.html", package = package) != "")
-                    paste0(host, ":", file.path(httpdPort,
-                    "library", package, "html", "00Index.html", fsep = "/"))
-            }
-        } else {
-            if(try.all.packages <- !is.null(package) && is.na(package))
-                package <- NULL
-            print(do.call(utils::help, list(topic = topic,
-                try.all.packages = try.all.packages,
-                package = package, help_type = "html")))
-        }
-        invisible(helpURI)
-    }
-
-	require(utils)
 
 	env <- as.environment("komodoConnection")
 
@@ -111,6 +47,8 @@ with(as.environment("komodoConnection"), {
 		cat("created 'komodoConnection' startup data \n")
 
 	}
+	options(browser = svBrowser, pager = svPager)
+
 	init.Rserver()
 	rm(env, Rdata, src)
 	invisible()
@@ -131,13 +69,14 @@ local({
 	## Do we have a .Rprofile file to source?
 	#rprofile <- file.path(c(getwd(), Sys.getenv("R_USER")), ".Rprofile")
 	cwd <- normalizePath(getwd())
-	isBaseDir <- file.exists(file.path(cwd, "sv-basedir")) || (cwd == cwd0)
+	
+	isBaseDir <- all(file.exists(file.path(cwd, c("_startup.R", ".Rprofile")))) || (cwd == cwd0)
 	rprofile <- file.path(c(if(!isBaseDir) getwd(), Sys.getenv("R_USER")), ".Rprofile")
-	rprofile <- rprofile[file.exists(rprofile)][1L]
+		rprofile <- rprofile[file.exists(rprofile)][1L]
 
 	if (!is.na(rprofile)) {
 		source(rprofile)
-		koMsg("Loaded file:", rprofile)
+		koMsg("Loaded profile:", rprofile)
 	}
 
 	if(.Platform$GUI == "Rgui") {
@@ -165,7 +104,8 @@ local({
 			sprintf("sv.pref.setPref('sciviews.r.port', %s)", portstr),
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
 				&& file.exists(".RData")) {
-				sprintf("sv.cmdout.append('%s')", gettext("[Previously saved workspace restored]", domain="R-base"))
+				sprintf("sv.cmdout.append('%s')",
+					gettext("[Previously saved workspace restored]", domain="R-base"))
 			},
 			sep = ";")))
 		sv.ver <- koCmd("sv.version")

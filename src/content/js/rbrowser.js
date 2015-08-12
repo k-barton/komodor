@@ -1435,6 +1435,7 @@ this.focus = function() {}
 	//		);
 	
 this.onLoad = function(event) {
+	//alert(".rbrowser.onLoad: r.isRunning : " + sv.r.isRunning);
 	if(sv.r.isRunning) _this.refresh(true);
 }
 //addEventListener("load", _this.onLoad, false);

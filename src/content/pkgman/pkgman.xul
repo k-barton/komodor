@@ -102,7 +102,8 @@ function closeBusyNotification() {
 function pkgManInstall(pkg, ask) {
 	ask = ', ask='  + (ask? 'TRUE' : 'FALSE') + ', installDeps=' +
 		(ask? 'FALSE' :  'TRUE');
-	var cmd = 'cat(simpsON(sv_pkgManInstallPackages("' + pkg + '"' + ask + ')))';
+	var cmd = 'cat(simpsON(' + sv.r.rFn('sv_pkgManInstallPackages') +
+		'("' + pkg + '"' + ask + ')))';
 	sv.rconn.evalPredefined(cmd, "pkgman-install", true, pkg);
 }
 
@@ -157,9 +158,6 @@ function pkgManUpgrade(pkg) {
 		'r-is-busy', 'info');
 }
 
-
-
-
 function pkgManLoad(pkg) {
 	var cmd = 'cat(simpsON(sv_pkgManLoadPackage("' + pkg + '")))';
 	sv.r.evalAsync(cmd, updateInfo, "loaded");
@@ -178,13 +176,12 @@ function populateUpdateablePkgs(rOutput) {
 
 	while(rl.itemCount) rl.removeItemAt(0);
 	var item;
-	for(var i = 0, l = res.length; i < l; i++){
+	for(var i = 0, l = res.length; i < l; ++i){
 		item = res[i];
 		rl.appendChild(makePkgItem(item.package, item.reposVersion, item.repos,
 			item.version, "old", true, true, false));
 	}
 }
-
 
 function updateInfo(res, what) {
 // add to installed / reload installed
@@ -375,10 +372,9 @@ function makePkgItem(name, version, repositoryName, installedVersion, status, in
 }
 
 function getInstalledPkgs() {
-	sv.rconn.evalAsync("sv_pkgManGetInstalled(sep='\\x1e')", populateInstalledPkgs, true, true);
+	sv.rconn.evalAsync("sv_pkgManGetInstalled(sep='\\x1e')",
+			populateInstalledPkgs, true, true);
 }
-
-//sv_pkgManGetInstalled()
 
 function populateInstalledPkgs(rOutput) {
 	if (!rOutput || rOutput == 'NULL') return;
@@ -388,8 +384,6 @@ function populateInstalledPkgs(rOutput) {
 
 	var res = sv.io.csvToObj(rOutput, '\x1e', 0, false, ['name', 'version',
 		'description', 'loaded' ]);
-
-	//alert(res.length);
 
 	var selectedIndex, selectedItem, selectedLabel;
 	selectedIndex = rl.selectedIndex;
@@ -402,7 +396,7 @@ function populateInstalledPkgs(rOutput) {
 		item = res[i];
 		isLoaded = item.loaded.indexOf('TRUE') == 0;
 		if(isLoaded) loadedPkgs.push(item.name);
-		rl.appendChild(makePkgItem(item.name, item.version, null, null, null,
+		rl.appendChild(makePkgItem(item.name, item.version, "", null, null,
 			true, null, isLoaded));
 	}
 

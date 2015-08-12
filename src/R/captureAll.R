@@ -59,15 +59,17 @@ unsink <- function() {
 }
 
 # inspired by 'capture.output' and utils:::.try_silent
-# Requires: R >= 2.13.0 [??]
+# Use argument "doTraceback=FALSE"  for internal commands to avoid overwriting
+#       user's errors and warnings
 `sv_captureAll` <- function(expr, split = FALSE, file = NULL, markStdErr = FALSE,
-		envir = sv_CurrentEnvir) {
+		envir = sv_CurrentEnvir, doTraceback = TRUE) {
 	# TODO: support for 'file' and 'split'
 
 	# markStdErr: if TRUE, stderr is separated from sddout by STX/ETX character
 
 	last.warning <- list()
 	Traceback <- NULL
+	# TODO: use marker rather than fixed offset
 	NframeOffset <- sys.nframe() + 19L + 3L # frame of reference (used in traceback) +
 								 # length of the call stack when a condition
 								 # occurs
@@ -104,26 +106,50 @@ unsink <- function() {
 		}
 	} else 	putMark <- function(to.stdout, id) {}
 
-	`evalVis` <- function(x) withVisible(eval(x, envir))
+	`.__evalVis__` <- function(x) withVisible(eval(x, envir))
 
 	`restartError` <- function(e, calls, foffset) {
 		# remove call (eval(expr, envir, enclos)) from the message
 		ncls <- length(calls)
 
+		## XXX: when does this happen?
 		if(identical(calls[[NframeOffset + foffset]], conditionCall(e)))
 			e$call <- NULL
 
-		cfrom <- ncls - 2L
-		cto <- NframeOffset + foffset
-
-		Traceback <<- if(cfrom < cto) list() else
-			calls[seq.int(cfrom, cto, by=-1L)]
+		## TODO: remove old code using NframeOffset 
+		#cfrom <- ncls - 2L
+		#cto <- NframeOffset + foffset
+		if(doTraceback) {
+			cfrom <- ncls
+			cto <- 1L
+			for(i in ncls:1L) {
+				if(length(calls[[i]]) == 4L && calls[[i]][[1L]] == ".handleSimpleError") {
+					cfrom <- i - 1L
+					break
+				}
+			}
+			for(i in cfrom:1L) {
+				if(length(calls[[i]]) == 2L && calls[[i]][[1L]] == ".__evalVis__") {
+					cto <- i + 4L
+					break
+				}
+			}
+			Traceback <<- if(cfrom < cto) list() else
+				calls[seq.int(cfrom, cto, by = -1L)]
+		}
+			
+		#cat("**Traceback**\n")
+		#cat("**[", cto, ":", cfrom, "]\n")
+		#print(calls)
+		#cat("**End Traceback**\n")
 
 		putMark(FALSE, 1L)
 		cat(as.character.error(e))
 		if(getWarnLev() == 0L && length(last.warning) > 0L)
 			cat(.gettextx("In addition: "))
 	}
+	
+
 
 	res <- tryCatch(withRestarts(withCallingHandlers({
 			# TODO: allow for multiple expressions and calls (like in
@@ -134,7 +160,7 @@ unsink <- function() {
 			for(i in expr) {
 				# 'off' is passed to 'restartError'
 				off <- 0L # TODO: better way to find the right sys.call...
-				res1 <- evalVis(i)
+				res1 <- .__evalVis__(i)
 				off <- -2L
 
 				if(res1$visible) {
@@ -172,8 +198,9 @@ unsink <- function() {
 				.Internal(.dfltWarn(conditionMessage(e), conditionCall(e)))
 				putMark(TRUE, 3L)
 			} else {
-				last.warning <<- c(last.warning, structure(list(e$call),
-					names = e$message))
+				last.warning[[length(last.warning) + 1L]] <<-
+					c(last.warning, structure(list(e$call),
+						names = e$message))
 			}
 			invokeRestart("muffleWarning")
 		}),
@@ -198,7 +225,7 @@ unsink <- function() {
 
 	if(getWarnLev() == 0L) {
 		nwarn <- length(last.warning)
-		assign("last.warning", last.warning, envir = baseenv())
+		if(doTraceback) assign("last.warning", last.warning, envir = baseenv())
 
 		if(nwarn != 0L) putMark(FALSE, 6L)
 		if(nwarn <= 10L) {
@@ -211,30 +238,31 @@ unsink <- function() {
 	}
 	putMark(TRUE, 7L)
 
-	sink(type = "message"); sink(type = "output")
+	sink(type = "message")
+	sink(type = "output")
 	close(tconn)
 	on.exit()
 
 	#filename <- attr(attr(sys.function(sys.parent()), "srcref"), "srcfile")$filename
-	filename <- getSrcFilename(sys.function(sys.parent()), full.names=TRUE)
+	filename <- getSrcFilename(sys.function(sys.parent()), full.names = TRUE)
 	if(length(filename) == 0) filename <- NULL
 
 	#print(sys.function(sys.parent()))
 
 	# allow for tracebacks of this call stack:
-	if(!is.null(Traceback)) {
+	if(doTraceback && !is.null(Traceback)) {
 		assign(".Traceback",
 			if (is.null(filename)) {
 				#lapply(Traceback, deparse, control=NULL)
 				# keep only 'srcref' attribute
-				lapply(Traceback,  function(x) structure(deparse(x, control=NULL),
-					srcref=attr(x, "srcref")))
+				lapply(Traceback,  function(x) structure(deparse(x, control = NULL),
+					srcref = attr(x, "srcref")))
 
 			} else {
 				lapply(Traceback, function(x) {
 					srcref <- attr(x, "srcref")
 					srcfile <- if(is.null(srcref)) NULL else attr(srcref, "srcfile")
-					structure(deparse(x, control=NULL), srcref =
+					structure(deparse(x, control = NULL), srcref =
 						if(is.null(srcfile) || isTRUE(srcfile$filename == filename))
 						NULL else srcref)
 				})

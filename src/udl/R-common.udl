@@ -81,8 +81,6 @@ state IN_R_ELEMENTOF:
 
 #=== Comment ===================================================================
 
-# FIXME: function(arg1 = , #comment
-#                 <arg2 => # <<- should be painted as SSL_VARIABLE until next ','
 state IN_R_COMMENT:
 /\r/ : paint(include, SSL_COMMENT), spop_check, => IN_R_DEFAULT
 /$/ : paint(include, SSL_COMMENT), spop_check, => IN_R_DEFAULT

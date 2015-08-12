@@ -33,7 +33,7 @@ It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
 Socket connection is used to communicate with **R**. No additional R 
 packages are required, however the socket server in R environment is implemented
 in Tcl, so your R installation needs to have Tcl capability 
-(`capabilities("tcltk")`).
+(`capabilities("tcltk")`). See also "Known issues" below.
 
 
 **Main API functions**
@@ -49,14 +49,19 @@ in Tcl, so your R installation needs to have Tcl capability
 * Output from R is displayed in the command output pane only at the end of 
   operation (and this is unlikely to change with the current way of 
   communication with R)
+* Calculation can be interrupted only in R window (Ctrl+C or Escape key in RGui)
+* Executing "Stop all computations" in R will also stop R's socket server and hence
+  break the connection with Komodo. It also can cause R crash (at least on Windows).
+* Problems with connection with Komodo server in R may cause R will not exit 
+  properly (at least on Windows) and need to kill the R process.
 * Debugging in R using `browser()` or `recover`: these functions executed
   from within Komodo interrupt the communication and no output will be 
   displayed. Code containing `browser` calls should be used directly 
   in R console. Currently the only way to debug code within a function in a 
   similar way as `browser()` does is to change the current execution environment
   using `svBrowseHere()` within the function and afterwards set it back 
-  to `.GlobalEnv` with `svSetEnv()`.  Note that the original call stack (i.e. 
-  `sys.frames()` or `sys.calls()` etc.) will not be preserved.
+  to `.GlobalEnv` with `svSetEnv()`. Note that the original call stack (i.e. 
+  `sys.frames()` or `sys.calls()` et al.) will not be preserved.
   Example:
 
 ```r
@@ -74,12 +79,10 @@ in Tcl, so your R installation needs to have Tcl capability
     ls() #  back to .GlobalEnv
     #> [1] "f1"           "f2"           "in.GlobalEnv"
 ```
-* Problems with connection with Komodo server in R may cause R will not exit 
-  properly (at least on Windows) and need to kill the R process.
 * R object browser has to be refreshed manually (click sidebar's refresh button)
   This is for performance, otherwise a list of object would have to be passed 
   after each operation.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
-  counting in UDL (spush_check/spop_check, a bug in Komodo possibly?).
+  counting in UDL (spush_check/spop_check, a bug in Komodo possibly).
  

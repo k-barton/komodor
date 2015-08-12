@@ -62,7 +62,6 @@
 <script type="application/x-javascript" src="chrome://komodor/content/js/io.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/r.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/r-help.js"/>
-<!--<script type="application/x-javascript" src="chrome://komodor/content/js/robjects.js"/>-->
 <script type="application/x-javascript" src="chrome://komodor/content/js/commands.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/misc.js"/>
 

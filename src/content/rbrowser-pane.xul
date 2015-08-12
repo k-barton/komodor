@@ -39,6 +39,7 @@ Contributors:
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript">
 <![CDATA[
+// find sv object in main Komodo window:
 var sv;
 var p = self;
 do {
@@ -49,16 +50,16 @@ do {
 	}
 } while(p.parent != p);
 if (typeof(sv) == 'undefined')
-while ((p = p.opener)) {
-	if (p.sv) {
-		sv = p.sv;
-		break;
+	while ((p = p.opener)) {
+		if (p.sv) {
+			sv = p.sv;
+			break;
+		}
 	}
-}
 ]]>
 </script>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/robjects.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 addEventListener("DOMContentLoaded", function(event) {

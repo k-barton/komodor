@@ -206,6 +206,9 @@ this.send = function (what) {
 	return res;
 }
 
+this.rFn = function(name) "base::get(\"" + name +
+	"\", \"komodoConnection\", inherits=FALSE)";
+
 // Get help in R (HTML format)
 function _getHelpURI(topic, pkg) {
 	var quote = function(str) '"' + str + '"'; 
@@ -301,7 +304,7 @@ this.pager = function(file, title, cleanUp) {
 this.search = function (topic) {
 	topic = sv.string.trim(topic);
 	if(topic == "") return;
-	sv.rconn.evalAsync('help.search("' + sv.string.addslashes(topic) +  '")', null, 
+	sv.rconn.evalAsync('utils::help.search("' + sv.string.addslashes(topic) +  '")', null, 
 		true, false);
 }
 
