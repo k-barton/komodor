@@ -11,11 +11,25 @@ if (sv.pref == undefined) sv.pref = {};
 (function() {
 
 /* Preferences */
-var prefset = Components.classes["@activestate.com/koPrefService;1"]
-	.getService(Components.interfaces.koIPrefService).prefs;
-
 var _this = this;
-this.prefset = prefset;
+var prefset = ko.prefs;
+
+Object.defineProperty(_this, 'prefset', {
+  get: function() { return prefset; },
+  set: function(val) { prefset = val; },
+  enumerable: true
+});
+
+// TODO: unify preference names, add common prefix
+//       e.g. rInterface.koPort/rPort/rHost
+//            rInterface.InterpreterPath
+//            rInterface.CmdArgs
+//            rInterface.CmdLine <-- svRApplication
+//            rInterface.CSVSep
+//            rInterface.CSVDec
+//            rInterface.CRANMirror
+//            rInterface.rRemoteHelpURL
+//            rInterface.helpCommand
 
 this.defaults = {
 	'sciviews.ko.port': 7052,
@@ -37,7 +51,7 @@ this.defaults = {
 this.setDefaults = function sv_checkAllPref(revert) {
 	var val, rev, hasPref;
 	for (var i in _this.defaults) {
-		hasPref = _this.prefset.hasPref(i);
+		hasPref = prefset.hasPref(i);
 		val = hasPref ? _this.getPref(i) : null;
 		rev = revert || (typeof val == "number" && isNaN(val)) || val == "None"
 			|| (_this.defaults[i] != '' && val == '');
@@ -49,7 +63,8 @@ this.setDefaults = function sv_checkAllPref(revert) {
 this.getPref = function(prefName, defaultValue) {
 	var ret, typeName, type;
 	if (prefset.hasPref(prefName)) {
-		type = ['long', 'double', 'boolean', 'string'].indexOf(prefset.getPrefType(prefName));
+		type = ['long', 'double', 'boolean', 'string']
+            .indexOf(prefset.getPrefType(prefName));
 		if (type == -1) return undefined;
 		typeName = ['Long', 'Double', 'Boolean', 'String'][type];
 		ret = prefset['get' + typeName + 'Pref'](prefName);

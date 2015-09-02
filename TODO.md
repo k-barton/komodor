@@ -8,6 +8,7 @@
 * add warning about restarting R if interpreter changed
 * changing between R/Rgui: select the right version
 * remove margin click preference
+* K9: Preference page "Languages->R" does not open automatically 
 
 **Package manager:**
 * implement commands from the dropdown menu
@@ -16,8 +17,6 @@
 * search from address bar is broken
 
 **Other**
-* On Komodo 9, .R files opened as "REBOL" or"Text" (need to manually replace
-  association for .r (lowercase) to "R")
 
 **Code highlighting/completion**
 * completion for Roxygen tags

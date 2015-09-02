@@ -45,8 +45,10 @@
 <?xml-stylesheet href="chrome://komodo/skin/prefs/prefs.css" type="text/css"?>
 
 <window xmlns:html="http://www.w3.org/1999/xhtml"
-xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-class="kodialog" orient="vertical" onload="PrefR_OnLoad(event);">
+    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    class="kodialog pref-window" 
+    orient="vertical" 
+    onload="PrefR_OnLoad(event);">
 
 <script src="chrome://komodo/content/library/trace.js" type="application/x-javascript"/>
 <script src="chrome://komodo/content/library/logging.js" type="application/x-javascript"/>
@@ -169,11 +171,14 @@ class="kodialog" orient="vertical" onload="PrefR_OnLoad(event);">
 		</vbox>
 	</groupbox>
 
-	<hbox>
+	<hbox hiddenPre9="false" hidden="true">
 		<button label="Show advanced settings (rarely need to be changed)"
-				oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;" hidden="false" />
+				oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;" 
+                hidden="true" hiddenPre9="false" 
+                />
 	</hbox>
-	<groupbox id="pref-R-advanced" orient="vertical" hidden="true" >
+	<groupbox id="pref-R-advanced" orient="vertical"
+        class="advanced" hiddenPre9="true">
 		<caption label="Connection with R"/>
 		<grid>
 		  <columns>

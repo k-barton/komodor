@@ -36,12 +36,6 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
       <treerow>
 	<treecell class="treecell-indent" url="chrome://komodor/content/pref-R.xul"
 		  id="" label="R"/>
-<!--
-	TODO: Help could be added here with helptag="r_configuration",
-	but will probably need to manipulate RDF data in
-	chrome://komododoc/locale/help-toc.rdf.
-	How???
--->
       </treerow>
     </treeitem>
   </treechildren>

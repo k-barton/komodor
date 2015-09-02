@@ -152,7 +152,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			if (ko.dialogs.okCancel(
 					sv.translate("R interpreter is not set in " +
 						"Preferences. Would you like to do it now?"),
-					"OK", null, "SciViews-K") == "OK") {
+					"OK", null, "R interface") == "OK") {
 				prefs_doGlobalPrefs("svPrefRItem", true);
 			}
 			return;
@@ -225,8 +225,10 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		}
 		if (running != sv.r.isRunning) {
 			sv.r.isRunning = running;
-			xtk.domutils.fireEvent(window, 'r_app_started_closed');
-			window.updateCommands('r_app_started_closed');
+			// XXX: R toolbar button responds to:
+            xtk.domutils.fireEvent(window, 'r_app_started_closed');
+			// XXX: all other buttons/menu items respond to:
+            window.updateCommands('r_app_started_closed');
 			sv.addNotification("R is " + (running ? "" : "not ") + "running", 0, 2000);
 		}
 	}
@@ -565,7 +567,24 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	//}
 	// TODO: move this to sv.onLoad:
 	this.onLoad = function (event) {
+		//alert("komodor onLoad");
+        
+		// first run:
+		var firstRunPref = "rInterface.firstRunDone";
+        if (!ko.prefs.hasPref(firstRunPref) ||
+                sv._versionCompare(sv.version, ko.prefs.getStringPref(firstRunPref)) > 0
+            ) {
+                ko.prefs.setStringPref(firstRunPref, sv.version);
+                var osName = Components.classes['@activestate.com/koOs;1']
+                    .getService(Components.interfaces.koIOs).name;
+                if (!_setKeybindings(false, osName)) // use system specific keybindings
+                    _setKeybindings(false, '') // fallback - use default
+        } // end first run
+		
 		setTimeout(function () {
+			sv.pref.setDefaults(false);
+			sv.rconn.startSocketServer();
+        
 			_this.setControllers();
 			_this.updateRStatus(sv.rconn.testRAvailability(false));
 
@@ -582,17 +601,14 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 				cuih.prototype.types.dataset =
 					"chrome://komodor/skin/images/cb_data.png";
 			} //else Komodo < 7
-		}, 666);
+		}, 2000);
+		_observerSvc.removeObserver(_this.onLoad, "komodo-ui-started");
+  	}
 
-		var osName = Components.classes['@activestate.com/koOs;1']
-			.getService(Components.interfaces.koIOs).name;
-		if (!_setKeybindings(false, osName)) // use system specific keybindings
-			_setKeybindings(false, '') // fallback - use default
+	// "komodo-post-startup" event in Komodo 9 only. 
+    //addEventListener("komodo-post-startup", _this.onLoad, false);
+	_observerSvc.addObserver(_this.onLoad, "komodo-ui-started", false);
 
-		sv.rconn.startSocketServer();
-	}
-
-	addEventListener("load", _this.onLoad, false);
 
 	// Just in case, run a clean-up before quitting Komodo:
 	function svCleanup() sv.rconn.stopSocketServer();

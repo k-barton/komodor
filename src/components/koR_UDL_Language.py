@@ -56,11 +56,14 @@ class KoRLanguage(KoUDLLanguage):
     _reg_clsid_ = "{7a558f4c-5326-41c3-a037-f3003cadd61b}"
     _reg_categories_ = [("komodo-language", name)]
     defaultExtension = '.R'
+    extraFileAssociations = ['*.r', '*Rprofile', '*Rhistory']
+    #shebangPatterns = [ re.compile(ur'\A#!.*ruby.*$', re.IGNORECASE | re.MULTILINE),]
+    
     primary = 1
     lang_from_udl_family = {'SSL': name, 'TPL': 'Roxygen'}
  
     commentDelimiterInfo = {
-        "line": [ "#", "#'" ],
+        "line": [ "#'", "#", ],
     }
 
     downloadURL = "http://cran.r-project.org/"

@@ -28,7 +28,7 @@
 
 
 // Create the 'sv' namespace
-if (typeof sv == "undefined") sv = {};
+if (typeof sv == "undefined") sv = new Object();
 
 //sv._version
 /*= (function() {
@@ -46,7 +46,16 @@ try { // Komodo 7
 		.getService(Components.interfaces.nsIExtensionManager)
 		.getItemForID("komodor@komodor").version;
 }
-sv.__defineGetter__("version", function() sv._version);
+
+Object.defineProperty(sv, "version", {
+  get: function() sv._version,
+  enumerable: true,
+});
+
+sv._versionCompare = function(v1, v2)
+    Components.classes["@mozilla.org/xpcom/version-comparator;1"]
+        .getService(Components.interfaces.nsIVersionComparator)
+        .compare(v1, v2);
 
 // TODO: use default logger:
 sv.logger = ko.logging.getLogger("KomodoR");
@@ -629,3 +638,64 @@ if(true || typeof require == "undefined") {
 		sv._notify.addMessage(msg, "komodor", timeout | 2000, false, false, true);
 	}
 }
+
+
+sv.init = new Object();
+
+(function() {
+	var _this = this;
+	
+	var checkFileAssociation = function() {
+		var langRegistry = Components.classes["@activestate.com/koLanguageRegistryService;1"] 
+			.getService(Components.interfaces.koILanguageRegistryService);
+			
+		var rFileLang = langRegistry.suggestLanguageForFile("foo.R");
+		
+		if(!ko.prefs.hasBooleanPref("donotask_r_association_override")) {
+			ko.prefs.setBooleanPref("donotask_r_association_override", false);
+		}
+		
+		if(!rFileLang || (rFileLang != "R" && ko.dialogs.yesNo(
+			"Currently *.R files are associated with language " + rFileLang + ". " + 
+			"Would you like to replace this association with R language? " +
+			"\n(This can be changed in Preferences -> File associations)",
+			"Yes", null, "R file association conflict", "r_association_override") == "Yes")) { 
+		  
+			// from content/pref/pref-association.js:OnPreferencePageOK
+			var patternsObj = {}, languageNamesObj = {}; 
+			langRegistry.getFileAssociations({}, patternsObj, {}, languageNamesObj); 
+			var patterns = patternsObj.value; 
+			var languageNames = languageNamesObj.value;
+			for(var i = patterns.length - 1; i >= 0; --i) {
+				if(patterns[i].toUpperCase() == "*.R" && languageNames[i] != "R")
+					languageNames[i] = "R";
+			}
+		
+			try {
+				var assocPref = langRegistry.createFileAssociationPrefString(
+					patterns.length, patterns,
+					languageNames.length, languageNames);
+					ko.prefs.setStringPref("fileAssociationDiffs", assocPref);
+			} catch(ex) {
+				var lastErrorSvc = Components.classes["@activestate.com/koLastErrorService;1"]
+									 .getService(Components.interfaces.koILastErrorService);
+				ko.dialogs.alert("There was an error saving file association changes: "
+							   + lastErrorSvc.getLastErrorMessage());
+			}
+		}
+	}
+	
+	this.ensureRFileAssociation = function() {
+		var view = ko.views.manager.currentView;
+		if(view && view.koDoc && view.koDoc.displayPath.match(/\.[Rr]$/)) {
+			checkFileAssociation();
+			window.removeEventListener('view_opened', _this.ensureRFileAssociation, false);
+			if(view.koDoc.language != "R") view.koDoc.language = "R";
+		}
+	}
+
+	window.addEventListener('view_opened', this.ensureRFileAssociation, false);
+
+}).apply(sv.init);
+	
+

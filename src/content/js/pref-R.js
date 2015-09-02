@@ -1,18 +1,13 @@
 // SciViews-K R preferences panel functions
 // Copyright (c) 2009-2010 Ph. Grosjean (phgrosjean@sciviews.org) & Kamil Barton
 // License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// svPrefR_OnPreferencePageOK(prefset);         // User click OK
-// PrefR_OnLoad();                            	// R preference widow loaded
-// TODO: update this list...
-//////////////////////////////////////////////////////////////////////////////
 
 var sv;
 
-// For menulists, take the value argument/(or text in the textbox), and append
+// For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
 function editMenulist(el, value) {
-	var curValue = (!value)?  sv.string.trim(el.value) : value;
+	var curValue = !value ?  sv.string.trim(el.value) : value;
 	if (!curValue) return;
 	var values = [], val;
 	for (var j = 0; j < el.itemCount; ++j) {
@@ -35,7 +30,7 @@ function menuListSetValues(attribute) {
 		el = ml[i];
 		if (el.hasAttribute(attribute)) {
 			values = el.getAttribute(attribute).split(/\s+/);
-			el.removeAllItems(); /// XXX
+			el.removeAllItems(); // XXX
 			for (var k in values) {
                 v = unescape(values[k]);
                 el.appendItem(v, v, null);
@@ -104,13 +99,22 @@ new _App("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "Win"),
 new _App("r-tk", "R Tk GUI", "\"%Path%\" --interactive --gui:Tk %args%", "R", "R", "Lin,Mac")
 ];
 
-function PrefR_OnLoad() {
-	// Get the sv object:
+function PrefR_OnLoad(event) {
+    
+    // Get the sv object:
 	var p = parent;
 	while (p.opener && (p = p.opener) && !sv) if (p.sv) sv = p.sv;
-    //p = parent;
-	//while (p.opener && (p = p.opener) && !ko) if (p.ko) ko = p.ko;
-	
+
+
+    // for Komodo <9, show/hide elements related to "advanced" option
+	// sv._versionCompare(ko.version, "9.0.0") < 0 // but no 'ko' available here
+    if(!parent.document.getElementById("toggleAdvanced")) {
+        var elementsToHide = document.getElementsByAttribute("hiddenPre9", "*");
+        for(var i = 0; i < elementsToHide.length; ++i)
+            elementsToHide[i].setAttribute("hidden", elementsToHide[i].getAttribute("hiddenPre9"));
+    }
+    
+ 	
 	// XXX: seems that different instances of prefset don't get updated immediately
 	//      so set prefset in sv.pref to the PrefWindow's one
 	var prefset = parent.hPrefWindow.prefset;
@@ -118,11 +122,13 @@ function PrefR_OnLoad() {
 	
 	sv.pref.setDefaults(); // Check if all preference values are ok, if not, restore defaults
 
-	var os = Components.classes['@activestate.com/koOs;1']
-		.getService(Components.interfaces.koIOs);
-
+    // DEBUG:
+    //var res1 = [];
+    //for(var i in sv.pref.defaults) res1.push(i + "=" + sv.pref.getPref(i));
+    //alert("R preferences: \n" + res1.join("\n"));
+    
     var menu = document.getElementById("svRApplication");
-	// Remove the 'Choose...' option on first showing
+	// Remove the 'Choose...' menu option on first showing
 	if(prefset.getStringPref("svRApplication") == '') {
 		menu.addEventListener("popupshowing", function(event) {
 			if (menu.getItemAtIndex(0).value == '') menu.removeItemAt(0);
@@ -132,8 +138,8 @@ function PrefR_OnLoad() {
 		//menu.removeItemAt(0);
 	}
     var platform = navigator.platform.substr(0,3);
-	apps = apps.filter(function(x) (x.platform.indexOf(platform) != -1)
-					   && (!x.required.length || x.required.every(
+	apps = apps.filter(function(a) (a.platform.indexOf(platform) != -1)
+					   && (!a.required.length || a.required.every(
 						function(y) sv.file.whereIs(y).length != 0)));
 	var tmp = {};
 	for (var i in apps) tmp[apps[i].id] = apps[i];
@@ -151,20 +157,35 @@ function PrefR_OnLoad() {
 	//FIXME: sometimes svRApplication is blank
 	
 	PrefR_PopulateRInterps();
-	
-    if (prefset.getStringPref("svRDefaultInterpreter") != "") {
+    
+    // XXX: this never happens (default pref is "R" - find on path)
+    if (prefset.getStringPref("svRDefaultInterpreter") == "") {
 		// update cran mirror list (first local, then tries remote at CRAN)
-		PrefR_UpdateCranMirrorsAsync();
-	} else {
 		var el = document.getElementById("CRANMirror");
 		el.disabled = true;
 		el.tooltipText = "Select R interpreter first";
-	}
-	menuListSetValues(); // Restores saved menu values
+	}    
 	
-		// TODO: this raises an exception if pref('svRDefaultInterpreter')
+    // if (prefset.getStringPref("svRDefaultInterpreter") != "") {
+		// // update cran mirror list (first local, then tries remote at CRAN)
+		// PrefR_UpdateCranMirrorsAsync();
+	// } else {
+		// var el = document.getElementById("CRANMirror");
+		// el.disabled = true;
+		// el.tooltipText = "Select R interpreter first";
+	// }
+	menuListSetValues(); // Restores saved menu values
+
+    // PrefR_OnLoad@chrome://komodor/content/js/pref-R.js:167:2
+	// TODO: this raises an exception if pref('svRDefaultInterpreter')
 	// 		 is not among the options, do some checking here
-	parent.hPrefWindow.onpageload();
+	//parent.hPrefWindow.onpageload();
+	// XXX: workaround for empty preference values...	
+	var prefElements = document.getElementsByAttribute("pref", "true");
+	for (var i = 0; i < prefElements.length; ++i) {
+		prefElements[i].value = sv.pref.getPref(prefElements[i].id);
+	}
+
     PrefR_updateCommandLine(true);
 }
 
@@ -182,6 +203,7 @@ function PrefR_PopulateRInterps() {
     ////////////////////////////////////
     switch (os.name) { //'posix', 'nt', 'mac', 'os2', 'ce', 'java', 'riscos'.
         case "nt":
+			// TODO: sort by version:
 			rs = sv.file.whereIs("Rgui").concat(sv.file.whereIs("R"));
 			//rs.sort(); rs.reverse();
 			break;
@@ -224,12 +246,12 @@ function PrefR_PopulateRInterps() {
 
 function OnPreferencePageLoading(prefset) {}
 
+function OnPreferencePageInitalize(prefset) {}
+
 function OnPreferencePageOK(prefset) {
 	var outDec = document.getElementById('r.csv.dec').value;
 	var outSep = document.getElementById('r.csv.sep').value;
 	
-	//ko.dialogs.alert("WTF");
-
     // "Preference widget" does not save newly added values for some reason:
 	prefset.setStringPref("r.csv.sep", outSep);
 
@@ -497,7 +519,7 @@ function PrefR_UpdateCranMirrorsAsync() {
 			PrefR_UpdateCranMirrors(false);
 		button.setAttribute("label", "Refresh list");
 		button.disabled = false;
-	}, 64);	
+	}, 500);	
 }
 
 
