@@ -11,13 +11,16 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 // sv.command object constructor
 (function () {
+	
+	const { classes : Cc, interfaces : Ci } = Components;
+	
 	this.RHelpWin = null; // A reference to the R Help Window
 	var _this = this;
 	this.RProcess = null;
 
 	function _getWindowByURI(uri) {
-		var wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-			.getService(Components.interfaces.nsIWindowMediator);
+		var wm = Cc['@mozilla.org/appshell/window-mediator;1']
+			.getService(Ci.nsIWindowMediator);
 		var en = wm.getEnumerator("");
 
 		if (uri) {
@@ -29,7 +32,9 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		}
 		return (null);
 	}
-
+	
+	this.getWindowByURI = _getWindowByURI;
+	
 	//Get reference to a window, opening it if is closed
 	function _getWindowRef(uri, name, features, focus) { //, ...
 		var win = _getWindowByURI(uri);
@@ -64,8 +69,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 				currentView.scimoz.selectionStart) != 0));
 	}
 
-	var _observerSvc = Components.classes['@mozilla.org/observer-service;1']
-		.getService(Components.interfaces.nsIObserverService);
+	var _observerSvc = Cc['@mozilla.org/observer-service;1']
+		.getService(Ci.nsIObserverService);
 
 	function _ProcessObserver(command, process, callback) {
 		this._command = command;
@@ -154,6 +159,10 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 						"Preferences. Would you like to do it now?"),
 					"OK", null, "R interface") == "OK") {
 				prefs_doGlobalPrefs("svPrefRItem", true);
+				
+				// workaround K9 bug with switching to the right panel:
+				var prefWin = _getWindowByURI("chrome://komodo/content/pref/pref.xul");
+				if (prefWin) prefWin.switchToPanel("svPrefRItem");
 			}
 			return;
 		}
@@ -176,8 +185,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		case "r-tk":
 			env.push("Rid=R-tk");
 			// Set DISPLAY only when not set:
-			var XEnv = Components.classes["@activestate.com/koEnviron;1"]
-				.createInstance(Components.interfaces.koIEnviron);
+			var XEnv = Cc["@activestate.com/koEnviron;1"]
+				.createInstance(Ci.koIEnviron);
 			if (!XEnv.has("DISPLAY")) env.push("DISPLAY=:0");
 			XEnv = null;
 			break;
@@ -188,8 +197,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		env = env.join("\n");
 
 		if (isWin && id == "r-terminal") {
-			var runSvc = Components.classes['@activestate.com/koRunService;1']
-				.getService(Components.interfaces.koIRunService);
+			var runSvc = Cc['@activestate.com/koRunService;1']
+				.getService(Ci.koIRunService);
 			runSvc.Run(cmd, rDir, env, true, '');
 			// Observe = 'run_command'
 			// subject = 'status_message'
@@ -209,8 +218,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	}
 
 	this.runSystemCommand = function (cmd, cwd, env, terminationCallback) {
-		var runSvc = Components.classes['@activestate.com/koRunService;1']
-			.getService(Components.interfaces.koIRunService);
+		var runSvc = Cc['@activestate.com/koRunService;1']
+			.getService(Ci.koIRunService);
 		var process = runSvc.RunAndNotify(cmd, cwd, env, null);
 		return new _this.ProcessObserver(cmd, process, terminationCallback);
 	}
@@ -486,14 +495,12 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		return true;
 	}
 
-	function _str(sString) sString.QueryInterface(Components.interfaces
-		.nsISupportsString).data;
+	function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data;
 
 	this.getRProc = function (property) {
 		if (!property) property = "CommandLine";
 
-		var svUtils = Components.classes["@komodor/svUtils;1"]
-			.createInstance(Components.interfaces.svIUtils);
+		var svUtils = Cc["@komodor/svUtils;1"].createInstance(Ci.svIUtils);
 		var procList = svUtils.getproc(property);
 
 		proc = [];
@@ -575,8 +582,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 sv._versionCompare(sv.version, ko.prefs.getStringPref(firstRunPref)) > 0
             ) {
                 ko.prefs.setStringPref(firstRunPref, sv.version);
-                var osName = Components.classes['@activestate.com/koOs;1']
-                    .getService(Components.interfaces.koIOs).name;
+                var osName = Cc['@activestate.com/koOs;1']
+                    .getService(Ci.koIOs).name;
                 if (!_setKeybindings(false, osName)) // use system specific keybindings
                     _setKeybindings(false, '') // fallback - use default
         } // end first run
@@ -609,7 +616,6 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     //addEventListener("komodo-post-startup", _this.onLoad, false);
 	_observerSvc.addObserver(_this.onLoad, "komodo-ui-started", false);
 
-
 	// Just in case, run a clean-up before quitting Komodo:
 	function svCleanup() sv.rconn.stopSocketServer();
 	ko.main.addWillCloseHandler(svCleanup);
@@ -623,7 +629,6 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			el.removeAttribute("checked"); // Komodo 8
 			// el.setAttribute("checkState", "0"); // Komodo 8
 		}
-
 	}
 	addEventListener("r_app_started_closed", ObserveR, false);
 

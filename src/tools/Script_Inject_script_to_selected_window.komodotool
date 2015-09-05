@@ -58,7 +58,7 @@
     "\t\t\t\t\t\t\tgetWindowByURI(),", 
     "\t\t\t\t\t\t\t\"one\", function(win) { return win.location.href; });", 
     "\t\tif (win) {", 
-    "\t\t\tvar tmpFileName = sv.tools.file.temp(\"ko_macro\");", 
+    "\t\t\tvar tmpFileName = sv.file.temp(\"ko_macro\");", 
     "", 
     "\t\t\tvar what = \"selection\";", 
     "\t\t\tvar buffer = sv.getTextRange(\"selection\");", 
@@ -69,7 +69,7 @@
     "\t\t\t}", 
     "", 
     "", 
-    "\t\t\tsv.tools.file.write(tmpFileName, buffer);", 
+    "\t\t\tsv.file.write(tmpFileName, buffer);", 
     "\t\t\tvar res = injectFile(tmpFileName, win[0]);", 
     "", 
     "\t\t\tif (res)", 
@@ -78,7 +78,7 @@
     "\t}", 
     "}"
   ], 
-  "version": "1.0.7", 
+  "version": "2", 
   "async": 0, 
   "type": "macro", 
   "icon": "chrome://fugue/skin/icons/navigation-270-frame.png"

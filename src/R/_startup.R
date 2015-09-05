@@ -79,11 +79,6 @@ local({
 		koMsg("Loaded profile:", rprofile)
 	}
 
-	if(.Platform$GUI == "Rgui") {
-		##if(file.exists("Rconsole"))	utils:::loadRconsole("Rconsole")
-		utils::setWindowTitle("[connected to Komodo]")
-	}
-
 	#sys.load.image(".RData", FALSE)
 	if(file.exists(".Rhistory")) loadhistory(".Rhistory")
 
@@ -109,10 +104,14 @@ local({
 			},
 			sep = ";")))
 		sv.ver <- koCmd("sv.version")
-		ko.ver <- koCmd("ko.version")
+		ko.ver <- koCmd("sv.misc.getKomodoVersion()")
 		if(sv.ver != "") {
 			koMsg("Using R interface ", sv.ver, " on Komodo ", ko.ver, sep = "")
-		} else {}
+				if(.Platform$GUI == "Rgui")
+					utils::setWindowTitle("[connected to Komodo]")
+		} else {
+			stop("cannot connect to Komodo. Quit R and try restarting Komodo")
+		}
 	}
 
 	assign(".First", function() {

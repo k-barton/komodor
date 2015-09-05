@@ -46,8 +46,8 @@
 
 <window xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    class="kodialog pref-window" 
-    orient="vertical" 
+    class="kodialog pref-window"
+    orient="vertical"
     onload="PrefR_OnLoad(event);">
 
 <script src="chrome://komodo/content/library/trace.js" type="application/x-javascript"/>
@@ -105,10 +105,10 @@
 			<vbox>
 				<hbox align="center">
 					<button tooltiptext="Refresh" oncommand="PrefR_PopulateRInterps();"
-						buttonstyle="pictures" class="refresh-icon" 
+						buttonstyle="pictures" class="refresh-icon"
 						style="min-width: 24px; margin-left: 0; margin-right: 0;"
 						/>
-					<button style="margin-left: 0; " label="Browse..." 
+					<button style="margin-left: 0; " label="Browse..."
 						oncommand="PrefR_setExecutable();"/>
 				</hbox>
 			</vbox>
@@ -116,7 +116,7 @@
 		<separator class="thin"/>
 		<vbox>
 				<label class="label" control="R_command" crop="end"
-					value="This command will be used to start R (R -> Start R):"/>
+					value="This command will be used to start R (R->Start R):"/>
 				<textbox id="R_command" value="" class="plain"
 					style="background: none; padding-top: 1px !important; margin-left: 10px !important;"
 					/>
@@ -132,15 +132,15 @@
 			<rows>
 				<row align="center">
 					<label value="Decimal separator" control="r.csv.dec"/>
-						<menulist pref="true" id="r.csv.dec"
+					<menulist pref="true" id="r.csv.dec"
 						values=", ." persist="values" maxValues="3">
 						<menupopup />
 					</menulist>
 					<label value="CSV field separator" control="r.csv.sep" />
 						<menulist pref="true" id="r.csv.sep" editable="true"
-						onkeyup="if (event.keyCode == 13) editMenulist(this);"
-						onblur="editMenulist(this);"
-						values=", ; \t" persist="values" maxValues="5">
+							onkeyup="if (event.keyCode == 13) editMenulist(this);"
+							onblur="editMenulist(this);"
+							values=", ; \t" persist="values" maxValues="5">
 						<menupopup />
 					</menulist>
 				</row>
@@ -173,8 +173,8 @@
 
 	<hbox hiddenPre9="false" hidden="true">
 		<button label="Show advanced settings (rarely need to be changed)"
-				oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;" 
-                hidden="true" hiddenPre9="false" 
+				oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;"
+                hidden="true" hiddenPre9="false"
                 />
 	</hbox>
 	<groupbox id="pref-R-advanced" orient="vertical"

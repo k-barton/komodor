@@ -8,7 +8,8 @@
 * add warning about restarting R if interpreter changed
 * changing between R/Rgui: select the right version
 * remove margin click preference
-* K9: Preference page "Languages->R" does not open automatically 
+* K9: Preference page "Languages->R" does not open automatically (worked around)
+* Project/file preferences
 
 **Package manager:**
 * implement commands from the dropdown menu
@@ -21,7 +22,7 @@
 **Code highlighting/completion**
 * completion for Roxygen tags
 * Roxygen: handling R code after @example 
-* Lexer for Sweave and Stan
+* Lexer for Sweave, Bugs, Jags, Stan
 * Completion of attribute names in `attr(object, "<|>")`
 
 **R**

@@ -27,14 +27,15 @@ try { // DEBUG
 (function() {
 var _this = this;
 
-// get string from nsISupportsString
-function _str(sString) sString.QueryInterface(Components
-	.interfaces.nsISupportsString).data;
+const { classes : Cc, interfaces : Ci } = Components;
 
-var _svuSvc = Components.classes["@komodor/svUtils;1"]
-	.getService(Components.interfaces.svIUtils);
-var _obsSvc = Components.classes["@mozilla.org/observer-service;1"]
-    .getService(Components.interfaces.nsIObserverService);
+// get string from nsISupportsString
+function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data;
+
+var _svuSvc = Cc["@komodor/svUtils;1"]
+	.getService(Ci.svIUtils);
+var _obsSvc = Cc["@mozilla.org/observer-service;1"]
+    .getService(Ci.nsIObserverService);
 
 
 this.svuSvc = _svuSvc;
@@ -318,7 +319,7 @@ _REvalListener.prototype = {
 }
 
 //this.printCommandinfo = function(cinfo) {
-//	cinfo.QueryInterface(Components.interfaces.svICommandInfo);
+//	cinfo.QueryInterface(Ci.svICommandInfo);
 //	var result, prompt, styledResult;
 //	switch (cinfo.message) {
 //		case 'Not ready':
@@ -452,7 +453,7 @@ this.cleanUp = function sv_conn_debugCleanup() {
 			var obsEnum = _obsSvc.enumerateObservers(notification);
 			while (obsEnum.hasMoreElements()) {
 				var observer = obsEnum.getNext();
-				observer.QueryInterface(Components.interfaces.nsIObserver);
+				observer.QueryInterface(Ci.nsIObserver);
 				_obsSvc.removeObserver(observer, notification, false);
 			}
 		} catch(e) {}
@@ -464,7 +465,7 @@ this.cleanUp = function sv_conn_debugCleanup() {
 			var obsEnum = prefObsSvc.enumerateObservers(pref);
 			while (obsEnum.hasMoreElements()) {
 				var observer = obsEnum.getNext();
-				observer.QueryInterface(Components.interfaces.nsIObserver);
+				observer.QueryInterface(Ci.nsIObserver);
 				prefObsSvc.removeObserver(observer, pref, true);
 			}
 		} catch(e) { 	alert(e); }

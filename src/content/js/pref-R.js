@@ -7,7 +7,7 @@ var sv;
 // For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
 function editMenulist(el, value) {
-	var curValue = !value ?  sv.string.trim(el.value) : value;
+	var curValue = !value ? sv.string.trim(el.value) : value;
 	if (!curValue) return;
 	var values = [], val;
 	for (var j = 0; j < el.itemCount; ++j) {
@@ -99,12 +99,19 @@ new _App("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "Win"),
 new _App("r-tk", "R Tk GUI", "\"%Path%\" --interactive --gui:Tk %args%", "R", "R", "Lin,Mac")
 ];
 
+
+function getSelectedInterpreterPath() {
+	var path = document.getElementById("svRDefaultInterpreter").value;
+	if(path && sv.file.exists(path) == sv.file.TYPE_FILE) {
+		return path;
+	} else return null;
+}
+
 function PrefR_OnLoad(event) {
-    
+
     // Get the sv object:
 	var p = parent;
 	while (p.opener && (p = p.opener) && !sv) if (p.sv) sv = p.sv;
-
 
     // for Komodo <9, show/hide elements related to "advanced" option
 	// sv._versionCompare(ko.version, "9.0.0") < 0 // but no 'ko' available here
@@ -113,59 +120,59 @@ function PrefR_OnLoad(event) {
         for(var i = 0; i < elementsToHide.length; ++i)
             elementsToHide[i].setAttribute("hidden", elementsToHide[i].getAttribute("hiddenPre9"));
     }
-    
- 	
-	// XXX: seems that different instances of prefset don't get updated immediately
-	//      so set prefset in sv.pref to the PrefWindow's one
-	var prefset = parent.hPrefWindow.prefset;
+
+
+	// XXX: set temporary prefset, will be reverted to ko.prefs at closing
+	prefset = parent.hPrefWindow.prefset;
+	svPrefset = sv.pref.prefset;
 	sv.pref.prefset = prefset;
-	
 	sv.pref.setDefaults(); // Check if all preference values are ok, if not, restore defaults
 
     // DEBUG:
     //var res1 = [];
     //for(var i in sv.pref.defaults) res1.push(i + "=" + sv.pref.getPref(i));
     //alert("R preferences: \n" + res1.join("\n"));
-    
+
+	var menu1 = document.getElementById("CRANMirror");
+	menu1.addEventListener("focus", function(event) {
+		var menu1 = event.target;
+		if(!menu1.updated && menu1.itemCount == 0) {
+			PrefR_UpdateCranMirrorsAsync();
+			menu1.updated = true;
+		}
+	}, true);
+
+
     var menu = document.getElementById("svRApplication");
 	// Remove the 'Choose...' menu option on first showing
 	if(prefset.getStringPref("svRApplication") == '') {
 		menu.addEventListener("popupshowing", function(event) {
 			if (menu.getItemAtIndex(0).value == '') menu.removeItemAt(0);
-		}, false);
+		}, true);
 	} else {
 		apps.shift();
 		//menu.removeItemAt(0);
 	}
-    var platform = navigator.platform.substr(0,3);
+    var platform = navigator.platform.substr(0, 3);
 	apps = apps.filter(function(a) (a.platform.indexOf(platform) != -1)
 					   && (!a.required.length || a.required.every(
 						function(y) sv.file.whereIs(y).length != 0)));
 	var tmp = {};
 	for (var i in apps) tmp[apps[i].id] = apps[i];
 	apps = tmp;
-	
+
 	menu.removeAllItems();
     for (var i in apps) menu.appendItem(apps[i].name, i, null);
-	
-	
+
+
 	// DEBUGGING in JSShell:
 	// scope(Shell.enumWins[2]) //chrome://komodo/content/pref/pref.xul
 	// scope(document.getElementsByTagName("iframe")[0].contentWindow)
 	//for(i in sv.pref.defaults) sv.pref.prefset.deletePref(i)
-	
+
 	//FIXME: sometimes svRApplication is blank
-	
 	PrefR_PopulateRInterps();
-    
-    // XXX: this never happens (default pref is "R" - find on path)
-    if (prefset.getStringPref("svRDefaultInterpreter") == "") {
-		// update cran mirror list (first local, then tries remote at CRAN)
-		var el = document.getElementById("CRANMirror");
-		el.disabled = true;
-		el.tooltipText = "Select R interpreter first";
-	}    
-	
+
     // if (prefset.getStringPref("svRDefaultInterpreter") != "") {
 		// // update cran mirror list (first local, then tries remote at CRAN)
 		// PrefR_UpdateCranMirrorsAsync();
@@ -180,14 +187,24 @@ function PrefR_OnLoad(event) {
 	// TODO: this raises an exception if pref('svRDefaultInterpreter')
 	// 		 is not among the options, do some checking here
 	//parent.hPrefWindow.onpageload();
-	// XXX: workaround for empty preference values...	
+	// XXX: workaround for empty preference values...
 	var prefElements = document.getElementsByAttribute("pref", "true");
 	for (var i = 0; i < prefElements.length; ++i) {
 		prefElements[i].value = sv.pref.getPref(prefElements[i].id);
 	}
-
     PrefR_updateCommandLine(true);
-}
+    // XXX: this never happens (default pref is "R" - find on path)
+
+	PrefR_UpdateCranMirrors(true);
+	if (menu1.itemCount == 0 && !getSelectedInterpreterPath()) {
+		// update cran mirror list (first local, then tries remote at CRAN)
+		var el = document.getElementById("CRANMirror");
+		el.disabled = true;
+		el.tooltipText = "Select R interpreter first";
+	}
+
+	sv.pref.prefset = svPrefset;
+} //PrefR_OnLoad
 
 //TODO: check if there is new R version installed and ask whether to switch to it.
 function PrefR_PopulateRInterps() {
@@ -214,7 +231,7 @@ function PrefR_PopulateRInterps() {
         default:
 			rs = sv.file.whereIs("R");
     }
-	
+
 	//if(prefExecutable != "") rs.unshift(prefExecutable);
 
     for (var i in rs) {
@@ -244,26 +261,27 @@ function PrefR_PopulateRInterps() {
 		!rs.every(function(x) !x);
 }
 
-function OnPreferencePageLoading(prefset) {}
+//function OnPreferencePageLoading(prefset) {}
 
-function OnPreferencePageInitalize(prefset) {}
+//function OnPreferencePageInitalize(prefset) {}
+
+//function OnPreferencePageClosing(prefset, ok) {}
 
 function OnPreferencePageOK(prefset) {
 	var outDec = document.getElementById('r.csv.dec').value;
 	var outSep = document.getElementById('r.csv.sep').value;
-	
+
     // "Preference widget" does not save newly added values for some reason:
 	prefset.setStringPref("r.csv.sep", outSep);
 
     if (outDec == outSep) {
         parent.switchToPanel("svPrefRItem");
         ko.dialogs.alert(
-        "Decimal separator cannot be the same as field separator.", null,
-        "R interface preferences");
+			"Decimal separator cannot be the same as field separator.", null,
+			"R interface preferences");
         return(false);
     }
 	prefset.setStringPref("svRCommand", PrefR_updateCommandLine(false));
-	
 	prefset.setStringPref("CRANMirror", document.getElementById("CRANMirror").value);
 
 
@@ -276,18 +294,18 @@ function OnPreferencePageOK(prefset) {
 	var newClientPort = parseInt(document.getElementById('sciviews.ko.port').value);
 	var currentClientPort = sv.rconn.socketPrefs("sciviews.ko.port");
 	//prefset.getDoublePref('sciviews.ko.port');
-	
+
 	//ko.dialogs.alert("Client port old " + currentClientPort +
 	//						", new " + newClientPort) ;
-	
-	if (sv.rconn.serverIsUp && 
+
+	if (sv.rconn.serverIsUp &&
 		newClientPort != currentClientPort) {
 		var connectedToR = sv.rconn.testRAvailability(false);
-		
-		if(ko.dialogs.yesNo("Client port changed (from " + currentClientPort +
+
+		if(ko.dialogs.yesNo("Server port changed (from " + currentClientPort +
 							" to " + newClientPort + "), would you like to " +
-			"restart the socket server now?" + 
-			(connectedToR? "You will lose the current connection to R." : ""), 
+							"restart it now?" +
+			(connectedToR? "You will lose the current connection to R." : ""),
 			connectedToR? "No" : "Yes",
 			null, "R interface preferences") == "Yes") {
 				sv.rconn.restartSocketServer();
@@ -303,7 +321,7 @@ function svRDefaultInterpreterOnSelect(event) {
 
 	var menuApplication = document.getElementById("svRApplication");
     var menuInterpreters = document.getElementById("svRDefaultInterpreter");
-	
+
 	var value = menuInterpreters.value;
 
 	// Just in case
@@ -322,7 +340,7 @@ function svRDefaultInterpreterOnSelect(event) {
     }
 
     PrefR_updateCommandLine(true);
-	
+
 	var el = document.getElementById("CRANMirror");
 	el.tooltipText = "";
 	el.disabled = false;
@@ -344,7 +362,7 @@ function PrefR_svRApplicationOnSelect(event) {
         //TODO: modify to use with:
         //PrefR_menulistSetValue(menuInterpreters, value, "value", null);
         var item;
-        for (var i = 0; i <= menuInterpreters.itemCount; i++) {
+        for (var i = 0; i <= menuInterpreters.itemCount; ++i) {
             item = menuInterpreters.getItemAtIndex(i);
             if (item) {
                 if (os.path.basename(item.getAttribute("value")) == app) {
@@ -390,7 +408,6 @@ function PrefR_updateCommandLine(update) {
         var cmdLabel = document.getElementById('R_command');
         cmdLabel.value = cmd;
     }
-
     return cmd;
 }
 
@@ -425,7 +442,7 @@ function PrefR_UpdateCranMirrors(localOnly) {
 	var isCached = false;
 	var arrData;
 	var path, csvContent;
-	
+
 	if (!localOnly) {
 		try {
 			csvContent = svFile.readURI("http://cran.r-project.org/" + csvName);
@@ -438,11 +455,16 @@ function PrefR_UpdateCranMirrors(localOnly) {
 		if (isCached) {
 			arrData = JSON.parse(svFile.read(jsonFile));
 		} else {
-			var localPaths = [ ];
+			var localPaths = [];
 
 			var platform = navigator.platform.toLowerCase().substr(0,3);
-			if (platform == "win") { // TODO: what if the pref is not set??
-				var rHome = sv.pref.getPref("svRDefaultInterpreter");
+			if (platform == "win") {
+				var rHome = getSelectedInterpreterPath();
+				if(!rHome) {
+					ko.dialogs.alert("Cannot get mirrors list without a valid R interpreter selected", null, "R interface preferences");
+					return false;
+					// XXX: disable control
+				}
 				var rx = /(bin\\((x64|i386)\\)?)?R(gui|term)\.exe$/i;
 				if(!rHome) {
 					var rHomeArr = sv.array.unique(sv.file.whereIs("R")
@@ -467,7 +489,7 @@ function PrefR_UpdateCranMirrors(localOnly) {
 			}
 		}
 	}
-	if (!csvContent && !arrData)	return(false);
+	if (!csvContent && !arrData)  return false;
 	// TODO: Add error message when mirrors list cannot be obtained.
 
 	if (!arrData) {
@@ -489,7 +511,7 @@ function PrefR_UpdateCranMirrors(localOnly) {
 		// Add main server at the beginning:
 		arrData.unshift(["Main CRAN server", "http://cran.r-project.org/"]);
 	}
-	if (!arrData) return(false);
+	if (!arrData) return false;
 
 	if (!localOnly || !isCached) {
 		// If updated from web, or not cached yet,
@@ -499,7 +521,7 @@ function PrefR_UpdateCranMirrors(localOnly) {
 
 	// Put arrData into MenuList
 	var menuList = document.getElementById("CRANMirror");
-	var value = menuList.value? menuList.value : sv.pref.getPref("CRANMirror");
+	var value = menuList.value? menuList.value : prefset.getString("CRANMirror");
 	menuList.removeAllItems();
 	for (i in arrData) {
 		if (arrData[i][0])
@@ -513,13 +535,13 @@ function PrefR_UpdateCranMirrorsAsync() {
 	var button = document.getElementById("RefreshCRANMirrors");
 	button.setAttribute("label", "Updating mirrors...");
 	button.disabled = true;
-		
+
 	window.setTimeout(function() {
 		if (!PrefR_UpdateCranMirrors(true))
 			PrefR_UpdateCranMirrors(false);
 		button.setAttribute("label", "Refresh list");
 		button.disabled = false;
-	}, 500);	
+	}, 500);
 }
 
 

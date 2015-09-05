@@ -1,7 +1,6 @@
 // Define the 'sv.misc' namespace
 sv.misc = {};
 
-
 sv.misc.colorPicker = {};
 /*
  * JavaScript macro to provide a basic color picker for hexadecimal colors.
@@ -54,7 +53,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 } else {
 
-	function _colorPicker_onchaange (event, cp) {
+	function _colorPicker_onchange (event, cp) {
 		var scimoz = ko.views.manager.currentView.scimoz;
 		scimoz.insertText(scimoz.currentPos, cp.color);
 		// Move cursor position to end of the inserted color
@@ -115,40 +114,71 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 }).apply(sv.misc.colorPicker);
 
-// Custom margin click behaviour
-sv.misc.onMarginClick = function sv_onMarginClick(modifiers, position, margin) {
-    var s = this.scimoz;
-    var lineClicked = s.lineFromPosition(position);
-    if (margin == 1) {
-        if (s.getFoldLevel(lineClicked) & s.SC_FOLDLEVELHEADERFLAG) {
-            if (s.getFoldExpanded(lineClicked)) {
-                var level = s.getFoldLevel(lineClicked);
-                var lineMaxSubord = s.getLastChild(lineClicked, level);
-                var currentLine = s.lineFromPosition(s.currentPos);
-                if (currentLine > lineClicked &&
-                    currentLine <= lineMaxSubord) {
-                    var pos = s.positionFromLine(lineClicked);
-                    s.selectionStart = pos;
-                    s.selectionEnd = pos;
-                    s.currentPos = pos;
-                }
-            }
-            s.toggleFold(lineClicked);
-        }
-    } else if (margin == 2 && this._mouseButton == 0) { // changed from 1 to 0
-        var markerState = this.scintilla.scimoz.markerGet(lineClicked);
-        if (markerState & 1 << ko.markers.MARKNUM_BOOKMARK) {
-            this.scimoz.markerDelete(lineClicked, ko.markers.MARKNUM_BOOKMARK);
-        } else {
-            this.scimoz.markerAdd(lineClicked, ko.markers.MARKNUM_BOOKMARK);
-        }
-    }
-    this._mouseButton = -1;
+sv.misc.getKomodoVersion = function() {
+	if (ko.version) return ko.version;
+	return Components.classes["@activestate.com/koInfoService;1"]
+		.getService(Components.interfaces.koIInfoService).version;
 }
 
-// TODO: Komodo 9 defines own onMarginClick
-function marginClickViewChangedObserver(event) {
-	var view = event.originalTarget;
-	if(view) view.onMarginClick = sv.misc.onMarginClick;
-}
-//window.addEventListener("current_view_changed", marginClickViewChangedObserver, false);
+
+// Fix broken margin click
+(function() {
+	// Fixed bookmark-toggling
+	function bookmarkToggleFix(modifiers, position, margin) {
+		var s = this.scimoz;
+		if (margin == (this.scimoz.MARGIN_SYMBOLS === undefined ? 2 : this.scimoz.MARGIN_SYMBOLS) &&
+			this._mouseButton == 0) { // 1 --> 0
+			// original onMarginClick uses this.scintilla.scimoz, which apparently
+			// has no effect
+			var lineClicked = s.lineFromPosition(position);
+			var markerState = s.markerGet(lineClicked);
+			if (markerState & 1 << ko.markers.MARKNUM_BOOKMARK) {
+				s.markerDelete(lineClicked, ko.markers.MARKNUM_BOOKMARK);
+			} else {
+				s.markerAdd(lineClicked, ko.markers.MARKNUM_BOOKMARK);
+			}
+		}
+	}
+
+	// TODO: Komodo 9 dispatches an event "editor_margin_clicked"
+	if(sv._versionCompare(sv.misc.getKomodoVersion(), "9") >= 0) {
+		window.addEventListener("editor_margin_clicked", function marginClickListener(event) {
+			bookmarkToggleFix.call(event.detail.view, event.detail.modifiers,
+								   event.detail.position, event.detail.margin);
+		}, true);
+	} else {
+		// Ko7 & Ko8
+		function onMarginClick(modifiers, position, margin) {
+			var mouseButton = this._mouseButton;
+			var res = this.__proto__.onMarginClick.call(this, modifiers, position, margin);
+			this._mouseButton = mouseButton;
+			bookmarkToggleFix.call(this, modifiers, position, margin);
+			this._mouseButton = -1;
+			return res;
+		}
+
+		function addMarginClickHandler(view) {
+			if (view.cancelable !== undefined) // view is Event object
+				view = ko.views.manager.currentView;
+			if(!view || view.onMarginClick == onMarginClick) return;
+			view.onMarginClick = onMarginClick;
+		}
+
+		window.addEventListener("view_opened", addMarginClickHandler, true);
+		var _observerSvc = Components.classes['@mozilla.org/observer-service;1']
+			.getService(Components.interfaces.nsIObserverService);
+
+		var onLoad = function() {
+			var views = ko.views.manager.getAllViews();
+			for (var i = 0; i < views.length; ++i) {
+				var view = views[i];
+				sv.cmdout.append("view: " + view.koDoc.displayPath);
+				addMarginClickHandler(view);
+			}
+			_observerSvc.removeObserver(onLoad, "komodo-ui-started");
+			_observerSvc = null;
+		}
+		_observerSvc.addObserver(onLoad, "komodo-ui-started", false);
+	}
+
+}).apply();

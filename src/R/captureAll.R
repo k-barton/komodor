@@ -27,7 +27,11 @@ if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
             out <- if (length(x[[i]])) {
                 temp <- deparse(x[[i]], width.cutoff = 50L, nlines = 2L,
 					control = NULL) # the only modification
-                sm <- strsplit(msgs[i], "\n")[[1L]]
+#XXX:
+#source("no-such-file") 
+#Error in strsplit(msgs[i], "\n") : non-character argument
+
+				sm <- strsplit(msgs[i], "\n")[[1L]]
                 nl <- if (nchar(ind, "w") + nchar(temp[1L], "w") +
                   nchar(sm[1L], "w") <= 75L)
                   " "
@@ -111,10 +115,12 @@ unsink <- function() {
 	`restartError` <- function(e, calls, foffset) {
 		# remove call (eval(expr, envir, enclos)) from the message
 		ncls <- length(calls)
-
+		
+		#print(calls)
+		#print(conditionCall(e))
 		## XXX: when does this happen?
-		if(identical(calls[[NframeOffset + foffset]], conditionCall(e)))
-			e$call <- NULL
+		#if(identical(calls[[NframeOffset + foffset]], conditionCall(e)))
+		#	e$call <- NULL
 
 		## TODO: remove old code using NframeOffset 
 		#cfrom <- ncls - 2L
@@ -198,9 +204,9 @@ unsink <- function() {
 				.Internal(.dfltWarn(conditionMessage(e), conditionCall(e)))
 				putMark(TRUE, 3L)
 			} else {
-				last.warning[[length(last.warning) + 1L]] <<-
-					c(last.warning, structure(list(e$call),
-						names = e$message))
+				pos <- length(last.warning) + 1L 
+				last.warning[[pos]] <<- e$call
+				names(last.warning)[pos] <<- e$message
 			}
 			invokeRestart("muffleWarning")
 		}),
@@ -212,9 +218,7 @@ unsink <- function() {
 		putMark(FALSE, 4L)
 		cat("Execution aborted. \n")
 	},
-
 	muffleMessage = function() NULL,
-	muffleWarning = function() NULL,
 	grmbl = restartError),
 	error = function(e) { #XXX: this is called if warnLevel=2
 		putMark(FALSE, 5L)
