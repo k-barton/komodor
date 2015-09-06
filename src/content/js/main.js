@@ -61,7 +61,6 @@ sv._versionCompare = function(v1, v2)
 sv.logger = ko.logging.getLogger("KomodoR");
 sv.logger.setLevel = ko.logging.LOG_DEBUG;
 
-
 // generate unique id (TODO: move to sv.utils or such)
 sv.uid = function(n) {
 	if(!n) n = 1;
@@ -639,8 +638,8 @@ if(true || typeof require == "undefined") {
 	}
 }
 
-
 sv.init = new Object();
+
 
 (function() {
 	var _this = this;

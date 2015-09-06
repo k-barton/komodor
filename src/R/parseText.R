@@ -6,34 +6,46 @@ function (text) {
 	res <- tryCatch(parse(text = text), error = identity)
 
 	if(inherits(res, "error")) {
-		# Check if this is incomplete code
-		msg <- conditionMessage(res)
-		rxUEOI <- sprintf(gsub("%d", "\\\\d+", gettext("%s%d:%d: %s", domain = "R")),
-			if (getOption("keep.source")) "<text>:" else "",
-			gettextf("unexpected %s",
-					 gettext("end of input", domain = "R"),
-					 domain = "R"))
 
-		if (regexpr(rxUEOI, msg, perl = TRUE) == 1L) return(NA) 
-
-		# This reformats the message as it would appear in the CLI:
-		#msg <- conditionMessage(res)
-		errinfo <- strsplit(sub("(?:<text>:)?(\\d+):(\\d+): +([^\n]+)\n([\\s\\S]*)$",
-			"\\1\n\\2\n\\3\n\\4", msg, perl = TRUE),
-			"\n", fixed = TRUE)[[1L]] 
-
-		if(length(errinfo) == 4L) {
-			errpos <- as.numeric(errinfo[1L:2L])
-			err <- errinfo[-(1L:3L)]
-			rx <- sprintf("^%d:", errpos[1L])
-			errcode <- sub(rx, "", err[grep(rx, err)])
-			#errcode <- substr(strsplit(text, "(\r?\n|\r)")[[1]][errpos[1]],
-			#                  start = 0, stop = errpos[2])
-			res <- simpleError(sprintf("%s in \"%s\"", errinfo[3L], errcode))
+		.regcaptures <- function (x, m, ...) {
+			mstart <- attr(m, "capture.start")
+			mstop <- mstart + attr(m, "capture.length") - 1L
+			n <- length(mstart)
+			rval <- character(n)
+			for(i in 1L:n) 	rval[i] <- substr(x, mstart[i], mstop[i])
+			rval
 		}
 
-		e <- res
+		# Check if this is incomplete code
+		msg <- conditionMessage(res)
+
+		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)",  msg, perl = TRUE)
+		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: *([^\n]+)\n", msg, perl = TRUE)
+		m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: ", msg, perl = TRUE)
+		if(m != -1) {
+			if(identical(.regcaptures(msg, m)[1L], gettext("unexpected end of input", domain = "R")))
+				return(NA)
+			# remove "<text>:n:n:" from the beginning of message
+			res$message <- substr(msg, attr(m,"capture.start")[1L], nchar(msg))
+		}
+
+		#'res$message <- paste0("(parser) ", res$message)
+		res$call <- NULL
+
+		# XXX: Removes line numbers (we don't do that currently)
+		#if(m != -1) {
+		#	mstart <- attr(m,"capture.start")
+		#	mstop <- mstart + attr(m,"capture.length") - 1
+		#	#'for(i in 1:length(mstart)) print(substr(msg, mstart[i], mstop[i]))
+		#	e$message <- gettextf("%s in \"%s\"",
+		#						  substr(msg, mstart[1L], mstop[1L]),
+		#						  substr(msg, mstart[2L], mstop[2L]),
+		#						  domain = "R")
+		#	e$call <- NULL
+		#}
+
 		# for legacy uses, make it a try-error
+		e <- res
 		res <- .makeMessage(res)
 		class(res) <- "try-error"
 		attr(res, 'error') <- e
@@ -41,6 +53,12 @@ function (text) {
     return(res)
 }
 
-assign("parseText", parseText, "komodoConnection")
 
-
+#'msg <- "<text>:2:0: nieoczekiwany koniec wejścia\n1: rere(\n   ^"
+#'msg <- "<text>:3:0: nieoczekiwany koniec wejścia\n1: re\n2: re(\n  ^"
+#'msg <- "<text>:4:0: nieoczekiwany koniec wejścia\n2: \n3: re(\n  ^"
+#'msg <- "<text>:6:0: unexpected end of input\n4: \n5: re(\n  ^"
+#'
+#'cat(msg)
+#'
+#'regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: *([^\n]+)\n", msg, perl = TRUE)

@@ -28,7 +28,7 @@ if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
                 temp <- deparse(x[[i]], width.cutoff = 50L, nlines = 2L,
 					control = NULL) # the only modification
 #XXX:
-#source("no-such-file") 
+#source("no-such-file")
 #Error in strsplit(msgs[i], "\n") : non-character argument
 
 				sm <- strsplit(msgs[i], "\n")[[1L]]
@@ -110,40 +110,73 @@ unsink <- function() {
 		}
 	} else 	putMark <- function(to.stdout, id) {}
 
-	`.__evalVis__` <- function(x) withVisible(eval(x, envir))
+
+	## Marker functions to recognize internal errors
+	#`.__evalVis__` <- function(x) withVisible(eval(x, envir))
+	`.__envir__` <- envir
+	`.__evalVis__` <- function(.__expr__) withVisible(.Internal(eval(.__expr__, .__envir__, baseenv())))
+
+	## evalCallStr <- deparse(body(.__evalVis__)[[2]][[2]])
+	evalCallStr <- "eval(.__expr__, .__envir__, baseenv())"
 
 	`restartError` <- function(e, calls, foffset) {
 		# remove call (eval(expr, envir, enclos)) from the message
 		ncls <- length(calls)
-		
+
+		#'cat("DEBUG [restartError] \n")
+
+		#if(identical(deparse(calls[[ncls - 2L]]), deparse(conditionCall(e)))) {
+		#	e$call <- NULL
+		#	e$message <- "WTF"# sub("<text>:\\d+:\\d+: *", "", e$message, perl = TRUE)
+		#}
+
 		#print(calls)
 		#print(conditionCall(e))
 		## XXX: when does this happen?
 		#if(identical(calls[[NframeOffset + foffset]], conditionCall(e)))
 		#	e$call <- NULL
 
-		## TODO: remove old code using NframeOffset 
+		## TODO: remove old code using NframeOffset
 		#cfrom <- ncls - 2L
 		#cto <- NframeOffset + foffset
 		if(doTraceback) {
 			cfrom <- ncls
 			cto <- 1L
-			for(i in ncls:1L) {
-				if(length(calls[[i]]) == 4L && calls[[i]][[1L]] == ".handleSimpleError") {
+
+			for(i in ncls:1L)
+				if(length(calls[[i]]) == 4L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == ".handleSimpleError") {
 					cfrom <- i - 1L
 					break
 				}
-			}
-			for(i in cfrom:1L) {
-				if(length(calls[[i]]) == 2L && calls[[i]][[1L]] == ".__evalVis__") {
+			if(cfrom == ncls) cfrom <- cfrom - 1L
+			for(i in cfrom:1L)
+				if(length(calls[[i]]) == 2L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == ".__evalVis__") {
 					cto <- i + 4L
 					break
 				}
-			}
+
+			## Remove call from "Error in eval(expr, envir, enclos) : "
+			## --> evaluation error
+			if(length(e$call) == 4L && deparse(e$call, nlines = 1L) == evalCallStr)
+				e$call <- NULL
+
+			#if(length(e$call) == 4L && is.symbol(e$call[[1L]]) && e$call[[1L]] == "eval") {
+			#	## XXX: improve this:
+			#	if(cfrom < cto && deparse(calls[[cfrom]]) == deparse(e$call))
+			#		e$call <- NULL
+			#	if(cfrom == cto && deparse(calls[[cfrom - 1L]]) == deparse(e$call))
+			#		e$call <- NULL
+			#}
+
+
+			# DEBUG
+			# for(i in 1:ncls) cat(">>", i, ": ", deparse(calls[[i]], width.cutoff = 20, nlines = 1), "\n")
+			# cat("from: ", cfrom, " to", cto, " [n = ", ncls, "]\n")
+			###
 			Traceback <<- if(cfrom < cto) list() else
 				calls[seq.int(cfrom, cto, by = -1L)]
 		}
-			
+
 		#cat("**Traceback**\n")
 		#cat("**[", cto, ":", cfrom, "]\n")
 		#print(calls)
@@ -154,8 +187,6 @@ unsink <- function() {
 		if(getWarnLev() == 0L && length(last.warning) > 0L)
 			cat(.gettextx("In addition: "))
 	}
-	
-
 
 	res <- tryCatch(withRestarts(withCallingHandlers({
 			# TODO: allow for multiple expressions and calls (like in
@@ -176,7 +207,7 @@ unsink <- function() {
 						printfun <- as.name(if(isS4(resval)) "show" else "print")
 						if(is.language(resval)) {
 							eval(substitute(printfun(quote(resval))), envir)
-						}	else
+						} else
 							eval(substitute(printfun(resval)), envir)
 					} else {
 						cat("\n")
@@ -204,7 +235,7 @@ unsink <- function() {
 				.Internal(.dfltWarn(conditionMessage(e), conditionCall(e)))
 				putMark(TRUE, 3L)
 			} else {
-				pos <- length(last.warning) + 1L 
+				pos <- length(last.warning) + 1L
 				last.warning[[pos]] <<- e$call
 				names(last.warning)[pos] <<- e$message
 			}
@@ -222,6 +253,7 @@ unsink <- function() {
 	grmbl = restartError),
 	error = function(e) { #XXX: this is called if warnLevel=2
 		putMark(FALSE, 5L)
+		# cat("DEBUG [error#2] ")
 		cat(as.character.error(e))
 		e #identity
 	}, finally = {	}

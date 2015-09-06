@@ -25,7 +25,8 @@ interface svICommandInfo: nsISupports {
 [scriptable, uuid(a8495e7c-4a1a-4d44-a872-4b25abd2c417)]
 interface svIUtils : nsISupports {
     nsISimpleEnumerator getproc(in string propertyName);
-	AUTF8String evalInR(in AUTF8String command, in ACString mode, in double timeout);
+	AUTF8String platform();
+    AUTF8String evalInR(in AUTF8String command, in ACString mode, in double timeout);
 	void evalInRNotify(in AUTF8String command, in ACString mode, in ACString uid);
 	long startSocketServer(in svIStuffListener requestHandler);
 	void stopSocketServer();

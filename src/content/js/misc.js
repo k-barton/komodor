@@ -114,12 +114,12 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 }).apply(sv.misc.colorPicker);
 
+
 sv.misc.getKomodoVersion = function() {
 	if (ko.version) return ko.version;
 	return Components.classes["@activestate.com/koInfoService;1"]
 		.getService(Components.interfaces.koIInfoService).version;
-}
-
+};
 
 // Fix broken margin click
 (function() {
@@ -182,3 +182,4 @@ sv.misc.getKomodoVersion = function() {
 	}
 
 }).apply();
+

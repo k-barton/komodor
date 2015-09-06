@@ -63,7 +63,7 @@ class KoRLanguage(KoUDLLanguage):
     lang_from_udl_family = {'SSL': name, 'TPL': 'Roxygen'}
  
     commentDelimiterInfo = {
-        "line": [ "#'", "#", ],
+        "line": [ "#", "#'", ],
     }
 
     downloadURL = "http://cran.r-project.org/"
