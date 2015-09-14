@@ -57,13 +57,13 @@ class KoRLanguage(KoUDLLanguage):
     _reg_categories_ = [("komodo-language", name)]
     defaultExtension = '.R'
     extraFileAssociations = ['*.r', '*Rprofile', '*Rhistory']
-    #shebangPatterns = [ re.compile(ur'\A#!.*ruby.*$', re.IGNORECASE | re.MULTILINE),]
-    
+    #shebangPatterns = [ re.compile(ur'\A#!.*rscript.*$', re.IGNORECASE | re.MULTILINE),]
+
     primary = 1
     lang_from_udl_family = {'SSL': name, 'TPL': 'Roxygen'}
- 
+
     commentDelimiterInfo = {
-        "line": [ "#", "#'", ],
+        "line": [ "#", ],
     }
 
     downloadURL = "http://cran.r-project.org/"
@@ -78,12 +78,12 @@ class KoRLanguage(KoUDLLanguage):
     #styleStdout = components.interfaces.ISciMoz.SCE_C_STDOUT
     #styleStderr = components.interfaces.ISciMoz.SCE_C_STDERR
 
-    sample = """#' Useless random maths example.
+    sample = """# Useless random maths example.
 #' @description
 #' \code{foo} returns the result of random operations on its arguments.
 #' @param x,y Numeric vectors.
 #' @paramx,y,z Numeric vectors.
-#' @param na.rm Logical, ignored. Missing values are removed anyway. 
+#' @param na.rm Logical, ignored. Missing values are removed anyway.
 #' @details
 #' This function sums two of its arguments, removing \code{NA}s,
 #' See \code{\link[stats]{na.omit}} for \sQuote{details}

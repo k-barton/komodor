@@ -4,7 +4,7 @@ state IN_R_NAME :
 /$NM(?=\s*::)/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), spush_check(IN_R_DEFAULT) => IN_R_FUN_BEFOREPARENS
 /$NM/ : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER), spush_check(IN_R_DEFAULT) => IN_R_FUN_BEFOREPARENS
 /`/ : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER),	spush_check(IN_R_FUN_AFTERBQNAME) => IN_R_BQNAME
-/./ :  => IN_R_DEFAULT
+/./ : redo, => IN_R_DEFAULT
 
 state IN_R_FUN_AFTERBQNAME:
 /./ : redo, spush_check(IN_R_DEFAULT), => IN_R_FUN_BEFOREPARENS # spush_check important!
@@ -30,6 +30,7 @@ state IN_R_FUNDEF_PARENS:
 ',' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)
 /$NAMESTART/ : paint(upto, SSL_DEFAULT), spush_check(IN_R_FUNDEF_PARENS_ARGVAL), redo, => IN_R_PARENS_ARGNAME
 /[$WS]+/ :  # stay
+'#' : paint(upto, SSL_DEFAULT), spush_check(IN_R_FUNDEF_PARENS), => IN_R_COMMENT
 /./ : redo, => IN_R_FUNDEF_PARENS_ARGVAL
 
 state IN_R_FUN_PARENS:
@@ -37,13 +38,14 @@ state IN_R_FUN_PARENS:
 /(?:$NM|$NBQ)(?:\s*=[^=])/ : paint(upto, SSL_DEFAULT), spush_check(IN_R_FUN_PARENS_ARGVAL), redo, => IN_R_PARENS_ARGNAME
 ',' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR)
 /[$WS]+/ :  # stay
+'#' : paint(upto, SSL_DEFAULT), spush_check(IN_R_FUN_PARENS), => IN_R_COMMENT
 /./ : spush_check(IN_R_FUN_PARENS), redo, => IN_R_DEFAULT
 
 state IN_R_PARENS_ARGNAME:
 /$NM/ : paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE) # stay
 '`' : paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE),  spush_check(IN_R_PARENS_ARGNAME), => IN_R_BQARGNAME
 '=' : paint(upto, SSL_DEFAULT), paint(include, SSL_OPERATOR), spop_check, => IN_R_DEFAULT
-'#' : paint(upto, SSL_DEFAULT), paint(include, SSL_COMMENT), spush_check(IN_R_PARENS_ARGNAME), => IN_R_COMMENT
+'#' : paint(upto, SSL_DEFAULT), spush_check(IN_R_PARENS_ARGNAME), => IN_R_COMMENT
 /[$WS]+/ :  # stay
 /./ : redo, spop_check, => IN_R_DEFAULT
 
@@ -73,8 +75,7 @@ state IN_R_ELEMENTOF:
 /[$LTR\.][$LTR\d\._]*/ : paint(upto, SSL_DEFAULT),  no_keyword, \
     paint(include, SSL_VARIABLE), spop_check, => IN_R_DEFAULT
 '`' : paint(upto, SSL_DEFAULT), paint(include, SSL_VARIABLE), => IN_R_BQVARIABLE
-'#' : paint(upto, SSL_DEFAULT), paint(include, SSL_COMMENT), \
-    spush_check(IN_R_ELEMENTOF), => IN_R_COMMENT
+'#' : paint(upto, SSL_DEFAULT), spush_check(IN_R_ELEMENTOF), => IN_R_COMMENT
 /[$WS]+/ :  # stay
 /./ : redo, spop_check, => IN_R_DEFAULT
 
@@ -104,7 +105,7 @@ state IN_R_DSTRING:
 '"' :  paint(include, SSL_STRING), => IN_R_DEFAULT
 
 state IN_R_SSTRING:
-/\\./ : 
+/\\./ :
 '\'' :  paint(include, SSL_STRING), => IN_R_DEFAULT
 
 #=== Numbers ===================================================================
