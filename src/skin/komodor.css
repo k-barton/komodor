@@ -233,5 +233,6 @@
 
 .languageicon[language="R"],
 treechildren::-moz-tree-image(LanguageR) {
-  list-style-image: url("chrome://komodor/skin/images/r_16x16.png");
+  /* list-style-image: url("chrome://komodor/skin/images/r_16x16.png"); */
+  list-style-image: url("chrome://komodor/skin/images/r.svg");
 }

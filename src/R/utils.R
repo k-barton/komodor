@@ -1,16 +1,26 @@
-svSetEnv <- function(envir = .GlobalEnv) {
-		assign("sv_CurrentEnvir", envir, envir = as.environment("komodoConnection"))
-	}
-	
+getCurrentEnv <-
+function()
+get("sv_CurrentEnvir", envir = funcEnv, inherits = FALSE)
+
+
+svSetEnv <-
+function(envir = .GlobalEnv) {
+	assign("sv_CurrentEnvir", envir, envir = funcEnv)
+}
+
 ##TODO: change prompt if not .GlobalEnv
 ## TODO: save sys.calls and sys.frames
-svBrowseHere <- function() {
+koBrowseHere <-
+function() {
     eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
-    cat("Current environment is now inside\n", 
-        format(sys.call(sys.nframe()-1L)),
+    cat("Current evaluation environment is now inside\n",
+        format(sys.call(sys.nframe() - 1L)),
         #format(sv_CurrentEnvir),
-        "\nUse 'svSetEnv()' to return to GlobalEnv", "\n")
+        "\nUse 'koBrowseEnd()' to return to GlobalEnv", "\n")
 }
+
+koBrowseEnd <-
+function() svSetEnv(.GlobalEnv)
 
 
 
@@ -20,7 +30,7 @@ svPager <- function(files, header, title, delete.file) {
         files, title,
         if (delete.file)  "true" else "false")),
         error = function(e) utils::browseURL(files, NULL))
-} 
+}
 
 `svBrowser` <- function(url) {
     url <- gsub("\\", "\\\\", url, fixed = TRUE)

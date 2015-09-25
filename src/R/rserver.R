@@ -126,7 +126,7 @@ tcl <- tcltk::tcl
 				msg <- 'Parse error'
 			} else {
 				ret <- sv_captureAll(expr, markStdErr = TRUE, envir = sv_CurrentEnvir)
-				
+				                
 				msg <- 'Done'
 			}
 

@@ -59,8 +59,8 @@ in Tcl, so your R installation needs to have Tcl capability
   displayed. Code containing `browser` calls should be used directly 
   in R console. Currently the only way to debug code within a function in a 
   similar way as `browser()` does is to change the current execution environment
-  using `svBrowseHere()` within the function and afterwards set it back 
-  to `.GlobalEnv` with `svSetEnv()`. Note that the original call stack (i.e. 
+  using `koBrowseHere()` within the function and afterwards set it back 
+  to `.GlobalEnv` with `koBrowseEnd()`. Note that the original call stack (i.e. 
   `sys.frames()` or `sys.calls()` et al.) will not be preserved.
   Example:
 
@@ -68,14 +68,14 @@ in Tcl, so your R installation needs to have Tcl capability
     in.GlobalEnv <- TRUE
     test <- function(arg1 = 1, arg2 = 2) {
         in.test <- TRUE
-        svBrowseHere() # instead of 'browser()'
+        koBrowseHere() # instead of 'browser()'
     }
 
     test()
     ls() # we're inside 'test' now
     #> [1] "arg1"     "arg2"     "in.test"
     
-    svSetEnv()
+    koBrowseEnd()
     ls() #  back to .GlobalEnv
     #> [1] "f1"           "f2"           "in.GlobalEnv"
 ```
@@ -85,4 +85,3 @@ in Tcl, so your R installation needs to have Tcl capability
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
   counting in UDL (spush_check/spop_check, a bug in Komodo possibly).
- 

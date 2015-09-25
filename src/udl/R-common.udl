@@ -1,6 +1,6 @@
 #=== Names and functions =======================================================
 state IN_R_NAME :
-/function\b/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), spush_check(IN_R_DEFAULT), => IN_R_FUNDEF_BEFOREPARENS
+/function(?=\s*\()/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), spush_check(IN_R_DEFAULT), => IN_R_FUNDEF_BEFOREPARENS
 /$NM(?=\s*::)/ : paint(upto, SSL_DEFAULT), paint(include, SSL_WORD), spush_check(IN_R_DEFAULT) => IN_R_FUN_BEFOREPARENS
 /$NM/ : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER), spush_check(IN_R_DEFAULT) => IN_R_FUN_BEFOREPARENS
 /`/ : paint(upto, SSL_DEFAULT), paint(include, SSL_IDENTIFIER),	spush_check(IN_R_FUN_AFTERBQNAME) => IN_R_BQNAME

@@ -267,6 +267,10 @@ function PrefR_PopulateRInterps() {
 
 //function OnPreferencePageClosing(prefset, ok) {}
 
+//language icon color 8595c0
+
+// ko.prefs.getPref('fileicons_presets').appendString("R:R:#8595c0");
+
 function OnPreferencePageOK(prefset) {
 	var outDec = document.getElementById('r.csv.dec').value;
 	var outSep = document.getElementById('r.csv.sep').value;

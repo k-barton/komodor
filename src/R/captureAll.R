@@ -5,8 +5,12 @@ if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
 	getSrcFilename <- utils::getSrcFilename
 }
 
+DEBUG <- function(...) {}
+
 # Replacement for 'base::as.character.error', which does not translate "Error"
 `as.character.error` <- function (x, ...) {
+	DEBUG("as.character.error")
+
     msg <- conditionMessage(x)
     call <- conditionCall(x)
     if (!is.null(call))
@@ -27,21 +31,16 @@ if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
             out <- if (length(x[[i]])) {
                 temp <- deparse(x[[i]], width.cutoff = 50L, nlines = 2L,
 					control = NULL) # the only modification
-#XXX:
-#source("no-such-file")
-#Error in strsplit(msgs[i], "\n") : non-character argument
 
 				sm <- strsplit(msgs[i], "\n")[[1L]]
                 nl <- if (nchar(ind, "w") + nchar(temp[1L], "w") +
-                  nchar(sm[1L], "w") <= 75L)
-                  " "
-                else "\n  "
-                paste(ind, "In ", temp[1L], if (length(temp) >
-                  1L)
+                  nchar(sm[1L], "w") <= 75L) " " else "\n  "
+                paste(ind, "In ", temp[1L], if (length(temp) > 1L)
                   " ...", " :", nl, msgs[i], sep = "")
-            }
-            else paste(ind, msgs[i], sep = "")
+            } else paste(ind, msgs[i], sep = "")
             do.call("cat", c(list(out), attr(x, "dots"), fill = TRUE))
+
+			#do.call(get("sv_captureAll", "komodoConnection"), list(1,2,3))
         }
     }
     invisible(x)
@@ -54,7 +53,7 @@ sprintf(ngettext(1, fmt, "", domain = domain), ...)
 
 `.gettextx` <- function (..., domain = "R") {
     args <- lapply(list(...), as.character)
-	 unlist(lapply(unlist(args), function(x) .Internal(ngettext(1, x, "", domain))))
+	unlist(lapply(unlist(args), function(x) .Internal(ngettext(1, x, "", domain))))
 }
 
 unsink <- function() {
@@ -71,6 +70,8 @@ unsink <- function() {
 
 	# markStdErr: if TRUE, stderr is separated from sddout by STX/ETX character
 
+
+
 	last.warning <- list()
 	Traceback <- NULL
 	# TODO: use marker rather than fixed offset
@@ -85,9 +86,11 @@ unsink <- function() {
 
 	rval <- NULL
 	tconn <- textConnection("rval", "w", local = TRUE)
-	sink(tconn, type = "output"); sink(tconn, type = "message")
+	sink(tconn, type = "output")
+	sink(tconn, type = "message")
 	on.exit({
-		sink(type = "message"); sink(type = "output")
+		sink(type = "message")
+		sink(type = "output")
 		close(tconn)
 	})
 
@@ -119,11 +122,11 @@ unsink <- function() {
 	## evalCallStr <- deparse(body(.__evalVis__)[[2]][[2]])
 	evalCallStr <- "eval(.__expr__, .__envir__, baseenv())"
 
-	`restartError` <- function(e, calls, foffset) {
+	`restartError` <- function(e, calls) { # , foffset
 		# remove call (eval(expr, envir, enclos)) from the message
 		ncls <- length(calls)
 
-		#'cat("DEBUG [restartError] \n")
+		DEBUG("restartError")
 
 		#if(identical(deparse(calls[[ncls - 2L]]), deparse(conditionCall(e)))) {
 		#	e$call <- NULL
@@ -131,6 +134,8 @@ unsink <- function() {
 		#}
 
 		#print(calls)
+		DEBUG("Call: ", e$call)
+
 		#print(conditionCall(e))
 		## XXX: when does this happen?
 		#if(identical(calls[[NframeOffset + foffset]], conditionCall(e)))
@@ -192,15 +197,20 @@ unsink <- function() {
 			# TODO: allow for multiple expressions and calls (like in
 			# 'capture.output'). The problem here is how to tell 'expression'
 			# from 'call' without evaluating it?
-			off <- 0L
+			#off <- 0L
 
-			for(i in expr) {
+			for(ex in expr) {
+				DEBUG("before eval")
 				# 'off' is passed to 'restartError'
-				off <- 0L # TODO: better way to find the right sys.call...
-				res1 <- .__evalVis__(i)
-				off <- -2L
+				# 'off <- 0L # TODO: better way to find the right sys.call...
+				res1 <- .__evalVis__(ex)
+				#'off <- -2L
+				DEBUG("after eval")
 
+				DEBUG("print")
 				if(res1$visible) {
+					DEBUG("is visible")
+
 					# print/show should be evaluated also in 'envir'
 					resval <- res1$value
 					if(!missing(resval)) {
@@ -212,22 +222,27 @@ unsink <- function() {
 					} else {
 						cat("\n")
 					}
-				}
+				} else DEBUG("not visible")
+				DEBUG("after print")
+
 			}
 		},
 
 		message = function(e)  {
 			putMark(FALSE, 8L)
+			DEBUG("message")
+
 			cat(conditionMessage(e), sep = "")
 			putMark(TRUE, 9L)
 			invokeRestart("muffleMessage")
 		},
-		error = function(e) invokeRestart("grmbl", e, sys.calls(), off),
+		error = function(e) invokeRestart("grmbl", e, sys.calls()),
 		warning = function(e) {
 			# remove call (eval(expr, envir, enclos)) from the message
-			if(isTRUE(all.equal(sys.call(NframeOffset + off), e$call,
-				check.attributes = FALSE)))
-				e$call <- NULL
+			#    if(isTRUE(all.equal(sys.call(NframeOffset + off), e$call,
+			#    check.attributes = FALSE)))
+			#    e$call <- NULL
+			DEBUG("warning")
 
 			if(getWarnLev() != 0L) {
 				putMark(FALSE, 2L)
@@ -239,6 +254,8 @@ unsink <- function() {
 				last.warning[[pos]] <<- e$call
 				names(last.warning)[pos] <<- e$message
 			}
+			DEBUG("END warning")
+
 			invokeRestart("muffleWarning")
 		}),
 	# Restarts:
@@ -253,8 +270,9 @@ unsink <- function() {
 	grmbl = restartError),
 	error = function(e) { #XXX: this is called if warnLevel=2
 		putMark(FALSE, 5L)
-		# cat("DEBUG [error#2] ")
+		DEBUG("error#2")
 		cat(as.character.error(e))
+		DEBUG("end error#2")
 		e #identity
 	}, finally = {	}
 	)

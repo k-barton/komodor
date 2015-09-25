@@ -22,9 +22,10 @@ compare = TRUE, ...) {
 		}
 	}
 
+
 	# base and .GlobalEnv do not have name attribute
 	if (!is.null(attr(envir, "name"))) ename <- attr(envir, "name")
-	else if (is.na(ename)) ename <- deparse(substitute(envir))
+		else if (is.na(ename)) ename <- deparse(substitute(envir))
 	if (ename %in% c("baseenv()", ".BaseNamespaceEnv"))
 		ename <- "package:base"
 
@@ -157,7 +158,7 @@ function (objname, envir, ...) {
 	error <- FALSE
 	obj <- tryCatch(eval(parse(text = objname), envir = as.environment(envir)),
 			error = function(e) error <<- TRUE)
-	
+
 	if (error) return(NULL)
 
 	if (is.environment(obj)) obj <- as.list(obj)
