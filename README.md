@@ -79,9 +79,12 @@ in Tcl, so your R installation needs to have Tcl capability
     ls() #  back to .GlobalEnv
     #> [1] "f1"           "f2"           "in.GlobalEnv"
 ```
+* Connection timeout on longer operations: prompt is shown as if the calculation in R 
+  has finished and no output will be shown. There does not seem to be a way to set 
+  socket timeout in Tcl.
 * R object browser has to be refreshed manually (click sidebar's refresh button)
   This is for performance, otherwise a list of object would have to be passed 
   after each operation.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
-  counting in UDL (spush_check/spop_check, a bug in Komodo possibly).
+  counting in UDL (`spush_check`/`spop_check`, a bug in Komodo possibly).
