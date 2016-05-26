@@ -173,7 +173,10 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			"')\n" + "options(" +
 			"ko.port=" + sv.pref.getPref("sciviews.ko.port", 7052) + ", " +
 			"ko.R.port=" + sv.pref.getPref("sciviews.r.port", 1111) + ", " +
-			"ko.host=\"localhost\")\n"
+			"ko.host=\"localhost\")\n" + 
+			".ko.tmp.repos <- getOption(\"repos\"); .ko.tmp.repos[[\"CRAN\"]] <- \"" +
+				sv.pref.getPref("CRANMirror") + "\"; " +
+			"options(repos = .ko.tmp.repos); rm(.ko.tmp.repos); \n"
 		);
 
 		var cmd = sv.pref.getPref("svRCommand");
