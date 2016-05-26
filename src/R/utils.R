@@ -13,10 +13,10 @@ function(envir = .GlobalEnv) {
 koBrowseHere <-
 function() {
     eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
-    cat("Current evaluation environment is now inside\n",
+	stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
         format(sys.call(sys.nframe() - 1L)),
-        #format(sv_CurrentEnvir),
-        "\nUse 'koBrowseEnd()' to return to GlobalEnv", "\n")
+        "\nUse 'koBrowseEnd()' to return to GlobalEnv.",
+		"\n(Note this will not resume execution of the function)")))
 }
 
 koBrowseEnd <-

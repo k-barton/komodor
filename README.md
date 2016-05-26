@@ -8,6 +8,8 @@ This extension was initially a slimmed-down fork of
 [Sciviews-K](http://komodoide.com/packages/addons/sciviews-r/) created by 
 Philippe Grosjean, but since then it has been largely rewritten. 
 It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
+__There are currently no plans to make it compatible with Komodo 10 (unless 
+I have a lot of time and cease hating the new interface).__
 
 
 **Features:**
@@ -46,6 +48,9 @@ in Tcl, so your R installation needs to have Tcl capability
 
 **Known issues:**
 
+* Komodo 9.2 provides its own R syntax highlighting which is not really compatible 
+  with this add-on. Code completion is not working properly. In the forthcoming 
+  version the language will be renamed to avoid this conflict.
 * Output from R is displayed in the command output pane only at the end of 
   operation (and this is unlikely to change with the current way of 
   communication with R)
@@ -61,7 +66,8 @@ in Tcl, so your R installation needs to have Tcl capability
   similar way as `browser()` does is to change the current execution environment
   using `koBrowseHere()` within the function and afterwards set it back 
   to `.GlobalEnv` with `koBrowseEnd()`. Note that the original call stack (i.e. 
-  `sys.frames()` or `sys.calls()` et al.) will not be preserved.
+  `sys.frames()` or `sys.calls()` et al.) is not preserved, and the execution
+  of the function will not be resumed.
   Example:
 
 ```r
@@ -69,6 +75,7 @@ in Tcl, so your R installation needs to have Tcl capability
     test <- function(arg1 = 1, arg2 = 2) {
         in.test <- TRUE
         koBrowseHere() # instead of 'browser()'
+		# rest of the code will not be executed
     }
 
     test()
