@@ -46,7 +46,7 @@ sv_pkgManGetMirrors <- function() {
 		assignTemp(tmpVar, mirrors)
 	}
 	write.table(mirrors[, c("Name", "URL", "CountryCode")],
-		row.names = FALSE, col.names = F, sep=';', quote = F, na="")
+		row.names = FALSE, col.names = F, sep=';', quote = FALSE, na="")
 }
 
 sv_pkgManGetAvailable <- function(page = "next", pattern = "", ilen=50,
@@ -132,7 +132,7 @@ sv_pkgManGetInstalled <- function(sep=';', eol="\t\n") {
 
 	inspkg[,3] <- gsub("\n", " ", inspkg[,3])
 	inspkg <- cbind(inspkg, Installed=inspkg[, 'Package'] %in% .packages())
-	write.table(inspkg, row.names = FALSE, col.names = F, sep=sep, quote = F, eol=eol, na='')
+	write.table(inspkg, row.names = FALSE, col.names = FALSE, sep=sep, quote = FALSE, eol=eol, na='')
 }
 
 sv_pkgManSetCRANMirror <- function(url) {
@@ -141,7 +141,7 @@ sv_pkgManSetCRANMirror <- function(url) {
 	options(repos = repos)
 }
 
-sv_pkgManInstallPackages <- function(upkgs, installDeps=FALSE, ask=TRUE) {
+sv_pkgManInstallPackages <- function(upkgs, installDeps = FALSE, ask = TRUE) {
 	dep <- suppressMessages(utils:::getDependencies(upkgs, available = getTemp('avpkg.list')))
 	msg <- status <- ""
 	if (!ask && (installDeps || all(dep %in% upkgs))) {
@@ -206,7 +206,7 @@ getRepositories <- function() {
 	if (any(pkgType == "both"))
 		pkgType <- c("source", "win.binary")
 		
-    thisType <- apply(a[, pkgType], 1L, any)
+    thisType <- apply(a[, pkgType, drop = FALSE], 1L, any)
     a <- a[thisType, 1L:3L]
     repos <- getOption("repos")
 
@@ -229,9 +229,9 @@ getRepositories <- function() {
 
 sv_pkgManGetRepositories <- function (json = TRUE, sep = ";;") {
     if (json)
-        cat(simpsON(apply(getRepositories(), 1, as.list)))
-    else write.table(getRepositories(), row.names = T, col.names = F,
-        sep = sep, quote = F)
+        cat(simpsON(apply(getRepositories(), 1L, as.list)))
+    else write.table(getRepositories(), row.names = TRUE, col.names = FALSE,
+        sep = sep, quote = FALSE)
 }
 
 sv_pkgManGetUpdateable <- function(sep = ';;', eol = '\n') {
@@ -270,7 +270,7 @@ sv_pkgManGetUpdateable <- function(sep = ';;', eol = '\n') {
 #head(availablePkgs())
 #
 #library(aod)
-#write.table(getRepositories(), sep  = ";;", quote = F)
+#write.table(getRepositories(), sep  = ";;", quote = FALSE)
 #
 #traceback()
 ##==============================================================================
