@@ -38,12 +38,14 @@ sv.rbrowser = {};
 	// FIXME: sep is also defined as sv.r.sep
 	var sep = "\x1f"; // ";;"
 	var recordSep = "\x1e"; 
-	//var recordSep = "\n"; //"\x1e"; 
+	//var recordSep = "\n"; //"\x1e";
 
 	var cmdPattern = 'print_objList(sv_objList(id = "%ID%_%ENV%_%OBJ%", envir = "%ENV%",' +
-		' object = "%OBJ%", all.info = FALSE, compare = FALSE), sep = "' + sep +
+		' object = "%OBJ%", all.info = FALSE, compare = FALSE, all.names = %ALL%), sep = "' + sep +
 		'", eol = "' + recordSep + '")'
 		.replace(/%ID%/, sv.uid(1));
+		
+	var _listAllNames = false;
 
 	// This should be changed if new icons are added
 	var iconTypes = ['array', 'character', 'data.frame', 'Date', 'dist',
@@ -277,9 +279,20 @@ this.getOpenItems = function(asRCommand) {
 function _getObjListCommand(env, objName) {
 	//var cmd = cmdPattern.replace(/%ID%/g, id)
 	var cmd = cmdPattern.replace(/%ENV%/g, new String(env).addslashes())
+	    .replace(/%ALL%/g, _listAllNames ? "TRUE" : "FALSE")
 		.replace(/%OBJ%/g, objName? objName.replace(/\$/g, "$$$$") : "");
 	return cmd;
 };
+
+Object.defineProperty(this, 'listAllNames', {
+  get: function() { return _listAllNames; },
+  set: function(val) { 
+	_listAllNames = Boolean(val);
+  },
+  enumerable: true
+});
+
+
 
 this._getObjListCommand = _getObjListCommand; /// XXX
 

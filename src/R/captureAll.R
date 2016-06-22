@@ -257,21 +257,10 @@ unsink <- function () {
 				.Internal(.dfltWarn(conditionMessage(e), conditionCall(e)))
 				putMark(TRUE, 3L)
 			} else {
-				pos <- length(last.warning) + 1L
-				DEBUG(pos)
-				DEBUG(e$message)
-				
-				#koBrowseHere()
-				
-				#XXX <<- list(e = e,last.warning = last.warning,pos = pos)
-				#e$call
-				#for(i in names(XXX)) assign(i, XXX[[i]])
 				# XXX: error with [[]] when $call is NULL
 				el <- list(e$call)
 				names(el) <- e$message
 				last.warning <<- append(last.warning, el)
-				#last.warning[pos] <<- e$call
-				#names(last.warning)[pos] <<- e$message
 			}
 			DEBUG("END warning")
 

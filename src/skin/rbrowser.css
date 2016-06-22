@@ -26,9 +26,7 @@
 }
 
 
-
 /******************************************************************************/
-
 
 #rbrowser_objects_tree treecol#r-dims {
 	text-align: right;
@@ -125,15 +123,32 @@
 
 
 #rbrowser_filterByName_button {
-	list-style-image: url("chrome://komodor/skin/images/filter.png");
-	-moz-image-region: rect(0px, 47px, 15px, 32px);
 	/*-moz-image-region: rect(top, right, bottom, left);*/
+	list-style-image: url("chrome://komodor/skin/images/filter.png");
+	-moz-image-region: rect(0px, 31px, 15px, 16px);
+	
 }
 
 #rbrowser_filterByClass_button {
 	list-style-image: url("chrome://komodor/skin/images/filter.png");
-	-moz-image-region: rect(0px, 31px, 15px, 16px);
+	-moz-image-region: rect(0px, 47px, 15px, 32px);
 }
+
+
+#rbrowser_filterByName_button[checked="true"],
+#rbrowser_filterByClass_button[checked="true"] {
+	visibility: collapse;
+}
+
+
+#rbrowser_showAll_button {
+	list-style-image: url("chrome://komodor/skin/images/eye.png");
+}
+
+#rbrowser_showAll_button[checked="true"] {
+	list-style-image: url("chrome://komodor/skin/images/eye-half.png");
+}
+
 
 /*rbrowserToolbar*/
 

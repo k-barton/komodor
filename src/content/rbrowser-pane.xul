@@ -231,8 +231,14 @@ addEventListener("DOMContentLoaded", function(event) {
 							   label="&sv.filterByClass;"
 							   tooltiptext="&sv.filterByClass;"
 							   />
-
-			</hbox>
+							   
+				<toolbarbutton id="rbrowser_showAll_button"
+							   type="checkbox" 
+							   oncommand="sv.rbrowser.listAllNames = this.checked;"
+							   label="&sv.listAllNames;"
+							   tooltiptext="&sv.listAllNames;"
+							   />
+		   </hbox>
 
 			<vbox flex="5">
 				<tree flex="1" id="rbrowser_objects_tree"
