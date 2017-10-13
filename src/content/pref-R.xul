@@ -43,6 +43,8 @@
 <?xml-stylesheet href="chrome://komodo/skin/bindings/listbox.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/tree.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/prefs/prefs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/menulist-iconic.css" type="text/css"?>
+
 
 <window xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -154,19 +156,29 @@
 			<hbox align="center">
 				<label value="Default CRAN mirror:" control="CRANMirror" />
 					<menulist id="CRANMirror" sizetopopup="none" width="200"
-							  >
+							oncommand="OnCranMirrorChange()"
+							>
 						<!-- /set manually/ pref="true" prefattribute="value"-->
 					<menupopup maxheight="200" />
 				</menulist>
 				<button id="RefreshCRANMirrors"
 						label="Refresh list"
-						oncommand="PrefR_UpdateCranMirrorsAsync()" />
+						oncommand="PrefR_UpdateCranMirrorsAsync(true)" />
+				<vbox align="right" flex="1">
+					<checkbox id="CRANMirrorSecure" label="Secure mirrors (HTTPS)"
+							   pref="true" prefattribute="checked"
+							   oncommand="setCranMirrorsSecure(this.checked)"
+							   />
+				</vbox>
+			</hbox>
+			<hbox align="center" flex="1">
+				<label id="CRANMirrorDescr" value="" />
 			</hbox>
 		</vbox>
 		<vbox>
 			<hbox align="center">
-				<label value="Remote help url:" control="r.remote.help" />
-				<textbox id="r.remote.help" pref="true" width="222" />
+				<label value="Remote help url:" control="rRemoteHelpURL" />
+				<textbox id="rRemoteHelpURL" pref="true" width="222" />
 			</hbox>
 		</vbox>
 	</groupbox>

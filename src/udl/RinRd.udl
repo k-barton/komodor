@@ -1,5 +1,5 @@
 family ssl
-sublanguage R
+sublanguage R1
 
 include "Rkeywords.udl"
 

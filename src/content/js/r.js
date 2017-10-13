@@ -116,26 +116,6 @@ this.run = function () {
 	}
 }
 
-// Run current line (or selection) up to position and optionally add line feed
-this.runEnter = function (breakLine) {
-	try {
-		var scimoz = sv._getCurrentScimoz();
-		if (scimoz === null) return false;
-		var text = sv.getTextRange("sel", true);
-		if (!text) {	// Only proceed if selection is empty
-			// Get text from a line and move caret to the eol
-			// Do we want to break line here or execute it to the end?
-			text = sv.getTextRange(breakLine ? "linetobegin" : "line", true);
-		}
-		ko.commands.doCommand('cmd_newlineExtra');
-		var res = _this.eval(text);
-		return res;
-	} catch(e) {
-		return e;
-	}
-
-}
-
 // Source the current buffer or some part of it
 this.source = function (what) {
 	var res = false;

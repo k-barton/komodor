@@ -80,7 +80,7 @@ this.printResults = function(result, commandInfo, executed, wantMore) {
 	} else {
 		result = '';
 		prompt = '...';
-		msg = 'R is calculating...';
+		msg = 'R is working...';
 		// display 'wait message' only for longer operations
 		_waitMessageTimeout = window.setTimeout(sv.cmdout.message, 700, msg, 0, false);
 	}

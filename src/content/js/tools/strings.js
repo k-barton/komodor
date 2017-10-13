@@ -55,11 +55,14 @@ sv.string.filename = function (str) {
 }
 
 sv.string.addslashes = function(str) {
-	// original by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
-	return str.replace(/([\\"'])/g, "\\$1")
-		.replace(/\x00/g, "\\0").replace(/\u0000/g, "\\0");
+    return str.replace(/([\\"'])/g, "\\$1")
+        .replace(/[\x0\u00000]/g, "\\0")
+        .replace(/\u0008/g, "\\b")
+        .replace(/\n/g, "\\n")
+        .replace(/\r/g, "\\r")
+        .replace(/\f/g, "\\f")
+        .replace(/\v/g, "\\v");
 }
-
 
 sv.string.trim = function (str, which) {
 	if (which === undefined) which == "both";

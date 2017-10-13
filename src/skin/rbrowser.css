@@ -142,12 +142,21 @@
 
 
 #rbrowser_showAll_button {
-	list-style-image: url("chrome://komodor/skin/images/eye.png");
+	list-style-image: url("chrome://komodor/skin/images/objects-show-hidden.png");
 }
 
 #rbrowser_showAll_button[checked="true"] {
-	list-style-image: url("chrome://komodor/skin/images/eye-half.png");
+	list-style-image: url("chrome://komodor/skin/images/objects-hide-hidden.png");
 }
+
+#rbrowser_showAttributes_button {
+	list-style-image: url("chrome://komodor/skin/images/objects-hide-attributes.png");
+}
+
+#rbrowser_showAttributes_button[checked="true"] {
+	list-style-image: url("chrome://komodor/skin/images/objects-show-attributes.png");
+}
+
 
 
 /*rbrowserToolbar*/

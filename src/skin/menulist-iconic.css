@@ -1,0 +1,9 @@
+
+menulist > menupopup > menuitem > .menu-iconic-left {
+    display: -moz-box;
+}
+
+menulist > menupopup > menuitem .menu-iconic-icon {
+  width: auto;
+  height: auto;
+}

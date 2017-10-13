@@ -238,6 +238,22 @@ addEventListener("DOMContentLoaded", function(event) {
 							   label="&sv.listAllNames;"
 							   tooltiptext="&sv.listAllNames;"
 							   />
+							   
+				<toolbarbutton id="rbrowser_tools" buttonstyle="pictures" type="menu" 
+					tooltiptext="R browser-related functions" orient="horizontal" class="project-tools-icon">
+						<menupopup id="rbrowser_toolsPopup">
+							<menuitem id="rbrowser_tools_showAllObjectsButton" 
+								observes="cmd_rbrowser_showAllObjects" 
+								label="Show all objects" desc="R browser: Show all objects" 
+								oncommand="ko.commands.doCommand('cmd_rbrowser_showAllObjects', event)" 
+								key="key_cmd_rbrowser_showAllObjects"/>
+							<menuitem id="rbrowser_tools_showAttribButton" observes="cmd_rbrowser_showAttrib" 
+								label="Show attributes" desc="R browser: Show objects' attributes" 
+								oncommand="ko.commands.doCommand('cmd_rbrowser_showAttrib', event)" 
+								key="key_cmd_rbrowser_showAttrib"/>
+							</menupopup>
+				</toolbarbutton>		   
+				
 		   </hbox>
 
 			<vbox flex="5">

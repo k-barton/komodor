@@ -1,5 +1,5 @@
 family ssl
-sublanguage R
+sublanguage R1
 
 start_style SSL_DEFAULT
 end_style SSL_VARIABLE

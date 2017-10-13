@@ -14,6 +14,14 @@
  * TODO: automatic refresh of the browser from R
  * TODO: make this a sv.robjects.tree instead
  */
+ 
+ 
+ 
+/*
+ 
+
+ 
+ */
 
 /*
 for(i in objects) {
@@ -164,9 +172,10 @@ RObjectLeaf.prototype = {
 this.getRObjTreeLeafByName = function(name, env) {
 	var root = this.treeData;
 	if(!root.length) return null;
-	var j; for (j in root)
-	if(root[j].fullName == env)
-	if (!name) return root[j]; else break;
+	var j; 
+	for (j in root)
+		if(root[j].fullName == env)
+			if (!name) return root[j]; else break;
 	if(!name) return null; // package not found, nothing to do.
 	return _objTreeCrawler(name, root[j]);
 }
@@ -189,7 +198,39 @@ function _objTreeCrawler(name, root) {
 	return null;
 }
 
-this.parseObjListResult = function _parseObjListResult (data, rebuild, scrollToRoot) {
+
+// TODO: make internal
+var _storedSelection;
+function fullname(vd, i) vd[i].origItem.env + "::" + vd[i].origItem.fullName;
+
+this.saveSelection = 
+function() {
+	var idx = this.getSelectedRows();
+	var vd = this.visibleData;
+	_storedSelection = idx.map(function(i) fullname(vd, i));
+}
+
+this.restoreSelection = 
+function() {
+	this.selection.clearSelection();
+	if(_storedSelection && _storedSelection.map) {
+		
+		var vd = this.visibleData;
+		for (var j = 0; j < _storedSelection.length; ++j) {
+			for(var i = 0; i < vd.length; ++i) {
+				if(_storedSelection[j] == fullname(vd, i)) {
+					this.selection.toggleSelect(i);
+					break;
+				}
+			}
+		}    
+	}
+}
+
+
+
+this.parseObjListResult = 
+function _parseObjListResult (data, rebuild, scrollToRoot) {
 
 	var closedPackages = {};
 	var currentPackages = _this.treeData.map(function(x) {
@@ -198,6 +239,9 @@ this.parseObjListResult = function _parseObjListResult (data, rebuild, scrollToR
 	});
 
 	if(rebuild) _this.treeData = [];
+	
+	_this.saveSelection();
+	
 	var envName, objName, line;
 	var treeBranch, lastAddedRootElement;
 	data = data.trim();
@@ -248,21 +292,25 @@ this.parseObjListResult = function _parseObjListResult (data, rebuild, scrollToR
 			}
 	}
 
-	_this.sort(); // .index'es are generated here
+	//_this.selection.clearSelection();
+	_this.sort(null, null, true); // .index'es are generated here, don't restre selection
 
-
+	
 	if (scrollToRoot && lastAddedRootElement) { 	//only if rebuild, move the selection
 		var idx = lastAddedRootElement.index;
 		if (idx != -1) {
 			//_this.treeBox.ensureRowIsVisible(idx);
 			_this.treeBox.scrollToRow(Math.min(idx, _this.rowCount - _this.treeBox.getPageLength()));
-
 			_this.selection.select(idx);
 		}
 	}
+	
+	_this.restoreSelection();
+	
 }
 
-this.getOpenItems = function(asRCommand) {
+this.getOpenItems = 
+function(asRCommand) {
 	var vd = this.visibleData;
 	var ret = [];
 	for (var i in vd) {
@@ -288,15 +336,16 @@ Object.defineProperty(this, 'listAllNames', {
   get: function() { return _listAllNames; },
   set: function(val) { 
 	_listAllNames = Boolean(val);
+	_this.refresh(false); 
   },
   enumerable: true
 });
 
 
-
 this._getObjListCommand = _getObjListCommand; /// XXX
 
-this.refresh = function(force) {
+this.refresh = 
+function(force) {
 	_this.getPackageList();
 
 	var cmd, data, init;
@@ -473,6 +522,7 @@ this.sort = function sort (column, root) {
 	} catch (e) {
 		currentElement = null;
 	}
+	if(currentElement) this.saveSelection();
 
 	// If the column is passed and sort already done, reverse it
 	if (column) {
@@ -555,6 +605,8 @@ this.sort = function sort (column, root) {
 	if (currentElement) {
 		this.selection.select(currentElement.index);
 		this.treeBox.ensureRowIsVisible(currentElement.index);
+		
+		this.restoreSelection();
 	}
 };
 

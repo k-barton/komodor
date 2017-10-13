@@ -8,8 +8,8 @@ This extension was initially a slimmed-down fork of
 [Sciviews-K](http://komodoide.com/packages/addons/sciviews-r/) created by 
 Philippe Grosjean, but since then it has been largely rewritten. 
 It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
-__There are currently no plans to make it compatible with Komodo 10 (unless 
-I have a lot of time and cease hating the new interface).__
+__There are currently no plans to make it compatible with Komodo >=10 (unless 
+ActiveState brings back the good old GUI).__
 
 
 **Features:**
@@ -95,3 +95,19 @@ in Tcl, so your R installation needs to have Tcl capability
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
   counting in UDL (`spush_check`/`spop_check`, a bug in Komodo possibly).
+
+
+  
+**Stuff for Komodo 9:**
+
+* A [userChrome.css stylesheet](userChrome.css) that restores some of the system 
+  styling under Windows ("HUD", buttons, preferences, autocompletion menu). To be
+  placed in a directory named 'chrome' inside your user profile directory
+  (see [this MDN article](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XUL/Tutorial/Modifying_the_Default_Skin).
+
+* Patch for broken *Views* file filter in the *Places* panel. Replace the file  
+  > *\[Komodo program directory\]*/lib/mozilla/distribution/bundles/places\@activestate\.com/places\.jar/content/manageViewFilters.js
+  
+  Note: A JAR file is a ZIP-compressed file.  
+  [manageViewFilters.js](manageViewFilters.js)
+

@@ -231,7 +231,7 @@
 	list-style-image: url("chrome://komodor/skin/images/r_escape_disable.png");
 }
 
-.languageicon[language="R"],
+.languageicon[language="R1"],
 treechildren::-moz-tree-image(LanguageR) {
   /* list-style-image: url("chrome://komodor/skin/images/r_16x16.png"); */
   list-style-image: url("chrome://komodor/skin/images/r.svg");

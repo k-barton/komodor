@@ -39,7 +39,7 @@
     "", 
     "}", 
     "", 
-    "var filename = ko.views.manager.currentView.document.file.path;", 
+    "var filename = ko.views.manager.currentView.koDoc.file.path;", 
     "var intoWindow = window;", 
     "", 
     "injectFile(filename, intoWindow);"

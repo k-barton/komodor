@@ -1,0 +1,66 @@
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+.hud {
+	background-color: buttonface !important;
+}
+
+.hud scrollbar slider {
+  -moz-appearance: none;
+  border: 0;
+  background: none !important;
+}
+.hud scrollbar thumb {
+   -moz-appearance: scrollbarthumb-vertical !important;
+}
+
+.hud scrollbar thumb:hover {
+   -moz-appearance: scrollbarthumb-vertical !important;
+}
+.hud scrollbar:hover slider {
+  -moz-appearance: none;
+}
+
+.hud richlistitem,
+.hud listitem,
+.hud row {
+  background-color: buttonface !important;
+  color: ButtonText !important;
+}
+
+.hud richlistitem[selected="true"],
+.hud listitem[selected="true"],
+.hud row[selected="true"] {
+  background-color: Highlight !important;
+  color: HighlightText !important;
+  border:  1px solid rgba(255, 255, 255, 0);
+}
+
+
+#find-box-wrap {
+	background-image: none !important;
+	background-color: buttonface !important;
+}
+
+#find-box-wrap * {
+    color: ButtonText !important;
+}
+
+
+#find-box-wrap checkbox {
+	-moz-appearance: button !important;
+    color: ButtonText !important;
+	background-color: red !important;
+	max-height: 22px;
+}
+
+menu,
+menuitem,
+.splitmenu-menuitem {
+  font-size-adjust: 0.6 !important;
+}
+
+#menubar_main > menu {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+

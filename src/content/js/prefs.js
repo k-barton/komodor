@@ -41,9 +41,10 @@ this.defaults = {
     'r.csv.dec': '.',
 	'r.csv.sep': ',',
 	'r.application': '', // XXX this one is of questionable usefulness
-	CRANMirror: 'http://cran.r-project.org/',
-	RHelpCommand: 'javascript:sv.r.help(\"%w\")',
-	'r.remote.help': 'http://finzi.psych.upenn.edu/R/',
+	CRANMirror: 'https://cran.r-project.org/',
+	CRANMirrorSecure: true,
+	R1HelpCommand: 'javascript:sv.r.help(\"%w\")', // change to [R language name]HelpCommand
+	'rRemoteHelpURL': 'http://finzi.psych.upenn.edu/R/',
 	'sciviews.margin.click': true
 };
 
@@ -54,7 +55,7 @@ this.setDefaults = function sv_checkAllPref(revert) {
 		hasPref = prefset.hasPref(i);
 		val = hasPref ? _this.getPref(i) : null;
 		rev = revert || (typeof val == "number" && isNaN(val)) || val == "None"
-			|| (_this.defaults[i] != '' && val == '');
+			|| (_this.defaults[i] !== '' && val === '');
 		_this.setPref(i, _this.defaults[i], rev);
 	}
 };

@@ -49,8 +49,8 @@ def registerLanguage(registry):
 
 
 class KoRLanguage(KoUDLLanguage):
-    name = "R"
-    lexresLangName = "R"
+    name = "R1"
+    lexresLangName = "R1"
     _reg_desc_ = "%s Language" % name
     _reg_contractid_ = "@activestate.com/koLanguage?language=%s;1" % name
     _reg_clsid_ = "{7a558f4c-5326-41c3-a037-f3003cadd61b}"

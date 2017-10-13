@@ -41,7 +41,7 @@ if (typeof (sv.file) == 'undefined') sv.file = {};
 
 	var Ci = Components.interfaces;
 	var Cc = Components.classes;
-
+	
 	// Read a file with encoding
 	this.read = function (filename, encoding) {
 		if (!encoding) encoding = _this.defaultEncoding;
@@ -77,16 +77,19 @@ if (typeof (sv.file) == 'undefined') sv.file = {};
 
 	// Write in a file with encoding
 	this.write = function (filename, content, encoding, append) {
-		if (!encoding) encoding = _this.defaultEncoding;
+		//if (!encoding) encoding = _this.defaultEncoding;
 
 		append = append ? 0x10 : 0x20;
+		
+		var file, fos, os;
 
 		var file = Cc["@mozilla.org/file/local;1"]
 			.createInstance(Ci.nsILocalFile);
 		var fos = Cc["@mozilla.org/network/file-output-stream;1"]
 			.createInstance(Ci.nsIFileOutputStream);
-		var os = Cc["@mozilla.org/intl/converter-output-stream;1"]
-			.createInstance(Ci.nsIConverterOutputStream);
+		if (encoding)
+			os = Cc["@mozilla.org/intl/converter-output-stream;1"]
+				.createInstance(Ci.nsIConverterOutputStream);
 
 		//PR_CREATE_FILE = 0x08	PR_WRONLY 	 = 0x02
 		//PR_APPEND 	 = 0x10		PR_TRUNCATE 	 = 0x20
@@ -94,13 +97,19 @@ if (typeof (sv.file) == 'undefined') sv.file = {};
 		try {
 			file.initWithPath(filename);
 			fos.init(file, 0x08 | 0x02 | append, -1, 0);
-			os.init(fos, encoding, 0, 0x0000);
-			os.writeString(content);
+			if (os) {
+                os.init(fos, encoding, 0, 0x0000);
+				os.writeString(content);
+            } else {
+				fos.write(content, content.length);
+			}
+
 		} catch (e) {
 			sv.logger.exception(e, "Error while trying to write in " + filename +
 				" (sv.file.write)", true)
 		} finally {
-			os.close();
+			if (os) os.close();
+			fos.close();
 		}
 	}
 
@@ -242,6 +251,31 @@ if (typeof (sv.file) == 'undefined') sv.file = {};
 		}
 		return undefined;
 	}
+	
+	this.readURIAsync = function (uri, charset, callback, onError) {
+		var NetUtil = Components.utils.import("resource://gre/modules/NetUtil.jsm").NetUtil;
+		var args = Array.apply(null, arguments);
+		args.splice(0, 4);
+		NetUtil.asyncFetch(uri, function(istream, res) {
+			if (!Components.isSuccessCode(res)) {
+			   if(onError) onError(res);
+			   return;
+			}
+			try {
+				args.unshift(
+					NetUtil.readInputStreamToString(istream, istream.available(),
+						{ charset: charset, replacement: "?" })
+				);
+			} catch(e) {
+				args.unshift(undefined);
+			} finally {
+				istream.close();
+			}
+			callback.apply(null, args);
+		});
+	}
+	
+
 
 	// Read data from an URI
 	this.pathFromURI = function (uri) {

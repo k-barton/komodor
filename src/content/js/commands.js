@@ -57,8 +57,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	function _RControl_supported() {
 		var currentView = ko.views.manager.currentView;
 		if (!currentView || !currentView.koDoc) return (false);
-		//return(_isRRunning() && currentView.koDoc.language == "R");
-		return currentView.koDoc.language == "R";
+		//return(_isRRunning() && currentView.koDoc.language == "R1");
+		return currentView.koDoc.language == "R1";
 	}
 
 	function _RControlSelection_supported() {
@@ -232,8 +232,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		if (running === undefined) {
 			running = !sv.r.isRunning; // toggle
 		} else {
-			//running =  new Boolean(running); // does not work. why??
-			running = !!running; // convert to boolean
+			running = Boolean(running);
 		}
 		if (running != sv.r.isRunning) {
 			sv.r.isRunning = running;
@@ -283,7 +282,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			try {
 				uri = sv.rconn.eval("cat(getHelpURL())");
 			} catch (e) {
-				uri = sv.pref.getPref('r.remote.help') + 'doc/index.html';
+				uri = sv.pref.getPref('rRemoteHelpURL') + 'doc/index.html';
 			}
 		}
 
@@ -372,7 +371,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			return true;
 			// var view = ko.views.manager.currentView;
 			// if (!view || !view.document) return(false);
-			// return(view.document.language == "R");
+			// return(view.document.language == "R1");
 		}
 
 		function _hasSelection() {
@@ -457,7 +456,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 		if (!kbMgr.configurationWriteable(currentConfiguration)) {
 			currentConfiguration =
-				kbMgr.makeNewConfiguration(currentConfiguration + " (R)");
+				kbMgr.makeNewConfiguration(currentConfiguration + " [+R]");
 		}
 
 		//from: gKeybindingMgr.parseConfiguration
