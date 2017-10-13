@@ -18,16 +18,14 @@ ActiveState brings back the good old GUI).
 
 * start R from Komodo
 * execution of code in R from within editor:
-      * output is shown in the Command output pane  
-      * execute (or `source`) current line or selection, bookmark-delimited 
-        block, function at cursor, or whole file 
+  + output is shown in the Command output pane  
+  + execute (or `source`) current line or selection, bookmark-delimited 
+   block, function at cursor, or whole file 
 * syntax highlighting:
-      
-      * R including [Roxygen](http://roxygen.org/) tags
-      * R documentation (.Rd files, *work in progress*)
-      * [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
-        (.Rmd files, *work in progress*)
-	
+  + R including [Roxygen](http://roxygen.org/) tags
+  + R documentation (.Rd files, *work in progress*)
+  + [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
+    (.Rmd files, *work in progress*)
 * syntax checking
 * code completion
 * R object browser (sidebar)
@@ -53,8 +51,8 @@ in Tcl, so your R installation needs to have Tcl capability
 **Known issues:**
 
 * Komodo 9.2 provides its own R syntax highlighting which is not really compatible 
-  with this add-on. Code completion is not working properly. In the forthcoming 
-  version the language will be renamed to avoid this conflict.
+  with this add-on. Code completion is not working properly. Starting from the current 
+  version of KomodoR the language is renamed to **"R1"** to avoid this conflict (I will think of a better name).
 * Output from R is displayed in the command output pane only at the end of 
   operation (and this is unlikely to change with the current way of 
   communication with R)
