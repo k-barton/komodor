@@ -13,6 +13,8 @@ It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
 __There are currently no plans to make it compatible with Komodo >=10__ (unless 
 ActiveState brings back the good old GUI).
 
+**Note:** Komodo 9.2 provides its own R syntax highlighting which is not compatible with this add-on. Therefore, starting from the current version, the language is renamed to "R (extended)" to avoid this conflict (I will think of a better name).
+
 
 **Features:**
 
