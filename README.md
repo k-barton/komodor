@@ -1,5 +1,5 @@
 <img align="left" src="img/logo1.png" alt="KomodoR logo" />
-Provides [R](https://www.r-project.org/) language support and interface between 
+Provides [R language](https://www.r-project.org/) support and interface between 
 R environment and Komodo.
 
 ***
