@@ -10,8 +10,8 @@ This extension was initially a slimmed-down fork of
 [Sciviews-K](http://komodoide.com/packages/addons/sciviews-r/) created by 
 Philippe Grosjean, but since then it has been largely rewritten. 
 It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
-__There are currently no plans to make it compatible with Komodo >=10 (unless 
-ActiveState brings back the good old GUI).__
+__There are currently no plans to make it compatible with Komodo >=10__ (unless 
+ActiveState brings back the good old GUI).
 
 
 **Features:**
@@ -22,10 +22,12 @@ ActiveState brings back the good old GUI).__
       * execute (or `source`) current line or selection, bookmark-delimited 
         block, function at cursor, or whole file 
 * syntax highlighting:
+      
       * R including [Roxygen](http://roxygen.org/) tags
       * R documentation (.Rd files, *work in progress*)
       * [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
         (.Rmd files, *work in progress*)
+	
 * syntax checking
 * code completion
 * R object browser (sidebar)
