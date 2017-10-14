@@ -52,9 +52,6 @@ in Tcl, so your R installation needs to have Tcl capability
 
 **Known issues:**
 
-* Komodo 9.2 provides its own R syntax highlighting which is not really compatible 
-  with this add-on. Code completion is not working properly. Starting from the current 
-  version of KomodoR the language is renamed to **"R1"** to avoid this conflict (I will think of a better name).
 * Output from R is displayed in the command output pane only at the end of 
   operation (and this is unlikely to change with the current way of 
   communication with R)
