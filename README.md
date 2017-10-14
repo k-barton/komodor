@@ -13,7 +13,9 @@ It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
 __There are currently no plans to make it compatible with Komodo >=10__ (unless 
 ActiveState brings back the good old GUI).
 
-**Note:** Komodo 9.2 provides its own R syntax highlighting which is not compatible with this add-on. Therefore, starting from the current version, the language is renamed to "R_extended" to avoid this conflict.
+**Note:** Komodo 9.2 provides its own R syntax highlighting which is not compatible 
+with this add-on. Therefore, starting from the current version, the language is 
+renamed to "R_extended" to avoid this conflict.
 
 
 **Features:**
@@ -98,8 +100,9 @@ in Tcl, so your R installation needs to have Tcl capability
   counting in UDL (`spush_check`/`spop_check`, a bug in Komodo possibly).
 
 
-  
 **Improvements for Komodo 9**
+
+* Komodo 9 is available [here](http://downloads.activestate.com/Komodo/releases/9.3.2/).
 
 * A [userChrome.css stylesheet](userChrome.css) that restores some of the system 
   styling under Windows ("HUD", buttons, preferences, autocompletion menu). To be
