@@ -11,7 +11,7 @@ This extension was initially a slimmed-down fork of
 Philippe Grosjean, but since then it has been largely rewritten. 
 It is compatible with Komodo Edit 7-9 (not tested on Komodo IDE and Mac).
 __There are currently no plans to make it compatible with Komodo >=10__ (unless 
-ActiveState brings back the good old GUI).
+ActiveState gives up the horrible new interface).
 
 **Note:** Komodo 9.2 provides its own R syntax highlighting which is not compatible 
 with this add-on. Therefore, starting from the current version, the language is 
@@ -90,7 +90,7 @@ in Tcl, so your R installation needs to have Tcl capability
     # [1] "f1"           "f2"           "in.GlobalEnv"
 ```
   There is a __new, experimental function__ `koDebug` that allows debugging a function if it 
-  produces an error. The execution stop and user can debug inside the frame causing the error.
+  produces an error. The execution stops and the user can debug inside the frame that caused the error.
   Example:
   
 ```r
