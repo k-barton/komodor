@@ -83,12 +83,28 @@ in Tcl, so your R installation needs to have Tcl capability
 
     test()
     ls() # we're inside 'test' now
-    #> [1] "arg1"     "arg2"     "in.test"
+    # [1] "arg1"     "arg2"     "in.test"
     
     koBrowseEnd()
     ls() #  back to .GlobalEnv
-    #> [1] "f1"           "f2"           "in.GlobalEnv"
+    # [1] "f1"           "f2"           "in.GlobalEnv"
 ```
+  There is a __new, experimental function__ `koDebug` that allows debugging a function if it 
+  produces an error. The execution stop and user can debug inside the frame causing the error.
+  Example:
+  
+```r
+    test <- function(x, y, inside.test = TRUE) x + y 
+    dtest <- koDebug(test)
+    dtest("1", 2)
+    # Debug error:  non-numeric argument to binary operator
+    # in: 
+    # x + y
+    ls() # we are now working inside `test`
+    # [1] "inside.test", "x" "y"
+    # when finished, use `koBrowseEnd()` to go back to .GlobalEnv
+```
+
 * Connection timeout on longer operations: prompt is shown as if the calculation in R 
   has finished and no output will be shown. There does not seem to be a way to set 
   socket timeout in Tcl.
