@@ -31,7 +31,7 @@
 # ***** END LICENSE BLOCK *****
 
 """
-R support for codeintel.
+R_extended support for codeintel.
 """
 import os
 import sys
@@ -74,7 +74,7 @@ except ImportError:
 #    getService(components.interfaces.svIUtils)
 
 #---- Globals
-lang = "R"
+lang = "R_extended"
 # log = logging.getLogger("codeintel.R")
 
 
@@ -87,7 +87,7 @@ keywords = [
 
 
 #---- Lexer class
-class RLexer(UDLLexer):
+class RxLexer(UDLLexer):
     lang = lang
 
 # TODO: how to update keyword lists dynamically?
@@ -120,7 +120,7 @@ class RLexer(UDLLexer):
 #  object$func(<|>) complete arguments
 
 #---- LangIntel class
-class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
+class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
                    ProgLangTriggerIntelMixin):
     lang = lang
 
@@ -683,7 +683,7 @@ class RLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
 
 #---- Buffer class
-class RBuffer(UDLBuffer):
+class RxBuffer(UDLBuffer):
     lang = lang
     cb_show_if_empty = True
     cpln_fillup_chars = "\t" #"~`!$@#%^&*()-=+{}[]|\\;:'\",<>?/\t\n\r"
@@ -694,7 +694,7 @@ class RBuffer(UDLBuffer):
     def trg_from_pos(self, pos, implicit=True):
         if pos == 0:
             return None
-        #RLangIntel().trg_from_pos(self, pos, implicit=implicit)
+        #RxLangIntel().trg_from_pos(self, pos, implicit=implicit)
 
         try:
             langintel = self.mgr.langintel_from_lang(self.lang)
@@ -708,7 +708,7 @@ class RBuffer(UDLBuffer):
         if pos == 0:
             return None
 
-        #RLangIntel().preceding_trg_from_pos(self, pos, curr_pos,
+        #RxLangIntel().preceding_trg_from_pos(self, pos, curr_pos,
                                             #preceding_trg_terminators)
         try:
             langintel = self.mgr.langintel_from_lang(self.lang)
@@ -724,20 +724,19 @@ class RBuffer(UDLBuffer):
 # See "cile_r.py" for more details.
 #
 # The CILE Driver is a class that calls this CILE.
-class RCILEDriver(UDLCILEDriver):
+class RxCILEDriver(UDLCILEDriver):
     lang = lang
-    ssl_lang = 'R'
+    ssl_lang = 'R_extended'
 #   tpl_lang = 'Roxygen'
-
 
 #---- Registration
 def register(mgr):
     """Register language support with the Manager."""
     mgr.set_lang_info(
         lang,
-        silvercity_lexer=RLexer(),
-        buf_class=RBuffer,
-        langintel_class=RLangIntel,
+        silvercity_lexer=RxLexer(),
+        buf_class=RxBuffer,
+        langintel_class=RxLangIntel,
         import_handler_class=None,
         cile_driver_class=None, # RCILEDriver,
         is_cpln_lang=True)

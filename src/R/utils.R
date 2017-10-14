@@ -12,17 +12,23 @@ function(envir = .GlobalEnv) {
 ## TODO: save sys.calls and sys.frames
 koBrowseHere <-
 function() {
-    eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
-	stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
-        format(sys.call(sys.nframe() - 1L)),
-        "\nUse 'koBrowseEnd()' to return to GlobalEnv.",
-		"\n(Note this will not resume execution of the function)")))
+	if(!identical(sys.frame(sys.nframe()), .GlobalEnv)) {
+		eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
+		stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
+			format(sys.call(sys.nframe() - 1L))[1L],
+			"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
+			"\n(Note this will not resume execution of the function)")))
+	}
 }
 
 koBrowseEnd <-
-function() svSetEnv(.GlobalEnv)
+function() {
+	if(!identical(getCurrentEnv, .GlobalEnv)) {
+		svSetEnv(.GlobalEnv)
+		message("Evaluating in '.GlobalEnv'")
+	} else message("Already evaluating in '.GlobalEnv'")
 
-
+}
 
 svPager <- function(files, header, title, delete.file) {
     files <- gsub("\\", "\\\\", files[1L], fixed = TRUE)
@@ -76,3 +82,17 @@ function(topic, package = NULL) {
 	}
 	invisible(helpURI)
 }
+
+
+### 
+
+
+kmdrSaveObject <- 
+function(x, path = ".", 
+	filename = file.path(path, sprintf("%s.RData", nm)), 
+	...) {
+	nm <- make.names(deparse(substitute(x)))
+	assign(nm, x)
+	save(list = nm, file = file.path(path, sprintf("%s.RData", nm)), ...)
+}
+

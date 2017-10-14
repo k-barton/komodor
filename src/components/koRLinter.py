@@ -49,9 +49,9 @@ class KoRLinter:
     _com_interfaces_ = [components.interfaces.koILinter]
     _reg_desc_ = "Komodo R Linter"
     _reg_clsid_ = "{E5B7415C-81C6-4185-8B53-B527193D251E}"
-    _reg_contractid_ = "@activestate.com/koLinter?language=R;1"
+    _reg_contractid_ = "@activestate.com/koLinter?language=R_extended;1"
     _reg_categories_ = [
-         ("category-komodo-linter", 'R'),
+         ("category-komodo-linter", 'R_extended'),
          #  ("komodo-linter", "R Linter"), 
          ]
 

@@ -311,6 +311,7 @@ function setCranMirror(url) {
 	try {
 		sv.rconn.evalAsync("sv_pkgManSetCRANMirror(\"" + url + "\")", null, true);
 		sv.pref.setPref("CRANMirror", url);
+		sv.pref.setPref("CRANMirrorSecure", url);
 	} catch(e) {
 		return;
 	}

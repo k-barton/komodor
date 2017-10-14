@@ -42,10 +42,10 @@ format:
     http://community.activestate.com/faq/codeintel-cix-schema
     
 Module Usage:
-    from cile_R import scan
-    mtime = os.stat("bar.R")[stat.ST_MTIME]
-    content = open("bar.R", "r").read()
-    scan(content, "bar.R", mtime=mtime)
+    from cile_rx import scan
+    mtime = os.stat("bar.rx")[stat.ST_MTIME]
+    content = open("bar.rx", "r").read()
+    scan(content, "bar.rx", mtime=mtime)
 """
 
 __version__ = "1.0.0"
@@ -67,21 +67,21 @@ from codeintel2.common import CILEError
 
 
 #---- exceptions
-class RCILEError(CILEError):
+class RxCILEError(CILEError):
     pass
 
 
 #---- global data
-log = logging.getLogger("cile.r")
+log = logging.getLogger("cile.rx")
 #log.setLevel(logging.DEBUG)
 
 
 #---- public module interface
-def scan_buf(buf, mtime=None, lang="R"):
-    """Scan the given RBuffer return an ElementTree (conforming
+def scan_buf(buf, mtime=None, lang="R_extended"):
+    """Scan the given RxBuffer return an ElementTree (conforming
     to the CIX schema) giving a summary of its code elements.
     
-    @param buf {RBuffer} is the R buffer to scan
+    @param buf {RxBuffer} is the R buffer to scan
     @param mtime {int} is a modified time for the file (in seconds since
         the "epoch"). If it is not specified the _current_ time is used.
         Note that the default is not to stat() the file and use that

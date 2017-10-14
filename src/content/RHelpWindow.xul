@@ -203,13 +203,6 @@ var progressListener = {
 	onSecurityChange: function(aWebProgress, aRequest, aState) { }
 }
 
-function onFindToolbarAttrModified(event) {
-	if (event.attrName == "hidden"
-		&& (!event.newValue || event.newValue == "true")) {
-		document.getElementById("rhelp-find").checked = !event.target.hidden;
-	}
-}
-
 function rHelpBrowserContextOnShow(event) {
 	var selText = sv.string.trim(window._content.getSelection().toString());
 	var el = document.getElementById("cmd_rsearch_for");
@@ -303,6 +296,14 @@ this.purgeHistory = function() {
 
 }).apply(browserUtils);
 
+
+//function onFindToolbarAttrModified(event) {
+//	if (event.attrName == "hidden"
+//		&& (!event.newValue || event.newValue == "true")) {
+//		document.getElementById("rhelp-find").checked = !event.target.hidden;
+//	}
+//}
+
 function OnLoad (event) {
 	// DOMContentLoaded is fired also for HTML content
 	if (event.target != self.document) return;
@@ -334,15 +335,16 @@ function OnLoad (event) {
 	    Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
 
 	var findToolbar = document.getElementById("FindToolbar");
-	// Listen to find toolbar attribute modifications:
-	findToolbar.addEventListener("DOMAttrModified",
-		onFindToolbarAttrModified, false);
-	
 
-//[2015-08-03 13:52:26,713] [WARNING] console-logger: Use of Mutation Events is
-//deprecated. Use MutationObserver instead. (1) in
-//chrome://komodor/content/RHelpWindow.xul:337
+	var observer = new MutationObserver(function(mutations) {
+	   mutations.forEach(function(mutation) {
+		 if (findToolbar == mutation.target && mutation.attributeName == "hidden") {
+			document.getElementById("rhelp-find").checked = !mutation.target.hidden;
+		   }
+	  });    
+	});
 
+	observer.observe(findToolbar, { attributes: true, childList: false, characterData: false });
 
 	go(page ? page : "about:blank");
 	_getHomePage(rHelpBrowser, !page);

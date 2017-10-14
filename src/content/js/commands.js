@@ -57,8 +57,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	function _RControl_supported() {
 		var currentView = ko.views.manager.currentView;
 		if (!currentView || !currentView.koDoc) return (false);
-		//return(_isRRunning() && currentView.koDoc.language == "R1");
-		return currentView.koDoc.language == "R1";
+		//return(_isRRunning() && currentView.koDoc.language == sv.langName);
+		return currentView.koDoc.language == sv.langName;
 	}
 
 	function _RControlSelection_supported() {
@@ -371,7 +371,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			return true;
 			// var view = ko.views.manager.currentView;
 			// if (!view || !view.document) return(false);
-			// return(view.document.language == "R1");
+			// return(view.document.language == sv.langName);
 		}
 
 		function _hasSelection() {

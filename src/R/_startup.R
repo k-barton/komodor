@@ -116,13 +116,14 @@ local({
 			invisible(koCmd("sv.rbrowser.refresh(true)"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct
 		}, .GlobalEnv)
-
-
-	assign(".Last", function() {
-		tryCatch({
-			koCmd("sv.addNotification(\"R says bye\"); sv.command.updateRStatus(false);")
-			stopAllServers()
-			stopAllConnections()
+		
+	reg.finalizer(as.environment("komodoConnection"),
+		function(e) {
+			tryCatch({
+				koCmd("sv.addNotification(\"R says bye\"); sv.command.updateRStatus(false);")
+				stopAllServers()
+				stopAllConnections()				
 			}, error = function(...) NULL)
-	}, .GlobalEnv)
+		}, TRUE)	
+
 })

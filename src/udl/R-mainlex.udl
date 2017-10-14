@@ -1,4 +1,4 @@
-language R1
+language R_extended
 
 include "R.udl"
 include "Roxygen.udl"

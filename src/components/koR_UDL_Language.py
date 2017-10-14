@@ -44,13 +44,13 @@ log.setLevel(logging.DEBUG)
 
 
 def registerLanguage(registry):
-    log.debug("Registering language R")
+    log.debug("Registering language R_extended")
     registry.registerLanguage(KoRLanguage())
 
 
 class KoRLanguage(KoUDLLanguage):
-    name = "R1"
-    lexresLangName = "R1"
+    name = "R_extended"
+    lexresLangName = "R_extended"
     _reg_desc_ = "%s Language" % name
     _reg_contractid_ = "@activestate.com/koLanguage?language=%s;1" % name
     _reg_clsid_ = "{7a558f4c-5326-41c3-a037-f3003cadd61b}"

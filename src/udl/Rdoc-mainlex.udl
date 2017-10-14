@@ -4,7 +4,7 @@ initial IN_RD_DEFAULT
 
 #===============================================================================
 family ssl
-sublanguage R1
+sublanguage R_extended
 #{{
 
 start_style SSL_DEFAULT

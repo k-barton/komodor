@@ -43,10 +43,11 @@ this.defaults = {
 	'r.application': '', // XXX this one is of questionable usefulness
 	CRANMirror: 'https://cran.r-project.org/',
 	CRANMirrorSecure: true,
-	R1HelpCommand: 'javascript:sv.r.help(\"%w\")', // change to [R language name]HelpCommand
 	'rRemoteHelpURL': 'http://finzi.psych.upenn.edu/R/',
 	'sciviews.margin.click': true
 };
+
+this.defaults[sv.langName + "HelpCommand"] = 'javascript:sv.r.help(\"%w\")';
 
 //// Set default preferences
 this.setDefaults = function sv_checkAllPref(revert) {

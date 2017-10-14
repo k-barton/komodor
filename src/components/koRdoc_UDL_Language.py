@@ -21,7 +21,7 @@ class KoRdocLanguage(KoUDLLanguage):
     _reg_categories_ = [("komodo-language", name)]
     defaultExtension = '.Rd'
      
-    lang_from_udl_family = {'TPL': name, 'SSL': 'R'}
+    lang_from_udl_family = {'TPL': name, 'SSL': 'R_extended'}
     commentDelimiterInfo = {
         "line": [ "%", ],
     }

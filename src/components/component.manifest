@@ -1,7 +1,7 @@
-contract @activestate.com/koLanguage?language=R1;1 {7a558f4c-5326-41c3-a037-f3003cadd61b}
-category komodo-language R1 @activestate.com/koLanguage?language=R1;1
+contract @activestate.com/koLanguage?language=R_extended;1 {7a558f4c-5326-41c3-a037-f3003cadd61b}
+category komodo-language R_extended @activestate.com/koLanguage?language=R_extended;1
 component {7a558f4c-5326-41c3-a037-f3003cadd61b} koR_UDL_Language.py
-category komodo-language-info R1 %7B%22name%22%3A%22R%22%2C%22defaultExtension%22%3A%22.R%22%2C%22primary%22%3A1%7D
+category komodo-language-info R_extended %7B%22name%22%3A%22R_extended%22%2C%22defaultExtension%22%3A%22.R%22%2C%22primary%22%3A1%7D
 
 contract @activestate.com/koLanguage?language=R%20documentation;1 {43e2ac05-0e3e-431a-a679-9791dd05e8bc}
 category komodo-language R%20documentation @activestate.com/koLanguage?language=R%20documentation;1
@@ -13,8 +13,8 @@ category komodo-language Rmarkdown @activestate.com/koLanguage?language=Rmarkdow
 component {b1336637-7bf1-4a4c-a16b-3372f1744e52} koRmarkdown_UDL_Language.py
 category komodo-language-info Rmarkdown %7B%22name%22%3A%22Rmarkdown%22%2C%22defaultExtension%22%3A%22.Rmd%22%2C%22primary%22%3A1%7D
 
-category category-komodo-linter R1 @activestate.com/koLinter?language=R1;1
-contract @activestate.com/koLinter?language=R1;1 {E5B7415C-81C6-4185-8B53-B527193D251E}
+category category-komodo-linter R_extended @activestate.com/koLinter?language=R_extended;1
+contract @activestate.com/koLinter?language=R_extended;1 {E5B7415C-81C6-4185-8B53-B527193D251E}
 component {E5B7415C-81C6-4185-8B53-B527193D251E} koRLinter.py
 
 contract @komodor/svUtils;1 {22A6C234-CC35-D374-2F01-FD4C605C905C}

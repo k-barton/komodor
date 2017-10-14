@@ -54,7 +54,7 @@ class KoRmarkdownLanguage(KoUDLLanguage):
     _reg_categories_ = [("komodo-language", name)]
     defaultExtension = '.Rmd'
      
-    lang_from_udl_family = {'SSL': 'R', 'M': 'Rmarkdown'}
+    lang_from_udl_family = {'SSL': 'R_extended', 'M': 'Rmarkdown'}
 	
     
     sample = """

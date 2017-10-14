@@ -30,6 +30,8 @@
 // Create the 'sv' namespace
 if (typeof sv == "undefined") sv = new Object();
 
+sv.langName = "R_extended";
+
 //sv._version
 /*= (function() {
 	var koVersion = Components.classes["@activestate.com/koInfoService;1"]
@@ -120,7 +122,7 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 		break;
 	 case "word":
 		if (pStart == pEnd) { // only return word if no selection
-			var inR = view.koDoc.languageForPosition(scimoz.currentPos) == "R1";
+			var inR = view.koDoc.languageForPosition(scimoz.currentPos) == sv.langName;
 		
 			if (!includeChars && inR) includeChars = ".";
 
@@ -654,7 +656,7 @@ sv.init = new Object();
 			ko.prefs.setBooleanPref("donotask_r_association_override", false);
 		}
 		
-		if(!rFileLang || (rFileLang != "R1" && ko.dialogs.yesNo(
+		if(!rFileLang || (rFileLang != sv.langName && ko.dialogs.yesNo(
 			"Currently *.R files are associated with language " + rFileLang + ". " + 
 			"Would you like to replace this association with R language? " +
 			"\n(This can be changed in Preferences -> File associations)",
@@ -666,8 +668,8 @@ sv.init = new Object();
 			var patterns = patternsObj.value; 
 			var languageNames = languageNamesObj.value;
 			for(var i = patterns.length - 1; i >= 0; --i) {
-				if(patterns[i].toUpperCase() == "*.R" && languageNames[i] != "R1")
-					languageNames[i] = "R1";
+				if(patterns[i].toUpperCase() == "*.R" && languageNames[i] != sv.langName)
+					languageNames[i] = sv.langName;
 			}
 		
 			try {
@@ -689,7 +691,7 @@ sv.init = new Object();
 		if(view && view.koDoc && view.koDoc.displayPath.match(/\.[Rr]$/)) {
 			checkFileAssociation();
 			window.removeEventListener('view_opened', _this.ensureRFileAssociation, false);
-			if(view.koDoc.language != "R1") view.koDoc.language = "R1";
+			if(view.koDoc.language != sv.langName) view.koDoc.language = sv.langName;
 		}
 	}
 

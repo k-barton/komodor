@@ -16,14 +16,20 @@ if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
 # Replacement for 'base::as.character.error', which does not translate "Error"
 `as.character.error` <- function (x, ...) {
 	DEBUG("as.character.error")
-
     msg <- conditionMessage(x)
     call <- conditionCall(x)
-    if (!is.null(call))
-		paste(.gettextx("Error in "), deparse(call, control = NULL)[1L], " : ",
-			msg, "\n", sep = "")
-    else paste(.gettextx("Error: "), msg, "\n", sep = "")
+    if (!is.null(call)) {
+		#if(getRversion() < "3.4.1") {
+			#paste(.gettextx("Error in "), deparse(call, control = NULL)[1L], " : ",
+				#msg, "\n", sep = "") ## 
+		#} else {
+			ermsg1 <- .gettextfx("Error in %s : ", deparse(call, control = NULL)[1L])
+			paste(ermsg1, if(nchar(ermsg1) + nchar(msg) > 80) "\n  " else "", msg, "\n", sep = "") ## 	
+		#}
+	} else paste(.gettextx("Error: "), msg, "\n", sep = "")
 }
+
+
 
 # Replacement for 'base::print.warnings'. Deparses using control=NULL to produce
 #  result identical to that in console
@@ -122,12 +128,15 @@ unsink <- function () {
 
 
 	## Marker functions to recognize internal errors
-	#`.__evalVis__` <- function (x) withVisible(eval(x, envir))
-	`.__envir__` <- envir
-	`.__evalVis__` <- function (.__expr__) withVisible(.Internal(eval(.__expr__, .__envir__, baseenv())))
+	#`captXX..evalVis..XX` <- function (x) withVisible(eval(x, envir))
+	`captXX..envir..XX` <- envir
+	`captXX..evalVis..XX` <- function (captXX..expr..XX)
+	     withVisible(.Internal(eval(captXX..expr..XX, captXX..envir..XX, baseenv())))
 
-	## evalCallStr <- deparse(body(.__evalVis__)[[2]][[2]])
-	evalCallStr <- "eval(.__expr__, .__envir__, baseenv())"
+	
+	#dExpr <- quote(eval(captXX..expr..XX, captXX..envir..XX, baseenv()))
+	#deparse(dExpr)
+	fooVars <- c("captXX..expr..XX", "captXX..envir..XX")
 
 	`restartError` <- function (e, calls) { # , foffset
 		# remove call (eval(expr, envir, enclos)) from the message
@@ -140,10 +149,7 @@ unsink <- function () {
 		#	e$message <- "WTF"# sub("<text>:\\d+:\\d+: *", "", e$message, perl = TRUE)
 		#}
 
-		#print(calls)
 		DEBUG("Call: ", e$call)
-
-		#print(conditionCall(e))
 		## XXX: when does this happen?
 		#if(identical(calls[[NframeOffset + foffset]], conditionCall(e)))
 		#	e$call <- NULL
@@ -154,22 +160,29 @@ unsink <- function () {
 		if(doTraceback) {
 			cfrom <- ncls
 			cto <- 1L
+			
+			# traceback <-- calls[cfrom:cto]
+			#    Initially: calls[ncls:1)]
+			#    Finally:   calls[find(.handleSimpleError) - 1 : find(captXX..evalVis..XX) + 3)]
 
 			for(i in ncls:1L)
 				if(length(calls[[i]]) == 4L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == ".handleSimpleError") {
 					cfrom <- i - 1L
 					break
 				}
+				
 			if(cfrom == ncls) cfrom <- cfrom - 1L
 			for(i in cfrom:1L)
-				if(length(calls[[i]]) == 2L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == ".__evalVis__") {
-					cto <- i + 4L
+				if(length(calls[[i]]) == 2L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == "captXX..evalVis..XX") {
+					cto <- i + 3L
 					break
 				}
 
 			## Remove call from "Error in eval(expr, envir, enclos) : "
-			## --> evaluation error
-			if(length(e$call) == 4L && deparse(e$call, nlines = 1L) == evalCallStr)
+			#print(calls)
+			#print(c(cfrom, cto))
+
+			if(any(fooVars %in% all.vars(e$call)))
 				e$call <- NULL
 
 			#if(length(e$call) == 4L && is.symbol(e$call[[1L]]) && e$call[[1L]] == "eval") {
@@ -186,7 +199,7 @@ unsink <- function () {
 			# cat("from: ", cfrom, " to", cto, " [n = ", ncls, "]\n")
 			###
 			Traceback <<- if(cfrom < cto) list() else
-				calls[seq.int(cfrom, cto, by = -1L)]
+				calls[seq.int(cfrom, cto)]
 		}
 
 		#cat("**Traceback**\n")
@@ -210,7 +223,7 @@ unsink <- function () {
 				DEBUG("before eval")
 				# 'off' is passed to 'restartError'
 				# 'off <- 0L # TODO: better way to find the right sys.call...
-				res1 <- .__evalVis__(ex)
+				res1 <- captXX..evalVis..XX(ex)
 				#'off <- -2L
 				DEBUG("after eval")
 
