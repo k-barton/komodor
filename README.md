@@ -49,8 +49,8 @@ in Tcl, so your R installation needs to have Tcl capability
    command in R and return the output.
 *  in R: `koCmd` executes a JavaScript command in Komodo and returns the result 
    if any.
-
-** Debugging R code**
+   
+**Debugging R code**
 
 The extension provides some debugging capabilities, see 
 [Debugging R code](debugging.md).   
