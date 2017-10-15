@@ -9,8 +9,8 @@ R environment and Komodo.
 This extension has initially been a slimmed-down fork of
 [Sciviews-K](http://komodoide.com/packages/addons/sciviews-r/) by 
 Philippe Grosjean, but since then it has been largely rewritten. 
-It is compatible with Komodo Edit 7 to 11, but there are some
-glitches with Komodo 10. It has not been tested on Komodo IDE and Mac.
+It is compatible with Komodo Edit 7 to 11. It has not been tested on Komodo IDE 
+and Mac.
 
 **Note:** Komodo, since version 9.2, provides its own R syntax highlighting 
 which is not compatible with this add-on. Therefore "R" language provided by 
