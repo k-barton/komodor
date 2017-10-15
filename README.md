@@ -21,14 +21,14 @@ this extension has been renamed to __"R_extended"__ to avoid conflicts.
 
 * start/quit R from Komodo
 * execution of R code from within editor:
-  + output is shown in the _Command Output_ pane  
-  + execute (or `source`) current line or selection, bookmark-delimited 
-    block, function at cursor, or a whole file 
+   + output is shown in the _Command Output_ pane  
+   + execute (or `source`) current line or selection, bookmark-delimited 
+     block, function at cursor, or a whole file 
 * syntax highlighting:
-  + R including [Roxygen](http://roxygen.org/) tags
-  + R documentation (.Rd files, *experimental*)
-  + [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
-    (.Rmd files, *experimental*) 
+   + R including [Roxygen](http://roxygen.org/) tags
+   + R documentation (.Rd files, *experimental*)
+   + [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
+     (.Rmd files, *experimental*) 
 * syntax checking
 * code completion (objects, argument names, list items)
 * R object browser (sidebar)
