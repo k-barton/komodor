@@ -36,9 +36,8 @@
  * ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<!--<?xml-stylesheet href="chrome://komodor/skin/pkgman.css" type="text/css"?>-->
+<!-- <?xml-stylesheet href="chrome://global/skin/pkgman.css" type="text/css"?> -->
 <?xml-stylesheet href="chrome://komodor/content/pkgman/loadbox.css" type="text/css"?>
-<!--<?xml-stylesheet href="file:///c:/temp/pkgman/pkgman.css" type="text/css"?>-->
 <?xml-stylesheet href="chrome://komodor/content/pkgman/pkgman.css" type="text/css"?>
 
 <window id="RPackageManager" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"

@@ -56,7 +56,7 @@ sv.string.filename = function (str) {
 
 sv.string.addslashes = function(str) {
     return str.replace(/([\\"'])/g, "\\$1")
-        .replace(/[\x0\u00000]/g, "\\0")
+        .replace(/[\x00\u00000]/g, "\\0")
         .replace(/\u0008/g, "\\b")
         .replace(/\n/g, "\\n")
         .replace(/\r/g, "\\r")

@@ -1,11 +1,5 @@
-/*richlistbox.rRepositoryList {*/
-/*	-moz-binding: url("file:///c:/temp/pkgman/pkgman.xbl#pkg-repository-listbox");*/
-/*}*/
-
-
 .rPackageList richlistitem {
 	-moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#pkg-item");
-	/*-moz-binding: url("file:///c:/temp/pkgman/pkgman.xbl#pkg-item");*/
 	padding-top: 6px;
 	padding-bottom: 6px;
 	-moz-padding-start: 7px;
@@ -20,7 +14,6 @@
 
 .rRepositoryList richlistitem {
 	-moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#pkg-repository-item");
-	/*-moz-binding: url("file:///c:/temp/pkgman/pkgman.xbl#pkg-repository-item");*/
 	padding-top: 6px;
 	padding-bottom: 6px;
 	-moz-padding-start: 7px;
@@ -227,12 +220,12 @@ richlistitem:not([selected])[old] {
 }
 
 tab:first-child {
-	-moz-border-radius: 6px 6px 0px 0px;
+	border-radius: 6px 6px 0px 0px;
 }
 
-tab:last-child {
-  -moz-border-radius: 0px 6px 0px 0px;
-}
+/*/*tab:last-child {*/
+/*/*  -moz-border-radius: 0px 6px 0px 0px;*/
+/*}*/
 tab {
 	-moz-image-region: rect(10px, 15px, 5px, 0px);
  	color: GrayText;

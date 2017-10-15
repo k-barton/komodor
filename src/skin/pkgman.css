@@ -1,5 +1,4 @@
 #viewGroup radio {
-  /*-moz-binding: url("file:///E:/Dokumenty/R-Forge/sciviews/komodo/SciViews-K-dev/content/pkgman/pkgman.xbl#viewbutton");*/
   -moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#viewbutton");
   -moz-box-orient: vertical;
   -moz-box-align: center;
@@ -19,7 +18,6 @@
   background-color: #C1D2EE;
   color: black;
 }
-
 
 radio#extensions-view {
   -moz-image-region: rect(0px, 32px,  32px, 0px)
@@ -153,22 +151,9 @@ richlistitem:not([selected="true"]) hbox.buttons {
 	visibility: collapse;
 }
 
-/*richlistitem:not([selected="true"])[status="0"] {
-	background-color: #fbed9f;
-}
-
-richlistitem:not([selected="true"])[status="1"] {
-	background-color: #fecfcf;
-}*/
-
 #rPackageList >
 richlistitem:not([selected]):not([loaded]) {
 	opacity: 0.3;
-	/*
-	background-color: red;
-	background-color: #8981f5;
-
-	*/
 }
 
 #rAvailablePackageList >
@@ -183,22 +168,11 @@ richlistitem[installed][selected] {
 	/*opacity: 0.3;*/
 }
 
-
-
 richlistitem:not([selected])[old] {
 	background-color: #d3ffa8;
 }
 
 
-
-
-tab:first-child {
-	-moz-border-radius: 6px 6px 0px 0px;
-}
-
-tab:last-child {
-  -moz-border-radius: 0px 6px 0px 0px;
-}
 tab {
 	-moz-image-region: rect(10px, 15px, 5px, 0px);
  	color: GrayText;
