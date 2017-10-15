@@ -14,27 +14,27 @@ of the function will not be resumed.
 Example:
 
 ```r
-    # (1) Define a function. Include a "koBrowseHere" call inside it.  
+# (1) Define a function. Include a "koBrowseHere" call inside it.  
 	in.GlobalEnv <- TRUE
     test <- function(arg1 = 1, arg2 = 2) {
         in.test <- TRUE
         koBrowseHere() # instead of 'browser()'
 		# rest of the code will not be executed
     }
-	
-	# (2) Run the function. The execution is interrupted.
+
+# (2) Run the function. The execution is interrupted.
     test()
 	
-	# (3) Now we are inside 'test'.
+# (3) Now we are inside 'test'.
     ls() 
     # [1] "arg1"     "arg2"     "in.test"
     
-    # (4) Finally, use "koBrowseEnd()" to go back to global environment. 
+# (4) Finally, use "koBrowseEnd()" to go back to global environment. 
     ls() #  back to .GlobalEnv
     # [1] "f1"           "f2"           "in.GlobalEnv"
 ```
 
-There is alsoe a new, experimental function `koDebug` that allows debugging 
+There is also a new, experimental function `koDebug` that allows debugging 
 a function if it produces an error. The execution stops and the user can debug 
 inside the frame that caused the error.
 Example:
