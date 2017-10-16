@@ -324,7 +324,7 @@
 <browser type="ko-widget"
 	id="rbrowser_tabpanel"
 	label="&rBrowser.tab;"
-	icon="chrome://komodor/skin/images/R_browser.svg"
+	icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?size=14"
 	tab_onfocus="sv.rbrowser.focus();"
 	src="chrome://komodor/content/rbrowser-pane.xul"
 	/>
