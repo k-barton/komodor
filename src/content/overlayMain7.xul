@@ -120,7 +120,7 @@
 -->
 <commandset id="cmdset_r_control" commandupdater="true"
   events="current_view_language_changed,language_changed,current_view_changed,r_app_started_closed"
-  oncommandupdate="ko.commands.updateCommandset(this)">
+  oncommandupdate="ko.commands.updateCommandset(this);">
 	
 	<command id="cmd_sv_tab_source" key="key_cmd_sv_tab_source"
 		oncommand="ko.commands.doCommand('cmd_svRRunAll')"
@@ -165,7 +165,7 @@
 		accesskey="&rSrcLineOrSelection.key;"/>
 
 	<commandset id="cmdset_r_control2" commandupdater="false" events="select"
-		oncommandupdate="ko.commands.updateCommandset(this)">
+		oncommandupdate="ko.commands.updateCommandset(this);">
 		<command id="cmd_svRRunSelection" key="key_cmd_svRRunSelection"
 			oncommand="ko.commands.doCommand('cmd_svRRunSelection')"
 			desc="R: &rSendSel;" label="&rSendSel;" accesskey="&rSendSel.key;"/>
@@ -336,7 +336,7 @@
 	id="rbrowser_tabpanel"
 	label="&rBrowser.tab;"
 	src="chrome://komodor/content/rbrowser-pane.xul"
-	tab_onfocus="sv.rbrowser.focus()"
+	tab_onfocus="sv.rbrowser.focus();"
 	icon="chrome://komodor/skin/images/R.png"
 	/>
 </ko-pane>

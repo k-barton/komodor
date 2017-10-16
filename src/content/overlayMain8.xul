@@ -69,13 +69,13 @@
 <broadcasterset id="broadcasterset_global">
 	<broadcaster id="sv_r_is_running" disabled="false"/>
 	
-	<broadcaster id="cmd_viewkomodotoolbar" 
-	key="key_cmd_viewkomodotoolbar" 
-	desc="User Interface: Show/Hide Komodo Resources Toolbar" 
-	autoCheck="false" 
-	checked="true" 
-	persist="checked" 
-	oncommand="ko.commands.doCommandAsync('cmd_viewkomodotoolbar', event)"/>
+	<!-- <broadcaster id="cmd_viewkomodotoolbar"  -->
+	<!-- key="key_cmd_viewkomodotoolbar"  -->
+	<!-- desc="User Interface: Show/Hide Komodo Resources Toolbar"  -->
+	<!-- autoCheck="false"  -->
+	<!-- checked="true"  -->
+	<!-- persist="checked"  -->
+	<!-- oncommand="ko.commands.doCommandAsync('cmd_viewkomodotoolbar', event)"/> -->
 	
 	<broadcaster
 		id="cmd_viewrtoolbar" key="key_cmd_viewrtoolbar"
@@ -320,16 +320,16 @@
 		/>
 </menupopup>
 
-<!-- Ko7 -->
 <ko-pane id="workspace_left_area">
 <browser type="ko-widget"
 	id="rbrowser_tabpanel"
 	label="&rBrowser.tab;"
-	src="chrome://komodor/content/rbrowser-pane.xul"
+	icon="chrome://komodor/skin/images/R_browser.svg"
 	tab_onfocus="sv.rbrowser.focus();"
-	icon="chrome://komodor/skin/images/R.png"
+	src="chrome://komodor/content/rbrowser-pane.xul"
 	/>
 </ko-pane>
+
 
 <ko-pane id="workspace_bottom_area">
 <browser type="ko-widget"

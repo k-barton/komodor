@@ -142,11 +142,11 @@
 
 
 #rbrowser_showAll_button {
-	list-style-image: url("chrome://komodor/skin/images/objects-show-hidden.png");
+	list-style-image: url("chrome://komodor/skin/images/objects-hide-hidden.png");
 }
 
 #rbrowser_showAll_button[checked="true"] {
-	list-style-image: url("chrome://komodor/skin/images/objects-hide-hidden.png");
+	list-style-image: url("chrome://komodor/skin/images/objects-show-hidden.png");
 }
 
 #rbrowser_showAttributes_button {

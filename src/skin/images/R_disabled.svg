@@ -9,14 +9,14 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="512"
-   height="512"
-   viewBox="0 0 512 512"
-   fill="#000000"
-   id="svg2"
-   version="1.1"
+   sodipodi:docname="R_disabled.svg"
    inkscape:version="0.91 r13725"
-   sodipodi:docname="R_browser.svg">
+   version="1.1"
+   id="svg2"
+   fill="#000000"
+   viewBox="0 0 512 512"
+   height="512"
+   width="512">
   <metadata
      id="metadata10">
     <rdf:RDF>
@@ -44,34 +44,36 @@
          offset="0"
          stop-color="rgb(39,109,195)"
          stop-opacity="1"
-         id="stop12" />
+         id="stop12"
+         style="stop-color:#494949;stop-opacity:1" />
       <stop
          offset="1"
          stop-color="rgb(22,92,170)"
          stop-opacity="1"
-         id="stop14" />
+         id="stop14"
+         style="stop-color:#b9b9b9;stop-opacity:1" />
     </linearGradient>
   </defs>
   <sodipodi:namedview
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1"
-     objecttolerance="10"
-     gridtolerance="10"
-     guidetolerance="10"
-     inkscape:pageopacity="0"
-     inkscape:pageshadow="2"
-     inkscape:window-width="1920"
-     inkscape:window-height="1032"
-     id="namedview6"
-     showgrid="false"
-     inkscape:zoom="0.921875"
-     inkscape:cx="203.48516"
-     inkscape:cy="313.56768"
-     inkscape:window-x="-4"
-     inkscape:window-y="-4"
+     inkscape:current-layer="svg2"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg2" />
+     inkscape:window-y="-4"
+     inkscape:window-x="-4"
+     inkscape:cy="253.83184"
+     inkscape:cx="158.08276"
+     inkscape:zoom="0.921875"
+     showgrid="false"
+     id="namedview6"
+     inkscape:window-height="1032"
+     inkscape:window-width="1920"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     guidetolerance="10"
+     gridtolerance="10"
+     objecttolerance="10"
+     borderopacity="1"
+     bordercolor="#666666"
+     pagecolor="#ffffff" />
   <path
      d="m 318.97985,282.80761 c 0,0 27.45426,8.28459 43.40445,16.35529 5.53439,2.80054 15.10979,8.38903 22.01677,15.72627 6.76605,7.18625 10.06477,14.46815 10.06477,14.46815 l 108.19662,182.4245 -174.87591,0.078 -81.7765,-153.56623 c 0,0 -16.74532,-28.77146 -27.04915,-37.11394 -8.59533,-6.95854 -12.26017,-9.43575 -20.75866,-9.43575 -5.91557,0 -41.55001,0 -41.55001,0 l 0.0326,200.00522 -154.7463078,0.0654 0,-510.89934737 310.7507278,0 c 0,0 141.53625,2.55268917 141.53625,137.21091737 0,134.6582 -135.24575,144.68149 -135.24575,144.68149 z m -67.30836,-171.0714 -93.68191,-0.0604 -0.0465,86.87181 93.72846,-0.0302 c 0,0 43.40446,-0.13471 43.40446,-44.19077 0,-44.94184 -43.40446,-42.59046 -43.40446,-42.59046 z"
      id="path18"

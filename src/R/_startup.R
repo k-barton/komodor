@@ -23,11 +23,8 @@ with(as.environment("komodoConnection"), {
 	env <- as.environment("komodoConnection")
 	src <- dir(pattern = "^[^_].*\\.R$")
 	Rdata <- "startup.RData"
-
-	if(!file.exists(Rdata) || {
-		mtime <- file.info(c(Rdata, src))[, "mtime"]
-		any(mtime[-1L] > mtime[1L])
-	}) {
+	
+	createStartupData <- function(Rdata) {
 		funcEnv <- new.env()
 		lapply(src, sys.source, envir = funcEnv, keep.source = FALSE)
 		if(length(find.package("compiler", quiet = TRUE))) {
@@ -36,18 +33,29 @@ with(as.environment("komodoConnection"), {
 						options = list(suppressAll = TRUE)), envir = funcEnv)
 		}
 		assign("funcEnv", funcEnv, envir = funcEnv)
+		assign(".withRVersion", getRversion(), envir = funcEnv)
 		suppressWarnings(save(list = ls(funcEnv), file = Rdata, envir = funcEnv))
 		cat("created startup data \n")
-		rm(fun, funcEnv)
 	}
 
+	if(!file.exists(Rdata) || {
+		mtime <- file.info(c(Rdata, src))[, "mtime"]
+		any(mtime[-1L] > mtime[1L])
+	}) createStartupData(Rdata)
+
 	load(Rdata, envir = env)
+	if(!exists(".withRVersion", funcEnv) || get(".withRVersion", funcEnv) != getRversion()) {
+		createStartupData(Rdata)
+		load(Rdata, envir = env)
+	}
+	
 	#sys.source("rserver.R", envir = env)
 	assign("sv_CurrentEnvir", .GlobalEnv, envir = funcEnv)
 
 	options(browser = svBrowser, pager = svPager)
-
+	
 	init.Rserver()
+
 	rm(env, Rdata, src)
 	invisible()
 })
