@@ -23,13 +23,13 @@ sv.string.replaceCRLF = function (str, code) {
 	// Replace all \r\n by 'code' in cmd
 	str = str.replace(/(\r?\n|\r)/g, code);
 	return str;
-}
+};
 
 // Remove the last line feed and or carriage return in the text
 sv.string.removeLastCRLF = function (str) {
 	if(str) str = str.replace(/[\n\r]{1,2}$/, "");
     return str;
-}
+};
 
 // changes a string to a regular expression
 sv.string.toRegex = function (str) {
@@ -39,7 +39,7 @@ sv.string.toRegex = function (str) {
 		.replace(/\n/g, "\\n")	.replace(/\r/g, "\\r")
 		.replace(/\f/g, "\\f");
 	return str;
-}
+};
 
 // Get filename or last directory name in a file path
 sv.string.filename = function (str) {
@@ -52,20 +52,20 @@ sv.string.filename = function (str) {
 	items = str.split("/");
 	// Return last component
 	return items[items.length - 1];
-}
+};
 
 sv.string.addslashes = function(str) {
     return str.replace(/([\\"'])/g, "\\$1")
-        .replace(/[\x00\u00000]/g, "\\0")
+        .replace(/\x00/g, "\\0")
         .replace(/\u0008/g, "\\b")
         .replace(/\n/g, "\\n")
         .replace(/\r/g, "\\r")
         .replace(/\f/g, "\\f")
         .replace(/\v/g, "\\v");
-}
+};
 
 sv.string.trim = function (str, which) {
-	if (which === undefined) which == "both";
+	if (which === undefined) which = "both";
 	var rx;
 	switch(which) {
 	 case "left":
@@ -79,7 +79,7 @@ sv.string.trim = function (str, which) {
 		break;
 	}
 	return str.replace(rx, "");
-}
+};
 
 // Trim function for String
 String.prototype.trim = function() sv.string.trim(this);

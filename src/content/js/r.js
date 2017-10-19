@@ -16,11 +16,11 @@ var _this = this;
 
 // Evaluate R expression and call callback function in Komodo with the result as
 // first argument. All additional arguments will be passed to callback
-this.evalAsync = function(cmd) {
+this.evalAsync = function(/*cmd*/) {
 	var args = Array.apply(null, arguments);
 	args.splice(2,  0, true, false);
 	sv.rconn.evalAsync.apply(sv.rconn, args);
-}
+};
 
 this.eval = function(cmd) sv.rconn.evalAsync.call(sv.rconn, cmd);
 
@@ -61,8 +61,8 @@ this.setwd = function (dir, ask, type) {
 				if (view) {
 					view.setFocus();
 					if (!view.koDoc.isUntitled) dir = view.koDoc.file.dirName;
-					break;
 				} // Fallback: project directory
+				break;
 			case "project":
 				try {
 					var file = ko.places.manager.getSelectedItem().file;
@@ -70,6 +70,7 @@ this.setwd = function (dir, ask, type) {
 				} catch(e) {
 					dir = sv.file.pathFromURI(ko.places.manager.currentPlace);
 				}
+				break;
 			default:
 		}
 	}
@@ -90,9 +91,9 @@ this.setwd = function (dir, ask, type) {
 	if (ask || !dir)
 		dir = ko.filepicker.getFolder(dir, sv.translate("Choose working directory"));
 
-	if (dir != null) sv.r.eval(".odir <- setwd(\"" + dir.addslashes() + "\")");
+	if (dir != null) sv.r.eval(".odir <- setwd(\"" + sv.string.addslashes(dir) + "\")");
     return dir;
-}
+};
 
 // Run current selection or line buffer in R
 this.run = function () {
@@ -114,7 +115,7 @@ this.run = function () {
 	} catch(e) {
 		return e;
 	}
-}
+};
 
 // Source the current buffer or some part of it
 this.source = function (what) {
@@ -126,7 +127,7 @@ this.source = function (what) {
 		var doc = view.koDoc;
 		var file;
 		if (!doc.isUntitled && doc.file) {
-			file = doc.file.path.addslashes();
+			file = sv.string.addslashes(doc.file.path);
 		} else {
 			file = doc.baseName;
 		}
@@ -154,7 +155,7 @@ this.source = function (what) {
 
 			var tempFile = sv.file.temp();
 			sv.file.write(tempFile, code + "\n", 'utf-8', false);
-			tempFile = tempFile.addslashes();
+			tempFile = sv.string.addslashes(tempFile);
 
 			var cmd = 'tryCatch(source("' + tempFile + '", encoding =' +
 				' "utf-8"), finally = {unlink("' + tempFile + '")});';
@@ -162,11 +163,11 @@ this.source = function (what) {
 			_this.evalAsync(cmd, function(ret) sv.cmdout.append(ret + "\n:>"));
 		}
 	} catch(e) {
-		sv.logger.exception(e, "Error while sourcing R code in"
-		+ " sv.r.source():\n\n (" + e + ")", true);
+		sv.logger.exception(e, "Error while sourcing R code in" +
+		     " sv.r.source():\n\n (" + e + ")", true);
 	}
 	return res;
-}
+};
 
 // Send whole or a part of the current buffer to R and place cursor at next line
 this.send = function (what) {
@@ -184,7 +185,7 @@ this.send = function (what) {
 
 	} catch(e) { return e; }
 	return res;
-}
+};
 
 this.rFn = function(name) "base::get(\"" + name +
 	"\", \"komodoConnection\", inherits=FALSE)";
@@ -234,10 +235,9 @@ this.getHelp = function (topic) {
 	}
 	_lastHelpTopic.found = result != null;
 	return result;
-}
+};
 
 this.help = function(topic) {
-	var res = false;
 	if (topic == undefined || topic == "")
 		topic = sv.getTextRange("word");
 	topic = sv.string.trim(String(topic));
@@ -249,7 +249,7 @@ this.help = function(topic) {
 	if(helpUri == null) return false;
 	sv.command.openHelp(helpUri);
 	return true;
-}	
+};	
 
 // Run the example for selected item
 this.example = function (topic) {
@@ -263,7 +263,7 @@ this.example = function (topic) {
 		sv.addNotification(sv.translate("R example run for \"%S\"", topic));
 	}
 	return res;
-}
+};
 
 // Display some text from a file
 this.pager = function(file, title, cleanUp) {
@@ -278,7 +278,7 @@ this.pager = function(file, title, cleanUp) {
 	sv.command.openHelp(rSearchURI + "?file:" + file);
 	if(cleanUp || cleanUp === undefined)
 		window.setTimeout("try { sv.file.getfile('" + file + "').remove(false); } catch(e) {}", 10000);
-}
+};
 
 // Search R help for topic
 this.search = function (topic) {
@@ -286,13 +286,14 @@ this.search = function (topic) {
 	if(topic == "") return;
 	sv.rconn.evalAsync('utils::help.search("' + sv.string.addslashes(topic) +  '")', null, 
 		true, false);
-}
+};
 
 // Quit R (ask to save in save in not defined)
 this.quit = function (save) {
+	var response;
 	if (typeof(save) == "undefined") {
 		// Ask for saving or not
-		var response = ko.dialogs.customButtons("Do you want to save the" +
+		response = ko.dialogs.customButtons("Do you want to save the" +
 			" workspace and the command history in" +
 			" the working directory first?", ["Yes", "No", "Cancel"], "No",
 			null, "Exiting R");
@@ -302,9 +303,9 @@ this.quit = function (save) {
 	_this.evalHidden('base::q("' + response.toLowerCase() + '")');
 	// Clear the objects browser
 	sv.rbrowser.clearPackageList();
-	setTimeout(function() sv.command.updateRStatus(sv.rconn.testRAvailability()),
+	setTimeout(function() sv.command.setRStatus(sv.rconn.isRConnectionUp(false)),
 		1000);
-}
+};
 
 
 this.saveDataFrame = function _saveDataFrame(name, fileName, objName, dec, sep) {
@@ -345,7 +346,7 @@ this.saveDataFrame = function _saveDataFrame(name, fileName, objName, dec, sep) 
 		'", dec="' + dec + '", sep="' + sep + '", col.names=NA)';
 	sv.r.eval(cmd);
 	return cmd;
-}
+};
 
 }).apply(sv.r);
 

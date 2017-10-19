@@ -110,13 +110,15 @@
 		<command id="cmd_svOpenHelp" key="key_cmd_svOpenHelp"
 			oncommand="ko.commands.doCommand('cmd_svOpenHelp');"
 			desc="R: &helpStart;" label="&helpStart;" accesskey="&helpStart.key;"/>
+		
+		<command id="cmd_svOpenRPreferences" key="key_cmd_svOpenRPreferences"
+			oncommand="ko.commands.doCommand('cmd_svOpenRPreferences');"
+			desc="R: &openRPrefs;" label="&openRPrefs;" accesskey="&openRPrefs.key;"/>
+	
 	</commandset>
 
-<!-- event names changed in Komodo 6: keeping the old one for compatibility
-(current_view_language_changed)
--->
 <commandset id="cmdset_r_control" commandupdater="true"
-  events="current_view_language_changed,language_changed,current_view_changed,r_app_started_closed"
+  events="language_changed,current_view_changed,r_app_started_closed"
   oncommandupdate="ko.commands.updateCommandset(this);">
 	<command id="cmd_svRRunAll" key="key_cmd_svRRunAll"
 		oncommand="ko.commands.doCommand('cmd_svRRunAll')"
@@ -179,6 +181,9 @@
 			<menuitem id="r_start_pkg_manager" observes="cmd_svOpenPkgManager"
 				class="menuitem-iconic r-pkg-manager"/>
 
+			<menuitem id="r_open_r_prefs" observes="cmd_svOpenRPreferences"
+				class="menuitem"/>
+				
 			<menuseparator/>
 			<menuitem id="r_send_line_sel_menu" observes="cmd_svRRunLineOrSelection"
 				class="menuitem-iconic r-run-selection-icon"/>
@@ -214,7 +219,7 @@
 		mode="icons"
 		persist="kohidden collapsed buttonstyle mode"
 		buttonstyle="pictures"
-		tooltiptext="R Toolbar"
+		tooltiptext="&RToolbar.label;"
 		customizable="true"
 		>
 	<toolbaritem class="has-children">

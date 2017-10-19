@@ -39,13 +39,14 @@
 <!ENTITY helpStart "R Help start">
 <!ENTITY helpStart.key "h">
 
-<!ENTITY svOpenSessMgr "Session directory">
-<!ENTITY svOpenSessMgr.key "S">
+<!ENTITY openRPrefs "R preferences">
+<!ENTITY openRPrefs.key "p">
 
 <!ENTITY rEscape "Escape current calculation">
 <!ENTITY rEscape.key "E">
 
 <!ENTITY RToolbar.label "R toolbar">
+
 <!ENTITY userInterfaceShowHideRToolbar.desc "Show/Hide R toolbar">
 
 <!ENTITY rBrowser.tab "R objects">

@@ -11,7 +11,7 @@
 //.startSocketServer(requestHandler) - optional 'requestHandler' is a function that
 //		handles the received data and returns a string
 //.stopSocketServer()
-//.testRAvailability(checkProc) - test whether R is available, check connection and
+//.isRConnectionUp(checkProc) - test whether R is available, check connection and
 //		optionally look up running processes
 
 // sv.rconn.svuSvc.lastCommandInfo.result.replace(/\r\n/g, "\\r\\n")
@@ -30,7 +30,7 @@ var _this = this;
 const { classes : Cc, interfaces : Ci } = Components;
 
 // get string from nsISupportsString
-function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data;
+function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data
 
 var _svuSvc = Cc["@komodor/svUtils;1"]
 	.getService(Ci.svIUtils);
@@ -43,8 +43,11 @@ this.svuSvc = _svuSvc;
 //var observers = {};
 //var obsCallback = function() { sv.cmdout.append("test")};
 
-this.__defineGetter__ ('command', function () _svuSvc.lastCommand);
-this.__defineGetter__ ('result', function () _svuSvc.lastResult);
+Object.defineProperty(this, 'command', { get: function() _svuSvc.lastCommand });
+Object.defineProperty(this, 'result', { get: function() _svuSvc.lastResult });
+
+//this.__defineGetter__ ('command', function () _svuSvc.lastCommand);
+//this.__defineGetter__ ('result', function () _svuSvc.lastResult);
 
 var _curPrompt = ':>';
 var _curCommand = "";
@@ -61,7 +64,7 @@ this.userCommandId = _svuSvc.uid();
 this.printResult1 = function(commandInfo) {
 	_svuSvc.outScimoz = sv.cmdout.scimoz;
 	_svuSvc.printResult(commandInfo);
-}
+};
 
 
 this.printResults = function(result, commandInfo, executed, wantMore) {
@@ -85,7 +88,7 @@ this.printResults = function(result, commandInfo, executed, wantMore) {
 		_waitMessageTimeout = window.setTimeout(sv.cmdout.message, 700, msg, 0, false);
 	}
 	sv.cmdout.print2(command, prompt, executed, commandInfo);
-}
+};
 
 
 // get list of running R processes
@@ -95,7 +98,7 @@ this.listRProcesses = function(property) {
 	var proc = [];
 	while(procList.hasMoreElements()) proc.push(_str(procList.getNext()));
 	return proc;
-}
+};
 
 // Evaluate in R
 this.evalAsync = function(command, callback, hidden, stdOut) { //, ...
@@ -110,17 +113,17 @@ this.evalAsync = function(command, callback, hidden, stdOut) { //, ...
 	var mode = ['json']; if (hidden) mode.push('h');
 	_svuSvc.evalInRNotify(command, mode.join(' '), id);
 	return id;
-}
+};
 
 // Evaluate in R instantaneously and return result
 // stdOut - if true, stderr stream is omitted
 this.eval = function(command, timeout, stdOut) {
-	if(timeout === undefined) timeout = .5;
+	if(timeout === undefined) timeout = 0.5;
 	if(stdOut === undefined) stdOut = false;
 	var res = _svuSvc.evalInR(command, 'json h', timeout);
 	if(res[0] == '\x15') throw(new Error("Command was: " + command));
 	return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
-}
+};
 
 // For internal use with repeated commands (result handler is defined only once)
 // reuse result handler predefined with '.defineResultHandler'
@@ -135,7 +138,7 @@ this.evalPredefined = function(command, handlerId, hidden) {
 	}
 	var mode = ['json']; if (hidden) mode.push('h');
 	_svuSvc.evalInRNotify(command, mode.join(' '), handlerId);
-}
+};
 
 this.defineResultHandler = function(id, callback, stdOut) {
 	var handlers = _this.handlers;
@@ -143,11 +146,11 @@ this.defineResultHandler = function(id, callback, stdOut) {
 	args.splice(0, 3); // remove first three arguments
 	handlers[id] = new _REvalListener(callback, true, stdOut, args);
 	return id;
-}
+};
 
-this.escape = function(command) _this.evalAsync("\x1b");
+this.escape = function(/*command*/) _this.evalAsync("\x1b");
 
-//this.testRAvailability = function(checkProc) {
+//this.isRConnectionUp = function(checkProc) {
 //	var result = _this.eval("cat(1)").trim();
 //	var connectionUp = result == "1";
 //	var rProcess = checkProc? _this.getRProc() : undefined;
@@ -171,19 +174,21 @@ this.escape = function(command) _this.evalAsync("\x1b");
 //	return connectionUp;
 //}
 
-this.testRAvailability = function(checkProc) {
-	var connectionUp;
+this.isRConnectionUp = function(quiet/*checkProc*/) {
+	var connected;
 	try {
-		var result = _this.eval("cat('" + ko.version + "')");
-		connectionUp = result.indexOf(ko.version) != -1;
+		var test = _this.eval("cat('" + ko.version + "')");
+		connected = test.indexOf(ko.version) != -1;
 	} catch(e) {
-		connectionUp = false;
+		connected = false;
 	}
-	var ret = connectionUp? "Connection with R successful." :
+	if(!quiet) {
+		var message = connected ? "Connection with R successful." :
 		"Cannot connect to R.";
-	sv.addNotification("R connection test: " + ret, 0, 1000);
-	return connectionUp;
+		sv.addNotification("R connection test: " + message, 0, 1000);
 }
+	return connected;
+};
 
 //_this.setObserver(rCallbackChunk, "r-command-chunk");
 //_this.setObserver(rCallback, "r-command-executed");
@@ -202,7 +207,7 @@ var defaultRequestHandler = function(str) {
 		return e.message;
 	}
 	return "Received: [" + str + "]"; // echo
-}
+};
 
 this.__defineGetter__ ('serverIsUp', function () _svuSvc.serverIsUp() );
 
@@ -234,7 +239,7 @@ this.startSocketServer = function(requestHandler) {
 		//}, 1000);
 	}
 	return port;
-}
+};
 
 var sServerDoRestart = false;
 
@@ -247,7 +252,7 @@ this.restartSocketServer = function(requestHandler) {
 	} else {
 		_this.startSocketServer(requestHandler);
 	}
-}
+};
 
 this._sServerObserver = { observe: function(subject, topic, data) {
 	if (topic == 'r-server-stopped') {
@@ -257,7 +262,7 @@ this._sServerObserver = { observe: function(subject, topic, data) {
 		}
 		sv.addNotification("Server stopped");
 	}
-}}
+}};
 
 var _socketPrefs = {
     "sciviews.r.port": null,
@@ -265,7 +270,7 @@ var _socketPrefs = {
     "sciviews.ko.port": null
 };
 
-this.socketPrefs = function rConnSocketPrefs(name) {
+this.getSocketPref = function rConnGetSocketPref(name) {
 	return _socketPrefs[name];
 };
 
@@ -281,7 +286,7 @@ var _prefObserver = {
 	observe: function(subject, topic, data) {
 		_socketPrefs[topic] = sv.pref.getPref(topic);
 		_updateSocketInfo();
-}}
+}};
 
 this.handlers = {};
 
@@ -290,7 +295,7 @@ var _REvalListener = function(callback, keep, stdOut, args) {
 	this.keep = keep;
 	this.stdOut = stdOut;
 	this.args = Array.apply(null, args);
-}
+};
 _REvalListener.prototype = {
 	callback: null,
 	keep: false,
@@ -316,7 +321,7 @@ _REvalListener.prototype = {
 		//if (mode == "e" || mode == "json")	_this.printResults(result, command, true);
 		return this.keep;
 	}
-}
+};
 
 //this.printCommandinfo = function(cinfo) {
 //	cinfo.QueryInterface(Ci.svICommandInfo);
@@ -400,9 +405,9 @@ var _REvalObserver = {
 					wantMore = true;
 					break;
 				case 'Parse error':
-					break; // Exec handler on parse error? I guess not.
-					if (cid in _this.handlers && !keep)
-						delete _this.handlers[cid];
+					break; // Execute handler on parse error? I guess not.
+					//if (cid in _this.handlers && !keep)
+						//delete _this.handlers[cid];
 				case 'Done':
 					if (cid in _this.handlers) {
 						var keep = _this.handlers[cid]
@@ -412,7 +417,9 @@ var _REvalObserver = {
 					}
 					break;
 				default:
+                   /* falls through */
 				}
+                /* falls through */
 			case 'r-command-sent':
 				sv.lastCmdInfo = subject;
 				if (subject.mode.split(' ').indexOf('h') == -1) {
@@ -431,7 +438,7 @@ var _REvalObserver = {
 			default:
 		}
 	}
-}
+};
 
 //_obsSvc.addObserver(_REvalObserver, "r-command-chunk", false);
 _obsSvc.addObserver(_REvalObserver, "r-command-sent", false);
@@ -439,7 +446,8 @@ _obsSvc.addObserver(_REvalObserver, "r-command-executed", false);
 _obsSvc.addObserver(_this._sServerObserver, 'r-server-stopped', false);
 
 //_obsSvc.removeObserver(_REvalObserver, "r-command-executed", false);
-for(var i in _socketPrefs) {
+for(var i in _socketPrefs) 
+	if (_socketPrefs.hasOwnProperty(i)) {
 	_socketPrefs[i] = sv.pref.getPref(i);
 	sv.pref.prefset.prefObserverService.addObserver(_prefObserver, i, true);
 }
@@ -457,10 +465,11 @@ this.cleanUp = function sv_conn_debugCleanup() {
 				_obsSvc.removeObserver(observer, notification, false);
 			}
 		} catch(e) {}
-	})
+	});
 
 	var prefObsSvc = sv.pref.prefset.prefObserverService;
-	for(var pref in _socketPrefs) {
+	for(var pref in _socketPrefs) 
+		if (_socketPrefs.hasOwnProperty(i)) {
 		try {
 			var obsEnum = prefObsSvc.enumerateObservers(pref);
 			while (obsEnum.hasMoreElements()) {
@@ -470,7 +479,7 @@ this.cleanUp = function sv_conn_debugCleanup() {
 			}
 		} catch(e) { 	alert(e); }
 	}
-}
+};
 
 
 }).apply(sv.rconn);

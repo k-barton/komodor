@@ -1,6 +1,6 @@
 content komodor jar:komodor.jar!/content/
 
-overlay chrome://komodo/content/komodo.xul chrome://komodor/content/overlayMain8.xul appversion>=8.00
+overlay chrome://komodo/content/komodo.xul chrome://komodor/content/overlayMain.xul appversion>=8.00
 overlay chrome://komodo/content/komodo.xul chrome://komodor/content/overlayMain7.xul appversion<8.00 
 
 overlay chrome://komodo/content/pref/pref.xul chrome://komodor/content/prefOverlay.xul
@@ -9,7 +9,6 @@ overlay chrome://places/content/places_panel.xul chrome://komodor/content/places
 overlay chrome://komodo-places/content/places_panel.xul chrome://komodor/content/places.xul appversion>=8.00
 
 locale  komodor     en-GB     jar:komodor.jar!/locale/en-GB/
-locale  komodor     fr-FR     jar:komodor.jar!/locale/fr-FR/
 
 skin    komodor  classic/1.0  jar:komodor.jar!/skin/
 

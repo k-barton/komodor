@@ -100,7 +100,7 @@ local({
 		invisible(koCmd(paste(
 			"sv.cmdout.clear()",
 			sprintf("sv.cmdout.append('%s is started')", R.version.string),
-			"sv.command.updateRStatus(true)",
+			"sv.command.setRStatus(true)",
 			# "sv.rbrowser.refresh(true)", # not before workspace is loaded
 			sprintf("sv.pref.setPref('sciviews.r.port', %s)", portstr),
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
@@ -128,7 +128,7 @@ local({
 	reg.finalizer(as.environment("komodoConnection"),
 		function(e) {
 			tryCatch({
-				koCmd("sv.addNotification(\"R says bye\"); sv.command.updateRStatus(false);")
+				koCmd("sv.addNotification(\"R says bye\"); sv.command.setRStatus(false);")
 				stopAllServers()
 				stopAllConnections()				
 			}, error = function(...) NULL)

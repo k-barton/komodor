@@ -55,8 +55,8 @@ this.setDefaults = function sv_checkAllPref(revert) {
 	for (var i in _this.defaults) {
 		hasPref = prefset.hasPref(i);
 		val = hasPref ? _this.getPref(i) : null;
-		rev = revert || (typeof val == "number" && isNaN(val)) || val == "None"
-			|| (_this.defaults[i] !== '' && val === '');
+		rev = revert || (typeof val == "number" && isNaN(val)) || val == "None";
+			//|| (_this.defaults[i] !== '' && val === '');
 		_this.setPref(i, _this.defaults[i], rev);
 	}
 };

@@ -52,7 +52,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	}
 
 	// Private methods
-	function _isRRunning() sv.r.isRunning;
+	function _isRRunning() sv.r.isRunning
 
 	function _RControl_supported() {
 		var currentView = ko.views.manager.currentView;
@@ -81,8 +81,9 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		try {
 			this._process.wait(0);
 			this.cleanUp();
-		} catch (e) {};
-	};
+		} catch (e) {}
+	}
+	
 	_ProcessObserver.prototype = {
 		observe: function (child, topic, command) {
 			if ('run_terminated' === topic && this._command === command) {
@@ -120,16 +121,10 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 				this._process = null;
 			}
 		}
-	}
+	};
 
 	this.ProcessObserver = _ProcessObserver;
 
-	_RterminationCallback = function (exitCode) {
-		// do something here...
-		sv.addNotification("R is closed with code " + exitCode);
-		_this.updateRStatus(false);
-	}
-	
 	this.getCwd = function (selected) {
 		var dir = "";
 		if(selected) {
@@ -147,7 +142,27 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			dir = sv.file.pathFromURI(uri);
 		}
 		return dir;
-	}
+	};
+	
+	
+	this.openRPreferences = function(item) {
+		if(!item) item = "svPrefRItem";
+		prefs_doGlobalPrefs(item, true);
+		// workaround K9 bug with switching to the right panel:
+		var prefWin = _getWindowByURI("chrome://komodo/content/pref/pref.xul");
+		if (prefWin) prefWin.switchToPanel(item);
+	};
+
+
+	_RterminationCallback = function (exitCode) {
+		// on Linux the process run in a terminal exits immediately, yet
+		// both terminal and R are still running.
+		// So need to check whether R is actually closed.
+		var connected = sv.rconn.isRConnectionUp(true);
+		if(!connected) sv.addNotification("R is closed with code " + exitCode);	
+		_this.setRStatus(connected);
+	};
+
 
 	this.startR = function () {
 		var svfile = sv.file;
@@ -157,13 +172,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			if (ko.dialogs.okCancel(
 					sv.translate("R interpreter is not set in " +
 						"Preferences. Would you like to do it now?"),
-					"OK", null, "R interface") == "OK") {
-				prefs_doGlobalPrefs("svPrefRItem", true);
-				
-				// workaround K9 bug with switching to the right panel:
-				var prefWin = _getWindowByURI("chrome://komodo/content/pref/pref.xul");
-				if (prefWin) prefWin.switchToPanel("svPrefRItem");
-			}
+					"OK", null, "R interface") == "OK")
+				_this.openRPreferences();
 			return;
 		}
 
@@ -171,18 +181,18 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		svfile.write(svfile.path(rDir, "_init.R"),
 			"setwd('" + svstr.addslashes(sv.command.getCwd(false)) +
 			"')\n" + "options(" +
-			"ko.port=" + sv.pref.getPref("sciviews.ko.port", 7052) + ", " +
-			"ko.R.port=" + sv.pref.getPref("sciviews.r.port", 1111) + ", " +
+			"ko.port=" + sv.pref.getPref("sciviews.ko.port", sv.pref.defaults["sciviews.ko.port"]) + ", " +
+			"ko.R.port=" + sv.pref.getPref("sciviews.r.port", sv.pref.defaults["sciviews.r.port"]) + ", " +
 			"ko.host=\"localhost\")\n" + 
 			".ko.tmp.repos <- getOption(\"repos\"); .ko.tmp.repos[[\"CRAN\"]] <- \"" +
 				sv.pref.getPref("CRANMirror") + "\"; " +
 			"options(repos = .ko.tmp.repos); rm(.ko.tmp.repos); \n"
 		);
+		// TODO: use sciviews.r.host
 
 		var cmd = sv.pref.getPref("svRCommand");
 		var isWin = navigator.platform.indexOf("Win") === 0;
-		var id = sv.pref.getPref("svRApplication",
-			isWin ? "r-gui" : "r-terminal");
+		var id = sv.pref.getPref("svRApplication", isWin ? "r-gui" : "r-terminal");
 		var env = [];
 		switch (id) {
 		case "r-tk":
@@ -194,15 +204,16 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			XEnv = null;
 			break;
 		case "r-terminal":
+			break;
 		default:
 		}
 
-		env = env.join("\n");
+		var envStr = env.join("\n");
 
 		if (isWin && id == "r-terminal") {
 			var runSvc = Cc['@activestate.com/koRunService;1']
 				.getService(Ci.koIRunService);
-			runSvc.Run(cmd, rDir, env, true, '');
+			runSvc.Run(cmd, rDir, envStr, true, '');
 			// Observe = 'run_command'
 			// subject = 'status_message'
 			// data = command
@@ -213,49 +224,44 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			// subject = child
 			// data = command
 			//RProcessObserver = new _ProcessObserver(cmd, process, _RterminationCallback);
-			RProcessObserver = this.runSystemCommand(cmd, rDir, env,
+			RProcessObserver = this.runSystemCommand(cmd, rDir, envStr,
 				_RterminationCallback);
 			this.RProcess = RProcessObserver._process;
 		}
-		_this.updateRStatus(true);
-	}
+		_this.setRStatus(true);
+	};
 
 	this.runSystemCommand = function (cmd, cwd, env, terminationCallback) {
 		var runSvc = Cc['@activestate.com/koRunService;1']
 			.getService(Ci.koIRunService);
 		var process = runSvc.RunAndNotify(cmd, cwd, env, null);
 		return new _this.ProcessObserver(cmd, process, terminationCallback);
-	}
+	};
 
-	this.updateRStatus = function (running) {
+	this.setRStatus = function (running) {
 		// Toggle status if no argument
-		if (running === undefined) {
-			running = !sv.r.isRunning; // toggle
-		} else {
+		if (running === undefined)
+			running = !sv.r.isRunning;
+		else
 			running = Boolean(running);
-		}
+
 		if (running != sv.r.isRunning) {
 			sv.r.isRunning = running;
-			// XXX: R toolbar button responds to:
+			// Note: R toolbar button responds to:
             xtk.domutils.fireEvent(window, 'r_app_started_closed');
-			// XXX: all other buttons/menu items respond to:
+			// Note: all other buttons/menu items respond to:
             window.updateCommands('r_app_started_closed');
-			sv.addNotification("R is " + (running ? "" : "not ") + "running", 0, 2000);
+			
+			sv.addNotification(running ? "R is running" : "R is not running", 0, 2000);
 		}
-	}
+	};
 
 	this.openPkgManager = function () {
 		var win = _getWindowRef("chrome://komodor/content/pkgman/pkgman.xul",
 			"RPkgMgr", "chrome=yes,dependent" +
 			"scrollbars=yes,status=no,close,dialog=no,resizable", true, sv);
 		return win;
-	}
-
-	this.openSessionMgr = function () {
-		var win = _getWindowRef("chrome://komodor/content/sessions.xul",
-			"RSessionMgr", "chrome,modal,titlebar,close,centerscreen", true);
-		return win;
-	}
+	};
 
 	// sv.command.openHelp - returns reference to the RHelpWindow
 	//FIXME: help in tab still buggy
@@ -306,7 +312,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 		_this.RHelpWin = RHelpWin;
 		return RHelpWin;
-	}
+	};
 
 	// Close r-help tab
 	this.closeHelp = function () {
@@ -321,7 +327,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		document.getElementById("rhelpview-frame")
 			.setAttribute("src", "about:blank");
 		//_this.RHelpWin.closed = true;
-	}
+	};
 
 	this.setControllers = function _setControllers() {
 		//Based on: chrome://komodo/content/library/controller.js
@@ -329,15 +335,18 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		if (xtk.Controller instanceof Function)
 			xtk.include("controller");
 
-		const XRRunning = 1,
-			XRStopped = 2,
-			XisRDoc = 4,
-			XHasSelection = 8;
+		const   XRRunning = 1,
+				XRStopped = 2,
+				XisRDoc = 4,
+				XHasSelection = 8;
 		var handlers = {
 			'cmd_svOpenPkgManager': ["sv.command.openPkgManager();", XRRunning],
-			'cmd_svQuitR': ['sv.r.quit();', XRRunning],
 			'cmd_svOpenHelp': ["sv.command.openHelp();", XRRunning],
+			'cmd_svOpenRPreferences': ["sv.command.openRPreferences();", -1],
+			
 			'cmd_svStartR': ['sv.command.startR();', XRStopped],
+			'cmd_svQuitR': ['sv.r.quit();', XRRunning],
+
 			'cmd_svREscape': ['sv.r.escape();', XRRunning],
 			'cmd_svRRunAll': ['sv.r.send("all");', XisRDoc | XRRunning],
 			'cmd_svRSourceAll': ['sv.r.source("all");', XisRDoc | XRRunning],
@@ -359,13 +368,13 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 				XHasSelection
 			],
 			'cmd_viewrtoolbar': ['ko.uilayout.toggleToolbarVisibility(\'RToolbar\')',
-				0
+				-1
 			]
-		}
+		};
 
 		// Temporary
 		//function _isRRunning () true;
-		function _isRRunning() sv.r.isRunning;
+		function _isRRunning() sv.r.isRunning
 
 		function _isRCurLanguage() {
 			return true;
@@ -382,6 +391,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 		function _test(cmdName) {
 			var test = handlers[cmdName][1];
+			if(test < 0) return true;
 			return (
 				(((test & XRRunning) != XRRunning) || _isRRunning()) && (((test &
 					XRStopped) != XRStopped) || !_isRRunning()) && (((test & XisRDoc) !=
@@ -413,13 +423,13 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 		broadcasterController.prototype.destructor = function () {
 			window.controllers.removeController(this);
-		}
+		};
 
 		broadcasterController.prototype.isCommandEnabled = function (cmdName) {
 			if (cmdName in handlers) return _test(cmdName);
 			//if (cmdName in handlers) return true;
 			return false;
-		}
+		};
 
 		broadcasterController.prototype.supportsCommand = broadcasterController.prototype
 			.isCommandEnabled;
@@ -427,12 +437,12 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		broadcasterController.prototype.doCommand = function (cmdName) {
 			if (cmdName in handlers) return eval(handlers[cmdName][0]);
 			return false;
-		}
+		};
 
 		window.controllers.appendController(new broadcasterController());
 
 		//sv.logger.debug("Controllers has been set.");
-	}
+	};
 
 	// Set default keybindings from file
 	// chrome://komodor/content/default-keybindings.kkf
@@ -440,8 +450,9 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 	// sfx is for platform specific keybindings
 	function _setKeybindings(clearOnly, sfx) {
 		if (!sfx) sfx = "";
+		var svSchemeDefault;
 		try {
-			var svSchemeDefault = sv.file
+			svSchemeDefault = sv.file
 				.readURI("chrome://komodor/content/keybindings" + sfx + ".kkf");
 		} catch (e) {
 			return false;
@@ -450,7 +461,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
 		var kbMgr = ko.keybindings.manager;
 		if (kbMgr.currentConfiguration == undefined) {
-			kbMgr = new ko.keybindings.manager;
+			kbMgr = new ko.keybindings.manager();
 		}
 		var currentConfiguration = kbMgr.currentConfiguration;
 
@@ -460,7 +471,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		}
 
 		//from: gKeybindingMgr.parseConfiguration
-		var bindingRx = /[\r\n]+(# *SciViews|binding cmd_sv.*)/g;
+		//var bindingRx = /[\r\n]+(# *SciViews|binding cmd_sv.*)/g;
 
 		function _getSvKeys(data, pattern) {
 			if (!pattern) pattern = "";
@@ -497,7 +508,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		return true;
 	}
 
-	function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data;
+	function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data
 
 	this.getRProc = function (property) {
 		if (!property) property = "CommandLine";
@@ -508,7 +519,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 		proc = [];
 		while (procList.hasMoreElements()) proc.push(_str(procList.getNext()));
 		return proc;
-	}
+	};
 
 	this.places = {
 
@@ -532,9 +543,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			var cmd = files.map(function (x)
 				"source('" +
 				sv.string.addslashes(x) + "')").join("\n");
-			sv.rconn.evalAsync(cmd, function (z) {
-				sv.rbrowser.refresh(true);
-			}, false);
+			sv.rconn.evalAsync(cmd, function () sv.rbrowser.refresh(true), false);
 		},
 
 		loadSelection: function sv_loadPlacesSelection() {
@@ -548,9 +557,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			var cmd = files.map(function (x)
 				"load('" +
 				sv.string.addslashes(x) + "')").join("\n");
-			sv.rconn.evalAsync(cmd, function (z) {
-				sv.rbrowser.refresh(true);
-			}, false);
+			sv.rconn.evalAsync(cmd, function () sv.rbrowser.refresh(true), false);
 		},
 
 		setWorkingDir: function sv_setPlacesSelectionAsWorkingDir() {
@@ -566,16 +573,14 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 				path = dir.file.path;
 			}
 			var cmd = "setwd('" + sv.string.addslashes(path) + "')";
-			sv.rconn.evalAsync(cmd, function (z) {
-				sv.rbrowser.refresh(true);
-			}, false);
+			sv.rconn.evalAsync(cmd, function ()	sv.rbrowser.refresh(true), false);
 		}
 
-	}
+	};
 
 	//}
 	// TODO: move this to sv.onLoad:
-	this.onLoad = function (event) {
+	this.onLoad = function (/*event*/) {
 		//alert("komodor onLoad");
         
 		// first run:
@@ -587,7 +592,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 var osName = Cc['@activestate.com/koOs;1']
                     .getService(Ci.koIOs).name;
                 if (!_setKeybindings(false, osName)) // use system specific keybindings
-                    _setKeybindings(false, '') // fallback - use default
+                    _setKeybindings(false, ''); // fallback - use default
         } // end first run
 		
 		setTimeout(function () {
@@ -595,7 +600,10 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 			sv.rconn.startSocketServer();
         
 			_this.setControllers();
-			_this.updateRStatus(sv.rconn.testRAvailability(false));
+			_this.setRStatus(sv.rconn.isRConnectionUp(true));
+			
+			if(sv.r.isRunning) sv.rbrowser.refresh();
+			
 
 			// For completions
 			var cuih = ko.codeintel.CompletionUIHandler;
@@ -609,28 +617,24 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 					"chrome://komodor/skin/images/cb_graphical_argument.png";
 				cuih.prototype.types.dataset =
 					"chrome://komodor/skin/images/cb_data.png";
-			} //else Komodo < 7
-		}, 2000);
+			}
+		}, 1000);
 		_observerSvc.removeObserver(_this.onLoad, "komodo-ui-started");
-  	}
+  	};
 
 	// "komodo-post-startup" event in Komodo 9 only. 
     //addEventListener("komodo-post-startup", _this.onLoad, false);
 	_observerSvc.addObserver(_this.onLoad, "komodo-ui-started", false);
 
 	// Just in case, run a clean-up before quitting Komodo:
-	function svCleanup() sv.rconn.stopSocketServer();
+	function svCleanup() sv.rconn.stopSocketServer()
+	
 	ko.main.addWillCloseHandler(svCleanup);
 
 	function ObserveR() {
 		var el = document.getElementById('cmd_svRStarted');
-		if (_isRRunning()) {
-			el.setAttribute("checked", "true");
-			// el.setAttribute("checkState", "1"); // Komodo 8
-		} else {
-			el.removeAttribute("checked"); // Komodo 8
-			// el.setAttribute("checkState", "0"); // Komodo 8
-		}
+		if (_isRRunning()) el.setAttribute("checked", "true");
+			else el.removeAttribute("checked");
 	}
 	addEventListener("r_app_started_closed", ObserveR, false);
 

@@ -13,13 +13,13 @@ sv.misc.colorPicker = {};
  *              Philippe Grosjean
  *              Kamil Barton
  */
-(function() {
+(function () {
 
 var os_prefix = window.navigator.platform.substring(0, 3).toLowerCase();
 
 if ((os_prefix == "win") || (os_prefix == "mac")) {
 
-	function _colorPicker_system (color) {
+	var _colorPicker_system = function  (color) {
 		var sysUtils = Components.classes['@activestate.com/koSysUtils;1'].
 			getService(Components.interfaces.koISysUtils);
 		if (!color) color = "#000000";
@@ -53,7 +53,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 } else {
 
-	function _colorPicker_onchange (event, cp) {
+	var _colorPicker_onchange = function (event, cp) {
 		var scimoz = ko.views.manager.currentView.scimoz;
 		scimoz.insertText(scimoz.currentPos, cp.color);
 		// Move cursor position to end of the inserted color
@@ -75,7 +75,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		_colorPicker_remove();
 	}
 
-	function _colorPicker_remove () {
+	var _colorPicker_remove = function () {
 		// remove the popup from the document. This cleans up so
 		// we can change the macro code if needed
 		var p = document.getElementById('popup_colorpicker');
@@ -83,7 +83,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 			p.parentNode.removeChild(p);
 	}
 
-	function _colorPicker_init () {
+	var _colorPicker_init = function () {
 		_colorPicker_remove();
 		var p = document.createElement('popup');
 		p.setAttribute('id', 'popup_colorpicker');
@@ -147,8 +147,8 @@ sv.misc.getKomodoVersion = function() {
 								   event.detail.position, event.detail.margin);
 		}, true);
 	} else {
-		// Ko7 & Ko8
-		function onMarginClick(modifiers, position, margin) {
+		// XXX: REMOVE Ko7 & Ko8
+		var onMarginClick = function (modifiers, position, margin) {
 			var mouseButton = this._mouseButton;
 			var res = this.__proto__.onMarginClick.call(this, modifiers, position, margin);
 			this._mouseButton = mouseButton;
@@ -157,7 +157,7 @@ sv.misc.getKomodoVersion = function() {
 			return res;
 		}
 
-		function addMarginClickHandler(view) {
+		var addMarginClickHandler = function (view) {
 			if (view.cancelable !== undefined) // view is Event object
 				view = ko.views.manager.currentView;
 			if(!view || view.onMarginClick == onMarginClick) return;

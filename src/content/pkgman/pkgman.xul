@@ -279,7 +279,7 @@ function updateInfo(res, what) {
 					changedCount++;
 					items = avpList.getElementsByAttribute("label", packageName);
 					if(items.length == 0) continue;
-					for(var j = 0; j < items.length; j++)
+					for(var j = 0; j < items.length; ++j)
 						items[j].removeAttribute("loaded");
 				} else errors.push(packageName);
 			}
@@ -293,6 +293,7 @@ function updateInfo(res, what) {
 			if(notification)
 				_notify(notification, "detach", errors.length? "warning" : "info");
 		}
+        break;
 	default:
 
 	}
@@ -303,7 +304,7 @@ function getDescriptionFor(el) {
 	sv.r.evalAsync('sv_pkgManGetDescription("' + pkg + '")', function(desc, el) {
 		el.desc = desc;
 	}, el);
-};
+}
 
 function setCranMirror(url) {
 	if(!url) url = sv.pref.getPref("CRANMirror").trim();
@@ -319,7 +320,7 @@ function setCranMirror(url) {
 }
 
 function populateCranMirrorsList(rOutput) {
-	var lines = rOutput.split(/[\r\n]+/);
+	//var lines = rOutput.split(/[\r\n]+/);
 	var mirror = sv.pref.getPref("CRANMirror").trim();
 	var rl = document.getElementById("rCRANMirrorsList");
 
@@ -455,7 +456,7 @@ function populateAvailablePkgs(rOutput) {
 	var res = sv.io.csvToObj(rOutput, '\x1e', 1, false, ['name', 'version',
 		'installedVersion', 'status', 'reposName' ]);
 	while(rl.itemCount) rl.removeItemAt(0);
-	idx = new String(res[0]).trim().split(" ").map(function(x) parseInt(x));
+	idx = String(res[0]).trim().split(" ").map(function(x) parseInt(x));
 	res = res[1];
 
 	var item;
@@ -488,12 +489,12 @@ function populateAvailablePkgs(rOutput) {
 		nextButton.disabled = true;
 	}
 	var info = document.getElementById('availablePackagesInfo');
-	info.value = ' Showing packages '  + idx[0] + "-" + idx[1]  + ' of ' + idx[2]
-		+ ' total (from "' + res[0].name + '" to "'
-		+ res[res.length - 1].name + '")'
+	info.value = ' Showing packages '  + idx[0] + "-" + idx[1]  + ' of ' + idx[2] +
+		' total (from "' + res[0].name + '" to "' +
+		res[res.length - 1].name + '")';
 }
 
-function pmLoadPanel(e) {
+function pmLoadPanel(/*event*/) { 
 	//var pmDeck = document.getElementById("pkgPanels");
 	var loadBox = pmDeck.selectedPanel.getElementsByTagName("loadbox")[0];
 	if(loadBox && !loadBox.loaded) {
@@ -532,9 +533,9 @@ function init() {
 	pmLoadPanel();
 }
 
-function pkgMgrOnLoad(event) {
+function pkgMgrOnLoad(/*event*/) { 
 	var p = parent;
-	while (p = p.opener) {
+	while ((p = p.opener)) {
 		if (p.ko) {
 			sv = p.sv;
 			ko = p.ko;

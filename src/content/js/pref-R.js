@@ -96,7 +96,7 @@ function _App(id, name, path, app, required, platform) {
 
 var apps = [
 new _App("", "Choose...", "", "", "", "Lin,Mac,Win"),
-new _App("r-terminal", "in default terminal", "x-terminal-emulator -e '%Path% %args%'", "R", "x-terminal-emulator,R", "Lin,Mac"),
+new _App("r-terminal", "in default terminal", "x-terminal-emulator -e '%Path%'%args%", "R", "x-terminal-emulator,R", "Lin,Mac"),
 new _App("r-terminal", "in console window", "\"%Path%\" %args%", "R.exe", "R", "Win"),
 new _App("r-gnome-term", "in Gnome terminal", "gnome-terminal --hide-menubar --working-directory='%cwd%' -t '%title%' -x '%Path%' %args%", "R", "gnome-terminal,R", "Lin"),
 new _App("r-kde-term", "in Konsole", "konsole --workdir '%cwd%' --title %title% -e \"%Path%\" %args%", "R", "konsole,R", "Lin"),
@@ -113,14 +113,14 @@ function getSelectedInterpreterPath() {
 	} else return null;
 }
 
-function PrefR_OnLoad(event) {
+function PrefR_OnLoad(/*event*/) {
 
     // Get the sv object:
 	var p = parent;
 	while (p.opener && (p = p.opener) && !sv) if (p.sv) sv = p.sv;
 
-    // for Komodo <9, show/hide elements related to "advanced" option
-	// sv._versionCompare(ko.version, "9.0.0") < 0 // but no 'ko' available here
+    // for Komodo != 9, show/hide elements related to "advanced" option
+	// sv._versionCompare(ko.version, "9.0.0") != 0 // but no 'ko' available here
     if(!parent.document.getElementById("toggleAdvanced")) {
         var elementsToHide = document.getElementsByAttribute("hiddenPre9", "*");
         for(var i = 0; i < elementsToHide.length; ++i)
@@ -128,7 +128,7 @@ function PrefR_OnLoad(event) {
     }
 
 
-	// XXX: set temporary prefset, will be reverted to ko.prefs at closing
+	// Note: setting temporary prefset, will be reverted to ko.prefs at closing
 	prefset = parent.hPrefWindow.prefset;
 	svPrefset = sv.pref.prefset;
 	sv.pref.prefset = prefset;
@@ -175,7 +175,7 @@ function PrefR_OnLoad(event) {
 	//for(i in sv.pref.defaults) sv.pref.prefset.deletePref(i)
 
 	//FIXME: sometimes svRApplication is blank
-	PrefR_PopulateRInterps();
+	PrefR_PopulateRInterpreters();
 
     // if (prefset.getStringPref("svRDefaultInterpreter") != "") {
 		// // update cran mirror list (first local, then tries remote at CRAN)
@@ -204,7 +204,7 @@ function PrefR_OnLoad(event) {
 } //PrefR_OnLoad
 
 //TODO: check if there is new R version installed and ask whether to switch to it.
-function PrefR_PopulateRInterps() {
+function PrefR_PopulateRInterpreters() {
     var prefset = parent.hPrefWindow.prefset;
 
     var prefExecutable = prefset.getStringPref('svRDefaultInterpreter');
@@ -219,19 +219,19 @@ function PrefR_PopulateRInterps() {
         case "nt":
 			// TODO: sort by version:
 			rs = sv.file.whereIs("Rgui").concat(sv.file.whereIs("R"));
-			//rs.sort(); rs.reverse();
 			break;
         case "mac":
 			rs = ["/Applications/R.app"];
 			break;
         case "posix":
+			/* falls through */
         default:
 			rs = sv.file.whereIs("R");
     }
 
 	//if(prefExecutable != "") rs.unshift(prefExecutable);
 
-    for (var i in rs) {
+    for (var i = 0; i < rs.length; ++i) {
         rs[i] = os.path.normpath(rs[i]);
         if (sv.file.exists(rs[i]) == sv.file.TYPE_NONE) {
             rs.splice(i, 1);
@@ -242,20 +242,20 @@ function PrefR_PopulateRInterps() {
 		prefset.setStringPref("svRDefaultInterpreter", "R");
 		prefExecutable = "R";
 	}
+	var rFound = rs.length != 0 && rs.every(Boolean);
+	
 	rs.unshift("R;Find on path");
 
 	var curValue = menu.value || "R";
     menu.removeAllItems();
-	for (var i in rs) {
+	for (var i = 0; i < rs.length; ++i) {
 		var r = rs[i].split(";");
         menu.appendItem(r[0], r[0], r.length < 2 ? null : r[1]);
-		if (curValue == r[0]) {
-			menu.selectedIndex = i;
-		}
+		if (curValue == r[0]) menu.selectedIndex = i;
     }
 
-    document.getElementById("no-avail-interps-message").hidden =
-		!rs.every(function(x) !x);
+    document.getElementById("no-avail-interps-message").hidden = rFound;
+	
 }
 
 //function OnPreferencePageLoading(prefset) {}
@@ -286,24 +286,24 @@ function OnPreferencePageOK(prefset) {
 	prefset.setStringPref("CRANMirror", PrefR_CranMirrors[mirrorType][cmIdx][3]);
 
 
-	if (outDec != prefset.getStringPref('r.csv.dec')
-		|| outSep != prefset.getStringPref('r.csv.sep')) {
+	if (outDec != prefset.getStringPref('r.csv.dec') ||
+		outSep != prefset.getStringPref('r.csv.sep')) {
 		sv.r.eval('options(OutDec="' + outDec + '", ' +
 		'OutSep="' + outSep + '")', true);
 	}
 
 	var newClientPort = parseInt(document.getElementById('sciviews.ko.port').value);
-	var currentClientPort = sv.rconn.socketPrefs("sciviews.ko.port");
+	var currentClientPort = sv.rconn.getSocketPref("sciviews.ko.port");
 
 	if (sv.rconn.serverIsUp &&
 		newClientPort != currentClientPort) {
-		var connectedToR = sv.rconn.testRAvailability(false);
+		var connected = sv.rconn.isRConnectionUp(true);
 
 		if(ko.dialogs.yesNo("Server port changed (from " + currentClientPort +
 							" to " + newClientPort + "), would you like to " +
 							"restart it now?" +
-			(connectedToR? "You will lose the current connection to R." : ""),
-			connectedToR? "No" : "Yes",
+			(connected? "You will lose the current connection to R." : ""),
+			connected? "No" : "Yes",
 			null, "R interface preferences") == "Yes") {
 				sv.rconn.restartSocketServer();
 		}
@@ -381,8 +381,7 @@ function PrefR_updateCommandLine(update) {
     var cmdArgs = document.getElementById("svRArgs").value;
 	var args1 = "";
 
-   	var cwd = sv.file.path("ProfD", "extensions",
-		"komodor@komodor", "R");
+   	var cwd = sv.file.path("ProfD", "extensions", "komodor@komodor", "R");
 
 	cmdArgs = cmdArgs.replace(/\s*--[sm]di\b/, "");
 
@@ -391,10 +390,10 @@ function PrefR_updateCommandLine(update) {
 		args1 += " " + sv.string.trim(cmdArgs.substring(argsPos + 6));
 		cmdArgs = cmdArgs.substring(0, argsPos);
 	}
+	if(cmdArgs) cmdArgs = " " + cmdArgs.trim();
 
 	args1 = sv.string.trim(args1);
-	if (args1)
-		args1 = " --args " + args1;
+	if (args1) args1 = " --args " + args1;
 
     var cmd = apps[appId].path;
 	cmd = cmd.replace("%Path%", appPath)
@@ -410,9 +409,9 @@ function PrefR_updateCommandLine(update) {
 
 function PrefR_setExecutable(path) {
     var menu = document.getElementById("svRDefaultInterpreter");
-
+	var os;
     if (!path || !sv.file.exists(path)) {
-		var os = Components.classes['@activestate.com/koOs;1']
+		os = Components.classes['@activestate.com/koOs;1']
 			.getService(Components.interfaces.koIOs);
 		path = menu.value;
         path = ko.filepicker.openExeFile(os.path.dirname(path),
@@ -444,11 +443,11 @@ function processCranMirrorsCSV(content) {
 	var colOK = colNames.indexOf("OK");
 	var colCountryCode = colNames.indexOf("CountryCode");
 
-	var name, url, item;
+	var /*name, url,*/ item;
 	PrefR_CranMirrors.http.splice(0);
 	PrefR_CranMirrors.https.splice(0);
 	var rx = / *\[https\]$/;
-	for (i in arrData) {
+	for (var i = 0; i < arrData.length; ++i) {
 		item = arrData[i];
 		if (item[colOK] != "1" || (item[colURL].search(/^(f|ht)tps?:\/\//) !== 0)) continue;
 		var secure = arrData[i][colURL].indexOf("https") === 0;
@@ -505,14 +504,16 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 	var csvName = "CRAN_mirrors.csv";
 	var path;
 	var encoding = "utf-8";
-	var jsonFile = svFile.path(svFile.path("PrefD", "extensions", "komodor@komodor"), "CRAN_mirrors.json");
+	var jsonFile = svFile.path(svFile.path("PrefD", "extensions", 
+		"komodor@komodor"), "CRAN_mirrors.json");
+	
+	var cranBaseUri = "http://cran.r-project.org/"; // https?
 
 	if (fromCran) {
 		document.getElementById("CRANMirrorDescr").value =
-			"Fetching file: " + "http://cran.r-project.org/" + csvName + " ...";
+			"Fetching file: " + cranBaseUri + csvName + " ...";
 		
-		svFile.readURIAsync("http://cran.r-project.org/" + csvName,
-			encoding,
+		svFile.readURIAsync(cranBaseUri + csvName, encoding,
 			function callback(content) {
 				processCranMirrorsCSV(content, jsonFile);
 				svFile.write(jsonFile, JSON.stringify(PrefR_CranMirrors), encoding);
@@ -538,10 +539,9 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 		if (platform == "win") {
 			var rHome = getSelectedInterpreterPath();
 			if(!rHome) {
-				ko.dialogs.alert("Cannot get mirrors list without a valid R interpreter selected",
+				ko.dialogs.alert("Cannot fill CRAN mirrors list without a valid R interpreter selected",
 					null, "R interface preferences");
 				return;
-				// XXX: disable control
 			}
 			var rx = /(bin\\((x64|i386)\\)?)?R(gui|term)\.exe$/i;
 			if(!rHome) {
@@ -557,7 +557,7 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 			localPaths.push('/usr/local/share/R/doc');
 		}
 		var file;
-		for (i in localPaths) {
+		for (var i = 0; i < localPaths.length; ++i) {
 			file = svFile.getfile(localPaths[i], csvName);
 			if (file.exists()) {
 				processCranMirrorsCSV(svFile.read(file.path, encoding));
@@ -566,6 +566,19 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 				return;
 			}
 		}
+		
+		// fallback: use CRAN cloud
+		var cmCloudUri = "http://cloud.r-project.org/";
+		var type;
+		var descr = "CRAN mirror list could not be found on the system. " +
+		    "Click \"Refresh\" to update from the main CRAN server.";
+		type = "http";
+		PrefR_CranMirrors[type].splice(0, PrefR_CranMirrors[type].length, 
+		   ["cloud", "", "", cmCloudUri.replace(/^[fhtps]+(?=:)/, type), descr, ""]);
+		type = "https";
+		PrefR_CranMirrors[type].splice(0, PrefR_CranMirrors[type].length, 
+		   ["cloud", "", "", cmCloudUri.replace(/^[fhtps]+(?=:)/, type), descr, ""]);	
+		xtk.domutils.fireEvent(self, "r_cran_mirrors_updated");
 	}
 }
 
@@ -579,7 +592,7 @@ function PrefR_PopulateCranMirrors(secure) {
     } else {
 		var url = prefset.getString("CRANMirror");
 		var mirrorType = (url.indexOf("https") === 0) ? "https" : "http";
-		var data1 = PrefR_CranMirrors[mirrorType];
+		//var data1 = PrefR_CranMirrors[mirrorType];
 		var valIdx1 = PrefR_CranMirrors[mirrorType].findIndex(function(elem) elem[3] == url);
 		if (valIdx1 == -1) valIdx1 = 0;
 		if(PrefR_CranMirrors[mirrorType].length > valIdx1)
@@ -591,14 +604,12 @@ function PrefR_PopulateCranMirrors(secure) {
 	data = PrefR_CranMirrors[which];
 
 	menuList.removeAllItems();
-	for (i in data) { // Name, Country, City, URL, Host, cc
+	for (var i = 0; i < data.length; ++i) { // Name, Country, City, URL, Host, cc
 		var item = menuList.appendItem(data[i][0], JSON.stringify(data[i].slice(1, 3)), data[i][2]);
 	    item.setAttribute("image", "chrome://komodor/skin/images/flags/" + data[i][5] + ".gif");
 		item.className = "menuitem-iconic";
 	}
 		
-	var countryMatch, cityMatch;
-	
 	if (!value) return;
 	var valIdx;
 	valIdx = data.findIndex(function(elem) elem[0] == value[0]);
@@ -624,6 +635,7 @@ function CSVToArray(strData, strDelimiter){
     ), "gi");
 	var arrData = [[]];
 	var arrMatches = objPattern.exec(strData);
+	var strMatchedValue;
 	while (arrMatches) {
 		var strMatchedDelimiter = arrMatches[1];
 		if (strMatchedDelimiter.length &&
@@ -631,10 +643,9 @@ function CSVToArray(strData, strDelimiter){
 			arrData.push([]);
             }
 		if (arrMatches[2]) {
-			var strMatchedValue = arrMatches[2]
-            .replace(new RegExp( "\"\"", "g" ),	"\"");
+			strMatchedValue = arrMatches[2].replace(new RegExp( "\"\"", "g" ),	"\"");
 		} else {
-			var strMatchedValue = arrMatches[3];
+			strMatchedValue = arrMatches[3];
 		}
 		arrData[arrData.length - 1].push(strMatchedValue);
 		arrMatches = objPattern.exec(strData);

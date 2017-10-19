@@ -6,7 +6,7 @@
   "rank": 100, 
   "trigger": "trigger_postopen", 
   "value": [
-    "sv.command.updateRStatus(sv.rconn.testRAvailability());"
+    "sv.command.setRStatus(sv.rconn.isRConnectionUp());"
   ], 
   "version": "1.0.7", 
   "async": 1, 
