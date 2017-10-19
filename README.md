@@ -9,7 +9,7 @@ R environment and Komodo.
 This extension has initially been a slimmed-down fork of
 [Sciviews-K](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, but since then it has been largely rewritten. 
-It is compatible with Komodo Edit 7 to 11. It has been tested on Windows and Linux.
+It is compatible with Komodo 7 to 11. It has been tested on Windows and Linux.
 
 **Note:** Komodo, since version 9.2, provides its own R syntax highlighting 
 which is not compatible with this add-on. Therefore "R" language provided by 
