@@ -1,5 +1,5 @@
 
-<img align="left" src="img/logo1.png" alt="KomodoR logo" style="float: left" />
+<img align="left" src="https://raw.githubusercontent.com/k-barton/komodor/master/img/logo1.png" alt="KomodoR logo" style="float: left" />
 
 Provides [R language](https://www.r-project.org/) support and interface between 
 R environment and Komodo. 
@@ -9,8 +9,7 @@ R environment and Komodo.
 This extension has initially been a slimmed-down fork of
 [Sciviews-K](http://komodoide.com/packages/addons/sciviews-r/) by 
 Philippe Grosjean, but since then it has been largely rewritten. 
-It is compatible with Komodo Edit 7 to 11. It has not been tested on Komodo IDE 
-and Mac.
+It is compatible with Komodo Edit 7 to 11. It has been tested on Windows and Linux.
 
 **Note:** Komodo, since version 9.2, provides its own R syntax highlighting 
 which is not compatible with this add-on. Therefore "R" language provided by 
@@ -76,7 +75,7 @@ The extension provides some debugging capabilities, see
   after each operation.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
-  counting in UDL (`spush_check`/`spop_check`, a bug in Komodo possibly).
+  counting in UDL (`spush_check`/`spop_check`, possibly a bug in Komodo).
 
 
 **[Improvements for Komodo 9](improveKo9.md)**
