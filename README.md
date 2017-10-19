@@ -7,7 +7,7 @@ R environment and Komodo.
 ***
 
 This extension has initially been a slimmed-down fork of
-[Sciviews-K](http://komodoide.com/packages/addons/sciviews-r/) by 
+[Sciviews-K](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, but since then it has been largely rewritten. 
 It is compatible with Komodo Edit 7 to 11. It has been tested on Windows and Linux.
 
