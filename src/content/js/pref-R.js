@@ -7,17 +7,16 @@ var sv;
 var PrefR_CranMirrors = { http : [], https : [] };
 var PrefR_CMSecure;
 
-if (!xtk) {
-	var xtk = parent.opener.xtk;
-}
+if (!xtk) var xtk = parent.opener.xtk;
+
 
 // For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
 function editMenulist(el, value) {
-	var curValue = !value ? sv.string.trim(el.value) : value;
+	var curValue, values = [], val;
+	curValue = !value ? sv.string.trim(el.value) : value;
 	if (!curValue) return;
-	var values = [], val;
-	for (var j = 0; j < el.itemCount; ++j) {
+	for (let j = 0; j < el.itemCount; ++j) {
 		val = el.getItemAtIndex(j).value;
 		if (val == curValue) {
 			el.selectedIndex = j;
@@ -33,12 +32,12 @@ function menuListSetValues(attribute) {
 	if (!attribute) attribute = 'values';
 	var ml = document.getElementsByTagName('menulist');
 	var el, values, v;
-	for (var i = 0; i < ml.length; ++i) {
+	for (let i = 0; i < ml.length; ++i) {
 		el = ml[i];
 		if (el.hasAttribute(attribute)) {
 			values = el.getAttribute(attribute).split(/\s+/);
 			el.removeAllItems(); // XXX
-			for (var k in values) {
+			for (let k = 0; k < values.length; ++k) {
                 v = unescape(values[k]);
                 el.appendItem(v, v, null);
 			}
@@ -51,11 +50,11 @@ function menuListGetValues(attribute) {
 	if (!attribute) attribute = 'values';
 	var ml = document.getElementsByTagName('menulist');
 	var el, values;
-	for (var i = 0; i < ml.length; ++i) {
+	for (let i = 0; i < ml.length; ++i) {
 		el = ml[i];
 		if (el.editable && el.hasAttribute(attribute)) {
 			values = [];
-			for (var k = 0; k < el.itemCount; ++k) {
+			for (let k = 0; k < el.itemCount; ++k) {
 				values.push(escape(el.getItemAtIndex(k).value));
 			}
 
@@ -70,10 +69,10 @@ function menuListGetValues(attribute) {
 function menulistSetValue(menuList, value, attrName, vdefault) {
 	var n = menuList.itemCount;
 	var item;
-	for (var i = 0; i <= n; ++i) {
+	for (let i = 0; i <= n; ++i) {
 		item = menuList.getItemAtIndex(i);
 		if (item) {
-			var attr1 = item.hasAttribute(attrName) ? item.getAttribute(attrName)
+			let attr1 = item.hasAttribute(attrName) ? item.getAttribute(attrName)
             	: vdefault;
 			if (attr1 == value) {
 				menuList.selectedIndex = i;
@@ -122,8 +121,8 @@ function PrefR_OnLoad(/*event*/) {
     // for Komodo != 9, show/hide elements related to "advanced" option
 	// sv._versionCompare(ko.version, "9.0.0") != 0 // but no 'ko' available here
     if(!parent.document.getElementById("toggleAdvanced")) {
-        var elementsToHide = document.getElementsByAttribute("hiddenPre9", "*");
-        for(var i = 0; i < elementsToHide.length; ++i)
+        let elementsToHide = document.getElementsByAttribute("hiddenPre9", "*");
+        for(let i = 0; i < elementsToHide.length; ++i)
             elementsToHide[i].setAttribute("hidden", elementsToHide[i].getAttribute("hiddenPre9"));
     }
 
@@ -161,11 +160,11 @@ function PrefR_OnLoad(/*event*/) {
 					   && (!a.required.length || a.required.every(
 						function(y) sv.file.whereIs(y).length != 0)));
 	var tmp = {};
-	for (var i in apps) tmp[apps[i].id] = apps[i];
+	for (let i in apps) tmp[apps[i].id] = apps[i];
 	apps = tmp;
 
 	menu.removeAllItems();
-    for (var i in apps) menu.appendItem(apps[i].name, i, null);
+    for (let i in apps) menu.appendItem(apps[i].name, i, null);
 
 
 	// DEBUGGING in JSShell:
@@ -193,7 +192,7 @@ function PrefR_OnLoad(/*event*/) {
 	//parent.hPrefWindow.onpageload();
 	// XXX: workaround for empty preference values...
 	var prefElements = document.getElementsByAttribute("pref", "true");
-	for (var i = 0; i < prefElements.length; ++i)
+	for (let i = 0; i < prefElements.length; ++i)
 		prefElements[i].value = sv.pref.getPref(prefElements[i].id);
 
     PrefR_updateCommandLine(true);
@@ -231,12 +230,11 @@ function PrefR_PopulateRInterpreters() {
 
 	//if(prefExecutable != "") rs.unshift(prefExecutable);
 
-    for (var i = 0; i < rs.length; ++i) {
+    for (let i = 0; i < rs.length; ++i) {
         rs[i] = os.path.normpath(rs[i]);
-        if (sv.file.exists(rs[i]) == sv.file.TYPE_NONE) {
+        if (sv.file.exists(rs[i]) == sv.file.TYPE_NONE)
             rs.splice(i, 1);
         }
-    }
     rs = sv.array.unique(rs); // Get rid of duplicates
 	if((prefExecutable == "") || (rs.indexOf(prefExecutable) == -1)) {
 		prefset.setStringPref("svRDefaultInterpreter", "R");
@@ -248,7 +246,7 @@ function PrefR_PopulateRInterpreters() {
 
 	var curValue = menu.value || "R";
     menu.removeAllItems();
-	for (var i = 0; i < rs.length; ++i) {
+	for (let i = 0; i < rs.length; ++i) {
 		var r = rs[i].split(";");
         menu.appendItem(r[0], r[0], r.length < 2 ? null : r[1]);
 		if (curValue == r[0]) menu.selectedIndex = i;
@@ -330,9 +328,7 @@ function svRDefaultInterpreterOnSelect(event) {
 	// FIXME: On Win, if 'R' is selected, this chooses RGui:
     var exeName = os.path.basename(value);
     if (!(menuApplication.value in apps) || apps[menuApplication.value].app != exeName) {
-        var i;
-        for (i in apps)
-			if (apps[i].app == exeName) break;
+        for (let i in apps) if (apps[i].app == exeName) break;
         menuApplication.value = i;
     }
 
@@ -359,7 +355,7 @@ function PrefR_svRApplicationOnSelect(event) {
         //TODO: modify to use with:
         //menulistSetValue(menuInterpreters, value, "value", null);
         var item;
-        for (var i = 0; i <= menuInterpreters.itemCount; ++i) {
+        for (let i = 0; i <= menuInterpreters.itemCount; ++i) {
             item = menuInterpreters.getItemAtIndex(i);
             if (item) {
                 if (os.path.basename(item.getAttribute("value")) == app) {
@@ -447,7 +443,7 @@ function processCranMirrorsCSV(content) {
 	PrefR_CranMirrors.http.splice(0);
 	PrefR_CranMirrors.https.splice(0);
 	var rx = / *\[https\]$/;
-	for (var i = 0; i < arrData.length; ++i) {
+	for (let i = 0; i < arrData.length; ++i) {
 		item = arrData[i];
 		if (item[colOK] != "1" || (item[colURL].search(/^(f|ht)tps?:\/\//) !== 0)) continue;
 		var secure = arrData[i][colURL].indexOf("https") === 0;
@@ -557,7 +553,7 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 			localPaths.push('/usr/local/share/R/doc');
 		}
 		var file;
-		for (var i = 0; i < localPaths.length; ++i) {
+		for (let i = 0; i < localPaths.length; ++i) {
 			file = svFile.getfile(localPaths[i], csvName);
 			if (file.exists()) {
 				processCranMirrorsCSV(svFile.read(file.path, encoding));
@@ -569,15 +565,14 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 		
 		// fallback: use CRAN cloud
 		var cmCloudUri = "http://cloud.r-project.org/";
-		var type;
 		var descr = "CRAN mirror list could not be found on the system. " +
 		    "Click \"Refresh\" to update from the main CRAN server.";
-		type = "http";
-		PrefR_CranMirrors[type].splice(0, PrefR_CranMirrors[type].length, 
-		   ["cloud", "", "", cmCloudUri.replace(/^[fhtps]+(?=:)/, type), descr, ""]);
-		type = "https";
-		PrefR_CranMirrors[type].splice(0, PrefR_CranMirrors[type].length, 
-		   ["cloud", "", "", cmCloudUri.replace(/^[fhtps]+(?=:)/, type), descr, ""]);	
+			
+		var typeIterator = ["http", "https"].entries();
+		for (let type of typeIterator)
+			PrefR_CranMirrors[type].splice(0, PrefR_CranMirrors[type[1]].length, 
+		   ["cloud", "", "", cmCloudUri.replace(/^[fhtps]+(?=:)/, type[1]), descr, ""]);
+			
 		xtk.domutils.fireEvent(self, "r_cran_mirrors_updated");
 	}
 }

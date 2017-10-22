@@ -254,7 +254,8 @@ this.restartSocketServer = function(requestHandler) {
 	}
 };
 
-this._sServerObserver = { observe: function(subject, topic, data) {
+this._sServerObserver = {
+	observe: function(subject, topic, data) {
 	if (topic == 'r-server-stopped') {
 		if (_this._sServerDoRestart) {
 			_this.startSocketServer(); // TODO: use requestHandler

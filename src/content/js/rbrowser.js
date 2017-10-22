@@ -15,7 +15,6 @@
  * TODO: make this a sv.robjects.tree instead
  */
  
- 
 /*
 for(i in objects) {
  objects[i]
@@ -937,14 +936,14 @@ this.refreshGlobalEnv = function refreshGlobalEnv(data) {
 
 this.removeSelected = function (doRemove) {
 	var item, type, name, vItem, cmd = [];
-	var rmItems = {}, ObjectsToRemove = {}, envToDetach = [];
-	var ObjectsToSetNull = {};
+	var rmItems = {}, objectsToRemove = {}, envToDetach = [];
+	var objectsToSetNull = {};
 	var rows = this.getSelectedRows();
 	if (rows.length == 0) return false;
 
 	var rxBackticked = /^`.*`$/;
 
-	for (var i in rows) {
+	for (var i = 0; i < rows.length; ++i) {
 		vItem = this.visibleData[rows[i]];
 		item = vItem.origItem;
 		name = item.fullName;
@@ -980,13 +979,13 @@ this.removeSelected = function (doRemove) {
 				rmItems[env].push(name);
 
 				if (type == "sub-object") {
-					if (typeof(ObjectsToSetNull[env]) == "undefined")
-					ObjectsToSetNull[env] = [];
-					ObjectsToSetNull[env].push(name);
+					if (typeof(objectsToSetNull[env]) == "undefined")
+					objectsToSetNull[env] = [];
+					objectsToSetNull[env].push(name);
 				} else {
-					if (typeof(ObjectsToRemove[env]) == "undefined")
-					ObjectsToRemove[env] = [];
-					ObjectsToRemove[env].push(name);
+					if (typeof(objectsToRemove[env]) == "undefined")
+					objectsToRemove[env] = [];
+					objectsToRemove[env].push(name);
 				}
 
 				var siblings = item.parentObject.children;
@@ -1002,9 +1001,9 @@ this.removeSelected = function (doRemove) {
 		}
 	}
 
-	for (var i in envToDetach) {
+	for (var i = 0; i < envToDetach.length; ++i) {
 		cmd.push('detach("' + sv.string.addslashes(envToDetach[i]) + '", unload = TRUE)');
-		for (var j in _this.treeData) {
+		for (var j = 0; j < _this.treeData.length; ++j) {
 			if (_this.treeData[j].name == envToDetach[i]) {
 				_this.treeData.splice(j, 1);
 				break;
@@ -1012,14 +1011,16 @@ this.removeSelected = function (doRemove) {
 		}
 	}
 
-	for (var env in ObjectsToRemove)
-		cmd.push('rm(list = c("' + ObjectsToRemove[env].join('", "') +
-			'"), pos = "' + env + '")');
+	for (var j in objectsToRemove)
+		if(objectsToRemove.hasOwnProperty(j))
+			cmd.push('rm(list = c("' + objectsToRemove[j].join('", "') +
+				'"), pos = "' + j + '")');
 
-	for (var env in ObjectsToSetNull) {
+	for (var j in objectsToSetNull)
+		if(objectsToSetNull.hasOwnProperty(j)) {
 		cmd.push('eval(expression(' +
-			ObjectsToSetNull[env].join(" <- NULL, ") +
-			' <- NULL), envir = as.environment("' + env + '"))');
+				objectsToSetNull[j].join(" <- NULL, ") +
+				' <- NULL), envir = as.environment("' + j + '"))');
 	}
 
 	_createVisibleData();
