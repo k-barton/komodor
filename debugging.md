@@ -1,16 +1,17 @@
 **Debugging R code in Komodo**
   
-Debugging R code using `browser()` or `recover` cannot be used from within 
-Komodo. These functions would interrupt the communication with R and no output 
-will be displayed. Code containing `browser` calls should only be run directly 
-in the R console.   
+Debugging functions like `debug`, `browser` or `recover` cannot be used from within 
+Komodo, since they interrupt the communication with R. R code containing `browser`
+calls should only be run directly in the R console.   
  
-Currently the only way to debug code within a function in a manner similar to 
-`browser()` is to change the current execution environment using 
-`koBrowseHere()` call within a function and afterwards set it back to 
-`.GlobalEnv` with `koBrowseEnd()`. Note that the original call stack (i.e. 
-`sys.frames()` or `sys.calls()` et al.) is not preserved, and the execution
-of the function will not be resumed.
+Currently the only way to debug R code within a function in a manner similar to 
+`browser()` is `koBrowseHere()`. It interrupts execution of the function and
+changes the current execution environment to where it was called from. 
+Afterwards use `koBrowseEnd()` to set the current environment back to `.GlobalEnv`. 
+Note that the original call stack is not preserved
+(so `sys.frames()` or `sys.calls()` et al. will not work as expected), and the 
+execution of the function will not be resumed.
+
 Example:
 
 ```r
@@ -34,9 +35,11 @@ Example:
     # [1] "f1"           "f2"           "in.GlobalEnv"
 ```
 
-There is also a new, experimental function `koDebug` that allows debugging 
-a function if it produces an error. The execution stops and the user can debug 
-inside the frame that caused the error.
+There is also an experimental function `koDebug` that allows debugging 
+a function if it produces an error. This is not equivalent to `debug`, rather it
+is more similar to `recover`, except it does not allow to resume the 
+execution of the code.
+
 Example:
   
 ```r

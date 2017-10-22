@@ -9,19 +9,20 @@ R environment and Komodo.
 This extension has initially been a slimmed-down fork of
 [Sciviews-K](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, but since then it has been largely rewritten. 
-It is compatible with Komodo 7 to 11. It has been tested on Windows and Linux.
+It is compatible with Komodo 7 to 11, and has been tested to work on Windows 
+and Linux.
 
-**Note:** Komodo, since version 9.2, provides its own R syntax highlighting 
+**Note:** Komodo, since version 9.3, provides its own R syntax highlighting 
 which is not compatible with this add-on. Therefore "R" language provided by 
 this extension has been renamed to __"R_extended"__ to avoid conflicts.
 
 
 **Features:**
 
-* start/quit R from Komodo
+* start/close R from Komodo
 * execution of R code from within editor:
-   + output is shown in the _Command Output_ pane  
-   + execute (or `source`) current line or selection, bookmark-delimited 
+   + output from R is shown in the _Command Output_ pane  
+   + execute (or `source`) the current line or selection, bookmark-delimited 
      block, function at cursor, or a whole file 
 * syntax highlighting:
    + R including [Roxygen](http://roxygen.org/) tags
@@ -34,11 +35,11 @@ this extension has been renamed to __"R_extended"__ to avoid conflicts.
 * toolbar with commonly used commands
 * R help window
 * R package manager
-* change R working directory from _Places_ pane (in the context menu)
+* R working directory can be changed from _Places_ pane (in the context menu)
+
 
 A socket connection is used to communicate with **R**. No additional R packages 
-are required, however the socket server in R environment is implemented
-in Tcl, so your R installation needs to have Tcl capability 
+are required, however your R installation needs to have Tcl capability 
 (R: `capabilities("tcltk")`). See also "Known issues" below.
 
 
@@ -67,12 +68,11 @@ The extension provides some debugging capabilities, see
 * Problems with connection with Komodo server in R may cause R will not exit 
   properly (at least on Windows) and need to kill the R process (happens very 
   rarely though).
-* Connection timeout on longer operations: prompt is shown as if the calculation
+* Connection timeout on longer operations: a prompt is shown as if the calculation
   in R has finished and no output will be shown. There does not seem to be a way
   to set socket timeout in Tcl.
 * R object browser has to be refreshed manually (click sidebar's refresh button)
-  This is for performance, otherwise a list of object would have to be passed 
-  after each operation.
+  This is for performance, yet it may become an option in future version.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. This seems to be related to brace 
   counting in UDL (`spush_check`/`spop_check`, possibly a bug in Komodo).
