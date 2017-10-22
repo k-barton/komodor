@@ -20,17 +20,6 @@ Object.defineProperty(_this, 'prefset', {
   enumerable: true
 });
 
-// TODO: unify preference names, add common prefix
-//       e.g. rInterface.koPort/rPort/rHost
-//            rInterface.InterpreterPath
-//            rInterface.CmdArgs
-//            rInterface.CmdLine <-- svRApplication
-//            rInterface.CSVSep
-//            rInterface.CSVDec
-//            rInterface.CRANMirror
-//            rInterface.rRemoteHelpURL
-//            rInterface.helpCommand
-
 this.defaults = {
 	'sciviews.ko.port': 7052,
 	'sciviews.r.port': 8888,
@@ -47,7 +36,7 @@ this.defaults = {
 	'sciviews.margin.click': true
 };
 
-this.defaults[sv.langName + "HelpCommand"] = 'javascript:sv.r.help(\"%w\")';
+this.defaults[sv.langName + "HelpCommand"] = 'javascript:sv.r.help(\"%W\")';
 
 //// Set default preferences
 this.setDefaults = function sv_checkAllPref(revert) {
