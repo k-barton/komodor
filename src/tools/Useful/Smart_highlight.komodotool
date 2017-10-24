@@ -23,7 +23,7 @@
     "\tfindSvc.options.matchWord = (text == word);", 
     "\tfindSvc.options.displayInFindResults2 = true;", 
     "    ko.find.findAll(self, context, text, null, function() {}, true);", 
-    "\tko.uilayout.ensureTabShown(\"findresults2_tab\", false);", 
+    "\t//ko.uilayout.ensureTabShown(\"findresults2_tab\", false);", 
     "}"
   ], 
   "version": "1.0.12", 

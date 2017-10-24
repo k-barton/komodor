@@ -11,5 +11,5 @@
   "version": "1.0.12", 
   "async": 1, 
   "type": "macro", 
-  "icon": "chrome://komodor/skin/images/R-connect.svg"
+  "icon": "koicon://ko-svg/chrome/komodor/skin/images/R-connect.svg"
 }

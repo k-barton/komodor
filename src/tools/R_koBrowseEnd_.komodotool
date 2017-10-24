@@ -1,0 +1,15 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "R: koBrowseEnd()", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "sv.r.eval(\"koBrowseEnd()\");"
+  ], 
+  "trigger": "trigger_postopen", 
+  "rank": 100, 
+  "version": "1.0.12", 
+  "async": false, 
+  "type": "macro", 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/exit3.svg"
+}

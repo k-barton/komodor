@@ -1,0 +1,18 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Show R preferences", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "var res = [];", 
+    "for(var i in sv.pref.defaults)", 
+    "    res.push(i + \"=\" + sv.pref.getPref(i));", 
+    "alert(\"R preferences: \\n\" + res.join(\"\\n\"));"
+  ], 
+  "trigger": "trigger_postopen", 
+  "rank": 100, 
+  "version": "1.0.12", 
+  "async": false, 
+  "type": "macro", 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/equalizer3.svg"
+}
