@@ -4,7 +4,6 @@
 #include "nsISupports.idl"
 #include "nsISimpleEnumerator.idl"
 #include "ISciMoz.idl"
-//#include "koIRunService.idl"
 
 // This is implemented in sv.rconn's JavaScript code.
 [scriptable, uuid(CA1BCF00-394D-11E0-BD69-0002A5D5C51B)]
@@ -45,16 +44,7 @@ interface svIUtils : nsISupports {
     //void calltip(in AUTF8String text);
     //void complete(in AUTF8String text);
 
-	void x_talk(in AUTF8String rcode);
-	void x_start(in long port);
-	void x_cout(in AUTF8String s);
-
+	//void x_talk(in AUTF8String rcode);
+	//void x_start(in long port);
+	//void x_cout(in AUTF8String s);
 };
-
-//[scriptable, uuid(16F32A31-EA47-5079-2F26-D98DC068E776)]
-//interface svRunService : nsISupports {
-//	koIRunProcess RunAndNotify(in wstring command, in wstring cwd,
-//        in wstring env, in AString input);
-//	koIRunProcess RunInTerminalAndNotify(in wstring command, in wstring cwd,
-//        in wstring env, in AString input);
-//};

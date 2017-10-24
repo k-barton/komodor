@@ -106,7 +106,7 @@ new _App("r-tk", "R Tk GUI", "\"%Path%\" --interactive --gui:Tk %args%", "R", "R
 ];
 
 function getSelectedInterpreterPath() {
-	var path = document.getElementById("svRDefaultInterpreter").value;
+	var path = document.getElementById("RInterface.pathToR").value;
 	if(path && sv.file.exists(path) == sv.file.TYPE_FILE) {
 		return path;
 	} else return null;
@@ -146,9 +146,9 @@ function PrefR_OnLoad(/*event*/) {
 	}, true);
 
 
-    var menu = document.getElementById("svRApplication");
+    var menu = document.getElementById("RInterface.runRAs");
 	// Remove the 'Choose...' menu option on first showing
-	if(prefset.getStringPref("svRApplication") == '') {
+	if(prefset.getStringPref("RInterface.runRAs") == '') {
 		menu.addEventListener("popupshowing", function(event) {
 			if (menu.getItemAtIndex(0).value == '') menu.removeItemAt(0);
 		}, true);
@@ -173,10 +173,10 @@ function PrefR_OnLoad(/*event*/) {
 	// scope(Shell.enumWins[N].frames[M])
 	//for(i in sv.pref.defaults) sv.pref.prefset.deletePref(i)
 
-	//FIXME: sometimes svRApplication is blank
+	//FIXME: sometimes RInterface.runRAs is blank
 	PrefR_PopulateRInterpreters();
 
-    // if (prefset.getStringPref("svRDefaultInterpreter") != "") {
+    // if (prefset.getStringPref("RInterface.pathToR") != "") {
 		// // update cran mirror list (first local, then tries remote at CRAN)
 		// PrefR_UpdateCranMirrorsAsync();
 	// } else {
@@ -187,7 +187,7 @@ function PrefR_OnLoad(/*event*/) {
 	menuListSetValues(); // Restores saved menu values
 
     // PrefR_OnLoad@chrome://komodor/content/js/pref-R.js:167:2
-	// TODO: this raises an exception if pref('svRDefaultInterpreter')
+	// TODO: this raises an exception if pref('RInterface.pathToR')
 	// 		 is not among the options, do some checking here
 	//parent.hPrefWindow.onpageload();
 	// XXX: workaround for empty preference values...
@@ -206,12 +206,12 @@ function PrefR_OnLoad(/*event*/) {
 function PrefR_PopulateRInterpreters() {
     var prefset = parent.hPrefWindow.prefset;
 
-    var prefExecutable = prefset.getStringPref('svRDefaultInterpreter');
+    var prefExecutable = prefset.getStringPref('RInterface.pathToR');
 
     var rs;
     var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
-    var menu = document.getElementById("svRDefaultInterpreter");
+    var menu = document.getElementById("RInterface.pathToR");
 
     ////////////////////////////////////
     switch (os.name) { //'posix', 'nt', 'mac', 'os2', 'ce', 'java', 'riscos'.
@@ -237,7 +237,7 @@ function PrefR_PopulateRInterpreters() {
         }
     rs = sv.array.unique(rs); // Get rid of duplicates
 	if((prefExecutable == "") || (rs.indexOf(prefExecutable) == -1)) {
-		prefset.setStringPref("svRDefaultInterpreter", "R");
+		prefset.setStringPref("RInterface.pathToR", "R");
 		prefExecutable = "R";
 	}
 	var rFound = rs.length != 0 && rs.every(Boolean);
@@ -264,11 +264,11 @@ function PrefR_PopulateRInterpreters() {
 // ko.prefs.getPref('fileicons_presets').appendString("R:R:#8595c0");
 
 function OnPreferencePageOK(prefset) {
-	var outDec = document.getElementById('r.csv.dec').value;
-	var outSep = document.getElementById('r.csv.sep').value;
+	var outDec = document.getElementById('RInterface.CSVDecimalSep').value;
+	var outSep = document.getElementById('RInterface.CSVSep').value;
 
     // "Preference widget" does not save newly added values for some reason:
-	prefset.setStringPref("r.csv.sep", outSep);
+	prefset.setStringPref("RInterface.CSVSep", outSep);
 
     if (outDec == outSep) {
         parent.switchToPanel("svPrefRItem");
@@ -284,14 +284,14 @@ function OnPreferencePageOK(prefset) {
 	prefset.setStringPref("CRANMirror", PrefR_CranMirrors[mirrorType][cmIdx][3]);
 
 
-	if (outDec != prefset.getStringPref('r.csv.dec') ||
-		outSep != prefset.getStringPref('r.csv.sep')) {
+	if (outDec != prefset.getStringPref('RInterface.CSVDecimalSep') ||
+		outSep != prefset.getStringPref('RInterface.CSVSep')) {
 		sv.r.eval('options(OutDec="' + outDec + '", ' +
 		'OutSep="' + outSep + '")', true);
 	}
 
-	var newClientPort = parseInt(document.getElementById('sciviews.ko.port').value);
-	var currentClientPort = sv.rconn.getSocketPref("sciviews.ko.port");
+	var newClientPort = parseInt(document.getElementById('RInterface.koPort').value);
+	var currentClientPort = sv.rconn.getSocketPref("RInterface.koPort");
 
 	if (sv.rconn.serverIsUp &&
 		newClientPort != currentClientPort) {
@@ -314,8 +314,8 @@ function svRDefaultInterpreterOnSelect(event) {
 	var os = Components.classes['@activestate.com/koOs;1']
 		.getService(Components.interfaces.koIOs);
 
-	var menuApplication = document.getElementById("svRApplication");
-    var menuInterpreters = document.getElementById("svRDefaultInterpreter");
+	var menuApplication = document.getElementById("RInterface.runRAs");
+    var menuInterpreters = document.getElementById("RInterface.pathToR");
 
 	var value = menuInterpreters.value;
 
@@ -341,8 +341,8 @@ function svRDefaultInterpreterOnSelect(event) {
 }
 
 function PrefR_svRApplicationOnSelect(event) {
-	var menuApplication = document.getElementById("svRApplication");
-    var menuInterpreters = document.getElementById("svRDefaultInterpreter");
+	var menuApplication = document.getElementById("RInterface.runRAs");
+    var menuInterpreters = document.getElementById("RInterface.pathToR");
 	if (!(menuApplication.value in apps)) return;
 
     var app = apps[menuApplication.value].app;
@@ -369,12 +369,12 @@ function PrefR_svRApplicationOnSelect(event) {
 }
 
 function PrefR_updateCommandLine(update) {
-    var appId = document.getElementById("svRApplication").value;
-	var appPath = document.getElementById("svRDefaultInterpreter").value;
+    var appId = document.getElementById("RInterface.runRAs").value;
+	var appPath = document.getElementById("RInterface.pathToR").value;
 
      if(!appId || !appPath) return '';
 
-    var cmdArgs = document.getElementById("svRArgs").value;
+    var cmdArgs = document.getElementById("RInterface.cmdArgs").value;
 	var args1 = "";
 
    	var cwd = sv.file.path("ProfD", "extensions", "komodor@komodor", "R");
@@ -404,7 +404,7 @@ function PrefR_updateCommandLine(update) {
 }
 
 function PrefR_setExecutable(path) {
-    var menu = document.getElementById("svRDefaultInterpreter");
+    var menu = document.getElementById("RInterface.pathToR");
 	var os;
     if (!path || !sv.file.exists(path)) {
 		os = Components.classes['@activestate.com/koOs;1']

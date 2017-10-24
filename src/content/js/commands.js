@@ -16,6 +16,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     } = Components;
 
     var logger = require("ko/logging").getLogger("komodoR");
+ //   logger.setLevel(logger.DEBUG);
     
     this.RHelpWin = null; // A reference to the R Help Window
     var _this = this;
@@ -47,8 +48,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 args = args.slice(0, 3).concat(args.slice(4));
                 if (!features) args[2] = "chrome,modal,titlebar";
                 win = window.openDialog.apply(null, args);
-            } catch (e) {
-                
+            } catch (e) {    
                 logger.exception(e, "Error opening window: " + uri);
             }
         }
@@ -182,20 +182,20 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         svfile.write(svfile.path(rDir, "_init.R"),
             "setwd('" + svstr.addslashes(sv.command.getCwd(false)) +
             "')\n" + "options(" +
-            "ko.port=" + sv.pref.getPref("sciviews.ko.port", sv.pref.defaults["sciviews.ko.port"]) +
+            "ko.port=" + sv.pref.getPref("RInterface.koPort", sv.pref.defaults["RInterface.koPort"]) +
             ", " +
-            "ko.R.port=" + sv.pref.getPref("sciviews.r.port", sv.pref.defaults["sciviews.r.port"]) +
+            "ko.R.port=" + sv.pref.getPref("RInterface.RPort", sv.pref.defaults["RInterface.RPort"]) +
             ", " +
             "ko.host=\"localhost\")\n" +
             ".ko.tmp.repos <- getOption(\"repos\"); .ko.tmp.repos[[\"CRAN\"]] <- \"" +
             sv.pref.getPref("CRANMirror") + "\"; " +
             "options(repos = .ko.tmp.repos); rm(.ko.tmp.repos); \n"
         );
-        // TODO: use sciviews.r.host
+        // TODO: use RInterface.RHost
 
         var cmd = sv.pref.getPref("svRCommand");
         var isWin = navigator.platform.indexOf("Win") === 0;
-        var id = sv.pref.getPref("svRApplication", isWin ? "r-gui" : "r-terminal");
+        var id = sv.pref.getPref("RInterface.runRAs", isWin ? "r-gui" : "r-terminal");
         var env = [];
         switch (id) {
         case "r-tk":
@@ -291,7 +291,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             try {
                 uri = sv.rconn.eval("cat(getHelpURL())");
             } catch (e) {
-                uri = sv.pref.getPref('rRemoteHelpURL') + 'doc/index.html';
+                uri = sv.pref.getPref('RInterface.rRemoteHelpURL') + 'doc/index.html';
             }
         }
 

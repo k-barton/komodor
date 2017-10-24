@@ -315,8 +315,8 @@ this.quit = function (save) {
 
 
 this.saveDataFrame = function _saveDataFrame(name, fileName, objName, dec, sep) {
-	if (!dec) dec = sv.pref.getPref("r.csv.dec");
-	if (!sep) sep = sv.pref.getPref("r.csv.sep");
+	if (!dec) dec = sv.pref.getPref("RInterface.CSVDecimalSep");
+	if (!sep) sep = sv.pref.getPref("RInterface.CSVSep");
 
 	if (!fileName) {
 		var filterIndex;

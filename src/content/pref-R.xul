@@ -77,24 +77,24 @@
 			<separator />
 		</vbox>
 		<hbox align="center">
-			<label class="label" control="svRApplication" value="Preferred way to run R:"/>
+			<label class="label" control="RInterface.runRAs" value="Preferred way to run R:"/>
 				<menulist
-				id="svRApplication" oncommand="PrefR_svRApplicationOnSelect(event);"
+				id="RInterface.runRAs" oncommand="PrefR_svRApplicationOnSelect(event);"
 				pref="true" editable="false" />
 
 		</hbox>
-		<label value="Use this application:" control="svRDefaultInterpreter" />
+		<label value="Use this application:" control="RInterface.pathToR" />
 		<hbox>
 			<vbox flex="2">
-				<menulist id="svRDefaultInterpreter" sizetopopup="none" width="200"
+				<menulist id="RInterface.pathToR" sizetopopup="none" width="200"
 						  editable="false" flex="1" pref="true"
 						  oncommand="svRDefaultInterpreterOnSelect(event);"
 						  />
 
 				<hbox align="center">
 					<label value="Command line arguments:"
-								control="svRArgs" pref="false" />
-					<textbox id="svRArgs" pref="true" editable="true" flex="1"
+								control="RInterface.cmdArgs" pref="false" />
+					<textbox id="RInterface.cmdArgs" pref="true" editable="true" flex="1"
 						oninput="PrefR_updateCommandLine(event);"
 					/>
 					<toolbarbutton
@@ -133,13 +133,13 @@
 			</columns>
 			<rows>
 				<row align="center">
-					<label value="Decimal separator" control="r.csv.dec"/>
-					<menulist pref="true" id="r.csv.dec"
+					<label value="Decimal separator" control="RInterface.CSVDecimalSep"/>
+					<menulist pref="true" id="RInterface.CSVDecimalSep"
 						values=", ." persist="values" maxValues="3">
 						<menupopup />
 					</menulist>
-					<label value="CSV field separator" control="r.csv.sep" />
-						<menulist pref="true" id="r.csv.sep" editable="true"
+					<label value="CSV field separator" control="RInterface.CSVSep" />
+						<menulist pref="true" id="RInterface.CSVSep" editable="true"
 							onkeyup="if (event.keyCode == 13) editMenulist(this);"
 							onblur="editMenulist(this);"
 							values=", ; \t" persist="values" maxValues="5">
@@ -177,8 +177,8 @@
 		</vbox>
 		<vbox>
 			<hbox align="center">
-				<label value="Remote help url:" control="rRemoteHelpURL" />
-				<textbox id="rRemoteHelpURL" pref="true" width="222" />
+				<label value="Remote help url:" control="RInterface.rRemoteHelpURL" />
+				<textbox id="RInterface.rRemoteHelpURL" pref="true" width="222" />
 			</hbox>
 		</vbox>
 	</groupbox>
@@ -199,16 +199,16 @@
 			</columns>
 		  <rows>
 				<row align="center">
-					<label value="Server port #:" control="sciviews.r.port" />
-					<textbox id="sciviews.r.port" pref="true" width="50" />
-					<label value="Host to connect to:" control="sciviews.r.host" />
-						<textbox id="sciviews.r.host" pref="true" width="150"
+					<label value="Server port #:" control="RInterface.RPort" />
+					<textbox id="RInterface.RPort" pref="true" width="50" />
+					<label value="Host to connect to:" control="RInterface.RHost" />
+						<textbox id="RInterface.RHost" pref="true" width="150"
 								tooltip="Currently only local connection is allowed"
 								disabled="true"/>
 				</row>
 				<row align="center">
-					<label value="Client port #:" control="sciviews.ko.port" />
-					<textbox id="sciviews.ko.port" pref="true" width="50" />
+					<label value="Client port #:" control="RInterface.koPort" />
+					<textbox id="RInterface.koPort" pref="true" width="50" />
 				</row>
 		  </rows>
 		</grid>
@@ -223,8 +223,8 @@
 		<rows>
 			<row align="left" orient="">
 				<hbox>
-					<label value="Fix margin click" control="sciviews.margin.click" />
-					<checkbox pref="true" id="sciviews.margin.click" />
+					<label value="Fix margin click" control="RInterface.marginClick" />
+					<checkbox pref="true" id="RInterface.marginClick" />
 				</hbox>
 				<description>Allows toggling bookmarks by clicking the third
 				margin with primary mouse button. </description>

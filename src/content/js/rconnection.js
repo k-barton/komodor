@@ -16,11 +16,6 @@
 //==============================================================================
 sv.rconn = {};
 
-try { // DEBUG
-    sv.rconn.cleanUp();
-    sv.rconn.cleanUp();
-} catch (e) {}
-
 (function () {
     var _this = this;
 
@@ -34,21 +29,21 @@ try { // DEBUG
     // get string from nsISupportsString
     var _str = (sString) => sString.QueryInterface(Ci.nsISupportsString).data;
 
-    var _svuSvc = Cc["@komodor/svUtils;1"]
+    var connector = Cc["@komodor/svUtils;1"]
         .getService(Ci.svIUtils);
     var _obsSvc = Cc["@mozilla.org/observer-service;1"]
         .getService(Ci.nsIObserverService);
 
-    this.svuSvc = _svuSvc;
+    this.rConnector = connector;
 
     //var observers = {};
     //var obsCallback = function() { sv.cmdout.append("test")};
 
     Object.defineProperty(this, 'command', {
-        get: function () _svuSvc.lastCommand
+        get: function () connector.lastCommand
     });
     Object.defineProperty(this, 'result', {
-        get: function () _svuSvc.lastResult
+        get: function () connector.lastResult
     });
 
     var _curPrompt = ':>';
@@ -59,12 +54,12 @@ try { // DEBUG
     var rxResultStripStdErr = /\x03[^\x02]*\x02/g;
 
     // this ID is used to identify commands from the user
-    this.userCommandId = _svuSvc.uid();
+    this.userCommandId = connector.uid();
 
     // TODO: move to somewhere else....
     this.printResult1 = function (commandInfo) {
-        _svuSvc.outScimoz = sv.cmdout.scimoz;
-        _svuSvc.printResult(commandInfo);
+        connector.outScimoz = sv.cmdout.scimoz;
+        connector.printResult(commandInfo);
     };
 
     this.printResults = function (result, commandInfo, executed, wantMore) {
@@ -93,7 +88,7 @@ try { // DEBUG
     // get list of running R processes
     this.listRProcesses = function (property) {
         if (!property) property = "CommandLine";
-        var procList = _svuSvc.getproc(property);
+        var procList = connector.getproc(property);
         var proc = [];
         while (procList.hasMoreElements()) proc.push(_str(procList.getNext()));
         return proc;
@@ -107,12 +102,12 @@ try { // DEBUG
 
         // XXX: background calls (e.g. object browser) need to have unique id.
         // but ID for user commands should be one and fixed (to allow for multiline)
-        var id = callback ? _svuSvc.uid() : this.userCommandId;
+        var id = callback ? connector.uid() : this.userCommandId;
         args.splice(0, 4);
         handlers[id] = new _REvalListener(callback, keep, stdOut, args);
         var mode = ['json'];
         if (hidden) mode.push('h');
-        _svuSvc.evalInRNotify(command, mode.join(' '), id);
+        connector.evalInRNotify(command, mode.join(' '), id);
         return id;
     };
 
@@ -121,7 +116,7 @@ try { // DEBUG
     this.eval = function (command, timeout, stdOut) {
         if (timeout === undefined) timeout = 0.5;
         if (stdOut === undefined) stdOut = false;
-        var res = _svuSvc.evalInR(command, 'json h', timeout);
+        var res = connector.evalInR(command, 'json h', timeout);
         if (res[0] == '\x15') throw (new Error("Command was: " + command));
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
     };
@@ -139,7 +134,7 @@ try { // DEBUG
         }
         var mode = ['json'];
         if (hidden) mode.push('h');
-        _svuSvc.evalInRNotify(command, mode.join(' '), handlerId);
+        connector.evalInRNotify(command, mode.join(' '), handlerId);
     };
 
     this.defineResultHandler = function (id, callback, stdOut) {
@@ -187,13 +182,13 @@ try { // DEBUG
 
 
 	Object.defineProperty(this, 'serverIsUp', {
-		get: function() _svuSvc.serverIsUp(),
+		get: function() connector.serverIsUp(),
 		enumerable: true
 	  });
 
     this.startSocketServer = function (requestHandler) {
         if (!requestHandler) requestHandler = defaultRequestHandler;
-        var port = _svuSvc.startSocketServer({
+        var port = connector.startSocketServer({
             onStuff: requestHandler
         });
 
@@ -201,7 +196,7 @@ try { // DEBUG
             sv.addNotification('Server could not be started');
         } else if (port > 0) {
             sv.addNotification('Server started at port ' + port);
-            sv.pref.setPref("sciviews.ko.port", port, true, true);
+            sv.pref.setPref("RInterface.koPort", port, true, true);
             _this.evalAsync("options(ko.port=" + port + ")", null, true);
             //setTimeout(function() {
             //try {
@@ -214,7 +209,7 @@ try { // DEBUG
 
     var sServerDoRestart = false;
 
-    this.stopSocketServer = function () _svuSvc.stopSocketServer();
+    this.stopSocketServer = function () connector.stopSocketServer();
 
     this.restartSocketServer = function (requestHandler) {
         if (_this.serverIsUp) {
@@ -238,9 +233,9 @@ try { // DEBUG
     };
 
     var _socketPrefs = {
-        "sciviews.r.port": null,
-        "sciviews.r.host": null,
-        "sciviews.ko.port": null
+        "RInterface.RPort": null,
+        "RInterface.RHost": null,
+        "RInterface.koPort": null
     };
 
     this.getSocketPref = function rConnGetSocketPref(name) {
@@ -248,10 +243,10 @@ try { // DEBUG
     };
 
     function _updateSocketInfo() {
-        _svuSvc.setSocketInfo(_socketPrefs["sciviews.r.host"],
-            parseInt(_socketPrefs["sciviews.ko.port"]), false);
-        _svuSvc.setSocketInfo(_socketPrefs["sciviews.r.host"],
-            parseInt(_socketPrefs["sciviews.r.port"]), true);
+        connector.setSocketInfo(_socketPrefs["RInterface.RHost"],
+            parseInt(_socketPrefs["RInterface.koPort"]), false);
+        connector.setSocketInfo(_socketPrefs["RInterface.RHost"],
+            parseInt(_socketPrefs["RInterface.RPort"]), true);
     }
 
     var _prefObserver = {

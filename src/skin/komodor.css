@@ -1,9 +1,10 @@
 .r-run-command-icon {
-	list-style-image: url("chrome://komodor/skin/images/R.svg");
+	/* list-style-image: url("chrome://komodor/skin/images/R.svg"); */
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R.svg);
 }
 
 .r-run-command-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/R_disabled.svg");
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_disabled.svg);
 }
 
 .r-quit-command-icon {

@@ -177,8 +177,8 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         """
         if self._rconn is None:
             self._rconn = RConn(-1)
-            self._rconn_set_r_port(env, "sciviews.r.port")
-            # env.add_pref_observer("sciviews.r.port", self._rconn_set_r_port)
+            self._rconn_set_r_port(env, "RInterface.RPort")
+            # env.add_pref_observer("RInterface.RPort", self._rconn_set_r_port)
         return self._rconn.eval_in_R(cmd)
     
     ##
