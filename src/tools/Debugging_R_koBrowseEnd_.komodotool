@@ -1,6 +1,6 @@
 {
   "keyboard_shortcut": "", 
-  "name": "R: koBrowseEnd()", 
+  "name": "Debugging R: koBrowseEnd()", 
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [

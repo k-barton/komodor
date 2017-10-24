@@ -4,13 +4,13 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "var currentView = ko.views.manager.currentView;", 
-    "var scimoz;", 
-    "if (currentView && (scimoz = currentView.scimoz)) {", 
-    "    sv.rconn.eval(\"cat(deparse(\" + sv.getTextRange(\"line/sel\").trim() + \"))\",", 
+    "var view = ko.views.manager.currentView;", 
+    "var scimoz = view.scimoz;", 
+    "if (view && scimoz) {", 
+    "    sv.rconn.evalAsync(\"cat(deparse(\" + sv.getTextRange(\"line/sel\").trim() + \", width.cutoff = 80))\",", 
     "        (str) => {", 
-    "            scimoz.insertText(scimoz.currentPos, '\"' + str + '\"');", 
-    "        }, true);", 
+    "            scimoz.insertText(scimoz.currentPos, str);", 
+    "        }, false);", 
     "}"
   ], 
   "trigger": "trigger_postopen", 
@@ -18,5 +18,5 @@
   "version": "1.0.12", 
   "async": false, 
   "type": "macro", 
-  "icon": "koicon://ko-svg/chrome/icomoon/skin/file.svg"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/cogs.svg"
 }

@@ -406,14 +406,14 @@ sv.cmdout = {};
 (function () {
 
     var _this = this;
-		
-		var logger = require("ko/logging").getLogger("komodoR");
+
+    var logger = require("ko/logging").getLogger("komodoR");
     logger.setLevel(logger.DEBUG);
 
     Object.defineProperty(this, 'eolChar', {
         get: function ()["\r\n", "\n", "\r"][_this.scimoz.eOLMode]
     });
-		
+
     Object.defineProperty(this, 'scimoz', {
         get: function () {
             if (ko.widgets.getWidget) { // Komodo 9
@@ -428,7 +428,7 @@ sv.cmdout = {};
         }
     });
 
-    function _rgb(/*r, g, b*/) {
+    function _rgb( /*r, g, b*/ ) {
         if (arguments.length == 3) color = arguments;
         else color = r;
         return color[0] | (color[1] << 8) | (color[2] << 16);
@@ -443,10 +443,14 @@ sv.cmdout = {};
         styleNumResult = 0,
         styleNumErr = 23;
 
-    var fixEOL =  (str) => str.replace(/(\r?\n|\r)/g, _this.eolChar);
+    this.STYLENUM_STDIN = styleNumCode;
+    this.STYLENUM_STDOUT = styleNumResult;
+    this.STYLENUM_STDERR = styleNumErr;
+
+    var fixEOL = (str) => str.replace(/(\r?\n|\r)/g, _this.eolChar);
 
     var initialized = false; ///
-		
+
     function _init() {
         var scimoz = _this.scimoz;
 

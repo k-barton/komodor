@@ -12,7 +12,55 @@ Original code is located in chrome://komodo/content/launch.js
  * @param {string} searchTerm  Open language help for this search term.
  */
  
-if(sv._versionCompare(ko.version, "9") > 0) {
+if(sv._versionCompare(ko.version, "10") < 0) {
+	
+// Komodo 9
+	ko.help.language = function () {
+		var language = null;
+		var view = ko.window.focusedView();
+		if (!view) {
+			view = ko.views.manager.currentView;
+		}
+		if (view != null) {
+			if (view.koDoc) {
+				language = view.koDoc.subLanguage;
+				if (language == "XML") language = view.koDoc.language;
+			} else language = view.language;
+		}
+
+		var command = null, name = null;
+		if (language) {
+			if (ko.prefs.hasStringPref(language + "HelpCommand")) {
+				command = ko.prefs.getStringPref(language + "HelpCommand");
+			} else {
+				var langRegistrySvc = Components
+					.classes['@activestate.com/koLanguageRegistryService;1']
+					.getService(Components.interfaces.koILanguageRegistryService);
+				var languageObj = langRegistrySvc.getLanguage(language);
+				if (languageObj.searchURL) {
+					command = "%(browser) " + languageObj.searchURL;
+				}
+			}
+			if (command) {
+				name = language + " Help";
+			}
+		}
+		if (!command) {
+			command = ko.prefs.getStringPref("DefaultHelpCommand");
+			name = "Help";
+		}
+		
+		command = command.trim();
+		if (command.indexOf("javascript:") === 0) {
+			command = command.substring(11).trim();
+			eval(ko.interpolate.interpolateString(command));
+		} else { 
+			ko.run.runCommand(window, command, null, null, false, false, true,
+				"no-console", 0, "", 0, name);
+		}
+	}
+	
+} else {
 	
 /**
  * Opens language specific help for the current buffer.
@@ -73,7 +121,6 @@ if(sv._versionCompare(ko.version, "9") > 0) {
 		if (searchTerm && command.indexOf("%W") >= 0) {
 			command = command.replace("%W", searchTerm);
 		}
-		
 
 		command = command.trim();
 		if (command.indexOf("javascript:") === 0) {
@@ -87,57 +134,8 @@ if(sv._versionCompare(ko.version, "9") > 0) {
 						   });
 		}
 	}	
-	
 
-} else {
-
-	// Komodo 9
-	ko.help.language = function () {
-		var language = null;
-		var view = ko.window.focusedView();
-		if (!view) {
-			view = ko.views.manager.currentView;
-		}
-		if (view != null) {
-			if (view.koDoc) {
-				language = view.koDoc.subLanguage;
-				if (language == "XML") language = view.koDoc.language;
-			} else language = view.language;
-		}
-
-		var command = null, name = null;
-		if (language) {
-			if (ko.prefs.hasStringPref(language + "HelpCommand")) {
-				command = ko.prefs.getStringPref(language + "HelpCommand");
-			} else {
-				var langRegistrySvc = Components
-					.classes['@activestate.com/koLanguageRegistryService;1']
-					.getService(Components.interfaces.koILanguageRegistryService);
-				var languageObj = langRegistrySvc.getLanguage(language);
-				if (languageObj.searchURL) {
-					command = "%(browser) " + languageObj.searchURL;
-				}
-			}
-			if (command) {
-				name = language + " Help";
-			}
-		}
-		if (!command) {
-			command = ko.prefs.getStringPref("DefaultHelpCommand");
-			name = "Help";
-		}
-		
-		command = command.trim();
-		if (command.indexOf("javascript:") === 0) {
-			command = command.substring(11).trim();
-			eval(ko.interpolate.interpolateString(command));
-		} else { 
-			ko.run.runCommand(window, command, null, null, false, false, true,
-				"no-console", 0, "", 0, name);
-		}
-	}
-	
-} 
+}
 
 
 

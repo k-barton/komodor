@@ -117,7 +117,7 @@ sv.rconn = {};
         if (timeout === undefined) timeout = 0.5;
         if (stdOut === undefined) stdOut = false;
         var res = connector.evalInR(command, 'json h', timeout);
-        if (res[0] == '\x15') throw (new Error("Command was: " + command));
+        if (res[0] == '\x15') throw (new Error("Error in rconn.eval: R command was " + command));
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
     };
 
