@@ -6,11 +6,10 @@
   "rank": 100, 
   "trigger": "trigger_postopen", 
   "value": [
-    "sv.misc.colorPicker.pickColor();", 
-    ""
+    "sv.misc.colorPicker.pickColor();"
   ], 
-  "version": "1.0.7", 
+  "version": "1.0.12", 
   "async": 0, 
   "type": "macro", 
-  "icon": "chrome://famfamfamsilk/skin/icons/color_wheel.png"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/eyedropper.svg"
 }

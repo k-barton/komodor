@@ -35,7 +35,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		   scimoz.replaceSel(newcolor);
 		   scimoz.anchor = scimoz.currentPos;
 		}
-	}
+	};
 
 	this.pickColor = function () {
 		var currentView = ko.views.manager.currentView;
@@ -49,7 +49,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 			}
 			_colorPicker_system(color);
 		}
-	}
+	};
 
 } else {
 
@@ -73,7 +73,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		event.stopPropagation();
 		event.cancelBubble = true;
 		_colorPicker_remove();
-	}
+	};
 
 	var _colorPicker_remove = function () {
 		// remove the popup from the document. This cleans up so
@@ -81,7 +81,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		var p = document.getElementById('popup_colorpicker');
 		if (p)
 			p.parentNode.removeChild(p);
-	}
+	};
 
 	var _colorPicker_init = function () {
 		_colorPicker_remove();
@@ -92,7 +92,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		cp.setAttribute('onselect', 'this.colorChanged(event, this);');
 		p.appendChild(cp);
 		document.documentElement.appendChild(p);
-	}
+	};
 
 	this.pickColor = function () {
 		var currentView = ko.views.manager.currentView;
@@ -109,7 +109,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 				x + boxObject.x, y + boxObject.y,
 				'colorpicker',"topleft","topleft");
 		}
-	}
+	};
 }
 
 }).apply(sv.misc.colorPicker);
@@ -150,19 +150,20 @@ sv.misc.getKomodoVersion = function() {
 		// XXX: REMOVE Ko7 & Ko8
 		var onMarginClick = function (modifiers, position, margin) {
 			var mouseButton = this._mouseButton;
+			//XXX this.getPrototypeOf();
 			var res = this.__proto__.onMarginClick.call(this, modifiers, position, margin);
 			this._mouseButton = mouseButton;
 			bookmarkToggleFix.call(this, modifiers, position, margin);
 			this._mouseButton = -1;
 			return res;
-		}
+		};
 
 		var addMarginClickHandler = function (view) {
 			if (view.cancelable !== undefined) // view is Event object
 				view = ko.views.manager.currentView;
 			if(!view || view.onMarginClick == onMarginClick) return;
 			view.onMarginClick = onMarginClick;
-		}
+		};
 
 		window.addEventListener("view_opened", addMarginClickHandler, true);
 		var _observerSvc = Components.classes['@mozilla.org/observer-service;1']
@@ -177,7 +178,7 @@ sv.misc.getKomodoVersion = function() {
 			}
 			_observerSvc.removeObserver(onLoad, "komodo-ui-started");
 			_observerSvc = null;
-		}
+		};
 		_observerSvc.addObserver(onLoad, "komodo-ui-started", false);
 	}
 

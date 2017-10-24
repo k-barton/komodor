@@ -12,7 +12,11 @@ sv.r = {
 };
 
 (function() {
+	
 var _this = this;
+
+var logger = require("ko/logging").getLogger("komodoR");
+
 
 // Evaluate R expression and call callback function in Komodo with the result as
 // first argument. All additional arguments will be passed to callback
@@ -163,8 +167,7 @@ this.source = function (what) {
 			_this.evalAsync(cmd, function(ret) sv.cmdout.append(ret + "\n:>"));
 		}
 	} catch(e) {
-		sv.logger.exception(e, "Error while sourcing R code in" +
-		     " sv.r.source():\n\n (" + e + ")", true);
+		logger.error(e, " Exception thrown while sourcing R code");
 	}
 	return res;
 };
@@ -187,8 +190,7 @@ this.send = function (what) {
 	return res;
 };
 
-this.rFn = function(name) "base::get(\"" + name +
-	"\", \"komodoConnection\", inherits=FALSE)";
+this.rFn = (name) => "base::get(\"" + name + "\", \"komodoConnection\", inherits=FALSE)";
 
 // Get help in R (HTML format)
 function _getHelpURI(topic, pkg) {
@@ -277,7 +279,11 @@ this.pager = function(file, title, cleanUp) {
 	sv.file.write(file, content, 'utf-8');
 	sv.command.openHelp(rSearchURI + "?file:" + file);
 	if(cleanUp || cleanUp === undefined)
-		window.setTimeout("try { sv.file.getfile('" + file + "').remove(false); } catch(e) {}", 10000);
+		window.setTimeout((file) => {
+			try {
+				sv.file.getLocalFile(file).remove(false);
+			} catch(e) {
+			}}, 10000, file);
 };
 
 // Search R help for topic

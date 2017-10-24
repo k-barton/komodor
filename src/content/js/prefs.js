@@ -41,10 +41,12 @@ this.defaults[sv.langName + "HelpCommand"] = 'javascript:sv.r.help(\"%W\")';
 //// Set default preferences
 this.setDefaults = function sv_checkAllPref(revert) {
 	var val, rev, hasPref;
-	for (var i in _this.defaults) {
+        for (var i in _this.defaults)
+            if (_this.defaults.hasOwnProperty(i)) {
 		hasPref = prefset.hasPref(i);
 		val = hasPref ? _this.getPref(i) : null;
-		rev = revert || (typeof val == "number" && isNaN(val)) || val == "None";
+                rev = revert || (typeof val == "number" && isNaN(val)) ||
+                    val == "None";
 			//|| (_this.defaults[i] !== '' && val === '');
 		_this.setPref(i, _this.defaults[i], rev);
 	}
@@ -61,7 +63,7 @@ this.getPref = function(prefName, defaultValue) {
 		ret = prefset['get' + typeName + 'Pref'](prefName);
 	} else ret = defaultValue;
 	return ret;
-}
+    };
 
 this.setPref = function(prefName, value, overwrite, asInt) {
 	var typeName, type;
@@ -79,12 +81,12 @@ this.setPref = function(prefName, value, overwrite, asInt) {
 	typeName = ['Double', 'Long', 'Boolean', 'String'][type];
 	prefset['set' + typeName + 'Pref'](prefName, value);
 	return typeName;
-}
+    };
 
 this.deletePref = function(prefName) {
 	prefset.deletePref(prefName);
 	return prefset.hasPref(prefName);
-}
+    };
 
 }).apply(sv.pref);
 

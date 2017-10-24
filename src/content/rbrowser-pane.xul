@@ -39,7 +39,7 @@ Contributors:
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript">
 <![CDATA[
-// find sv object in main Komodo window:
+// find sv object in the main Komodo window:
 var sv;
 var p = self;
 do {

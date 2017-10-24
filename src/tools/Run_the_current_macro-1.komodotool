@@ -38,8 +38,8 @@
     "  ko.dialogs.internalError(e, 'Error: '+e);", 
     "}"
   ], 
-  "version": "1.0.7", 
+  "version": "1.0.12", 
   "async": 0, 
   "type": "macro", 
-  "icon": "chrome://famfamfamsilk/skin/icons/control_play.png"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/cogs.svg"
 }

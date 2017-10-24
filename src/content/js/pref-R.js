@@ -554,7 +554,7 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 		}
 		var file;
 		for (let i = 0; i < localPaths.length; ++i) {
-			file = svFile.getfile(localPaths[i], csvName);
+			file = svFile.getLocalFile(localPaths[i], csvName);
 			if (file.exists()) {
 				processCranMirrorsCSV(svFile.read(file.path, encoding));
 				svFile.write(jsonFile, JSON.stringify(PrefR_CranMirrors), encoding);

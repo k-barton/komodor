@@ -28,7 +28,7 @@
 
 
 // Create the 'sv' namespace
-if (typeof sv == "undefined") sv = new Object();
+if (typeof sv == "undefined") sv = {};
 
 sv.langName = "R_extended";
 
@@ -58,10 +58,6 @@ sv._versionCompare = function(v1, v2)
     Components.classes["@mozilla.org/xpcom/version-comparator;1"]
         .getService(Components.interfaces.nsIVersionComparator)
         .compare(v1, v2);
-
-// TODO: use default logger:
-sv.logger = ko.logging.getLogger("KomodoR");
-sv.logger.setLevel = ko.logging.LOG_DEBUG;
 
 // generate unique id (TODO: move to sv.utils or such)
 sv.uid = function(n) {
@@ -128,7 +124,7 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 
 			var wordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" + includeChars;
 
-			function wordCharTest(s) (s.charCodeAt(0) > 0x80) || wordChars.indexOf(s) > -1;
+			var wordCharTest = function (s) (s.charCodeAt(0) > 0x80) || wordChars.indexOf(s) > -1;
 			
 			for (pStart = scimoz.positionBefore(curPos);
 				 (pStart > 0) && wordCharTest(scimoz.getWCharAt(pStart));
@@ -148,26 +144,27 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 		// this should work even with extremely messy coded ones.
 
 		// function declaration pattern:
-		var funcRegExStr = "\\S+\\s*(<-|=)\\s*function\\s*\\(";
+        let funcRegExStr = "\\S+\\s*(<-|=)\\s*function\\s*\\(";
 		//var funcRegExStr = "\\b(([`'\\\"])(.+)\\2|([\w\u0100-\uFFFF\\.]+))\\s*(<-|=)\\s*function\\s*\\(";
 
 
-		var findSvc = Components.classes['@activestate.com/koFindService;1']
+		let findSvc = Components.classes['@activestate.com/koFindService;1']
 			.getService(Components.interfaces.koIFindService);
 
 		// save previous find settings
 		var oldFindPref = {searchBackward: true, matchWord: false,
             patternType: 0};
-		for (var i in oldFindPref)
+		for (let i in oldFindPref)
+                    if (oldFindPref.hasOwnProperty(i))
 			oldFindPref[i] = findSvc.options[i];
 
 		findSvc.options.matchWord = false;
 		findSvc.options.patternType = 2;
 
-		var line0, line1, pos1, pos2, pos3, pos4;
-		var lineArgsStart, lineBodyStart, firstLine; //lineArgsEnd lineBodyEnd,
-		var pos0 = scimoz.getLineEndPosition(curLine);
-		var findRes;
+        let pos1, pos2, pos3, pos4;
+        let lineArgsStart, lineBodyStart, firstLine; //lineArgsEnd lineBodyEnd,
+        let pos0 = scimoz.getLineEndPosition(curLine);
+        let findRes;
 
 		do {
 			//  search for function pattern backwards:
@@ -219,35 +216,37 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 		}
 
 		// restore previous find settings
-		for (var i in oldFindPref)	findSvc.options[i] = oldFindPref[i];
+                for (let i in oldFindPref)
+                    if (oldFindPref.hasOwnProperty(i))
+                        findSvc.options[i] = oldFindPref[i];
 
 		break;
 	 case "block":
 		// Select all content between two bookmarks
-		var mark1, mark2;
+                let mark1, mark2;
 		mark1 = scimoz.markerPrevious(curLine, 64);
 		if (mark1 == -1) mark1 = 0;
-		Mark2 = scimoz.markerNext(curLine, 64);
-		if (Mark2 == -1) Mark2 = scimoz.lineCount - 1;
+                mark2 = scimoz.markerNext(curLine, 64);
+                if (mark2 == -1) mark2 = scimoz.lineCount - 1;
 
 		pStart = scimoz.positionFromLine(mark1);
-		pEnd = scimoz.getLineEndPosition(Mark2);
+                pEnd = scimoz.getLineEndPosition(mark2);
 
 		break;
 	 case "para":
 		// Select the entire paragraph
 		// go up from curLine until
-		for (var i = curLine; i >= 0
-			&& scimoz.lineLength(i) > 0
-			&& scimoz.getTextRange(pStart = scimoz.positionFromLine(i),
+                for (let i = curLine; i >= 0 && scimoz.lineLength(i) > 0 && scimoz.getTextRange(
+                        pStart = scimoz.positionFromLine(
+                            i),
 			scimoz.getLineEndPosition(i)).trim() != "";
-			i--) {		}
+                    --i) {}
 
-		for (var i = curLine; i <= scimoz.lineCount
-			&& scimoz.lineLength(i) > 0
-			&& scimoz.getTextRange(scimoz.positionFromLine(i),
+                for (let i = curLine; i <= scimoz.lineCount && scimoz.lineLength(i) > 0 && scimoz
+                    .getTextRange(
+                        scimoz.positionFromLine(i),
 			pEnd = scimoz.getLineEndPosition(i)).trim() != "";
-			i++) {		}
+                    ++i) {}
 
 		break;
 	 case "line":
@@ -272,7 +271,9 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
         // This is used by calltip and completion. Returns all text backwards from current
 		// position to the beginning of the current folding level
         pStart = scimoz.positionFromLine(scimoz.getFoldParent(curLine));
+				break;
 	 case "all":
+                /*falls through*/
 	 default:
 		// Take everything
 		text = scimoz.text;
@@ -284,11 +285,14 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
 	if (select && what !="sel") scimoz.setSel(pStart, pEnd);
 
 
-	if (range != undefined && (typeof range == "object")) {
-		range.value = {start: pStart, end: pEnd};
-	}
-	return(text);
-}
+            if (range != undefined && (typeof range == "object"))
+                range.value = {
+                    start: pStart,
+                    end: pEnd
+};
+
+            return text;
+        }; // getTextRange
 
 // file open dialog, more customizable replacement for ko.filepicker.open
 sv.fileOpen = function (directory, filename, title, filter, multiple, save,
@@ -340,13 +344,12 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
 
     var rv = fp.show();
     if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
-        var path;
+                let path;
         if (multiple) {
-            var files = fp.files;
-            path = new Array();
+                    let files = fp.files;
+                    path = [];
             while (files.hasMoreElements()) {
-                var file = files.getNext().
-				QueryInterface(Components.interfaces.nsILocalFile);
+                        let file = files.getNext().QueryInterface(Components.interfaces.nsILocalFile);
                 path.push(file.path);
             }
         } else {
@@ -358,15 +361,15 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
 			var os = Components.classes['@activestate.com/koOs;1']
 				.getService(Components.interfaces.koIOs);
 			if (!os.path.getExtension(path)) {
-				var defaultExt = os.path.getExtension(filters[fp.filterIndex]);
-				path += defaultExt;
+				path += os.path.getExtension(filters[fp.filterIndex]);
 			}
 		}
 		if (typeof filterIndex == "object") filterIndex.value = fp.filterIndex;
-        return(path);
+                return path;
     }
-    return(null);
-}
+            return null;
+        };
+
 
 // translate messages using data from chrome://komodor/locale/main.properties
 sv.translate = function (textId) {
@@ -379,7 +382,7 @@ sv.translate = function (textId) {
 		if (arguments.length > 1) {
 			param = [];
 
-			for (var i = 1; i < arguments.length; ++i)
+            for (let i = 1; i < arguments.length; ++i)
 				param = param.concat(arguments[i]);
 			return(bundle.formatStringFromName(textId, param, param.length));
 
@@ -391,14 +394,14 @@ sv.translate = function (textId) {
 		// fallback if no translation found
 		if (param) { // a wannabe sprintf, just substitute %S and %nS patterns:
 			var rx;
-			for (var i = 0; i < param.length; ++i) {
+            for (let i = 0; i < param.length; ++i) {
 				rx = new RegExp("%(" + (i + 1) + ")?S");
 				textId = textId.replace(rx, param[i]);
 			}
 		}
 		return(textId);
 	}
-}
+};
 
 //// Control the command output tab ////////////////////////////////////////////
 if (typeof(sv.cmdout) == 'undefined') sv.cmdout = {};
@@ -408,10 +411,9 @@ sv.cmdout = {};
 
 var _this = this;
 
-this.__defineGetter__('eolChar', function()
-	["\r\n", "\n", "\r"][_this.scimoz.eOLMode]);
 
-this.__defineGetter__('scimoz', function() {
+Object.defineProperty(this, 'eolChar', { get: function() ["\r\n", "\n", "\r"][_this.scimoz.eOLMode] });
+Object.defineProperty(this, 'scimoz', { get: function() {
 	if (ko.widgets.getWidget) { // Komodo 9
 		return ko.widgets.getWidget("runoutput-desc-tabpanel")
 			.contentDocument.getElementById("runoutput-scintilla").scimoz;
@@ -487,7 +489,7 @@ this.ensureShown = function () {
 	if(document.getElementById("runoutput_tab") == null)
 		ko.uilayout.ensureTabShown("runoutput-desc-tabpanel", false);
 	else ko.uilayout.ensureTabShown("runoutput_tab", false);
-}
+    };
 
 this.print2 = function (command, prompt, done, commandInfo) {
 	var scimoz = _this.scimoz;
@@ -518,7 +520,7 @@ this.print2 = function (command, prompt, done, commandInfo) {
 	var firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen - 1, 0);
 	scimoz.firstVisibleLine = firstVisibleLine;
 	scimoz.readOnly = readOnly;
-}
+    };
 
 this.replaceLine = function(lineNum, text, eol) {
 	var scimoz = _this.scimoz;
@@ -529,7 +531,7 @@ this.replaceLine = function(lineNum, text, eol) {
 	scimoz.targetEnd = scimoz.getLineEndPosition(lineNum) +
 		(eol? eolChar.length : 0);
 	scimoz.replaceTarget(text.length, text);
-}
+    };
 
 this.append = function(str, newline, scrollToStart) {
 	var scimoz = _this.scimoz;
@@ -553,12 +555,11 @@ this.append = function(str, newline, scrollToStart) {
 	if (!scrollToStart) {
 		firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen, 0);
 	} else {
-		firstVisibleLine = Math.min(lineCountBefore - 1, scimoz.lineCount
-			- scimoz.linesOnScreen);
+		firstVisibleLine = Math.min(lineCountBefore - 1, scimoz.lineCount - scimoz.linesOnScreen);
 	}
 	scimoz.firstVisibleLine = firstVisibleLine;
 
-}
+    };
 
 this.getLine = function(lineNumber) {
 	var scimoz = _this.scimoz;
@@ -568,7 +569,7 @@ this.getLine = function(lineNumber) {
 	var oLine = {};
 	scimoz.getLine(lineNumber, oLine);
 	return oLine.value;
-}
+    };
 
 this.styleLines = function(startLine, endLine, styleNum) {
 	_init();
@@ -587,7 +588,7 @@ this.styleLines = function(startLine, endLine, styleNum) {
 	scimoz.startStyling(startPos, styleMask);
 	scimoz.setStyling(endPos - startPos, styleNum);
 	scimoz.readOnly = readOnly;
-}
+    };
 
 // Clear text in the Output Command pane
 this.clear = function (all) {
@@ -602,7 +603,8 @@ this.clear = function (all) {
 		scimoz.readOnly = readOnly;
 	}
 
-}
+    };
+
 // Display message on the status bar (default) or command output bar
 this.message = function (msg, timeout, highlight) {
 	_this.ensureShown();
@@ -616,7 +618,7 @@ this.message = function (msg, timeout, highlight) {
 	runoutputDesc.setAttribute("value", msg);
 	window.clearTimeout(runoutputDesc.timeout);
 	if (timeout > 0) runoutputDesc.timeout = window
-		.setTimeout("sv.cmdout.message('', 0);", timeout);
+       .setTimeout(function () sv.cmdout.message('', 0), timeout);
 }
 }).apply(sv.cmdout);
 

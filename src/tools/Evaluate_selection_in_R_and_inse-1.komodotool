@@ -6,16 +6,17 @@
   "value": [
     "var currentView = ko.views.manager.currentView;", 
     "var scimoz;", 
-    "if(currentView && (scimoz = currentView.scimoz)) {", 
-    "    sv.rconn.eval(\"cat(deparse(\" + sv.getTextRange(\"line/sel\").trim() + \"))\", function(str) {", 
-    "\t\tscimoz.insertText(scimoz.currentPos, '\"' + str + '\"');", 
-    "    }, true)", 
+    "if (currentView && (scimoz = currentView.scimoz)) {", 
+    "    sv.rconn.eval(\"cat(deparse(\" + sv.getTextRange(\"line/sel\").trim() + \"))\",", 
+    "        (str) => {", 
+    "            scimoz.insertText(scimoz.currentPos, '\"' + str + '\"');", 
+    "        }, true);", 
     "}"
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 
-  "version": "1.0.7", 
+  "version": "1.0.12", 
   "async": false, 
   "type": "macro", 
-  "icon": "chrome://famfamfamsilk/skin/icons/page_edit.png"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/file.svg"
 }

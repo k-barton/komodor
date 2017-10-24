@@ -8,8 +8,8 @@
   "value": [
     "sv.command.setRStatus(sv.rconn.isRConnectionUp());"
   ], 
-  "version": "1.0.7", 
+  "version": "1.0.12", 
   "async": 1, 
   "type": "macro", 
-  "icon": "chrome://komodor/skin/images/R.png"
+  "icon": "chrome://komodor/skin/images/R-connect.svg"
 }

@@ -29,5 +29,5 @@
   "version": "1.0.12", 
   "async": 1, 
   "type": "macro", 
-  "icon": "chrome://famfamfamsilk/skin/icons/rainbow.png"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/marker2.svg"
 }

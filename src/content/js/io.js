@@ -15,7 +15,7 @@ this.JSONDecode = function JSON_Decode(str) {
 	} catch(e) {
 		return null;
 	}
-}
+};
 
 
 function CSVRow(rowArr, colNames, hasRowNames) {
@@ -44,11 +44,11 @@ this.csvToObj = function csvToObj(data, sep, omitNRows, hasHeader, colNames) {
 			 res[arr[i][0]] = new CSVRow(arr[i], colNames, true);
 	} else {
 		res = new Array(arr.length);
-		for(var i = 0, l = arr.length; i < l; i++)
+		for(let i = 0, l = arr.length; i < l; i++)
  			 res[i] = new CSVRow(arr[i], colNames, false);
 	}
 	return header? [header, res] : res;
-}
+};
 
 // From: http://www.bennadel.com/index.cfm?dax=blog:1504.view
 this.csvToArray = function CSVToArray(strData, strDelimiter){
@@ -63,6 +63,7 @@ this.csvToArray = function CSVToArray(strData, strDelimiter){
 		), "gi");
 	var arrData = [[]];
 	var arrMatches = objPattern.exec(strData);
+	 var strMatchedValue;
 	while (arrMatches) {
 		var strMatchedDelimiter = arrMatches[1];
 		if (strMatchedDelimiter.length &&
@@ -70,15 +71,15 @@ this.csvToArray = function CSVToArray(strData, strDelimiter){
 			arrData.push([]);
             }
 		if (arrMatches[2]) {
-			var strMatchedValue = arrMatches[2]
+			strMatchedValue = arrMatches[2]
 			   .replace(new RegExp( "\"\"", "g" ),	"\"");
 		} else {
-			var strMatchedValue = arrMatches[3];
+			strMatchedValue = arrMatches[3];
 		}
 		arrData[arrData.length - 1].push(strMatchedValue);
 		arrMatches = objPattern.exec(strData);
 	}
 	return(arrData);
-}
+};
 
 }).apply(sv.io);
