@@ -58,16 +58,15 @@ The extension provides some debugging capabilities, see
 **Known issues:**
 
 * Output from R is displayed in the command output pane only at the end of 
-  operation (and this is unlikely to change with the current way of 
-  communication with R)
+  operation (dynamic output may be introduced in future version)
 * Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape 
   key in RGui)
 * Executing Rgui's command "Stop all computations" will also stop R's socket 
   server and hence break the connection with Komodo. It may also cause R crash 
-  (at least on Windows).
-* Problems with connection with Komodo server in R may cause R will not exit 
-  properly (at least on Windows) and need to kill the R process (happens very 
-  rarely though).
+  (happens sometimes on Windows).
+* Problems with connection with Komodo server in R may cause R not exit 
+  properly and need to kill the R process (happens very 
+  rarely though - Windows only?).
 * Connection timeout on longer operations: a prompt is shown as if the calculation
   in R has finished and no output will be shown. There does not seem to be a way
   to set socket timeout in Tcl.
@@ -78,5 +77,5 @@ The extension provides some debugging capabilities, see
   counting in UDL (`spush_check`/`spop_check`, possibly a bug in Komodo).
 
 
-**[Improvements for Komodo 9](improveKo9.md)**
+**[Hacks for classic Windows styling in Komodo Edit](improveKo9.md)**
 
