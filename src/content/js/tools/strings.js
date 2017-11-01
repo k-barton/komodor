@@ -1,19 +1,10 @@
-// SciViews-K string functions
-// Various functions to manipulate strings 'sv.string' & 'String' objects
-// Copyright (c) 2008-2009, Philippe Grosjean, Romain Francois and Kamil Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// sv.string.replaceCRLF(str, code);	// Replace LF and CR by 'code'
-// sv.string.removeLastCRLF(str);    // Remove last CR and/or LF
-// sv.string.toRegex(str);			// Changes a string to a regex
-// sv.string.filename(str);			// Get filename/last dir from path
-//
-// Additional methods to String objects ////////////////////////////////////////
-// String.prototype.trim();					// Trim function for String
-// String.prototype.rtrim();				// Right trim
-// String.prototype.ltrim();				// Left trim
-// String.prototype.addslashes();			// Add slashes
-////////////////////////////////////////////////////////////////////////////////
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  Copyright (c) 2008-2017 Kamil Barton
+ *  Copyright (c) 2008-2009, Philippe Grosjean, Romain Francois and Kamil Barton
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
 
 if (typeof(sv) == 'undefined') sv = {};
 if (typeof(sv.string) == 'undefined') sv.string = {};

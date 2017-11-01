@@ -7,7 +7,7 @@
     "var res = [];", 
     "for(var i in sv.pref.defaults)", 
     "    res.push(i + \"=\" + sv.pref.getPref(i));", 
-    "alert(\"R preferences: \\n\" + res.join(\"\\n\"));"
+    "ko.dialogs.alert(\"R preferences:\", res.join(\"\\r\\n\"), \"Komodo-R interface\");"
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 

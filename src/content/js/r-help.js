@@ -1,9 +1,13 @@
-/* Replacement for language specific help on selection.
-function (cmd_helpLanguage command) extended to handle "javascript:" format.
-Original code is located in chrome://komodo/content/launch.js
-*/
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ */
 
-// This should be kept updated with new versions of the original function
+/* Replacement for language specific help on selection.
+ * function (cmd_helpLanguage command) extended to handle "javascript:" format.
+ * The original code is located in chrome://komodo/content/launch.js
+ * 
+ * Note: this should be kept updated with new versions of the original function.
+*/
 
 
 /**

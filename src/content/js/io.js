@@ -1,6 +1,10 @@
-//res = csvToObj(data, ',', 0, true, ['', 'package', 'libPath', 'version', 'rVersion', 'reposVerion', 'repos' ])
-
-
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *  Copyright (c) 2011-2017 Kamil Barton
+ *  
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+ 
 sv.io = {};
 
 (function(){
@@ -20,7 +24,7 @@ this.JSONDecode = function JSON_Decode(str) {
 
 function CSVRow(rowArr, colNames, hasRowNames) {
 	if(rowArr.length != colNames.length)
-		throw("Number of columns (" +  rowArr.length +
+		throw new Error("Number of columns (" +  rowArr.length +
 			") does not match the header (" + colNames.length + ").");
 	for(var j = hasRowNames ? 1 : 0, k = rowArr.length; j < k; j++)
 		this[colNames[j]] = rowArr[j];

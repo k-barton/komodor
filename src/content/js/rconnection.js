@@ -1,19 +1,34 @@
-// 'sv.rconn' object is an interface to R implemented mostly in python
-// 		The workhorse is 'svUtils' with XPCOM interface
-//.command (Read only) last command evaluated
-//.result (Read only) last result returned
-//.listRProcesses(property) get information on currently running R processes
-//		(property is one of 'Handle','ProcessId' or 'CommandLine'
-//.evalAsync(command, ...) evaluate in R, optional further arguments (see below)
-//.eval(command) - do 'quick' evaluation in R, and
-//		return the result
-//.startSocketServer(requestHandler) - optional 'requestHandler' is a function that
-//		handles the received data and returns a string
-//.stopSocketServer()
-//.isRConnectionUp(checkProc) - test whether R is available, check connection and
-//		optionally look up running processes
-// sv.rconn.svuSvc.lastCommandInfo.result.replace(/\r\n/g, "\\r\\n")
-//==============================================================================
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  Copyright (c) 2011-2017 Kamil Barton
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+
+/*
+ *  'sv.rconn' object is an interface to R implemented mostly in python
+ *  		The workhorse is 'svUtils' with XPCOM interface
+ * .command (Read only) last command evaluated
+ * .result (Read only) last result returned
+ * .listRProcesses(property) get information on currently running R processes
+ * 		(property is one of 'Handle','ProcessId' or 'CommandLine'
+ * .evalAsync(command, ...) evaluate in R, optional further arguments (see below)
+ * .eval(command) - do 'quick' evaluation in R, and
+ * 		return the result
+ * .startSocketServer(requestHandler) - optional 'requestHandler' is a function that
+ * 		handles the received data and returns a string
+ * .stopSocketServer()
+ * .isRConnectionUp(checkProc) - test whether R is available, check connection and
+ * 		optionally look up running processes
+ *  sv.rconn.svuSvc.lastCommandInfo.result.replace(/\r\n/g, "\\r\\n")
+ */
+
+// requires sv.utils (sv.cmdout), sv.pref
+ 
+ 
+/* globals sv, ko, require, Components */
+
+
 sv.rconn = {};
 
 (function () {
@@ -27,7 +42,7 @@ sv.rconn = {};
     } = Components;
 
     // get string from nsISupportsString
-    var _str = (sString) => sString.QueryInterface(Ci.nsISupportsString).data;
+    var _str = sString => sString.QueryInterface(Ci.nsISupportsString).data;
 
     var connector = Cc["@komodor/svUtils;1"]
         .getService(Ci.svIUtils);
@@ -96,7 +111,15 @@ sv.rconn = {};
 
     // Evaluate in R
     this.evalAsync = function (command, callback, hidden, stdOut) { //, ...
-        var handlers = _this.handlers,
+        if(command === undefined || command == null) 
+			throw new Error("'command' is null or undefined");
+		// Note: to check if a variable is declared and is not undefined:
+		// typeof v == "undefined" 
+		//If you know the variable exists, and want to check whether there's 
+		// any value stored in it:
+		//v === "undefined" 
+		
+		var handlers = _this.handlers,
             keep = false;
         var args = Array.apply(null, arguments);
 
@@ -114,23 +137,30 @@ sv.rconn = {};
     // Evaluate in R instantaneously and return result
     // stdOut - if true, stderr stream is omitted
     this.eval = function (command, timeout, stdOut) {
+		if(command === undefined || command == null) 
+			throw new Error("'command' is null or undefined");
+		
         if (timeout === undefined) timeout = 0.5;
         if (stdOut === undefined) stdOut = false;
         var res = connector.evalInR(command, 'json h', timeout);
-        if (res[0] == '\x15') throw (new Error("Error in rconn.eval: R command was " + command));
+        if (res[0] == '\x15') 
+			throw new Error("(sv.rconn.eval) R command was \"" + command + "\"");
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
     };
 
     // For internal use with repeated commands (result handler is defined only once)
     // reuse result handler predefined with '.defineResultHandler'
     this.evalPredefined = function (command, handlerId, hidden) {
+		if(command === undefined || command == null) 
+			throw new Error("'command' is null or undefined");
+		
         var handlers = _this.handlers;
         var args = Array.apply(null, arguments);
         if (handlerId in handlers) {
             args.splice(0, 3); // remove first 3 items
             handlers[handlerId].args = args;
         } else {
-            throw (new Error("No handler with id: " + handlerId));
+            throw new Error("No handler for id=" + handlerId);
         }
         var mode = ['json'];
         if (hidden) mode.push('h');
@@ -175,6 +205,7 @@ sv.rconn = {};
                 return eval(str.substring(8));
             }
         } catch (e) {
+            logger.exception(e, "koCmd request was: \n" + str);
             return e.message;
         }
         return "Received: [" + str + "]"; // echo
@@ -299,10 +330,10 @@ sv.rconn = {};
     //			result = '...';
     //			prompt = ':+';
     //		break;
-    //		case 'Want more':
+    //		case 'more':
     //		break;
-    //		case 'Parse error':
-    //		case 'Done':
+    //		case 'parse-error':
+    //		case 'done':
     //		default:
     //			styledResult = cinfo.result? cinfo.styledResult() : '';
     //	}
@@ -369,14 +400,14 @@ sv.rconn = {};
             case 'r-command-executed':
                 var cid = subject.commandId;
                 switch (subject.message) {
-                case 'Want more':
+                case 'more':
                     wantMore = true;
                     break;
-                case 'Parse error':
+                case 'parse-error':
                     break; // Execute handler on parse error? I guess not.
                     //if (cid in _this.handlers && !keep)
                     //delete _this.handlers[cid];
-                case 'Done':
+                case 'done':
                     if (cid in _this.handlers) {
                         let keep = _this.handlers[cid]
                             .onDone(data, subject.command, subject.mode);

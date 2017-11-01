@@ -1,14 +1,23 @@
-// SciViews-K R preferences panel functions
-// Copyright (c) 2009-2010 Ph. Grosjean (phgrosjean@sciviews.org) & Kamil Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *  Copyright (c) 2011-2017 Kamil Barton
+ *  
+ *  This code is based on SciViews-K code:
+ *  Copyright (c) 2008-2015, Ph. Grosjean (phgrosjean@sciviews.org) & K. Barton
+ * 
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+
+/*globals parent, self, navigator, document, Components, ko */
+
 
 var sv;
 
 var PrefR_CranMirrors = { http : [], https : [] };
 var PrefR_CMSecure;
 
-if (!xtk) var xtk = parent.opener.xtk;
-
+if (typeof xtk === "undefined")
+	var xtk = parent.opener.xtk;
 
 // For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
@@ -112,6 +121,15 @@ function getSelectedInterpreterPath() {
 	} else return null;
 }
 
+var getDialogs = () => {
+    var p = parent;
+    var dialogs = ko.dialogs;
+    while (p.opener && (p = p.opener) && !dialogs.yesNo)
+        if (p.ko && p.ko.dialogs && p.ko.dialogs.yesNo)
+            dialogs = p.ko.dialogs;
+    return dialogs;
+};
+
 function PrefR_OnLoad(/*event*/) {
 
     // Get the sv object:
@@ -129,7 +147,7 @@ function PrefR_OnLoad(/*event*/) {
 
 	// Note: setting temporary prefset, will be reverted to ko.prefs at closing
 	prefset = parent.hPrefWindow.prefset;
-	svPrefset = sv.pref.prefset;
+	var svPrefset = sv.pref.prefset;
 	sv.pref.prefset = prefset;
 	sv.pref.setDefaults(); // Check if all preference values are ok, if not, restore defaults
 
@@ -156,16 +174,18 @@ function PrefR_OnLoad(/*event*/) {
 		apps.shift();
 	}
     var platform = navigator.platform.substr(0, 3);
-	apps = apps.filter(function(a) (a.platform.indexOf(platform) != -1)
-					   && (!a.required.length || a.required.every(
-						function(y) sv.file.whereIs(y).length != 0)));
+	apps = apps.filter(
+	    a => (a.platform.indexOf(platform) != -1) && 
+	         (!a.required.length || 
+			 a.required.every(y => sv.file.whereIs(y).length != 0))
+		);
+		
 	var tmp = {};
 	for (let i in apps) tmp[apps[i].id] = apps[i];
 	apps = tmp;
 
 	menu.removeAllItems();
     for (let i in apps) menu.appendItem(apps[i].name, i, null);
-
 
 	// DEBUGGING in JSShell:
 	// scope(Shell.enumWins[2]) //chrome://komodo/content/pref/pref.xul
@@ -196,7 +216,6 @@ function PrefR_OnLoad(/*event*/) {
 		prefElements[i].value = sv.pref.getPref(prefElements[i].id);
 
     PrefR_updateCommandLine(true);
-
 	PrefR_UpdateCranMirrorsAsync(false);
 
 	sv.pref.prefset = svPrefset;
@@ -272,7 +291,7 @@ function OnPreferencePageOK(prefset) {
 
     if (outDec == outSep) {
         parent.switchToPanel("svPrefRItem");
-        ko.dialogs.alert(
+        getDialogs().alert(
 			"Decimal separator cannot be the same as field separator.", null,
 			"R interface preferences");
         return(false);
@@ -297,7 +316,7 @@ function OnPreferencePageOK(prefset) {
 		newClientPort != currentClientPort) {
 		var connected = sv.rconn.isRConnectionUp(true);
 
-		if(ko.dialogs.yesNo("Server port changed (from " + currentClientPort +
+		if(getDialogs().yesNo("Server port changed (from " + currentClientPort +
 							" to " + newClientPort + "), would you like to " +
 							"restart it now?" +
 			(connected? "You will lose the current connection to R." : ""),
@@ -321,14 +340,15 @@ function svRDefaultInterpreterOnSelect(event) {
 
 	// Just in case
 	if((value != "R") && (sv.file.exists(value) == sv.file.TYPE_NONE)) {
-		ko.dialogs.alert("Cannot find file: " + value, null,
+		getDialogs().alert("Cannot find file: " + value, null,
 			"R interface preferences");
 	}
 
 	// FIXME: On Win, if 'R' is selected, this chooses RGui:
     var exeName = os.path.basename(value);
     if (!(menuApplication.value in apps) || apps[menuApplication.value].app != exeName) {
-        for (let i in apps) if (apps[i].app == exeName) break;
+        let i;
+		for (i in apps) if (apps.hasOwnProperty(i) && apps[i].app == exeName) break;
         menuApplication.value = i;
     }
 
@@ -535,7 +555,7 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 		if (platform == "win") {
 			var rHome = getSelectedInterpreterPath();
 			if(!rHome) {
-				ko.dialogs.alert("Cannot fill CRAN mirrors list without a valid R interpreter selected",
+				getDialogs().alert("Cannot fill CRAN mirrors list without a valid R interpreter selected",
 					null, "R interface preferences");
 				return;
 			}

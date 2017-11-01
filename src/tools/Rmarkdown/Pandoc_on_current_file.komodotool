@@ -1,0 +1,19 @@
+{
+  "insertOutput": 0, 
+  "parseRegex": "", 
+  "doNotOpenOutputWindow": 0, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/file-xml.svg", 
+  "keyboard_shortcut": "", 
+  "name": "Pandoc on current file", 
+  "operateOnSelection": 0, 
+  "value": [
+    "pandoc --standalone -f markdown -t html -s -o %b.html %f"
+  ], 
+  "cwd": "%D", 
+  "version": "1.0.12", 
+  "env": "", 
+  "showParsedOutputList": 0, 
+  "type": "command", 
+  "parseOutput": 0, 
+  "runIn": "command-output-window"
+}

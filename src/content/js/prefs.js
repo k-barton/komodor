@@ -1,8 +1,17 @@
-// SciViews-K preferences management ('sv.pref' namespace)
-// Define default preferences values for SciViews-K and MRU lists
-// Copyright (c) 2008-2011, Ph. Grosjean & K. Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-if (sv.pref == undefined) sv.pref = {};
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *  Copyright (c) 2011-2017 Kamil Barton
+ *  
+ *  This code is based on SciViews-K code:
+ *  Copyright (c) 2008-2011, Ph. Grosjean (phgrosjean@sciviews.org) & K. Barton
+ * 
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+
+/* globals sv, ko, require */
+
+
+if (sv.pref === undefined) sv.pref = {};
 
 //This can be used in the Preferences page to set/restore missing values:
 //sv.pref.setDefaults()
@@ -62,13 +71,11 @@ if (sv.pref == undefined) sv.pref = {};
         if(renamePref(oldNames[i], newNames[i]))
 		  logger.info("Updated preference name from " + oldNames[i] + " to " + newNames[i]);  
     }
-	
-	
 
     //// Set default preferences
     this.setDefaults = function sv_checkAllPref(revert) {
         var val, rev, hasPref;
-        for (var i in _this.defaults)
+        for (let i in _this.defaults)
             if (_this.defaults.hasOwnProperty(i)) {
                 hasPref = prefset.hasPref(i);
                 val = hasPref ? _this.getPref(i) : null;
@@ -117,4 +124,6 @@ if (sv.pref == undefined) sv.pref = {};
 
 }).apply(sv.pref);
 
+
+// TODO: move to INIT
 sv.pref.setDefaults(false);

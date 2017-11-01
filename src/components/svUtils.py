@@ -370,12 +370,12 @@ class svUtils:
                         break
                     except Exception: continue
                 if not connected: continue
-                data_all = ''
+                data_all = u''
                 try:
                     while connected:
                         log.debug('Connected by %s : %d' % addr)
-                        data = conn.recv(1024L)  # TODO: error: [Errno 10054]
-                        data_all += data
+                        data = conn.recv(1024L)   # XXX: error: [Errno 10054]
+                        data_all += unicode(data) # XXX , encoding?
                         if (not data) or (data[-1] == '\n'): break
                 except Exception, e:
                     log.error(e.args)

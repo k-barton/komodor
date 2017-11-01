@@ -1,0 +1,10 @@
+loadbox {
+-moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#loadbox");
+/*-moz-binding: url("file:///c:/temp/pkgman/pkgman.xbl#loadbox");*/
+}
+
+loadbox > .content-loading {
+background-image: url("chrome://global/skin/icons/loading_16.png");
+background-position: center center;
+background-repeat: no-repeat;
+}

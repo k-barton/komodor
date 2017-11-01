@@ -240,17 +240,20 @@ addEventListener("DOMContentLoaded", function(event) {
 							   />
 							   
 				<toolbarbutton id="rbrowser_tools" buttonstyle="pictures" type="menu" 
-					tooltiptext="R browser-related functions" orient="horizontal" class="project-tools-icon">
+					tooltiptext="R browser options" orient="horizontal" 
+					class="project-tools-icon">
 						<menupopup id="rbrowser_toolsPopup">
 							<menuitem id="rbrowser_tools_showAllObjectsButton" 
 								observes="cmd_rbrowser_showAllObjects" 
 								label="Show all objects" desc="R browser: Show all objects" 
 								oncommand="ko.commands.doCommand('cmd_rbrowser_showAllObjects', event)" 
-								key="key_cmd_rbrowser_showAllObjects"/>
+								key="key_cmd_rbrowser_showAllObjects"
+								disabled="true" />
 							<menuitem id="rbrowser_tools_showAttribButton" observes="cmd_rbrowser_showAttrib" 
-								label="Show attributes" desc="R browser: Show objects' attributes" 
+								label="Show attributes" desc="R browser: Show object attributes" 
 								oncommand="ko.commands.doCommand('cmd_rbrowser_showAttrib', event)" 
-								key="key_cmd_rbrowser_showAttrib"/>
+								key="key_cmd_rbrowser_showAttrib"
+								disabled="true" />
 							</menupopup>
 				</toolbarbutton>		   
 				
@@ -299,29 +302,23 @@ addEventListener("DOMContentLoaded", function(event) {
 				resizeafter="farthest"
 				ondblclick="sv.rbrowser.toggleViewSearchPath()"
 				collapse="none">
-				<hbox id="rbrowserSubpanelSplitterHbox"
-					  flex="1"
-					  align="center">
-				  <!-- Using a deck inside a splitter causes layout problems on Linux,
-					   see bug 88126. This is unfortunate, as it makes it near
-					   impossible to overlay with another widget.
-					-->
-				  <label id="rbrowserSubpanelSplitterProjectLabel"
-						 value="R search path" />
-				  <!-- Note: We intentionally do not use a child 'menupopup' element
-					here because there is some interaction with the containing
-					splitter such that you can't invoke the menu entries, at least
-					on Mac. Using a separate 'popup' outside of the splitter is
-					a workaround. -->
-				  <!-- Note #2: this menu comes from popup_project
-					   via ko.places.projects.initProjectMRUCogMenu_MPV()
-					 -->
-				  <toolbarbutton id="rbrowserSubpanelToggle"
-					  buttonstyle="pictures"
-					  oncommand="sv.rbrowser.toggleViewSearchPath()"
-					  persist="state"
-					  state="collapsed" />
-				</hbox>
+				<vbox flex="1" height="32">
+					<hbox id="rbrowserSubpanelSplitterHboxBorder"/>
+				    <hbox id="rbrowserSubpanelSplitterHbox"
+						  flex="1" align="center">
+						  <label id="rbrowserSubpanelSplitterProjectLabel"
+						  class="panel-label">R search path</label>
+						  <spacer flex="1"/>
+						  <toolbarbutton id="rbrowserSubpanelToggle"
+							  buttonstyle="pictures"
+							  oncommand="sv.rbrowser.toggleViewSearchPath()"
+							  persist="state"
+							  state="collapsed"
+							  tooltiptext="Open the R Search Path Subpanel"
+							  />
+						  <spacer flex="1"/>
+					</hbox>
+				</vbox>
 			</splitter>
 
 			<vbox id="rbrowserSubpanelBox"

@@ -123,15 +123,15 @@ richlistitem description.title {
 	font-weight: bold;
 }
 
-richlistitem[update=true] {
+richlistbox richlistitem[update=true] {
 	background-color: #e1ffc4;
 }
 
-richlistitem[selected="true"] {
+richlistbox richlistitem[selected="true"] {
 	color: HighlightText;
 	background-attachment: scroll;
 	background-color: Highlight;
-	background-image: url("chrome://komodor/skin/images/itemEnabledFader.png");
+	background-image: linear-gradient(to bottom, highlight 30%, window);
 	background-position: 0% 0%;
 	background-repeat: repeat;
 }

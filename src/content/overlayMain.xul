@@ -53,18 +53,19 @@
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+<script type="application/x-javascript" src="chrome://komodor/content/js/komodor.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/array.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/main.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/tools/file.js"/><!--array-->
 <script type="application/x-javascript" src="chrome://komodor/content/js/prefs.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/rconnection.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/rconnection.js"/><!--utils,pref-->
+<script type="application/x-javascript" src="chrome://komodor/content/js/utils.js"/><!--file,rconnection-->
 <script type="application/x-javascript" src="chrome://komodor/content/js/io.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/r.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/r-help.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/commands.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/commands.js"/><!--file,string,rconnection,utils,pref,rbrowser-->
+<script type="application/x-javascript" src="chrome://komodor/content/js/r.js"/><!--rconnection,file,utils,command,rbrowser,string-->
 <script type="application/x-javascript" src="chrome://komodor/content/js/misc.js"/>
-
+<script type="application/x-javascript" src="chrome://komodor/content/js/r-help.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/js/init.js"/>
 
 <broadcasterset id="broadcasterset_global">
 	<broadcaster id="sv_r_is_running" disabled="false"/>
@@ -83,7 +84,7 @@
 		autoCheck="false"
 		checked="true"
 		persist="checked"
-		oncommand="ko.commands.doCommandAsync('cmd_viewrtoolbar', event)"
+		oncommand="ko.commands.doCommandAsync('cmd_viewrtoolbar', event);"
 	/>
 	<broadcaster id="cmd_svRStarted"
 		oncommand="ko.commands.doCommand(sv.r.isRunning? 'cmd_svQuitR' : 'cmd_svStartR');"
@@ -332,8 +333,10 @@
 	label="&rBrowser.tab;"
 	tab_onfocus="sv.rbrowser.focus();"
 	src="chrome://komodor/content/rbrowser-pane.xul"
+    icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg" 
+	style="list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg)"
 	/>
-<!-- icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser3.svg" -->
+<!-- icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?size=14" -->
 </ko-pane>
 
 

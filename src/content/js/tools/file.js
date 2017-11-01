@@ -1,35 +1,14 @@
-// SciViews-K file related functions
-// Various file related functions in 'sv.file' namespace
-// Copyright (c) 2008-2011, Kamil Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// sv.file.defaultEncoding;			// Default file encoding to use
-// sv.file.read(filename, encoding);	// Read a file with encoding
-// sv.file.write(filename, content, encoding, append);
-// Write in a file with encoding
-// sv.file.exists(file); 	// Checks for file existence, returns 2 for
-// directory, 1 for file, otherwise 0
-// sv.file.temp(prefix);	// Creates unique temporary file, accessible
-// by all users, and returns its name
-// sv.file.specDir(dirName)	// Translate special directory name
-// sv.file.path(...); 		// Create path from concatenated arguments:
-// - special directory names are translated,
-// - relative paths are expanded.
-// sv.file.getLocalFile(baseDir, [pathComponents]);
-// Create nsILocalFile object from array
-// and/or special dir name
-// sv.file.readURI(uri);		// Read data from an URI
-// sv.file.pathFromURI(uri);	// Converts an URI to local path
-// sv.file.list(dirname, pattern, noext); // List all files matching
-// pattern in dirname with(out) extension
-// sv.file.whereIs(appName);
-// Tries to find full application path,
-// returns null if not found
-////////////////////////////////////////////////////////////////////////////////
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  Copyright (c) 2008-2017 Kamil Barton
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+
+
+// requires sv.array
+
 if (typeof (sv.file) == 'undefined') sv.file = {};
-
-//require("sdk/system").platform.toLowerCase() == "winnt"
-
 
 (function () {
     // Default file encoding to use

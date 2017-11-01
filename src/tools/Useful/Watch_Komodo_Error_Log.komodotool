@@ -17,5 +17,5 @@
   "version": "1.0.12", 
   "async": 0, 
   "type": "macro", 
-  "icon": "koicon://ko-svg/chrome/icomoon/skin/file6.svg"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/warning.svg"
 }

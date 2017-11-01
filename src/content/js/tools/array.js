@@ -1,15 +1,10 @@
-// SciViews-K array functions
-// Various functions to manipulate arrays, 'sv.array' namespace'
-// Copyright (c) 2008-2011, Romain Francois and Kamil Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// sv.array.remove(a, s);     // Eliminate 's' from 'a'
-// sv.array.contains(a, s);   // Does array 'a' contain 's'
-// sv.array.removeItem(a, s); // this function is removed now - use splice
-// 									// instead
-//
-// Additional methods to Array objects /////////////////////////////////////////
-// Adding to Array.prototype has REALLY strange side effects. No idea why.
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  Copyright (c) 2011-2017 Kamil Barton
+ *  Copyright (c) 2008-2011 Romain Francois and Kamil Barton
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
 
 // Define the 'sv.array' namespace
 if (typeof(sv) == 'undefined') sv = {};

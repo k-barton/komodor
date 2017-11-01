@@ -2,17 +2,30 @@
 /* ---- Places subpanel ---- */
 
 #rbrowserSubpanelToggle[state="open"] {
-  list-style-image : url("chrome://fugue/skin/icons/control-270.png");
+  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg");
 }
 #rbrowserSubpanelToggle[state="collapsed"] {
-  list-style-image : url("chrome://fugue/skin/icons/control-090.png");
+  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-up2.svg");
 }
+
+#rbrowserViewbox_rbrowserWrapper toolbarbutton image.toolbarbutton-icon {
+  width: 14px;
+  height: 14px;
+}
+
+
 
 /* No default grippy image. Splitter-like cursor as appropriate. */
 #rbrowserSubpanelSplitter {
   background: transparent !important;
   border: none;
   border-top: solid 1px ThreeDShadow;
+}
+
+#rbrowserSubpanelSplitterHboxBorder {
+  -moz-box-orient: horizontal;
+  height: 1px;
+  margin: 0 10px;
 }
 #rbrowserSubpanelSplitter > grippy {
   background-image: none !important;
@@ -24,6 +37,8 @@
 #rbrowserSubpanelSplitter toolbarbutton  {
   cursor: default;
 }
+
+
 
 
 /******************************************************************************/
@@ -124,14 +139,16 @@
 
 #rbrowser_filterByName_button {
 	/*-moz-image-region: rect(top, right, bottom, left);*/
-	list-style-image: url("chrome://komodor/skin/images/filter.png");
-	-moz-image-region: rect(0px, 31px, 15px, 16px);
-	
+	/* list-style-image: url("chrome://komodor/skin/images/filter.png"); */
+	/* -moz-image-region: rect(0px, 31px, 15px, 16px); */
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/filter-name.svg");
+
 }
 
 #rbrowser_filterByClass_button {
-	list-style-image: url("chrome://komodor/skin/images/filter.png");
-	-moz-image-region: rect(0px, 47px, 15px, 32px);
+	/* list-style-image: url("chrome://komodor/skin/images/filter.png"); */
+	/* -moz-image-region: rect(0px, 47px, 15px, 32px); */
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/filter-class.svg");
 }
 
 
@@ -142,11 +159,13 @@
 
 
 #rbrowser_showAll_button {
-	list-style-image: url("chrome://komodor/skin/images/objects-hide-hidden.png");
+	/* list-style-image: url("chrome://komodor/skin/images/objects-hide-hidden.png"); */
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/eye-closed.svg);
 }
 
 #rbrowser_showAll_button[checked="true"] {
-	list-style-image: url("chrome://komodor/skin/images/objects-show-hidden.png");
+	/* list-style-image: url("chrome://komodor/skin/images/objects-show-hidden.png"); */
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/eye.svg);
 }
 
 #rbrowser_showAttributes_button {
@@ -158,10 +177,10 @@
 }
 
 
+/* list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/loop4.svg); */
+
 
 /*rbrowserToolbar*/
-
-
 
 /*
 .r-objects-filter {
@@ -174,13 +193,20 @@
 }*/
 
 .robjects-fold-all-icon {
-	list-style-image: url("chrome://komodor/skin/images/toggle_close.png");
+	/* list-style-image: url("chrome://komodor/skin/images/toggle_close.png"); */
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/minus-circle.svg);
 }
 
 .robjects-expand-all-icon {
-	list-style-image: url("chrome://komodor/skin/images/toggle_open.png");
+	/* list-style-image: url("chrome://komodor/skin/images/toggle_open.png"); */
+    list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/plus-circle.svg);
 }
 
 .searchPath-icon{
 	list-style-image: url("chrome://komodo/skin/images/bulletlist.png");
+}
+
+
+#rbrowserToolbar .refresh-icon {
+    list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/refresh.svg);
 }

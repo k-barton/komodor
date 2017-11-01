@@ -5,7 +5,7 @@ if(exists("getSrcFilename", where = "package:utils", mode = "function")) {
 	getSrcFilename <- utils::getSrcFilename
 }
 
- DEBUG <- function (...) {}
+DEBUG <- function (...) {}
 #DEBUG <- function (x, ...) {
 #	cat("DEBUG: ")
 #	if(!is.character(substitute(x)))
@@ -71,19 +71,18 @@ function (..., domain = "R") {
 }
 
 unsink <- function () {
-    sink(type = "m")
-    sink(type = "o")
+    sink(type = "message")
+    sink(type = "output")
 }
 
 # inspired by 'capture.output' and utils:::.try_silent
 # Use argument "doTraceback=FALSE"  for internal commands to avoid overwriting
 #       user's errors and warnings
 `sv_captureAll` <- function (expr, split = FALSE, file = NULL, markStdErr = FALSE,
-		envir = sv_CurrentEnvir, doTraceback = TRUE) {
+		envir = getCurrentEnv(), doTraceback = TRUE) {
 	# TODO: support for 'file' and 'split'
 
 	# markStdErr: if TRUE, stderr is separated from sddout by STX/ETX character
-
 
 	last.warning <- list()
 	Traceback <- NULL
@@ -108,9 +107,8 @@ unsink <- function () {
 	})
 
 	inStdOut <- TRUE
-
 	if (markStdErr) {
-		putMark <- function (to.stdout, id) {
+		mark <- function (to.stdout, id) {
 			do.mark <- FALSE
 			if (inStdOut) {
 				if (!to.stdout) {
@@ -124,7 +122,7 @@ unsink <- function () {
 					do.mark <- TRUE
 			}}
 		}
-	} else 	putMark <- function (to.stdout, id) {}
+	} else 	mark <- function (to.stdout, id) {}
 
 
 	## Marker functions to recognize internal errors
@@ -166,14 +164,16 @@ unsink <- function () {
 			#    Finally:   calls[find(.handleSimpleError) - 1 : find(captXX..evalVis..XX) + 3)]
 
 			for(i in ncls:1L)
-				if(length(calls[[i]]) == 4L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == ".handleSimpleError") {
+				if(length(calls[[i]]) == 4L && is.symbol(calls[[i]][[1L]]) && 
+					calls[[i]][[1L]] == ".handleSimpleError") {
 					cfrom <- i - 1L
 					break
 				}
 				
 			if(cfrom == ncls) cfrom <- cfrom - 1L
 			for(i in cfrom:1L)
-				if(length(calls[[i]]) == 2L && is.symbol(calls[[i]][[1L]]) && calls[[i]][[1L]] == "captXX..evalVis..XX") {
+				if(length(calls[[i]]) == 2L && is.symbol(calls[[i]][[1L]]) && 
+					calls[[i]][[1L]] == "captXX..evalVis..XX") {
 					cto <- i + 3L
 					break
 				}
@@ -207,7 +207,7 @@ unsink <- function () {
 		#print(calls)
 		#cat("**End Traceback**\n")
 
-		putMark(FALSE, 1L)
+		mark(FALSE, 1L)
 		cat(as.character.error(e))
 		if(getWarnLev() == 0L && length(last.warning) > 0L)
 			cat(.gettextx("In addition: "))
@@ -249,11 +249,11 @@ unsink <- function () {
 		},
 
 		message = function (e)  {
-			putMark(FALSE, 8L)
+			mark(FALSE, 8L)
 			DEBUG("message")
 
 			cat(conditionMessage(e), sep = "")
-			putMark(TRUE, 9L)
+			mark(TRUE, 9L)
 			invokeRestart("muffleMessage")
 		},
 		error = function (e) invokeRestart("grmbl", e, sys.calls()),
@@ -265,10 +265,10 @@ unsink <- function () {
 			DEBUG("warning")
 
 			if(getWarnLev() != 0L) {
-				putMark(FALSE, 2L)
+				mark(FALSE, 2L)
 				.Internal(.signalCondition(e, conditionMessage(e), conditionCall(e)))
 				.Internal(.dfltWarn(conditionMessage(e), conditionCall(e)))
-				putMark(TRUE, 3L)
+				mark(TRUE, 3L)
 			} else {
 				# XXX: error with [[]] when $call is NULL
 				el <- list(e$call)
@@ -284,13 +284,13 @@ unsink <- function () {
 	# Handling user interrupts. Currently it works only from within R.
 	# TODO: how to trigger interrupt remotely?
 	abort = function (...) {
-		putMark(FALSE, 4L)
+		mark(FALSE, 4L)
 		cat("Execution aborted. \n")
 	},
 	muffleMessage = function () NULL,
 	grmbl = restartError),
 	error = function (e) { #XXX: this is called if warnLevel=2
-		putMark(FALSE, 5L)
+		mark(FALSE, 5L)
 		DEBUG("error#2")
 		cat(as.character.error(e))
 		DEBUG("end error#2")
@@ -302,7 +302,7 @@ unsink <- function () {
 		nwarn <- length(last.warning)
 		if(doTraceback) assign("last.warning", last.warning, envir = baseenv())
 
-		if(nwarn != 0L) putMark(FALSE, 6L)
+		if(nwarn != 0L) mark(FALSE, 6L)
 		if(nwarn <= 10L) {
 			print.warnings(last.warning)
 		} else if (nwarn < 50L) {
@@ -311,7 +311,7 @@ unsink <- function () {
 			cat(.gettextx("There were 50 or more warnings (use warnings() to see the first 50)\n"))
 		}
 	}
-	putMark(TRUE, 7L)
+	mark(TRUE, 7L)
 
 	sink(type = "message")
 	sink(type = "output")

@@ -1,20 +1,19 @@
 # <LICENSE BLOCK:KomodoR>
 `sv_objSearch` <-
 function(sep = "\t", compare = TRUE) {
-    Search <- search()
+    rval <- search()
+	changed <- FALSE
     if (isTRUE(compare)) {
         oldSearch <- getTemp(".guiObjSearchCache", default = "")
         ## Compare both versions
-        if (length(Search) != length(oldSearch) || !all(Search == oldSearch)) {
+        if (!identical(rval, oldSearch)) {
             ## Keep a copy of the last version in TempEnv
-            assignTemp(".guiObjSearchCache", Search)
-            Changed <- TRUE
-        } else Changed <- FALSE
-    } else Changed <- TRUE
-    
-    if (Changed) {
-        if (!is.null(sep)) 
-            Search <- paste(Search, collapse = sep)
-        return(Search)
+            assignTemp(".guiObjSearchCache", rval)
+            changed <- TRUE
+        }
+    } else changed <- TRUE
+    if (changed) {
+        if (!is.null(sep)) return(paste0(rval, collapse = sep))
+        return(rval)
     } else return("")
 } 

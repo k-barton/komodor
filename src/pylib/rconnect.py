@@ -13,7 +13,7 @@ class RConn(object):
     def __init__(self, port):
         self.port = port if port > 0 else self.default_port
      
-    # XXX: couldn't find any better way to access port from R   
+    # XXX: couldn't find any other way to access port from R   
     def read_port_no(self):
         filename = os.path.realpath(os.path.join(__file__, '..', '..', 'R', '~port'))
         if os.path.exists(filename):

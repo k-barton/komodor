@@ -15,10 +15,9 @@
 	The Original Code is SciViews-K by Philippe Grosjean et al.
 
 	Contributor(s):
-	Philippe Grosjean
 	Kamil Barton
-	ActiveState Software Inc (code inspired from)
-
+	Philippe Grosjean
+	
 	Alternatively, the contents of this file may be used under the terms of
 	either the GNU General Public License Version 2 or later (the "GPL"), or
 	the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -44,7 +43,7 @@
 <?xml-stylesheet href="chrome://komodo/skin/tree.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/prefs/prefs.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/menulist-iconic.css" type="text/css"?>
-
+<?xml-stylesheet href="chrome://komodor/skin/pref-R.css" type="text/css"?>
 
 <window xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -53,7 +52,7 @@
     onload="PrefR_OnLoad(event);">
 
 <script src="chrome://komodo/content/library/trace.js" type="application/x-javascript"/>
-<script src="chrome://komodo/content/library/logging.js" type="application/x-javascript"/>
+<!-- <script src="chrome://komodo/content/library/logging.js" type="application/x-javascript"/> -->
 <script src="chrome://komodo/content/library/dialogs.js" type="application/x-javascript"/>
 <script src="chrome://komodo/content/library/uriparse.js" type="application/x-javascript"/>
 <script src="chrome://komodo/content/library/filepickers.js" type="application/x-javascript"/>
@@ -73,24 +72,26 @@
 			</description>
 			<button label="http://cran.r-project.org/"
 						class="button-link-a" style="cursor: pointer;"
-						oncommand="parent.opener.ko.browse.openUrlInDefaultBrowser('http://cran.r-project.org/');"/>
+						oncommand="parent.opener.ko.browse.openUrlInDefaultBrowser(this.label)"/>
 			<separator />
 		</vbox>
 		<hbox align="center">
-			<label class="label" control="RInterface.runRAs" value="Preferred way to run R:"/>
+			<label class="label equalheight" control="RInterface.runRAs" value="Preferred way to run R:"/>
 				<menulist
-				id="RInterface.runRAs" oncommand="PrefR_svRApplicationOnSelect(event);"
+				id="RInterface.runRAs" oncommand="PrefR_svRApplicationOnSelect(event)"
 				pref="true" editable="false" />
 
 		</hbox>
 		<label value="Use this application:" control="RInterface.pathToR" />
 		<hbox>
 			<vbox flex="2">
-				<menulist id="RInterface.pathToR" sizetopopup="none" width="200"
-						  editable="false" flex="1" pref="true"
-						  oncommand="svRDefaultInterpreterOnSelect(event);"
-						  />
-
+				<hbox align="center">
+					<menulist id="RInterface.pathToR" sizetopopup="none" width="200"
+							  editable="false" flex="1" pref="true"
+							  class="menulist-buttons"
+							  oncommand="svRDefaultInterpreterOnSelect(event)"
+							  />
+				</hbox>
 				<hbox align="center">
 					<label value="Command line arguments:"
 								control="RInterface.cmdArgs" pref="false" />
@@ -102,16 +103,14 @@
 						buttonstyle="pictures" class="help-icon"
 						tooltiptext="Show R Help about the command line" />
 				</hbox>
-
 			</vbox>
 			<vbox>
 				<hbox align="center">
 					<button tooltiptext="Refresh" oncommand="PrefR_PopulateRInterpreters();"
-						buttonstyle="pictures" class="refresh-icon"
-						style="min-width: 24px; margin-left: 0; margin-right: 0;"
+						buttonstyle="pictures" class="refresh-icon menulist-buttons"
 						/>
-					<button style="margin-left: 0; " label="Browse..."
-						oncommand="PrefR_setExecutable();"/>
+					<button class="menulist-buttons" label="Browse..."
+						oncommand="PrefR_setExecutable()"/>
 				</hbox>
 			</vbox>
 		</hbox>
@@ -120,7 +119,6 @@
 				<label class="label" control="R_command" crop="end"
 					value="This command will be used to start R (R->Start R):"/>
 				<textbox id="R_command" value="" class="plain"
-					style="background: none; padding-top: 1px !important; margin-left: 10px !important;"
 					/>
 		</vbox>
 	</groupbox>
@@ -135,14 +133,16 @@
 				<row align="center">
 					<label value="Decimal separator" control="RInterface.CSVDecimalSep"/>
 					<menulist pref="true" id="RInterface.CSVDecimalSep"
-						values=", ." persist="values" maxValues="3">
+						values=", ." persist="values" maxValues="3"
+						class="short">
 						<menupopup />
 					</menulist>
 					<label value="CSV field separator" control="RInterface.CSVSep" />
 						<menulist pref="true" id="RInterface.CSVSep" editable="true"
 							onkeyup="if (event.keyCode == 13) editMenulist(this);"
 							onblur="editMenulist(this);"
-							values=", ; \t" persist="values" maxValues="5">
+							values=", ; \t" persist="values" maxValues="5"
+							class="short">
 						<menupopup />
 					</menulist>
 				</row>
@@ -156,6 +156,7 @@
 			<hbox align="center">
 				<label value="Default CRAN mirror:" control="CRANMirror" />
 					<menulist id="CRANMirror" sizetopopup="none" width="200"
+					        class="menulist-buttons"
 							oncommand="OnCranMirrorChange()"
 							>
 						<!-- /set manually/ pref="true" prefattribute="value"-->
@@ -163,6 +164,8 @@
 				</menulist>
 				<button id="RefreshCRANMirrors"
 						label="Refresh list"
+						tooltip="Refresh list"
+						buttonstyle="pictures" class="refresh-icon menulist-buttons"
 						oncommand="PrefR_UpdateCranMirrorsAsync(true)" />
 				<vbox align="right" flex="1">
 					<checkbox id="CRANMirrorSecure" label="Secure mirrors (HTTPS)"

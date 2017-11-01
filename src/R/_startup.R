@@ -92,7 +92,7 @@ local({
     if(length(Rservers) > 0L) {
         portstr <- tail(Rservers, 1L)
         options(ko.R.port = as.integer(portstr))
-        writeLines(text = portstr, con = file.path(cwd0, "~port"))
+        writeLines(text = portstr, con = file.path(cwd0, "~port")) # for rconnect.py
     } else portstr <- NULL
 
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {

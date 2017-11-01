@@ -4,7 +4,9 @@
 }
 
 .r-run-command-icon[disabled="true"] {
-	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_disabled.svg);
+	opacity: 0.5;
+	filter: grayscale(50%);
+	/* list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_disabled.svg); */
 }
 
 .r-quit-command-icon {
@@ -24,11 +26,14 @@
 }
 
 .r-run-all-icon {
-	list-style-image: url("chrome://komodor/skin/images/run_all.png");
+	/* list-style-image: url("chrome://komodor/skin/images/run_all.png"); */
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/file-run.svg);
 }
 
 .r-run-all-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/run_all_disabled.png");
+	/* list-style-image: url("chrome://komodor/skin/images/run_all_disabled.png"); */
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-run-selection-icon {
@@ -88,11 +93,13 @@
 }
 
 .r-source-block-icon {
-	list-style-image: url("chrome://komodor/skin/images/source_block.png");
+	/* list-style-image: url("chrome://komodor/skin/images/source_block.png"); */
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/file-source-block.svg);
 }
 
 .r-source-block-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/source_block_disabled.png");
+	opacity: 0.5;
+	/* list-style-image: url("chrome://komodor/skin/images/source_block_disabled.png"); */
 }
 
 .r-source-function-icon {
@@ -240,9 +247,20 @@ treechildren::-moz-tree-image(LanguageR) {
 
 /* Ko>9 */
 tab[widget="rbrowser_tabpanel"] .tab-icon { 
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   visibility: visible;
-  background-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?size=14);
+  background-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?size=16);
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
 }
+
+/*
+ko-pane[type="icons"] tab[widget="rbrowser_tabpanel"] {
+  list-style-image: none !important;
+}
+*/
+/* ko-pane[type="icons"] tab[widget="rbrowser_tabpanel"] { */
+  /* list-style-image: none !important; */
+/* } */
 

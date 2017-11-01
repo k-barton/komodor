@@ -118,16 +118,15 @@ tcl <- tcltk::tcl
 
 		if(!is.expression(expr) && is.na(expr)) {
 			ret <- ''
-			msg <- 'Want more'
+			msg <- 'more'
 			assign(prevcodeVarName, c(prevcode, x), .tempEnv)
 		} else {
 			if(inherits(expr, "try-error")) {
 				ret <- c('\x03', c(expr), '\x02')
-				msg <- 'Parse error'
+				msg <- 'parse-error'
 			} else {
-				ret <- sv_captureAll(expr, markStdErr = TRUE, envir = sv_CurrentEnvir)
-				                
-				msg <- 'Done'
+				ret <- sv_captureAll(expr, markStdErr = TRUE, envir = getCurrentEnv())
+				msg <- 'done'
 			}
 
 			if(exists(prevcodeVarName, .tempEnv, inherits = FALSE))

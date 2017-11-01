@@ -1,49 +1,65 @@
-/*
- *   SciViews-K R objects browser functions
- *   Define the 'sv.rbrowser' tree and implement RObjectsOverlay functions
- *   Copyright (c) 2009-2015 Kamil Barton & Philippe Grosjean
- *   License: GPL 2.0
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  Copyright (c) 2015-2017 Kamil Barton
+ *  Copyright (c) 2009-2015 Kamil Barton & Ph. Grosjean (phgrosjean@sciviews.org)
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
+
 /*
  * TODO: identify packages by pos rather than name (allow for non-unique names)
  * TODO: context menu for search-paths list
  * TODO: renaming objects on the list - editable names
  * TODO: add context menu item for environments: remove all objects
- * TODO: add a checkbutton to show also hidden objects (starting with a dot)
  * TODO: automatic refresh of the browser from R
- * TODO: make this a sv.robjects.tree instead
+ * TODO: make this a sv.robjects.tree 
  */
-/*
-for(i in objects) {
- objects[i]
-// Fields: Class, Dims, Full.name, Group, Name, Recursive
-*/
+
+/* globals sv, ko, require, Components, document, self, TransferData,
+           FlavourSet */
+
 sv.rbrowser = {};
 
 // Control characters + separators (make them sv-wide):
-//\x15 - connection error
-//\x03 - stderr
-//\x02 - stdout
+//     \x15 - connection error
+//     \x03 - stderr
+//     \x02 - stdout
 //robjects:
-//\x1e - record separator
-//\x1f - unit separator
-//\x1d - group separator
+//     \x1e - record separator
+//     \x1f - unit separator
+//     \x1d - group separator
 
 // sv.rbrowser constructor
 (function () {
 	
 	var logger = require("ko/logging").getLogger("komodoR");
-
+    //logger.setLevel(logger.DEBUG);
 
     // FIXME: sep is also defined as sv.r.sep
     var sep = "\x1f"; // ";;"
     var recordSep = "\x1e";
     //var recordSep = "\n"; //"\x1e";
+      
+    var dQuote = s => "\"" + s + "\"";
+		
+	// id +'_' + 
+	var createCommand = (env, obj, all) => 
+		"print_objList(sv_objList(id=" + dQuote(sv.uid(1) + "_" + env + "_" + obj) + 
+		", envir=" + (env ? dQuote(env) : "") +  
+		", object=" + dQuote(obj) + ", all.info=FALSE, compare=FALSE, " + 
+		"all.names=" + (all ? "TRUE" : "FALSE") + "), sep=" + dQuote(sep) + 
+		    ", eol=" + dQuote(recordSep) + ")";
 
-    var cmdPattern = 'print_objList(sv_objList(id = "%ID%_%ENV%_%OBJ%", envir = "%ENV%",' +
-        ' object = "%OBJ%", all.info = FALSE, compare = FALSE, all.names = %ALL%), sep = "' + sep +
-        '", eol = "' + recordSep + '")'
-        .replace(/%ID%/, sv.uid(1));
+    var _getObjListCommand = function(env, objName) {
+               var rval = createCommand(env ? sv.string.addslashes(env) : env,
+                   objName ? objName.replace(/\$/g, "$$$$") : "",
+                   _listAllNames
+               );
+
+        logger.debug("R-browser command: \n"  + "\n" + rval);
+        return rval;
+    };
+ 
 
     var _listAllNames = false;
 
@@ -66,23 +82,86 @@ sv.rbrowser = {};
     var isInitialized = false;
 
     this.visibleData = [];
-    this.treeData = [];
+    this.treeData = []; // Fields: Class, Dims, Full.name, Group, Name, Recursive
+
     this.treeBox = null;
     this.selection = null;
 
     var atomSvc = Components.classes["@mozilla.org/atom-service;1"]
         .getService(Components.interfaces.nsIAtomService);
+        
+    Object.defineProperty(this, "rowCount", {
+        get: function () this.visibleData.length,
+        enumerable: true
+    });
 
-    this.__defineGetter__('rowCount', function () this.visibleData.length);
+    var _getVItem = function(obj, index, level, first, last, parentIndex) {
+        var vItem = {};
 
-    function _createVisibleData() {
+        if (obj.group == "list" || obj.group == "function" || obj.list) {
+            vItem.isContainer = true;
+            vItem.isContainerEmpty = false;
+            vItem.childrenLength = obj.children ? obj.children.length : 0;
+            vItem.isOpen = (typeof (obj.isOpen) != "undefined") && obj.isOpen;
+            vItem.isList = true;
+        } else {
+            vItem.isContainer = typeof (obj.children) != "undefined";
+            vItem.isContainerEmpty = vItem.isContainer &&
+                (obj.children.length == 0);
+            vItem.childrenLength = vItem.isContainer ? obj.children.length : 0;
+            vItem.isList = false;
+        }
+        vItem.isOpen = (typeof (obj.isOpen) != "undefined") && obj.isOpen;
+        vItem.parentIndex = parentIndex;
+        vItem.level = level;
+        vItem.first = first;
+        vItem.last = last;
+        vItem.labels = [obj.name, obj.dims, obj.group, obj.class, obj.fullName];
+        vItem.origItem = obj;
+        vItem.origItem.index = index;
+        return vItem;
+    };
+	
+	 var _addVisibleDataItems = function addVisibleDataItems(item, parentIndex, level) {
+        if (item === undefined) return parentIndex;
+        if (level === undefined) level = -1;
+        if (!parentIndex) parentIndex = 0;
+
+        var idx = parentIndex;
+        var len = item.length;
+
+        for (let i = 0; i < len; ++i) {
+            //item[i].class != "package" &&
+            if (level == 1 && !_this.filter(item[i].sortData[filterBy])) {
+                item[i].index = -1;
+                continue;
+            }
+            ++idx;
+            var vItem = _getVItem(item[i], idx, level, i == 0, i == len - 1,
+                parentIndex);
+            _this.visibleData[idx] = vItem;
+
+            if (vItem.isContainer && vItem.isOpen && vItem.childrenLength > 0) {
+                let idxBefore = idx;
+                idx = addVisibleDataItems(item[i].children, idx, level + 1);
+
+                // No children is visible
+                if (idxBefore == idx) {
+                    vItem.isContainerEmpty = true;
+                }
+            }
+        }
+        return idx;
+    };
+		
+     var _createVisibleData = function() {
         //if (!isInitialized) throw new Error("treeData not initialized");
         if (!isInitialized) return;
 
         var rowsBefore = _this.visibleData.length;
         var firstVisibleRow = _this.treeBox ? _this.treeBox.getFirstVisibleRow() : 0;
-
         _this.visibleData = [];
+  
         _addVisibleDataItems(_this.treeData, -1, 0);
 
         var rowsChanged = _this.visibleData.length - rowsBefore;
@@ -98,7 +177,7 @@ sv.rbrowser = {};
         _this.treeBox.invalidateRange(
             _this.treeBox.getFirstVisibleRow(),
             _this.treeBox.getLastVisibleRow());
-    }
+    };
 
     // RObjectLeaf constructor:
     function RObjectLeaf(env, obj, arr, index, parentElement) {
@@ -106,18 +185,13 @@ sv.rbrowser = {};
                 (parentElement.group == "function" ? "args" : "sub-object")) :
             'environment';
 
-        dimNumeric = 1;
-        pos = index; // XXX ????
+        var dimNumeric = 1;
+        let pos = index; // XXX ????
         //this.index = index;
         this.type = type;
         if (obj) { /// Objects
-            dimNumeric = 1;
-            var dimRegExp = /^(\d+x)*\d+$/;
-            if (dimRegExp.test(arr[2])) {
-                var dim = arr[2].split(/x/);
-                for (var j = 0; j < dim.length; ++j)
-                    dimNumeric *= parseInt(dim[j]);
-            }
+            if (/^(\d+x)*\d+$/.test(arr[2]))
+                dimNumeric = arr[2].split(/x/).reduce((x, y) => x * parseInt(y));
             this.name = arr[0];
             this.fullName = arr[1];
             this.dims = arr[2];
@@ -163,7 +237,7 @@ sv.rbrowser = {};
         index: -1,
         parentObject: this.treeData,
         //toString: function() { ret = []; for (var i in this) if(typeof this[i] != "function") ret.push(i + ":" + this[i]); return ret.join(" * "); }
-        toString: function () {
+        toString () {
             return this.env + "::" + this.fullName + " (" + (this.isOpen ? "+" : ".") + ")" +
                 (this.isOpen ? "->" + this.children : '');
         },
@@ -171,12 +245,25 @@ sv.rbrowser = {};
         //get childrenLength() this.children ? this.children.length : 0,
         //set childrenLength(x) null
     };
+	
+    var _objTreeCrawler = function objTreeCrawler(name, root) {
+        var children = root.children;
+        var n = children.length;
+        for (let i = 0; i < n; ++i) {
+            var fullName = children[i].fullName;
+            if (fullName == name) return children[i];
+            if ((name.indexOf(fullName) == 0) && ("@$[".indexOf(name[fullName.length]) != -1))
+                return objTreeCrawler(name, children[i]);
+        }
+        return null;
+    };
+	
 
     this.getRObjTreeLeafByName = function (name, env) {
         var root = this.treeData;
         if (!root.length) return null;
         var j;
-        for (j in root)
+        for (j = 0; j < root.length; ++j)
             if (root[j].fullName == env)
                 if (!name) return root[j];
                 else break;
@@ -192,19 +279,7 @@ sv.rbrowser = {};
         return i >= vd.length ? undefined : i;
     };
 
-    function _objTreeCrawler(name, root) {
-        var children = root.children;
-        var n = children.length;
-        for (var i = 0; i < n; ++i) {
-            var fullName = children[i].fullName;
-            if (fullName == name) return children[i];
-            if ((name.indexOf(fullName) == 0) && ("@$[".indexOf(name[fullName.length]) != -1))
-                return _objTreeCrawler(name, children[i]);
-        }
-        return null;
-    }
-
-    function fullname(vd, i) vd[i].origItem.env + "::" + vd[i].origItem.fullName
+    var fullname = (vd, i) => vd[i].origItem.env + "::" + vd[i].origItem.fullName;
 
     // TODO: make internal
     var _storedSelection;
@@ -212,7 +287,7 @@ sv.rbrowser = {};
         function () {
             var idx = this.getSelectedRows();
             var vd = this.visibleData;
-            _storedSelection = idx.map(function (i) fullname(vd, i));
+            _storedSelection = idx.map(i => fullname(vd, i));
         };
 
     this.restoreSelection =
@@ -222,8 +297,8 @@ sv.rbrowser = {};
             if (_storedSelection && _storedSelection.map) {
 
                 var vd = this.visibleData;
-                for (var j = 0; j < _storedSelection.length; ++j) {
-                    for (var i = 0; i < vd.length; ++i) {
+                for (let j = 0; j < _storedSelection.length; ++j) {
+                    for (let i = 0; i < vd.length; ++i) {
                         if (_storedSelection[j] == fullname(vd, i)) {
                             this.selection.toggleSelect(i);
                             break;
@@ -237,7 +312,7 @@ sv.rbrowser = {};
         function _parseObjListResult(data, rebuild, scrollToRoot) {
 
             var closedPackages = {};
-            var currentPackages = _this.treeData.map(function (x) {
+            var currentPackages = _this.treeData.map(x => {
                 closedPackages[x.name] = !x.isOpen;
                 return x.name;
             });
@@ -252,7 +327,7 @@ sv.rbrowser = {};
             if (!data) return;
             var lines = data.split(/[\r\n]{1,2}/);
 
-            for (var i = 0; i < lines.length; ++i) {
+            for (let i = 0; i < lines.length; ++i) {
                 if (lines[i].indexOf(sep) == -1) { // Parse list header
                     if (lines[i].indexOf("Env=") == 0) {
                         envName = lines[i].substr(4).trim();
@@ -284,10 +359,10 @@ sv.rbrowser = {};
                     continue;
                 }
                 try {
-                    var objlist = lines[i].split(recordSep);
-                    for (var k = 0; k < objlist.length; ++k) {
+                    let objlist = lines[i].split(recordSep);
+                    for (let k = 0; k < objlist.length; ++k) {
                         if (objlist[k].length == 0) break;
-                        var leaf = new RObjectLeaf(envName, true,
+                        let leaf = new RObjectLeaf(envName, true,
                             objlist[k].split(sep), k /* or i?*/ , treeBranch);
                         treeBranch.children.push(leaf);
                     }
@@ -300,7 +375,7 @@ sv.rbrowser = {};
             _this.sort(null, null, true); // .index'es are generated here, don't restre selection
 
             if (scrollToRoot && lastAddedRootElement) { //only if rebuild, move the selection
-                var idx = lastAddedRootElement.index;
+                let idx = lastAddedRootElement.index;
                 if (idx != -1) {
                     //_this.treeBox.ensureRowIsVisible(idx);
                     _this.treeBox.scrollToRow(Math.min(idx, _this.rowCount - _this.treeBox.getPageLength()));
@@ -311,34 +386,26 @@ sv.rbrowser = {};
             _this.restoreSelection();
 
         };
-
+		
     this.getOpenItems =
         function (asRCommand) {
-            var vd = this.visibleData;
-            var ret = [];
-            for (var i in vd) {
+            let vd = this.visibleData;
+            let ret = [];
+            for (let i in vd) {
                 if (_this.isContainerOpen(i)) {
-                    var oi = vd[i].origItem;
-                    var env = oi.env || oi.fullName;
-                    var objName = oi.type == "environment" ? "" : oi.fullName;
+                    let oi = vd[i].origItem;
+                    let env = oi.env || oi.fullName;
+                    let objName = oi.type == "environment" ? "" : oi.fullName;
                     ret.push(asRCommand ? _getObjListCommand(env, objName) : oi.fullName);
                 }
             }
             return ret;
         };
 
-    function _getObjListCommand(env, objName) {
-        //var cmd = cmdPattern.replace(/%ID%/g, id)
-        var cmd = cmdPattern.replace(/%ENV%/g, sv.string.addslashes(env))
-            .replace(/%ALL%/g, _listAllNames ? "TRUE" : "FALSE")
-            .replace(/%OBJ%/g, objName ? objName.replace(/\$/g, "$$$$") : "");
-        return cmd;
-    }
+
 
     Object.defineProperty(this, 'listAllNames', {
-        get: function () {
-            return _listAllNames;
-        },
+        get: () => _listAllNames,
         set: function (val) {
             _listAllNames = Boolean(val);
             _this.refresh(false);
@@ -359,8 +426,8 @@ sv.rbrowser = {};
                 _this.getPackageList();
                 cmd = _this._getObjListCommand(".GlobalEnv", "");
             } else {
-                var cmd1 = _this.getOpenItems(true);
-                var cmd2 = _this.treeData.map(function (x) _getObjListCommand(x.fullName, ""));
+                let cmd1 = _this.getOpenItems(true);
+                let cmd2 = _this.treeData.map(x => _getObjListCommand(x.fullName, ""));
                 cmd = sv.array.unique(cmd1.concat(cmd2)).join("\n");
             }
 
@@ -372,7 +439,7 @@ sv.rbrowser = {};
             // sv.rbrowser.refresh()
 
             if (init) {
-                var thisWindow = self;
+                let thisWindow = self;
                 //if (thisWindow.location.pathname != "rbrowser_tabpanel") { // in main window
                 if (thisWindow.location.pathname.indexOf("komodo.xul") != -1) { // in main window
                     thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
@@ -387,7 +454,7 @@ sv.rbrowser = {};
     // END NEW =====================================================================
 
     function _removeObjectList(pack) {
-        for (var i = 0; i < _this.treeData.length; ++i) {
+        for (let i = 0; i < _this.treeData.length; ++i) {
             if (_this.treeData[i].name == pack) {
                 _this.treeData.splice(i, 1);
                 break;
@@ -418,11 +485,11 @@ sv.rbrowser = {};
         try {
             obRx = new RegExp(text, "i");
             tb.className = "";
-            if (not) return function (x) !(obRx.test(x));
-            else return function (x) obRx.test(x);
+            if (not) return x => !(obRx.test(x));
+            else return x => obRx.test(x);
         } catch (e) {
             tb.className = "badRegEx";
-            return function (x)(x.indexOf(text) > -1);
+            return x => (x.indexOf(text) > -1);
         }
     }
 
@@ -433,38 +500,6 @@ sv.rbrowser = {};
 
     this.filter = function ( /*x*/ ) true;
 
-    function _addVisibleDataItems(item, parentIndex, level) {
-        if (item === undefined) return parentIndex;
-        if (level === undefined) level = -1;
-        if (!parentIndex) parentIndex = 0;
-
-        var idx = parentIndex;
-        var len = item.length;
-
-        for (var i = 0; i < len; ++i) {
-            //item[i].class != "package" &&
-            if (level == 1 && !_this.filter(item[i].sortData[filterBy])) {
-                item[i].index = -1;
-                continue;
-            }
-            ++idx;
-            var vItem = _getVItem(item[i], idx, level, i == 0, i == len - 1,
-                parentIndex);
-            _this.visibleData[idx] = vItem;
-
-            if (vItem.isContainer && vItem.isOpen && vItem.childrenLength > 0) {
-                var idxBefore = idx;
-                idx = _addVisibleDataItems(item[i].children, idx, level + 1);
-
-                // No children is visible
-                if (idxBefore == idx) {
-                    vItem.isContainerEmpty = true;
-                }
-            }
-        }
-        return idx;
-    }
-
     // Attach one level list of child items to an item
     function _addVisibleDataChildren(vItem, parentIndex, isOpen) {
         var children = vItem.origItem.children;
@@ -472,7 +507,7 @@ sv.rbrowser = {};
         var len = children.length;
         vItem.children = [];
         var idx = parentIndex;
-        for (var i = 0; i < len; ++i) {
+        for (let i = 0; i < len; ++i) {
             if (vItem.level == 0 && !_this.filter(children[i].name)) {
                 children[i].index = -1;
                 continue;
@@ -484,33 +519,6 @@ sv.rbrowser = {};
                 isOpen ? parentIndex : 0));
         }
         vItem.isContainerEmpty = vItem.children.length == 0;
-    }
-
-    function _getVItem(obj, index, level, first, last, parentIndex) {
-        var vItem = {};
-
-        if (obj.group == "list" || obj.group == "function" || obj.list) {
-            vItem.isContainer = true;
-            vItem.isContainerEmpty = false;
-            vItem.childrenLength = obj.children ? obj.children.length : 0;
-            vItem.isOpen = (typeof (obj.isOpen) != "undefined") && obj.isOpen;
-            vItem.isList = true;
-        } else {
-            vItem.isContainer = typeof (obj.children) != "undefined";
-            vItem.isContainerEmpty = vItem.isContainer &&
-                (obj.children.length == 0);
-            vItem.childrenLength = vItem.isContainer ? obj.children.length : 0;
-            vItem.isList = false;
-        }
-        vItem.isOpen = (typeof (obj.isOpen) != "undefined") && obj.isOpen;
-        vItem.parentIndex = parentIndex;
-        vItem.level = level;
-        vItem.first = first;
-        vItem.last = last;
-        vItem.labels = [obj.name, obj.dims, obj.group, obj.class, obj.fullName];
-        vItem.origItem = obj;
-        vItem.origItem.index = index;
-        return vItem;
     }
 
     this.sort = function sort(column, root) {
@@ -555,7 +563,7 @@ sv.rbrowser = {};
             order = realOrder;
         }
 
-        function _sortCompare(a, b) {
+        var _sortCompare = (a, b) => {
             if (a.sortData[sCol] > b.sortData[sCol]) return 1 * order;
             if (a.sortData[sCol] < b.sortData[sCol]) return -1 * order;
 
@@ -566,24 +574,22 @@ sv.rbrowser = {};
                     return -1;
             }
             return 0;
-        }
+        };
 
-        function _sortComparePkgs(a, b) {
+        var _sortComparePkgs = (a, b) => {
             // Index 1 is the package's position in the search path
             if (a.sortData[1] > b.sortData[1]) return 1;
             if (a.sortData[1] < b.sortData[1]) return -1;
             return 0;
-        }
+        };
 
-        function _sortRecursive(arr) {
+        var _sortRecursive = function recSort(arr) {
             arr.sort(_sortCompare);
-            for (var i in arr) {
-                if (typeof (arr[i].children) == "object") {
-                    _sortRecursive(arr[i].children);
-                }
-            }
-        }
-
+            for (let i = 0; i < arr.length; ++i)
+                if (typeof (arr[i].children) === "object")
+                    recSort(arr[i].children);
+        };
+		
         sortDirection = sortDirs[realOrder + 1];
 
         // Setting these will make the sort option persist
@@ -591,14 +597,14 @@ sv.rbrowser = {};
         tree.setAttribute("sortResource", columnName);
 
         var cols = tree.getElementsByTagName("treecol");
-        for (var i = 0; i < cols.length; ++i)
+        for (let i = 0; i < cols.length; ++i)
             cols[i].removeAttribute("sortDirection");
         document.getElementById(columnName).setAttribute("sortDirection", sortDirection);
 
         if (!root || root == _this.treeData) {
             // Sort packages always by name
             _this.treeData.sort(_sortComparePkgs);
-            for (let i in _this.treeData) {
+            for (let i = 0; i < _this.treeData.length; ++i) {
                 if (typeof (_this.treeData[i].children) == "object") {
                     _sortRecursive(_this.treeData[i].children);
                 }
@@ -638,8 +644,7 @@ sv.rbrowser = {};
     };
 
     this.toggleOpenState = function (idx) {
-        var vd = this.visibleData,
-            vd2;
+        var vd = this.visibleData, vd2;
         var item = vd[idx];
         var iLevel = item.level;
         var rowsChanged;
@@ -658,13 +663,13 @@ sv.rbrowser = {};
         }
 
         if (item.origItem.isOpen) { // Closing subtree
-            var k;
+            let k;
             for (k = idx + 1; k < vd.length && vd[k].level > iLevel; ++k) {}
             rowsChanged = k - idx - 1;
             item.children = vd.splice(idx + 1, rowsChanged);
 
             // Make parentIndexes of child rows relative
-            for (var i = 0; i < item.children.length; ++i)
+            for (let i = 0; i < item.children.length; ++i)
                 item.children[i].parentIndex -= idx;
 
             // Decrease parentIndexes of subsequent rows
@@ -720,18 +725,17 @@ sv.rbrowser = {};
     this.isSeparator = function ( /*idx*/ ) false;
     this.isSorted = function () false;
     this.isEditable = function ( /*idx, column*/ ) false;
-    this.getParentIndex = function (idx)
-    idx in _this.visibleData ? _this.visibleData[idx].parentIndex : -1;
+    this.getParentIndex = function (idx) idx in _this.visibleData ? _this.visibleData[idx].parentIndex : -1;
     this.getLevel = function (idx) _this.visibleData[idx].level;
     this.hasNextSibling = function (idx /*, after*/ ) !_this.visibleData[idx].last;
     this.getImageSrc = function (row, col) {
         if (col.index == 0) {
-            var Class = this.visibleData[row].origItem.class;
+            var Class = _this.visibleData[row].origItem.class;
             if (Class == "package" && this.visibleData[row].origItem.name
                 .indexOf("package") != 0) {
                 Class = "environment";
             } else if (iconTypes.indexOf(Class) == -1) {
-                Class = this.visibleData[row].origItem.group;
+                Class = _this.visibleData[row].origItem.group;
                 if (iconTypes.indexOf(Class) == -1) return "";
             }
             return "chrome://komodor/skin/images/" + Class + ".png";
@@ -751,9 +755,8 @@ sv.rbrowser = {};
         var item = _this.visibleData[idx];
         var origItem = item.origItem;
 
-        if (props == undefined) {
-            props = "type-" + origItem.type +
-                " class-" + origItem.class;
+        if (props === undefined) {
+            props = "type-" + origItem.type + " class-" + origItem.class;
             if (item.last) props += " lastChild";
             if (item.first) props += " firstChild";
             return props;
@@ -771,7 +774,7 @@ sv.rbrowser = {};
             var item = this.visibleData[idx];
             var origItem = item.origItem;
 
-            if (props == undefined) {
+            if (props === undefined) {
                 props = "icon" + " type-" + origItem.type +
                     " class-" + origItem.class +
                     " group-" + origItem.group;
@@ -871,11 +874,11 @@ sv.rbrowser = {};
 
         while (node.firstChild) node.removeChild(node.firstChild);
         var packs = _this.searchPath;
-        var selectedPackages = _this.treeData.map(function (x) x.name);
+        var selectedPackages = _this.treeData.map(x => x.name);
 
         if (!selectedPackages.length) selectedPackages.push(".GlobalEnv");
 
-        for (var i = 0; i < packs.length; ++i) {
+        for (let i = 0; i < packs.length; ++i) {
             pack = packs[i];
             var item = document.createElement("listitem");
             item.setAttribute("type", "checkbox");
@@ -1246,12 +1249,13 @@ sv.rbrowser = {};
             }
 
             if (!dir) return;
+			
+			let oFilterIdx = {};
             fileName = sv.fileOpen(dir, fileName + '.RData', '', ["R data (*.RData)|*.RData"], false,
-                true, oFilterIdx = {});
+                true, oFilterIdx);
 
             if (!fileName) return;
-            command = 'save(list=c(' + obj.map(function (x)
-                    '"' + x.name + '"')
+            command = 'save(list=c(' + obj.map(x => '"' + x.name + '"')
                 .join(',') + '), file="' + sv.string.addslashes(fileName) + '")';
 
             sv.r.eval(command);
@@ -1291,7 +1295,7 @@ sv.rbrowser = {};
         case 'names':
             /* falls through */
         default:
-            var commandArr = [],
+            let commandArr = [],
                 cmdObj;
             for (let i in obj)
                 if (obj.hasOwnProperty(i)) {
@@ -1317,7 +1321,7 @@ sv.rbrowser = {};
             var selectedRows = _this.getSelectedRows();
             var selectedItems = [];
 
-            if (selectedRows.some((x) => x >= _this.visibleData.length))
+            if (selectedRows.some(x => x >= _this.visibleData.length))
                 return false;
 
             for (let i = 0; i < selectedRows.length; ++i)

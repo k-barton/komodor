@@ -1,5 +1,5 @@
 sv_objList <-
-function (id = "default", envir = sv_CurrentEnvir, object = NULL,
+function (id = "default", envir = getCurrentEnv(), object = NULL,
 all.names = FALSE, pattern = "", group = "", all.info = FALSE, sep = "\t",
 compare = TRUE, ...) {
 	## Make sure that id is character
@@ -9,8 +9,7 @@ compare = TRUE, ...) {
 
 	## Format envir as character (use only first item provided!)
 	if (!is.environment(envir)){
-		if(is.numeric(envir) && envir > 0)
-			envir <- search()[envir]
+		if(is.numeric(envir) && envir > 0) envir <- search()[envir]
 
 		if (is.character(envir)) {
 			ename <- envir
@@ -21,7 +20,6 @@ compare = TRUE, ...) {
 			}
 		}
 	}
-
 
 	# base and .GlobalEnv do not have name attribute
 	if (!is.null(attr(envir, "name"))) ename <- attr(envir, "name")
@@ -56,7 +54,7 @@ compare = TRUE, ...) {
 		# Quote non-syntactic names
 		nsx <- res$Name != make.names(res$Name)
 		res$Full.name[!nsx] <- res$Name[!nsx]
-		res$Full.name[nsx] <- paste("`", res$Name[nsx], "`", sep = "")
+		res$Full.name[nsx] <- paste0("`", res$Name[nsx], "`")
 		res <- res[, c(1L, 6L, 2L:5L)]
 	}
 
@@ -101,11 +99,12 @@ compare = TRUE, ...) {
 	if (isTRUE(compare)) {
 		allList <- getTemp(".guiObjListCache", default = list())
 
-		if (identical(res, allList[[id]])) Changed <- FALSE else {
-			## Keep a copy of the last version in TempEnv
-			allList[[id]] <- res
-			assignTemp(".guiObjListCache", allList)
-		}
+		if (identical(res, allList[[id]])) 
+			Changed <- FALSE else {
+				## Keep a copy of the last version in TempEnv
+				allList[[id]] <- res
+				assignTemp(".guiObjListCache", allList)
+			}
 	}
 
 	## Create the 'objList' object
@@ -120,8 +119,7 @@ compare = TRUE, ...) {
 print_objList <-
 function (x, sep = NA, eol = "\n", header = !attr(x, "all.info"),
 		  raw.output = !is.na(sep), ...) {
-	if (!inherits(x, "objList"))
-		stop("x must be an 'objList' object")
+	if (!inherits(x, "objList")) stop("x must be an 'objList' object")
 
 	empty <- NROW(x) == 0L
 
@@ -174,15 +172,15 @@ function (objname, envir, ...) {
 		itemnames <- fullnames <- names(obj)
 		if (is.null(itemnames)) {
 			itemnames <- seq_along(obj)
-			fullnames <- paste(objname, "[[", itemnames, "]]", sep = "")
+			fullnames <- paste0(objname, "[[", itemnames, "]]")
 		} else {
 			w.names <- itemnames != ""
 			.names <- itemnames[w.names]
 			nsx <- .names != make.names(.names)  # Non-syntactic names
-			.names[nsx] <- paste("`", .names[nsx], "`", sep = "")
-			fullnames[w.names] <- paste (objname, "$", .names, sep = "")
-			fullnames[!w.names] <- paste(objname, "[[",
-				seq_along(itemnames)[!w.names], "]]", sep = "")
+			.names[nsx] <- paste0("`", .names[nsx], "`")
+			fullnames[w.names] <- paste0(objname, "$", .names)
+			fullnames[!w.names] <- paste0(objname, "[[",
+				seq_along(itemnames)[!w.names], "]]")
 		}
 
 		ret <- data.frame(itemnames, fullnames,
@@ -200,14 +198,14 @@ function (objname, envir, ...) {
 function (obj, objname = deparse(substitute(obj))) {
 	## formals(obj) returns NULL if only arg is ..., try: formals(expression)
 	obj <- formals(args(obj))
-	objname <- paste("formals(args(", objname, "))", sep = "")
+	objname <- paste0("formals(args(", objname, "))")
 
 	if(length(obj) == 0L) return(NULL)
 
 	itemnames <- fullnames <- names(obj)
 	nsx <- itemnames != make.names(itemnames) # non-syntactic names
-	itemnames[nsx] <- paste("`", itemnames[nsx], "`", sep = "")
-	fullnames <- paste(objname, "$", itemnames, sep = "")
+	itemnames[nsx] <- paste0("`", itemnames[nsx], "`")
+	fullnames <- paste0(objname, "$", itemnames)
 
 	ret <- t(sapply (seq_along(obj), function (i) {
 		x <- obj[[i]]
@@ -234,8 +232,8 @@ function (obj, objname = deparse(substitute(obj))) {
 function (obj, objname = deparse(substitute(obj))) {
 	itemnames <- fullnames <- slotNames(obj)
 	nsx <- itemnames != make.names(itemnames)
-	itemnames[nsx] <- paste("`", itemnames[nsx], "`", sep = "")
-	fullnames <- paste(objname, "@", itemnames, sep = "")
+	itemnames[nsx] <- paste0("`", itemnames[nsx], "`")
+	fullnames <- paste0(objname, "@", itemnames)
 
 	ret <- t(vapply(itemnames, function (i) .objDescr(slot(obj, i)),
 		character(4L)))

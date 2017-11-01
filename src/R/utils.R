@@ -13,17 +13,23 @@ function(envir = .GlobalEnv) {
 koBrowseHere <-
 function() {
 	if(!identical(sys.frame(sys.nframe()), .GlobalEnv)) {
-		eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
-		stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
-			format(sys.call(sys.nframe() - 1L))[1L],
-			"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
-			"\n(Note this will not resume execution of the function)")))
+	    expr <- sys.call(sys.nframe() - 1L)
+		if(all(c("captXX..expr..XX", "captXX..envir..XX") %in% all.vars(expr))) {
+			# called from top level
+			message("koBrowseHere called from top level")
+		} else {
+			eval.parent(expression(svSetEnv(sys.frame(sys.nframe()))))
+			stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
+				format(expr)[1L],
+				"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
+				"\n(Note this will not resume execution of the function)")))
+		}
 	}
 }
 
 koBrowseEnd <-
 function() {
-	if(!identical(getCurrentEnv, .GlobalEnv)) {
+	if(!identical(getCurrentEnv(), .GlobalEnv)) {
 		svSetEnv(.GlobalEnv)
 		message("Evaluating in '.GlobalEnv'")
 	} else message("Already evaluating in '.GlobalEnv'")
@@ -34,7 +40,7 @@ svPager <- function(files, header, title, delete.file) {
     files <- gsub("\\", "\\\\", files[1L], fixed = TRUE)
     tryCatch(koCmd(sprintf("sv.r.pager(\"%1$s\", \"%2$s\", %3$s)",
         files, title,
-        if (delete.file)  "true" else "false")),
+        if (delete.file) "true" else "false")),
         error = function(e) utils::browseURL(files, NULL))
 }
 
@@ -43,10 +49,9 @@ svPager <- function(files, header, title, delete.file) {
     ## If the URL starts with '/', assume a file path
     ## on Unix or Mac and prepend 'file://'
     url <- sub("^/", "file:///", url)
-    tryCatch(koCmd(sprintf("sv.command.openHelp(\"%s\")", url)),
-        warning = function(e) utils::browseURL(url, NULL),
-        error = function(e) utils::browseURL(url, NULL)
-        )
+    res <- tryCatch(koCmd(sprintf("sv.command.openHelp(\"%s\")", url)),
+        warning = function(e) e, error = function(e) e)
+	if(inherits(res, "condition")) utils::browseURL(url, NULL)
 }
 
 `koMsg` <- function(...) cat(..., "\n")
@@ -85,7 +90,6 @@ function(topic, package = NULL) {
 
 
 ### 
-
 
 kmdrSaveObject <- 
 function(x, path = ".", 

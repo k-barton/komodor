@@ -1,65 +1,27 @@
-// SciViews-K general functions
-// Define the basic 'sv' namespace, plus 'sv.cmdout', & 'sv.prefs'
-// Copyright (c) 2008-2010, Ph. Grosjean (phgrosjean@sciviews.org)
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-// Various functions defined in the 'sv' namespace directly
-// sv.getTextRange(what, gotoend, select);  // Get a part of text in the buffer,
-// but do not operate on selection
-// sv.fileOpen(directory, filename, title, filter, multiple); // file open dlg,
-// more customizable replacement for ko.filepicker.open()
-// sv.translate(textId); // translate messages using data from
-// chrome://komodor/locale/main.properties
-//
-// SciViews-K Command Output management ('sv.cmdout' namespace) ////////////////
-// sv.cmdout.append(str, newline, scrollToStart); // Append to Command Output
-// sv.cmdout.clear();						 // Clear the Command Output pane
-// sv.cmdout.message(msg, timeout, highlight);	 // Message in Command Output
-//
-// SciViews-K logging feature ('sv.logger') /////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-//TODO: rename:
-//key_cmd_sv*
-//cmd_sv*
-//sv_r_*
-// Create the 'sv' namespace
-if (typeof sv == "undefined") sv = {};
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  This code is based on SciViews-K general functions, which are
+ *  copyright (c) 2008-2010 by Ph. Grosjean (phgrosjean@sciviews.org)
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
 
-sv.langName = "R_extended";
+/* globals sv, ko, Components, window, AddonManager, Services, require, document */
 
-//sv._version
-/*= (function() {
-	var koVersion = Components.classes["@activestate.com/koInfoService;1"]
-		.getService(Components.interfaces.koIInfoService).version;
-	if(koVersion)
-})();*/
+// requires: sv.file, sv.rconn
 
-try { // Komodo 7
-    Components.utils.import("resource://gre/modules/AddonManager.jsm");
-    AddonManager.getAddonByID("komodor@komodor", function (addon) {
-        sv._version = addon.version;
-    });
-} catch (e) {
-    sv._version = Components.classes["@mozilla.org/extensions/manager;1"]
-        .getService(Components.interfaces.nsIExtensionManager)
-        .getItemForID("komodor@komodor").version;
-}
+sv._versionCompare = (v1, v2) => 
+	Components.classes["@mozilla.org/xpcom/version-comparator;1"]
+		.getService(Components.interfaces.nsIVersionComparator)
+		.compare(v1, v2);
 
-Object.defineProperty(sv, "version", {
-    get: function () sv._version,
-    enumerable: true,
-});
 
-sv._versionCompare = function (v1, v2)
-Components.classes["@mozilla.org/xpcom/version-comparator;1"]
-    .getService(Components.interfaces.nsIVersionComparator)
-    .compare(v1, v2);
-
-// generate unique id (TODO: move to sv.utils or such)
+//(TODO: move the functions below to sv.utils or such)
+// generate unique id
 sv.uid = function (n) {
     if (!n) n = 1;
-    var rval = "";
-    for (var i = 0; i < n; ++i)
+    let rval = "";
+    for (let i = 0; i < n; ++i)
         rval += Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     return rval;
 };
@@ -131,8 +93,8 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
             // of the document
             if (pStart != 0 | !wordCharTest(scimoz.getWCharAt(0))) pStart += 1;
 
-            for (pEnd = scimoz.currentPos;
-                (pEnd < scimoz.length) && wordCharTest(scimoz.getWCharAt(pEnd)); pEnd = scimoz.positionAfter(
+            for (pEnd = scimoz.currentPos; (pEnd < scimoz.length) && wordCharTest(scimoz.getWCharAt(pEnd));
+				pEnd = scimoz.positionAfter(
                     pEnd)) {}
         }
         break;
@@ -292,7 +254,8 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
     return text;
 }; // getTextRange
 
-// file open dialog, more customizable replacement for ko.filepicker.open
+// file open dialog, more customizable replacement for ko.filepicker.browseForFile
+// TODO: rename to 'browseForFile' for consistency
 sv.fileOpen = function (directory, filename, title, filter, multiple, save,
     filterIndex) {
     const nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -302,7 +265,7 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
     //Dialog should get default system title
     //if (!title) title = sv.translate(save? "Save file" : "Open file");
 
-    var mode;
+    let mode;
     if (!save) {
         mode = multiple ? nsIFilePicker.modeOpenMultiple : nsIFilePicker.modeOpen;
     } else {
@@ -315,12 +278,12 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
         fp.filterIndex = (typeof (filterIndex) == "object") ?
         filterIndex.value : filterIndex;
 
-    var filters = [];
+    let filters = [];
 
     if (filter) {
         if (typeof (filter) == "string") filter = filter.split(',');
-        var fi;
-        for (var i = 0; i < filter.length; i++) {
+        let fi;
+        for (let i = 0; i < filter.length; i++) {
             fi = filter[i].split("|");
             if (fi.length == 1)
                 fi[1] = fi[0];
@@ -332,14 +295,14 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
     filters.push("");
 
     if (directory && sv.file.exists(directory = sv.file.path(directory))) {
-        var lf = Components.classes["@mozilla.org/file/local;1"]
+        let lf = Components.classes["@mozilla.org/file/local;1"]
             .createInstance(Components.interfaces.nsILocalFile);
         lf.initWithPath(directory);
         fp.displayDirectory = lf;
     }
     if (filename) fp.defaultString = filename;
 
-    var rv = fp.show();
+    let rv = fp.show();
     if (rv == nsIFilePicker.returnOK || rv == nsIFilePicker.returnReplace) {
         let path;
         if (multiple) {
@@ -355,8 +318,8 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
 
         // append extension according to active filter
         if (mode == nsIFilePicker.modeSave) {
-            var os = Components.classes['@activestate.com/koOs;1']
-                .getService(Components.interfaces.koIOs);
+            //let os = Components.classes['@activestate.com/koOs;1'].getService(Components.interfaces.koIOs);
+            let os = Services.koOs;
             if (!os.path.getExtension(path)) {
                 path += os.path.getExtension(filters[fp.filterIndex]);
             }
@@ -411,7 +374,7 @@ sv.cmdout = {};
     logger.setLevel(logger.DEBUG);
 
     Object.defineProperty(this, 'eolChar', {
-        get: function ()["\r\n", "\n", "\r"][_this.scimoz.eOLMode]
+        get: () => ["\r\n", "\n", "\r"][_this.scimoz.eOLMode]
     });
 
     Object.defineProperty(this, 'scimoz', {
@@ -428,16 +391,15 @@ sv.cmdout = {};
         }
     });
 
-    function _rgb( /*r, g, b*/ ) {
-        if (arguments.length == 3) color = arguments;
-        else color = r;
+    var _rgb = (...args) => {
+        var color = (args.length == 3) ? args : args[0];
         return color[0] | (color[1] << 8) | (color[2] << 16);
-    }
+    };
 
-    function _hexstr2rgb(hex) {
+    var _hexstr2rgb = (hex)  => {
         var colorref = parseInt(hex.substr(1), 16);
         return _rgb(colorref >> 16 & 255, colorref >> 8 & 255, colorref & 255);
-    }
+    };
 
     var styleNumCode = 22,
         styleNumResult = 0,
@@ -447,7 +409,7 @@ sv.cmdout = {};
     this.STYLENUM_STDOUT = styleNumResult;
     this.STYLENUM_STDERR = styleNumErr;
 
-    var fixEOL = (str) => str.replace(/(\r?\n|\r)/g, _this.eolChar);
+    var fixEOL = str => str.replace(/(\r?\n|\r)/g, _this.eolChar);
 
     var initialized = false; ///
 
@@ -475,8 +437,11 @@ sv.cmdout = {};
         scimoz.styleSetFore(styleNumResult, colorForeResult);
     }
 
-    var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
-        .getService(Components.interfaces.nsIObserverService);
+    
+    //var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
+        //.getService(Components.interfaces.nsIObserverService);
+        
+    let observerSvc = Services.obs;
 
     observerSvc.addObserver({
         observe: _init
@@ -585,18 +550,18 @@ sv.cmdout = {};
 
     this.styleLines = function (startLine, endLine, styleNum) {
         _init();
-        var scimoz = _this.scimoz;
-        var eolChar = _this.eolChar;
+        let scimoz = _this.scimoz;
+        let eolChar = _this.eolChar;
 
         if (startLine === undefined) startLine = 0;
         if (endLine === undefined) endLine = scimoz.lineCount;
-        var styleMask = (1 << scimoz.styleBits) - 1;
-        var readOnly = scimoz.readOnly;
+        let styleMask = (1 << scimoz.styleBits) - 1;
+        let readOnly = scimoz.readOnly;
         scimoz.readOnly = false;
 
         // all lines in the provided style
-        startPos = scimoz.positionFromLine(startLine);
-        endPos = scimoz.getLineEndPosition(endLine - 1) + eolChar.length;
+        let startPos = scimoz.positionFromLine(startLine);
+        let endPos = scimoz.getLineEndPosition(endLine - 1) + eolChar.length;
         scimoz.startStyling(startPos, styleMask);
         scimoz.setStyling(endPos - startPos, styleNum);
         scimoz.readOnly = readOnly;
@@ -619,24 +584,25 @@ sv.cmdout = {};
 
     // Display message on the status bar (default) or command output bar
     this.message = function (msg, timeout, highlight) {
-        _this.ensureShown();
+		// DEPRECATED: replace with addNotification
+		_this.ensureShown();
         var win = (window.frames["runoutput-desc-tabpanel"]) ?
             window.frames["runoutput-desc-tabpanel"] : window;
         var runoutputDesc = win.document.getElementById('runoutput-desc');
-        if (msg == null) msg = "";
+        if (msg === null) msg = "";
         runoutputDesc.parentNode.style.backgroundColor =
             (highlight && msg) ? "highlight" : "";
         runoutputDesc.style.color = "rgb(0, 0, 0)";
         runoutputDesc.setAttribute("value", msg);
         window.clearTimeout(runoutputDesc.timeout);
         if (timeout > 0) runoutputDesc.timeout = window
-            .setTimeout(function () sv.cmdout.message('', 0), timeout);
+            .setTimeout(() => sv.cmdout.message('', 0), timeout);
     };
 
 }).apply(sv.cmdout);
 
 if (true || typeof require == "undefined") {
-    sv.addNotification = function (msg, severity, timeout) {
+    sv.addNotification = (msg, severity, timeout) => {
         var sm = Components.classes["@activestate.com/koStatusMessage;1"]
             .createInstance(Components.interfaces.koIStatusMessage);
         sm.category = "komodor";
@@ -651,62 +617,3 @@ if (true || typeof require == "undefined") {
         require("notify/notify").addMessage(msg, "komodor", timeout | 2000, false, false, true);
     };
 }
-
-sv.init = {};
-
-(function () {
-    var _this = this;
-
-    var checkFileAssociation = function () {
-        var langRegistry = Components.classes["@activestate.com/koLanguageRegistryService;1"]
-            .getService(Components.interfaces.koILanguageRegistryService);
-
-        var rFileLang = langRegistry.suggestLanguageForFile("foo.R");
-
-        if (!ko.prefs.hasBooleanPref("donotask_r_association_override")) {
-            ko.prefs.setBooleanPref("donotask_r_association_override", false);
-        }
-
-        if (!rFileLang || (rFileLang != sv.langName && ko.dialogs.yesNo(
-                "Currently *.R files are associated with language " + rFileLang + ". " +
-                "Would you like to replace this association with R language? " +
-                "\n(This can be changed in Preferences -> File associations)",
-                "Yes", null, "R file association conflict", "r_association_override") == "Yes")) {
-
-            // from content/pref/pref-association.js:OnPreferencePageOK
-            var patternsObj = {},
-                languageNamesObj = {};
-            langRegistry.getFileAssociations({}, patternsObj, {}, languageNamesObj);
-            var patterns = patternsObj.value;
-            var languageNames = languageNamesObj.value;
-            for (var i = patterns.length - 1; i >= 0; --i) {
-                if (patterns[i].toUpperCase() == "*.R" && languageNames[i] != sv.langName)
-                    languageNames[i] = sv.langName;
-            }
-
-            try {
-                var assocPref = langRegistry.createFileAssociationPrefString(
-                    patterns.length, patterns,
-                    languageNames.length, languageNames);
-                ko.prefs.setStringPref("fileAssociationDiffs", assocPref);
-            } catch (ex) {
-                var lastErrorSvc = Components.classes["@activestate.com/koLastErrorService;1"]
-                    .getService(Components.interfaces.koILastErrorService);
-                ko.dialogs.alert("There was an error saving file association changes: " +
-                    lastErrorSvc.getLastErrorMessage());
-            }
-        }
-    };
-
-    this.ensureRFileAssociation = function () {
-        var view = ko.views.manager.currentView;
-        if (view && view.koDoc && view.koDoc.displayPath.match(/\.[Rr]$/)) {
-            checkFileAssociation();
-            window.removeEventListener('view_opened', _this.ensureRFileAssociation, false);
-            if (view.koDoc.language != sv.langName) view.koDoc.language = sv.langName;
-        }
-    };
-
-    window.addEventListener('view_opened', this.ensureRFileAssociation, false);
-
-}).apply(sv.init);

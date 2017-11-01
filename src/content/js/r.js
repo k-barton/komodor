@@ -1,24 +1,32 @@
-// SciViews-K R functions
-// Define functions to pilot R from Komodo Edit 'sv.r'
-// Copyright (c) 2008-2015, Ph. Grosjean (phgrosjean@sciviews.org) & K. Barton
-// License: MPL 1.1/GPL 2.0/LGPL 2.1
-////////////////////////////////////////////////////////////////////////////////
-if (typeof (sv.r) == 'undefined')
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *  Copyright (c) 2015-2017 Kamil Barton
+ *  
+ *  This code is based on SciViews-K code:
+ *  Copyright (c) 2008-2015, Ph. Grosjean (phgrosjean@sciviews.org) & K. Barton
+ * 
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+
+// require: rconnection,r,file,utils,command,rbrowser,string
+
+if (typeof sv.r == "undefined")
     sv.r = {
         RMinVersion: "3.0.0", // Minimum version of R required
         sep: ";;", // Separator used for items
-        isRunning: false // Indicate if R is currently running
+        get isRunning() sv.command.isRRunning // Indicate if R is currently running
     };
 
 (function () {
 
     var _this = this;
-
     var logger = require("ko/logging").getLogger("komodoR");
 
     // Evaluate R expression and call callback function in Komodo with the result as
     // first argument. All additional arguments will be passed to callback
     this.evalAsync = function ( /*cmd*/ ) {
+        // TODO try FUNCTION.bind(this, args...));
+    
         var args = Array.apply(null, arguments);
         args.splice(2, 0, true, false);
         sv.rconn.evalAsync.apply(sv.rconn, args);
@@ -29,6 +37,7 @@ if (typeof (sv.r) == 'undefined')
     // XXX: remove in favour of sv.r.eval(cmd, hidden)
     this.evalHidden = function (cmd)
     sv.rconn.evalAsync.call(sv.rconn, cmd, null, true);
+    
     this.escape = function (cmd) sv.rconn.escape(cmd);
 
     // Set the current working directory (to current buffer dir, or ask for it)
@@ -239,7 +248,7 @@ if (typeof (sv.r) == 'undefined')
         return res;
     };
 
-    this.rFn = (name) => "base::get(\"" + name + "\", \"komodoConnection\", inherits=FALSE)";
+    this.rFn = name => "base::get(\"" + name + "\", \"komodoConnection\", inherits=FALSE)";
 
     // Get help in R (HTML format)
     function _getHelpURI(topic, pkg) {
@@ -332,7 +341,7 @@ if (typeof (sv.r) == 'undefined')
         sv.file.write(file, content, 'utf-8');
         sv.command.openHelp(rSearchURI + "?file:" + file);
         if (cleanUp || cleanUp === undefined)
-            window.setTimeout((file) => {
+            window.setTimeout(file => {
                 try {
                     sv.file.getLocalFile(file).remove(false);
                 } catch (e) {}
@@ -362,7 +371,7 @@ if (typeof (sv.r) == 'undefined')
         _this.evalHidden('base::q("' + response.toLowerCase() + '")');
         // Clear the objects browser
         sv.rbrowser.clearPackageList();
-        setTimeout(function () sv.command.setRStatus(sv.rconn.isRConnectionUp(false)),
+        setTimeout(() => sv.command.setRStatus(sv.rconn.isRConnectionUp(false)),
             1000);
     };
 

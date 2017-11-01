@@ -1,14 +1,21 @@
-/* SciViews-K command functions
- * Define 'sv.command' object
- * Copyright (c) 2009-2015, K. Barton & Ph. Grosjean (phgrosjean@sciviews.org) */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-//if (typeof (sv) == 'undefined') sv = {};
+/*  
+ *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
+ *
+ *  Copyright (c) 2015-2017 Kamil Barton
+ *  Copyright (c) 2009-2015, K. Barton & Ph. Grosjean (phgrosjean@sciviews.org)
+ *  License: MPL 1.1/GPL 2.0/LGPL 2.1
+ */
+
+
+// require file,string,rconnection,utils (translate),pref,rbrowser
+
+/* globals sv, ko, Components, window, document, navigator, xtk, require,
+   prefs_doGlobalPrefs
+   */
+
 if (typeof (sv.command) == 'undefined') sv.command = {};
 
-// sv.command object constructor
-(function () {
+(function () { // sv.command constructor
     
     const {
         classes: Cc,
@@ -21,6 +28,14 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     this.RHelpWin = null; // A reference to the R Help Window
     var _this = this;
     this.RProcess = null;
+    
+    var _RIsRunning;
+    // read only sv.command.isRRunning
+    // set via sv.command.setRStatus - TODO merge?
+    Object.defineProperty(_this, "isRRunning", {
+       get: () => _RIsRunning,
+       enumerable: true
+    });
 
     function _getWindowByURI(uri) {
         var wm = Cc['@mozilla.org/appshell/window-mediator;1']
@@ -55,9 +70,6 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         if (focus) win.focus();
     }
 
-    // Private methods
-    function _isRRunning() sv.r.isRunning
-
     function _RControl_supported() {
         var currentView = ko.views.manager.currentView;
         if (!currentView || !currentView.koDoc) return (false);
@@ -73,6 +85,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 currentView.scimoz.selectionStart) != 0));
     }
 
+    // Services.obs
     var _observerSvc = Cc['@mozilla.org/observer-service;1']
         .getService(Ci.nsIObserverService);
 
@@ -156,7 +169,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         if (prefWin) prefWin.switchToPanel(item);
     };
 
-    _RterminationCallback = function (exitCode) {
+    var _RTerminationCallback = function (exitCode) {
         // on Linux the process run in a terminal exits immediately, yet
         // both terminal and R are still running.
         // So need to check whether R is actually closed.
@@ -212,6 +225,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         }
 
         var envStr = env.join("\n");
+        var RProcessObserver;
 
         if (isWin && id == "r-terminal") {
             var runSvc = Cc['@activestate.com/koRunService;1']
@@ -220,15 +234,15 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             // Observe = 'run_command'
             // subject = 'status_message'
             // data = command
-            RProcessObserver = new _ProcessObserver(cmd, false, _RterminationCallback);
+            RProcessObserver = new _ProcessObserver(cmd, false, _RTerminationCallback);
         } else {
             //var process = runSvc.RunAndNotify(cmd, rDir, env, null);
             // Observe = 'run_terminated'
             // subject = child
             // data = command
-            //RProcessObserver = new _ProcessObserver(cmd, process, _RterminationCallback);
+            //RProcessObserver = new _ProcessObserver(cmd, process, _RTerminationCallback);
             RProcessObserver = this.runSystemCommand(cmd, rDir, envStr,
-                _RterminationCallback);
+                _RTerminationCallback);
             this.RProcess = RProcessObserver._process;
         }
         _this.setRStatus(true);
@@ -244,17 +258,16 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     this.setRStatus = function (running) {
         // Toggle status if no argument
         if (running === undefined)
-            running = !sv.r.isRunning;
+            running = !_RIsRunning;
         else
             running = Boolean(running);
 
-        if (running != sv.r.isRunning) {
-            sv.r.isRunning = running;
+        if (running != _RIsRunning) {
+            _RIsRunning = running;
             // Note: R toolbar button responds to:
             xtk.domutils.fireEvent(window, 'r_app_started_closed');
             // Note: all other buttons/menu items respond to:
             window.updateCommands('r_app_started_closed');
-
             sv.addNotification(running ? "R is running" : "R is not running", 0, 2000);
         }
     };
@@ -373,24 +386,22 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             'cmd_viewrtoolbar': ['ko.uilayout.toggleToolbarVisibility(\'RToolbar\')', -1]
         };
 
-        // Temporary
-        //function _isRRunning () true;
-        function _isRRunning() sv.r.isRunning
+        var  _isRRunning = () => _RIsRunning;
+        var _isRCurLanguage = () => true;
+        //{
+        //    return true;
+        //    // var view = ko.views.manager.currentView;
+        //    // if (!view || !view.document) return(false);
+        //    // return(view.document.language == sv.langName);
+        //}
 
-        function _isRCurLanguage() {
-            return true;
-            // var view = ko.views.manager.currentView;
-            // if (!view || !view.document) return(false);
-            // return(view.document.language == sv.langName);
-        }
-
-        function _hasSelection() {
+        var _hasSelection = () => {
             var view = ko.views.manager.currentView;
             if (!view || !view.scimoz) return (false);
             return (view.scimoz.selectionEnd - view.scimoz.selectionStart) != 0;
         }
 
-        function _test(cmdName) {
+        var _test = (cmdName) => {
             var test = handlers[cmdName][1];
             if (test < 0) return true;
             return (
@@ -445,89 +456,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         logger.debug("Controllers has been set.");
     };
 
-    // Set default keybindings from file
-    // chrome://komodor/content/default-keybindings.kkf
-    // preserving user modified ones and avoiding key conflicts
-    // sfx is for platform specific keybindings
-    function _setKeybindings(clearOnly, sfx) {
-
-        if (!sfx) sfx = "";
-        var kkfContent;
-        try {
-            kkfContent = sv.file.readURI("chrome://komodor/content/keybindings" + sfx + ".kkf");
-        } catch (e) {
-            return false;
-        }
-        if (!kkfContent) return false;
-
-        logger.info("Setting default key bindings.");
-
-        var kbMgr = ko.keybindings.manager;
-        if (kbMgr.currentConfiguration == undefined) {
-            kbMgr = new ko.keybindings.manager();
-        }
-        var currentConfiguration = kbMgr.currentConfiguration;
-
-        if (!kbMgr.configurationWriteable(currentConfiguration))
-            currentConfiguration = kbMgr.makeNewConfiguration(currentConfiguration + " [+R]");
-
-        //from: gKeybindingMgr.parseConfiguration
-        //var bindingRx = /[\r\n]+(# *SciViews|binding cmd_sv.*)/g;
-
-        var bindingStr = kkfContent.match(new RegExp("^binding cmd_.*$", "gm"));
-        var schemeKeys = {},
-            cmdName, key, cmdNames = [];
-        for (let j = 0; j < bindingStr.length; ++j) {
-            try {
-                [, cmdName, key] = /^binding\s+(\S+)\s+(\S+)$/.exec(bindingStr[j]);
-                schemeKeys[cmdName] = key;
-                cmdNames.push(cmdName);
-            } catch (e) {}
-        }
-
-        // upgrade command names if needed:
-        cmdNames.forEach((cmdid) => {
-            let cmdOld = cmdid.replace(/^cmd_sv/, "cmd_"); // XXX: update cmd_R ==> cmd_svR
-            let keyLabel = kbMgr.command2keylabel(cmdOld); // String!
-            if (keyLabel) {
-                // assignKey-> keysequence2keylabel produces some weird labels like F11,0 fix it here:
-                let key = Array.from(kbMgr.command2key[cmdOld]); // clone array
-                logger.debug("Upgrading command " + cmdOld + " to " + cmdid + ": key is " + key);
-                kbMgr.clearBinding(cmdOld, "", false);
-                kbMgr.assignKey(cmdid, key, "");
-                kbMgr.command2key[cmdid] = key;
-                kbMgr.makeKeyActive(cmdid, key);
-            }
-        }); // forEach
-        kbMgr.saveCurrentConfiguration();
-
-        if (clearOnly) {
-            cmdNames.forEach((cmdid) => kbMgr.clearBinding(cmdid, "", false));
-        } else {
-            cmdNames.forEach((cmdid) => {
-                let keySequence = schemeKeys[cmdid].split(/, /);
-                let usedBy = kbMgr.usedBy(keySequence);
-                if (!usedBy.length) {
-                    kbMgr.assignKey(cmdid, keySequence, '');
-                    kbMgr.makeKeyActive(cmdid, keySequence);
-                    logger.debug("Assigned key sequence " + keySequence.join(", ") + " to command " +
-                        cmdid);
-                }
-            });
-        }
-
-        //kbMgr.saveAndApply(ko.prefs);
-        kbMgr.saveCurrentConfiguration();
-        kbMgr.loadConfiguration(kbMgr.currentConfiguration, true);
-        //delete kbMgr;
-        return true;
-    }
-
-    this.setKeybindings = function (clearOnly, sfx) {
-        _setKeybindings(clearOnly, sfx);
-    }
-
-    function _str(sString) sString.QueryInterface(Ci.nsISupportsString).data
+    var _str = sString => sString.QueryInterface(Ci.nsISupportsString).data;
 
     this.getRProc = function (property) {
         if (!property) property = "CommandLine";
@@ -535,7 +464,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         var svUtils = Cc["@komodor/svUtils;1"].createInstance(Ci.svIUtils);
         var procList = svUtils.getproc(property);
 
-        proc = [];
+        let proc = [];
         while (procList.hasMoreElements()) proc.push(_str(procList.getNext()));
         return proc;
     };
@@ -543,109 +472,54 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     this.places = {
 
         get anyRFilesSelected()
-        sv.r.isRunning &&
-        ko.places.manager.getSelectedItems().some((x) => x.file.isLocal &&
-            x.file.ext.toLowerCase() == ".r"),
+        _RIsRunning &&
+        ko.places.manager.getSelectedItems().some(
+			x => x.file.isLocal && x.file.ext.toLowerCase() == ".r"),
 
         get anyRDataFilesSelected()
-        sv.r.isRunning &&
+        _RIsRunning &&
         ko.places.manager.getSelectedItems().some(
-            (x) => x.file.isLocal && (x.file.ext || x.file.leafName).toLowerCase() == ".rdata"),
+            x => x.file.isLocal && (x.file.ext || x.file.leafName).toLowerCase() == ".rdata"),
 
-        sourceSelection: function sv_sourcePlacesSelection() {
-            if (!sv.r.isRunning) return;
-            var files = ko.places.manager.getSelectedItems()
-                .filter((x) => (x.file.isLocal && x.file.ext.toLowerCase() == ".r"))
-                .map((x) => x.file.path);
+        sourceSelection() {
+            if (!_RIsRunning) return;
+            let files = ko.places.manager.getSelectedItems()
+                .filter(x => (x.file.isLocal && x.file.ext.toLowerCase() == ".r"))
+                .map(x => x.file.path);
             if (!files.length) return;
-            var cmd = files.map((x) => "source('" + sv.string.addslashes(x) + "')").join("\n");
+            let cmd = files.map(x => "source('" + sv.string.addslashes(x) + "')").join("\n");
             sv.rconn.evalAsync(cmd, () => sv.rbrowser.refresh(true), false);
         },
 
-        loadSelection: function sv_loadPlacesSelection() {
-            if (!sv.r.isRunning) return;
-            var files = ko.places.manager.getSelectedItems()
-                .filter((x) => (x.file.isLocal &&
+        loadSelection() {
+            if (!_RIsRunning) return;
+            let files = ko.places.manager.getSelectedItems()
+                .filter(x => (x.file.isLocal &&
                     // for '.RData', .ext is ''
                     (x.file.ext || x.file.leafName).toLowerCase() == ".rdata"))
-                .map((x) => x.file.path);
+                .map(x => x.file.path);
             if (!files.length) return;
-            var cmd = files.map((x) => "load('" + sv.string.addslashes(x) + "')").join("\n");
+            let cmd = files.map(x => "load('" + sv.string.addslashes(x) + "')").join("\n");
             sv.rconn.evalAsync(cmd, () => sv.rbrowser.refresh(true), false);
         },
 
-        setWorkingDir: function sv_setPlacesSelectionAsWorkingDir() {
-            if (!sv.r.isRunning) return;
+        setWorkingDir() {
+            if (!_RIsRunning) return;
 
             var path;
             if (ko.places.manager._clickedOnRoot()) {
                 if (!ko.places.manager.currentPlaceIsLocal) return;
                 path = sv.file.pathFromURI(ko.places.manager.currentPlace);
             } else {
-                var dir = ko.places.manager.getSelectedItem();
+                let dir = ko.places.manager.getSelectedItem();
                 if (!dir.file.isLocal || dir.type != "folder") return;
                 path = dir.file.path;
             }
-            var cmd = "setwd('" + sv.string.addslashes(path) + "')";
-            sv.rconn.evalAsync(cmd, function () sv.rbrowser.refresh(true), false);
+            let cmd = "setwd('" + sv.string.addslashes(path) + "')";
+            sv.rconn.evalAsync(cmd, () => sv.rbrowser.refresh(true), false);
         }
 
-    };
+    }; // end this.places
 
-    //}
-    // TODO: move this to sv.onLoad:
-    this.onLoad = function ( /*event*/ ) {
-        // first run:
-        var firstRunPref = "rInterface.firstRunDone";
-        if (!ko.prefs.hasPref(firstRunPref) || sv.version != ko.prefs.getStringPref(firstRunPref)) {
-            ko.prefs.setStringPref(firstRunPref, sv.version);
-            var osName = Cc['@activestate.com/koOs;1'].getService(Ci.koIOs).name;
-            if (!_setKeybindings(false, osName)) // use system specific keybindings
-                _setKeybindings(false, ''); // fallback - use default
-        } // end first run
-
-        var thisWin = self;
-        var onLoadIntervalId = setInterval(function () {
-            if (!sv.rbrowser) return;
-            thisWin.clearInterval(onLoadIntervalId);
-
-            sv.pref.setDefaults(false);
-            sv.rconn.startSocketServer();
-
-            _this.setControllers();
-            _this.setRStatus(sv.rconn.isRConnectionUp(true));
-
-            if (sv.r.isRunning) sv.rbrowser.refresh();
-
-            // For completions
-            var cuih = ko.codeintel.CompletionUIHandler;
-            if (cuih) {
-                let baseURI = "chrome://komodor/skin/images/";
-                //cuih.prototype.types.argument = cuih.prototype.types.interface;
-                cuih.prototype.types.environment = cuih.prototype.types.namespace;
-                cuih.prototype.types.file = baseURI + "cb_file.png";
-                cuih.prototype.types.argument = baseURI + "cb_argument.png";
-                cuih.prototype.types.grapharg = baseURI + "cb_graphical_argument.png";
-                cuih.prototype.types.dataset = baseURI + "cb_data.png";
-            }
-        }, 1000);
-        _observerSvc.removeObserver(_this.onLoad, "komodo-ui-started");
-    };
-
-    // "komodo-post-startup" event in Komodo 9 only. 
-    //addEventListener("komodo-post-startup", _this.onLoad, false);
-    _observerSvc.addObserver(_this.onLoad, "komodo-ui-started", false);
-
-    // Just in case, run a clean-up before quitting Komodo:
-    function svCleanup() sv.rconn.stopSocketServer()
-
-    ko.main.addWillCloseHandler(svCleanup);
-
-    function ObserveR() {
-        var el = document.getElementById('cmd_svRStarted');
-        if (_isRRunning()) el.setAttribute("checked", "true");
-        else el.removeAttribute("checked");
-    }
-    addEventListener("r_app_started_closed", ObserveR, false);
 
 }).apply(sv.command);
