@@ -1,31 +1,28 @@
 **Object browser:**
-* removal command for environment's items:
-`rm(list = "svBrowseHere", envir = sv_CurrentEnvir)`
+* add "current evaluation environment" as top branch if it is not `.GlobalEnv`
 * on R close, packages other than .GlobalEnv remain
-* make "R search path" a dropdown menu at the top
+* make "R search path" a dropdown menu
 
 **Preferences:**
 * add warning about restarting R if interpreter changed
 * changing between R/Rgui: select the right version
-* remove margin click preference
-* K9: Preference page "Languages->R" does not open automatically (worked around)
-* Project/file preferences
 
 **Package manager:**
-* implement commands from the dropdown menu
+* implement commands from the toolbar's dropdown menu
 
 **R help window:**
-* search from address bar is broken
+* printing, print preview, page saving
 
 **Other**
 
 **Code highlighting/completion**
+* all tips for R
 * completion for Roxygen tags
 * Roxygen: handling R code after @example 
-* Lexer for Sweave, Bugs, Jags, Stan
-* Completion of attribute names in `attr(object, "<|>")`
+* lexer for Sweave, Bugs, Jags, Stan
+* completion of attribute names in `attr(object, "<|>")`
 
 **R**
-* `svBrowseHere`: make `sys.frames` and `sys.calls` usable.
+* `koBrowseHere`: make `sys.frames` and `sys.calls` usable.
 * Change prompt ":>" if commands not executed inside `.GlobalEnv`
   (like in `browser()`: "Browse[N]>")
