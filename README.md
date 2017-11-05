@@ -9,7 +9,7 @@ R environment and Komodo.
 This extension has initially been a slimmed-down fork of
 [Sciviews-K](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, but since then it has been largely rewritten. 
-It is compatible with Komodo 7 to 11, and has been tested to work on Windows 
+It is compatible with Komodo 9 to 11, and has been tested to work on Windows 
 and Linux.
 
 **Note:** Komodo, since version 9.3, provides its own R syntax highlighting 
@@ -37,7 +37,6 @@ this extension has been renamed to __"R_extended"__ to avoid conflicts.
 * R package manager
 * R working directory can be changed from _Places_ pane (in the context menu)
 
-
 A socket connection is used to communicate with **R**. No additional R packages 
 are required, however your R installation needs to have Tcl capability 
 (R: `capabilities("tcltk")`). See also "Known issues" below.
@@ -50,6 +49,31 @@ are required, however your R installation needs to have Tcl capability
 *  in R: `koCmd` executes a JavaScript command in Komodo and returns the result 
    if any.
    
+   
+**Some other obscure features:**
+
+* _Places_. panel:
+    * load workspace from ".RData" files or source script from ".R" files: 
+      select a command from the context menu.
+* R browser:
+    * drag an item to the editor to insert R objects' names,
+        * hold "Shift" key during the drag start to drop quoted names,  
+        * hold "Ctrl" key during the drag start to drop full object names
+          (e.g. `list$data$column`. Non-syntactic names will be backtick-quoted).
+		* hold both to insert "name()" for functions, "name=" for function 
+		  arguments.
+* "R search path" box:
+    * drop a package name onto it to load the package;
+    * press "delete" to unload the selected package; 
+    * drag an item to the editor to insert package name.
+* R help window:
+    * press Ctrl+R to run selected text as R code (or choose command from the 
+	  context menu).
+* R language help (Shift+F1 while in an _R_extended_ document):
+    * the selected keyword is searched for in the loaded packages. If noting is 
+	  found, press Shift+F1 again to search in all packages.
+
+	  
 **Debugging R code**
 
 The extension provides some debugging capabilities, see 
@@ -64,6 +88,8 @@ The extension provides some debugging capabilities, see
 * Executing Rgui's command "Stop all computations" will also stop R's socket 
   server and hence break the connection with Komodo. It may also cause R crash 
   (happens sometimes on Windows).
+* On Linux, Tk-Gui sometimes does not close properly. It is recommended not to 
+  use it with Komodo.
 * Problems with connection with Komodo server in R may cause R not exit 
   properly and need to kill the R process (happens very 
   rarely though - Windows only?).

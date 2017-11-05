@@ -73,8 +73,8 @@ sv.rbrowser = {};
     ];
 
     // Used in .contextOnShow
-    var nonDetachable = [".GlobalEnv", "package:kor", "package:utils", "package:base"
-    ];
+    var nonDetachable = [".GlobalEnv", "package:kor", "package:utils",
+        "package:base" ];
 
     // Reference to parent object for private functions
     var _this = this;
@@ -137,7 +137,7 @@ sv.rbrowser = {};
                 continue;
             }
             ++idx;
-            var vItem = _getVItem(item[i], idx, level, i == 0, i == len - 1,
+            let vItem = _getVItem(item[i], idx, level, i == 0, i == len - 1,
                 parentIndex);
             _this.visibleData[idx] = vItem;
 
@@ -295,8 +295,7 @@ sv.rbrowser = {};
             if (!this.selection) return;
             this.selection.clearSelection();
             if (_storedSelection && _storedSelection.map) {
-
-                var vd = this.visibleData;
+                let vd = this.visibleData;
                 for (let j = 0; j < _storedSelection.length; ++j) {
                     for (let i = 0; i < vd.length; ++i) {
                         if (_storedSelection[j] == fullname(vd, i)) {
@@ -1138,30 +1137,28 @@ sv.rbrowser = {};
 
     this.getSelectedNames = function (fullNames, extended) {
         if (extended === undefined) extended = false;
-        //var rows = this.getSelectedRows();
-        var namesArr = [];
-        var cellText, item;
-        var name = fullNames ? "fullName" : "name";
-        var selectedItemsOrd = _this.selectedItemsOrd;
-        for (var i = 0; i < selectedItemsOrd.length; ++i) {
+        let namesArr = [];
+        let text, item;
+		let modif;
+		if(extended && !fullNames) 
+			modif = (s) =>  '"' + s + '"';
+		else if (extended && fullNames) 
+			modif = (s, item) => {
+				if (item.group == "function") {
+                     s += "()";
+                } else if (item.type == "args") {
+                    s += "="; // Attach '=' to function args
+                };
+				return s;
+			};
+		else modif = (s) => s;
+			
+        let name = fullNames && !extended ? "fullName" : "name";
+        let selectedItemsOrd = _this.selectedItemsOrd;
+        for (let i = 0; i < selectedItemsOrd.length; ++i) {
             item = selectedItemsOrd[i];
-            cellText = item[name];
-
-            if (cellText) {
-                if ((!fullNames || item.type == "object") &&
-                    cellText.search(/^[a-z\.][\w\._]*$/i) == -1)
-                    cellText = "`" + cellText + "`";
-                if (!fullNames && extended) {
-                    if (item.type == "sub-object") {
-                        cellText = '"' + cellText + '"';
-                    } else if (item.group == "function") {
-                        cellText += "()";
-                    } else if (item.type == "args") {
-                        cellText += "="; // Attach '=' to function args
-                    }
-                }
-            }
-            namesArr.push(cellText);
+            text = item[name];
+            if (text) namesArr.push(modif(text, item));
         }
         return namesArr;
     };
@@ -1480,10 +1477,10 @@ sv.rbrowser = {};
             let listItem = listbox.selectedItem;
             let pkg = listItem.getAttribute("label");
 
-            if (pkg == ".GlobalEnv" || pkg == "TempEnv") return;
+            if (nonDetachable.indexOf(pkg) != -1) return;
 
             sv.r.evalAsync(
-                'tryCatch(detach("' + sv.string.addslashes(pkg) +
+                'base::tryCatch(base::detach("' + sv.string.addslashes(pkg) +
                 '", unload=TRUE), error=function(e) cat("<error>"));',
                 function /*_packageListKeyEvent_callback*/ (data) {
                     logger.debug("packageListKeyEvent with data=" + data);

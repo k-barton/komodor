@@ -212,7 +212,7 @@ function rHelpSearch(topic) {
 function _getHomePage(browser, goTo) {
 	var isWin = navigator.platform.search(/Win\d+$/) === 0;
 	var res = false;
-	var cmd = "cat(getHelpURL())";
+	var cmd = "cat(kor::getHelpURL())";
 
 	res = sv.r.evalAsync(cmd, (path) => {
 		path = sv.string.removeLastCRLF(path);
