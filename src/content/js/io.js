@@ -4,23 +4,14 @@
  *  
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
+
+/* globals Components, sv */
  
 sv.io = {};
 
 (function(){
 
-_this = this;
-
-this.JSONDecode = function JSON_Decode(str) {
-	var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
-			.createInstance(Components.interfaces.nsIJSON);
-	try {
-		return nativeJSON.decode(str);
-	} catch(e) {
-		return null;
-	}
-};
-
+var _this = this;
 
 function CSVRow(rowArr, colNames, hasRowNames) {
 	if(rowArr.length != colNames.length)

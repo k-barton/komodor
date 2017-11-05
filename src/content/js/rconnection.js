@@ -55,10 +55,10 @@ sv.rconn = {};
     //var obsCallback = function() { sv.cmdout.append("test")};
 
     Object.defineProperty(this, 'command', {
-        get: function () connector.lastCommand
+        get: () => connector.lastCommand
     });
     Object.defineProperty(this, 'result', {
-        get: function () connector.lastResult
+        get: () => connector.lastResult
     });
 
     var _curPrompt = ':>';
@@ -83,7 +83,7 @@ sv.rconn = {};
         command = _curCommand + _curPrompt + ' ' + command + sv.cmdout.eolChar;
         window.clearTimeout(_waitMessageTimeout);
 
-        var prompt = '';
+        let prompt = "";
         if (executed) {
             let newPrompt = wantMore ? ':+' : ':>';
             prompt = '\n' + newPrompt;
@@ -185,9 +185,9 @@ sv.rconn = {};
             connected = false;
         }
         if (!quiet) {
-            var message = connected ? "Connection with R successful." :
-                "Cannot connect to R.";
-            sv.addNotification("R connection test: " + message, 0, 1000);
+            var message = connected ? "success" :
+                "cannot connect";
+            sv.addNotification("R connection test result: " + message + ".", 0, 1000);
         }
         return connected;
     };
@@ -199,10 +199,10 @@ sv.rconn = {};
     var defaultRequestHandler = function (str) {
         str = str.trim();
         try {
-            if (str.indexOf("<<<js>>>") == 0) {
+            if (str.indexOf("{js}") === 0) {
                 //var result = eval(str.substring(8));
                 //sv.cmdout.append("JS request handler result:" + result);
-                return eval(str.substring(8));
+                return eval(str.substring(4));
             }
         } catch (e) {
             logger.exception(e, "koCmd request was: \n" + str);

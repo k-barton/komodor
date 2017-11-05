@@ -255,7 +255,8 @@ class svUtils:
             # (\OOO), but json needs unicode notation (\uHHHH).
             result = re.sub('(?<=\\\\)[0-9]{3}',
                             lambda x: ("u%04x" % int(x.group(0), 8)), result)
-            # Fix bad JSON from RSONIO::toJSON: control characters are not
+            # TODO: shouldn't this be done elsewhere?
+			# Fix bad JSON from RSONIO::toJSON: control characters are not
             #  escaped at all.
             #  Must not escape e.g. any newlines outside the JSON object:
             result = re.sub('[\x00-\x08\x0e-\x1f]',
@@ -432,73 +433,6 @@ class svUtils:
         self.evalInRNotify('\x1b', '')
         pass
         
-    # @components.ProxyToMainThread
-    # def x_cout(self, s):
-    # #    scimozProxy = getProxyForObject(1L, components.interfaces.ISciMoz,
-    # #        self.outScimoz, PROXY_ALWAYS | PROXY_SYNC)
-    #     #scimozProxy
-    #     self.outScimoz.appendText(len(s), s)
-    # 
-    # def x_start(self, port):
-    #     self.x_conn_end = '^END'
-    #     self.x_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #     self.x_sock.bind(('localhost', port))
-    #     self.x_sock.listen(1)
-    # 
-    # def x_connect(self):
-    #     conn, addr = self.x_sock.accept()
-    #     conn.setblocking(1)
-    #     return conn
-    # 
-    # def x_receive(self, conn):
-    #     alldata = []
-    #     while 1:
-    #         data = conn.recv(1024L)
-    #         self.x_cout(data)
-    #         log.debug("x_receive = " + data)
-    #         alldata.append(data)
-    #         if (not data) or (data.endswith(self.x_conn_end + '\n')): break
-    #     return unicode(''.join(alldata))
-    # 
-    # def x_talk(self, rcode):
-    #     conn = self.x_connect()
-    #     self.x_receive(conn); # ['Command?^END\n']
-    #     conn.send(rcode + '\n')
-    #     conn.send('\n' + self.x_conn_end + '\n')
-    #     t = threading.Thread(target=self.x_receive,
-    #         kwargs={ 'conn': conn })
-    #     t.start()
-    #     #self.x_receive(conn)
-
-#def addstylemarks(iterable):
-#    state = '\x00'
-#    it = iter(iterable)
-#    for x in it:
-#        if (x == '\x03'):
-#            state = '\x17'
-#        elif (x == '\x02'):
-#            state = '\x00'
-#        else:
-#            yield x + state
-#
-#def _makeStyledText(text):
-#    text8 = text.encode('utf-8')
-#    return ''.join(addstylemarks(text8))
-#
-#
-#
-#def allmarks(text):
-#    p = -1
-#    while True:
-#        p = text.find('\x03', p + 1)
-#        if p == -1:
-#            return
-#        yield p
-#        p = text.find('\x02', p + 1)
-#        if p == -1:
-#            return
-#        yield p
-
 # //JS:
 # var svu = sv.rconn.svuSvc
 # var sm = sv.cmdout.scimoz

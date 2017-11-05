@@ -1,6 +1,14 @@
 
+/* jshint undef: true, unused: false */
+/* jslint undef: true, unused: false */
+/*globals document, */
 var sv, ko;
 var pmDeck;
+
+var require = parent.opener.require;
+
+var logger = require("ko/logging").getLogger("komodoR");
+logger.setLevel(logger.DEBUG);
 
 function _notify(message, msgid, type, buttons) {
 	var image, priority;
@@ -43,8 +51,9 @@ function closeBusyNotification() {
 function pkgManInstall(pkg, ask) {
 	ask = ', ask='  + (ask? 'TRUE' : 'FALSE') + ', installDeps=' +
 		(ask? 'FALSE' :  'TRUE');
-	var cmd = 'cat(simpsON(' + sv.r.rFn('sv_pkgManInstallPackages') +
+	var cmd = "cat(kor::stringize(kor::pkgManInstallPackages" +
 		'("' + pkg + '"' + ask + ')))';
+	logger.debug(cmd);
 	sv.rconn.evalPredefined(cmd, "pkgman-install", true, pkg);
 }
 
@@ -59,8 +68,9 @@ function _installHandler(res, pkg) {
 			label: 'Ok',
 			accessKey: 'O',
 			callback: n => {
-				var cmd = 'cat(simpsON(sv_pkgManInstallPackages("' + pkg +
+				let cmd = 'cat(kor::stringize(kor::pkgManInstallPackages("' + pkg +
 					'", ask=FALSE, installDeps=TRUE)))';
+				logger.debug(cmd);
 				sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
 				_notify('R is now busy installing the requested packages. ' +
 						'No output will be shown in Komodo before the operation finishes.',
@@ -79,173 +89,34 @@ function _installHandler(res, pkg) {
 }
 
 function pkgManRemove(pkg) {
-	var cmd = 'cat(simpsON(sv_pkgManRemovePackage("' + pkg + '")))';
+	var cmd = 'cat(kor::stringize(kor::pkgManRemovePackage("' + pkg + '")))';
 	//sv.r.evalAsync(cmd, updateInfo, "removed");
+	logger.debug(cmd);
 	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "removed");
 }
 
 function pkgManDetach(pkg) {
-	var cmd = 'cat(simpsON(sv_pkgManDetachPackage("' + pkg + '")))';
+	var cmd = 'cat(kor::stringize(kor::pkgManDetachPackage("' + pkg + '")))';
 	//sv.r.evalAsync(cmd, updateInfo, "detached");
+	logger.debug(cmd);
 	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "detached");
 
 }
 
 function pkgManUpgrade(pkg) {
-	var cmd = 'cat(simpsON(sv_pkgManInstallPackages("' + pkg + '", ask=FALSE)))';
+	var cmd = 'cat(kor::stringize(kor::pkgManInstallPackages("' + pkg + '", ask=FALSE)))';
+	logger.debug(cmd);
 	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
 	_notify('R is now busy installing the requested packages. ' +
 		'No output will be shown in Komodo before the operation finishes.',
 		'r-is-busy', 'info');
 }
 
-function pkgManLoad(pkg) {
-	var cmd = 'cat(simpsON(sv_pkgManLoadPackage("' + pkg + '")))';
-	sv.r.evalAsync(cmd, updateInfo, "loaded");
-}
-
-function getUpdateable() {
-	sv.rconn.evalAsync("sv_pkgManGetUpdateable()", populateUpdateablePkgs, true, true);
-}
-
-function populateUpdateablePkgs(rOutput) {
-	if (!rOutput || rOutput == 'NULL') return;
-	document.getElementById("rUpdateableLoadBox").loaded = true;
-	rl = document.getElementById("rUpdateableList");
-	var res = sv.io.csvToObj(rOutput, ';;', 0, true,
-		['package', 'libPath', 'version', 'rVersion', 'reposVersion', 'repos' ]);
-
-	while(rl.itemCount) rl.removeItemAt(0);
-	var item;
-	for(let i = 0, l = res.length; i < l; ++i){
-		item = res[i];
-		rl.appendChild(makePkgItem(item.package, item.reposVersion, item.repos,
-			item.version, "old", true, true, false));
-	}
-}
-
-function updateInfo(res, what) {
-// add to installed / reload installed
-// update items in Available
-// remove from Updates
-	closeBusyNotification();
-
-	var avpList = document.getElementById("rAvailablePackageList");
-	var instList = document.getElementById("rPackageList");
-
-	switch(what) {
-	case "installed":
-		response = JSON.parse(res);
-		if(response == null) {
-			_notify(res, what, "warning");
-			return;
-		}
-
-		var pkgs = response.packages;
-		if (typeof pkgs == "string") pkgs = [pkgs];
-
-		var msg = response.message.join("\n").trim();
-
-		_notify("Installation of " + pkgs.join(', ') + " finished." +
-				(msg? " See output in console for details." : ""),
-				what, "info");
-		if(msg) sv.cmdout.print(msg);
-
-		var packageName, items;
-
-		for(var i in pkgs) {
-			packageName = pkgs[i];
-
-			items = avpList.getElementsByAttribute("label", packageName);
-			if(items.length == 0) continue;
-			for(var j = 0; j < items.length; j++) {
-				items[j].setAttribute("installedVersion", items[j].getAttribute("version"));
-				items[j].setAttribute("installed", true);
-			}
-		}
-		getInstalledPkgs();
-		break;
-	case "removed":
-		response = JSON.parse(res);
-		if(response === null) {
-			//ko.dialogs.alert("Something went wrong...", res, document.title + " updateInfo");
-			_notify(res, what, "error");
-			return;
-		}
-		var changedCount = 0;
-		for(let packageName in response) 
-		    if(response.hasOwnProperty(packageName)) {
-				if(response[packageName] == "TRUE") {
-					++changedCount;
-					let items = avpList.getElementsByAttribute("label", packageName);
-					if(items.length == 0) continue;
-					for(let j = 0; j < items.length; ++j) {
-						items[j].removeAttribute("installed");
-						items[j].setAttribute("installedVersion", "");
-					}
-				}
-			}
-		if(changedCount > 0) getInstalledPkgs();
-		break;
-	case "loaded":
-		getInstalledPkgs();
-		response = JSON.parse(res);
-		var notification = '';
-		if(response === null) {
-			notification = sv.translate("See output in console for additional information.");
-			sv.cmdout.print(res);
-		} else {
-			let status = response.status;
-			for(let i in status)
-			    if(status.hasOwnProperty(i) && status[i] != 'TRUE')
-					notification += 
-				        sv.translate("Package %S was not loaded.", i) + " ";
-			if(response.message) {
-				sv.cmdout.print(response.message);
-				notification += sv.translate("See output in console for additional information.");
-			}
-		}
-		if(notification)
-			_notify(notification, "update-loaded", "info");
-		break;
-	case "detached":
-		response = JSON.parse(res);
-		var notification = '';
-		if(response === null) {
-			notification = sv.translate("See output in console for additional information.");
-			sv.cmdout.print(res);
-		} else {
-			var status = response.status;
-			var items, changedCount = 0, errors = [];
-			for(let packageName in status)
-				if(status.hasOwnProperty(packageName)) {
-					if(status[packageName] == "TRUE") {
-						changedCount++;
-						items = avpList.getElementsByAttribute("label", packageName);
-						if(items.length == 0) continue;
-						for(let j = 0; j < items.length; ++j)
-							items[j].removeAttribute("loaded");
-					} else errors.push(packageName);
-				}
-			if(changedCount > 0) getInstalledPkgs();
-			if (errors.length > 0)
-				notification += sv.translate("These packages were not detached: %S.", errors.join(", ")) + " ";
-			if(response.message) {
-				sv.cmdout.print(response.message);
-				notification += sv.translate("See output in console for additional information.") + " ";
-			}
-			if(notification)
-				_notify(notification, "detach", errors.length? "warning" : "info");
-		}
-        break;
-	default:
-
-	}
-}
-
 function getDescriptionFor(el) {
 	var pkg = el.label;
-	sv.r.evalAsync('sv_pkgManGetDescription("' + pkg + '")', function(desc, el) {
+	var cmd = 'kor::pkgManGetDescription("' + pkg + '")';
+	logger.debug(cmd);
+	sv.r.evalAsync(cmd, function(desc, el) {
 		el.desc = desc;
 	}, el);
 }
@@ -253,7 +124,9 @@ function getDescriptionFor(el) {
 function setCranMirror(url) {
 	if(!url) url = sv.pref.getPref("CRANMirror").trim();
 	try {
-		sv.rconn.evalAsync("sv_pkgManSetCRANMirror(\"" + url + "\")", null, true);
+		let cmd = "kor::pkgManSetCRANMirror(\"" + url + "\")";
+		logger.debug(cmd);
+		sv.rconn.evalAsync(cmd, null, true);
 		sv.pref.setPref("CRANMirror", url);
 		sv.pref.setPref("CRANMirrorSecure", url);
 	} catch(e) {
@@ -299,7 +172,9 @@ function populateCranMirrorsList(rOutput) {
 }
 
 function getCranMirrors() {
-	sv.rconn.evalAsync("sv_pkgManGetMirrors()", populateCranMirrorsList, true, true);
+	var cmd = "kor::pkgManGetMirrors()";
+	logger.debug(cmd);
+	sv.rconn.evalAsync(cmd, populateCranMirrorsList, true, true);
 }
 
 function makePkgItem(name, version, repositoryName, installedVersion, status, installed, old,
@@ -316,10 +191,28 @@ function makePkgItem(name, version, repositoryName, installedVersion, status, in
 	return item;
 }
 
-function getInstalledPkgs() {
-	sv.rconn.evalAsync("sv_pkgManGetInstalled(sep='\\x1e')",
-			populateInstalledPkgs, true, true);
+function populateUpdateablePkgs(rOutput) {
+	if (!rOutput || rOutput == 'NULL') return;
+	document.getElementById("rUpdateableLoadBox").loaded = true;
+	var rl = document.getElementById("rUpdateableList");
+	var res = sv.io.csvToObj(rOutput, ';;', 0, true,
+		['package', 'libPath', 'version', 'rVersion', 'reposVersion', 'repos' ]);
+
+	while(rl.itemCount) rl.removeItemAt(0);
+	var item;
+	for(let i = 0, l = res.length; i < l; ++i){
+		item = res[i];
+		rl.appendChild(makePkgItem(item.package, item.reposVersion, item.repos,
+			item.version, "old", true, true, false));
+	}
 }
+
+function getUpdateable() {
+	var cmd = "kor::pkgManGetUpdateable()";
+	logger.debug(cmd);
+	sv.rconn.evalAsync(cmd, populateUpdateablePkgs, true, true);
+}
+
 
 function populateInstalledPkgs(rOutput) {
 	if (!rOutput || rOutput == 'NULL') return;
@@ -362,21 +255,139 @@ function populateInstalledPkgs(rOutput) {
 	}
 }
 
-function getAvailablePkgs(page, reload) {
-	//document.getElementById("rAvailablePackagesLoadBox").loaded = false;
-	var rl = document.getElementById("rAvailablePackageList");
+function getInstalledPkgs() {
+	var cmd = "kor::pkgManGetInstalled(sep='\\x1e')";
+	logger.debug(cmd);
+	sv.rconn.evalAsync(cmd, populateInstalledPkgs, true, true);
+}
 
-	if (!page) page = '';
-	else if (page == "next")
-		rl.scrollToIndex(0);
-	else if (page == "prev")
-		rl.scrollToIndex(rl.getRowCount() - 1);
 
-	var searchPattern = document.getElementById('searchfield').value.trim();
-	searchPattern = sv.string.toRegex(searchPattern);
-	var cmd = 'sv_pkgManGetAvailable("' + page + '", sep="\\x1e", pattern="' +
-		searchPattern + '", reload=' + (reload ? 'TRUE': 'FALSE') + ')';
-	sv.rconn.evalAsync(cmd, populateAvailablePkgs, true, true);
+function updateInfo(res, what) {
+// add to installed / reload installed
+// update items in Available
+// remove from Updates
+	closeBusyNotification();
+
+	let avpList = document.getElementById("rAvailablePackageList");
+	//let instList = document.getElementById("rPackageList");
+	
+	let notification;
+
+	switch(what) {
+	case "installed":
+		response = JSON.parse(res);
+		if(response == null) {
+			_notify(res, what, "warning");
+			return;
+		}
+
+		let pkgs = response.packages;
+		if (typeof pkgs == "string") pkgs = [pkgs];
+
+		let msg = response.message.join("\n").trim();
+
+		_notify("Installation of " + pkgs.join(', ') + " finished." +
+				(msg? " See output in console for details." : ""),
+				what, "info");
+		if(msg) sv.cmdout.print(msg);
+
+		let packageName, items;
+
+		for(let i in pkgs) {
+			packageName = pkgs[i];
+
+			items = avpList.getElementsByAttribute("label", packageName);
+			if(items.length == 0) continue;
+			for(let j = 0; j < items.length; j++) {
+				items[j].setAttribute("installedVersion", items[j].getAttribute("version"));
+				items[j].setAttribute("installed", true);
+			}
+		}
+		getInstalledPkgs();
+		break;
+	case "removed":
+		response = JSON.parse(res);
+		if(response === null) {
+			//ko.dialogs.alert("Something went wrong...", res, document.title + " updateInfo");
+			_notify(res, what, "error");
+			return;
+		}
+		let changedCount = 0;
+		for(let packageName in response) 
+		    if(response.hasOwnProperty(packageName)) {
+				if(response[packageName] == "TRUE") {
+					++changedCount;
+					let items = avpList.getElementsByAttribute("label", packageName);
+					if(items.length == 0) continue;
+					for(let j = 0; j < items.length; ++j) {
+						items[j].removeAttribute("installed");
+						items[j].setAttribute("installedVersion", "");
+					}
+				}
+			}
+		if(changedCount > 0) getInstalledPkgs();
+		break;
+	case "loaded":
+		getInstalledPkgs();
+		response = JSON.parse(res);
+		notification = '';
+		if(response === null) {
+			notification = sv.translate("See output in console for additional information.");
+			sv.cmdout.print(res);
+		} else {
+			let status = response.status;
+			for(let i in status)
+			    if(status.hasOwnProperty(i) && status[i] != 'TRUE')
+					notification += 
+				        sv.translate("Package %S was not loaded.", i) + " ";
+			if(response.message) {
+				sv.cmdout.print(response.message);
+				notification += sv.translate("See output in console for additional information.");
+			}
+		}
+		if(notification)
+			_notify(notification, "update-loaded", "info");
+		break;
+	case "detached":
+		response = JSON.parse(res);
+		notification = '';
+		if(response === null) {
+			notification = sv.translate("See output in console for additional information.");
+			sv.cmdout.print(res);
+		} else {
+			let status = response.status;
+			let items, changedCount = 0, errors = [];
+			for(let packageName in status)
+				if(status.hasOwnProperty(packageName)) {
+					if(status[packageName] == "TRUE") {
+						changedCount++;
+						items = avpList.getElementsByAttribute("label", packageName);
+						if(items.length == 0) continue;
+						for(let j = 0; j < items.length; ++j)
+							items[j].removeAttribute("loaded");
+					} else errors.push(packageName);
+				}
+			if(changedCount > 0) getInstalledPkgs();
+			if (errors.length > 0)
+				notification += sv.translate("These packages were not detached: %S.", errors.join(", ")) + " ";
+			if(response.message) {
+				sv.cmdout.print(response.message);
+				notification += sv.translate("See output in console for additional information.") + " ";
+			}
+			if(notification)
+				_notify(notification, "detach", errors.length? "warning" : "info");
+		}
+        break;
+	default:
+		break;
+
+	}
+}
+
+function pkgManLoad(pkg) {
+	var cmd = 'cat(kor::stringize(kor::pkgManLoadPackage("' + pkg + '")))';
+	logger.debug(cmd);
+	sv.r.evalAsync(cmd, updateInfo, "loaded");
 }
 
 function populateAvailablePkgs(rOutput) {
@@ -434,6 +445,24 @@ function populateAvailablePkgs(rOutput) {
 	info.value = ' Showing packages '  + idx[0] + "-" + idx[1]  + ' of ' + idx[2] +
 		' total (from "' + res[0].name + '" to "' +
 		res[res.length - 1].name + '")';
+}
+
+function getAvailablePkgs(page, reload) {
+	//document.getElementById("rAvailablePackagesLoadBox").loaded = false;
+	var rl = document.getElementById("rAvailablePackageList");
+
+	if (!page) page = '';
+	else if (page == "next")
+		rl.scrollToIndex(0);
+	else if (page == "prev")
+		rl.scrollToIndex(rl.getRowCount() - 1);
+
+	var searchPattern = document.getElementById('searchfield').value.trim();
+	searchPattern = sv.string.toRegex(searchPattern);
+	var cmd = 'kor::pkgManGetAvailable("' + page + '", sep="\\x1e", pattern="' +
+		searchPattern + '", reload=' + (reload ? 'TRUE': 'FALSE') + ')';
+	logger.debug(cmd);
+	sv.rconn.evalAsync(cmd, populateAvailablePkgs, true, true);
 }
 
 function pmLoadPanel(/*event*/) { 

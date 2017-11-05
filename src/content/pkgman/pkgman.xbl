@@ -229,7 +229,7 @@
 				document.getAnonymousElementByAttribute(this, "anonid", "title");
 		</field>
 		<field name="_nondetachables">
-			['base', 'tcltk', 'utils']
+			['base', 'tcltk', 'utils', 'kor']
 		</field>
 
 		<property name="label" onget="return this._title.value;">

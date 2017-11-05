@@ -2,8 +2,7 @@
  *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
  *  
  */
- 
- 
+
 sv.misc = {};
 
 sv.misc.colorPicker = {};

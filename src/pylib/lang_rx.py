@@ -403,27 +403,27 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
         if fname in ('library', 'require', 'base::library', 'base::require') \
             and nargs == 1:
-            cmd = 'sv_completeSpecial("library")'
+            cmd = 'kor::completeSpecial("library")'
         elif fname in ('detach', 'base::detach') and nargs == 1:
-            cmd = 'sv_completeSpecial("search")'
+            cmd = 'kor::completeSpecial("search")'
         elif fname in ('data', 'base::data') and nargs == 1:
-            cmd = 'sv_completeSpecial("data"); sv_completeArgs("data")'
+            cmd = 'kor::completeSpecial("data"); kor::completeArgs("data")'
         elif fname == 'par':
-            cmd = 'sv_completeSpecial("par"); sv_completeArgs("par")'
+            cmd = 'kor::completeSpecial("par"); kor::completeArgs("par")'
         elif fname in self.func_graphics:
-            cmd = ('sv_completeArgs("%s", %s); sv_completeSpecial("par")' \
+            cmd = ('kor::completeArgs("%s", %s); kor::completeSpecial("par")' \
                   % (fname, frstarg, )) \
-                  + ('; sv_completion("%s")' % (text, ) if text else '')
+                  + ('; kor::completion("%s")' % (text, ) if text else '')
         elif fname in ('options', 'getOption'):
-            cmd = 'sv_completeSpecial("options"); sv_completeArgs("%s")' \
+            cmd = 'kor::completeSpecial("options"); kor::completeArgs("%s")' \
                   % (fname, )
         elif fname in ('[', '[['):
-            cmd = 'sv_completeArgs("%s", %s);' % (fname, frstarg, )
+            cmd = 'kor::completeArgs("%s", %s);' % (fname, frstarg, )
             #if fname == '[[' or nargs == 2:
-            cmd += 'sv_completeSpecial("[", %s, argpos=%d)' % (frstarg, nargs, )
+            cmd += 'kor::completeSpecial("[", %s, argpos=%d)' % (frstarg, nargs, )
         else:
-            cmd = ('sv_completeArgs("%s", %s);' % (fname, frstarg, )) \
-                + ('sv_completion("%s")' % (text, ) if text else '')
+            cmd = ('kor::completeArgs("%s", %s);' % (fname, frstarg, )) \
+                + ('kor::completion("%s")' % (text, ) if text else '')
         #ret = []
         res = self._eval_in_r(cmd, env).rstrip()
         if len(res) == 0:
@@ -457,7 +457,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
     def _get_completions_default(self, text, cutoff, env):
         if not text.strip(): return None
-        cmd = 'sv_completion("%s")' % text.replace('"', '\\"')
+        cmd = 'kor::completion("%s")' % text.replace('"', '\\"')
         res = self._eval_in_r(cmd, env)
         
         #TODO: on timeout an empty string is returned

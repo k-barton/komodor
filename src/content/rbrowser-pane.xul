@@ -288,11 +288,12 @@ addEventListener("DOMContentLoaded", function(event) {
 							persist="width ordinal hidden" flex="1" hidden="true" ordinal="9"/>
 					</treecols>
 					<treechildren id="rbrowser_objects_tree_main"
-						ondraggesture="nsDragAndDrop.startDrag(event, sv.rbrowser.listObserver)"
-						ondragdrop="nsDragAndDrop.drop(event, sv.rbrowser.listObserver)"
-						ondragover="nsDragAndDrop.dragOver(event, sv.rbrowser.listObserver)"
-						onclick="sv.rbrowser.onEvent(event)"
-						ondblclick="sv.rbrowser.onEvent(event)"
+						ondragstart="sv.rbrowser.draghandlers.onDragStart(event);"
+						ondragend="sv.rbrowser.draghandlers.onDragEnd(event);"
+						ondragover="sv.rbrowser.draghandlers.onDragOver(event);"
+						ondrop="sv.rbrowser.draghandlers.onDrop(event);"
+						onclick="sv.rbrowser.onEvent(event);"
+						ondblclick="sv.rbrowser.onEvent(event);"
 						context="rObjectsContext">
 					</treechildren>
 				</tree>
@@ -311,7 +312,7 @@ addEventListener("DOMContentLoaded", function(event) {
 						  <spacer flex="1"/>
 						  <toolbarbutton id="rbrowserSubpanelToggle"
 							  buttonstyle="pictures"
-							  oncommand="sv.rbrowser.toggleViewSearchPath()"
+							  oncommand="sv.rbrowser.toggleViewSearchPath();"
 							  persist="state"
 							  state="collapsed"
 							  tooltiptext="Open the R Search Path Subpanel"
@@ -324,11 +325,11 @@ addEventListener("DOMContentLoaded", function(event) {
 			<vbox id="rbrowserSubpanelBox"
 				persist="height collapsed" collapsed="true" flex="1">
 				<listbox flex="1" id="rbrowser_searchpath_listbox"
-					ondragdrop="nsDragAndDrop.drop(event, sv.rbrowser.packageListObserver)"
-					ondragover="nsDragAndDrop.dragOver(event, sv.rbrowser.packageListObserver)"
-					ondraggesture="nsDragAndDrop.startDrag(event, sv.rbrowser.packageListObserver)"
-					onkeypress="sv.rbrowser.packageListKeyEvent(event)"
-					oncommand="sv.rbrowser.packageSelectedEvent(event)"/>
+					ondrop="sv.rbrowser.draghandlers.onSearchPathDrop(event);"
+					ondragover="sv.rbrowser.draghandlers.onSearchPathDragOver(event);"
+					ondragstart="sv.rbrowser.draghandlers.onSearchPathDragStart(event);"
+					onkeypress="sv.rbrowser.packageListKeyEvent(event);"
+					oncommand="sv.rbrowser.packageSelectedEvent(event);"/>
 			</vbox>
 		</vbox>
 	</vbox>

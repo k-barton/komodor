@@ -24,7 +24,7 @@ sv.rbrowser = {};
 //     \x15 - connection error
 //     \x03 - stderr
 //     \x02 - stdout
-//robjects:
+// robjects:
 //     \x1e - record separator
 //     \x1f - unit separator
 //     \x1d - group separator
@@ -43,16 +43,18 @@ sv.rbrowser = {};
     var dQuote = s => "\"" + s + "\"";
 		
 	// id +'_' + 
-	var createCommand = (env, obj, all) =>
-		"print_objList(sv_objList(id=" + dQuote(sv.uid(1) + "_" + env + "_" + obj) + 
+	var createCommand = (env, obj, all) => 
+    	"kor::write.objList(kor::objList(id=" + dQuote(sv.uid(1) + "_" + env + "_" + obj) + 
 		", envir=" + (env ? dQuote(env) : "") +  
 		", object=" + dQuote(obj) + ", all.info=FALSE, compare=FALSE, " + 
 		"all.names=" + (all ? "TRUE" : "FALSE") + "), sep=" + dQuote(sep) + 
 		    ", eol=" + dQuote(recordSep) + ")";
-
+            
+    var _listAllNames = false;
+  
     var _getObjListCommand = (env, obj) => {
 	    var rval = createCommand(env ? sv.string.addslashes(env) : env,
-		   obj? obj.replace(/\$/g, "$$$$").replace(/^([`"'])(.*)\1/, "$2") : "",
+		   obj? obj.replace(/^([`"'])(.*)\1/, "$2") : "",  // WTF? replace(/\$/g, "$$$$"). 
 		   _listAllNames
 	    );
 
@@ -61,7 +63,6 @@ sv.rbrowser = {};
     };
  
 
-    var _listAllNames = false;
 
     // This should be changed if new icons are added
     var iconTypes = ['array', 'character', 'data.frame', 'Date', 'dist',
@@ -72,8 +73,7 @@ sv.rbrowser = {};
     ];
 
     // Used in .contextOnShow
-    var nonDetachable = [".GlobalEnv", "TempEnv", "package:utils", "package:base",
-        "komodoConnection"
+    var nonDetachable = [".GlobalEnv", "package:kor", "package:utils", "package:base"
     ];
 
     // Reference to parent object for private functions
@@ -317,7 +317,7 @@ sv.rbrowser = {};
                 return x.name;
             });
 
-            if (rebuild) _this.treeData = [];
+            if (rebuild) _this.treeData.splice(0);
 
             _this.saveSelection();
 
@@ -401,8 +401,6 @@ sv.rbrowser = {};
             }
             return ret;
         };
-
-
 
     Object.defineProperty(this, 'listAllNames', {
         get: () => _listAllNames,
@@ -807,46 +805,108 @@ sv.rbrowser = {};
                 rows.push(v);
         }
         return rows;
-    };
+    },
 
+ 
     // Drag'n'drop support
-    this.listObserver = {
-        onDragStart: function (event, transferData /*, action*/ ) {
-            _this.onEvent(event);
+    this.draghandlers = {
+        onDragStart(event) {
+            if (_this.rowCount === 0) return;
+            //_this.onEvent(event);
             var namesArr = _this.getSelectedNames(event.ctrlKey, event.shiftKey);
-            transferData.data = new TransferData();
-            transferData.data.addDataForFlavour("text/unicode",
-                namesArr.join(', '));
-            return true;
+            event.dataTransfer.setData("text/plain", namesArr.join(', '));
+            event.dataTransfer.effectAllowed = "copy"; 
         },
-
-        onDrop: function (event, transferData /*, session*/ ) {
-            var path, pos;
-            if (transferData.flavour.contentType == "text/unicode") {
-                path = String(transferData.data).trim();
-            } else
-                return false;
-
-            pos = _this.searchPath.indexOf(path);
-            if (pos == -1) return false;
-
-            document.getElementById("rbrowser_searchpath_listbox")
-                .getItemAtIndex(pos).checked = true;
-            _addObject(path, "", this.parseObjListResult);
-            return true;
+        onDrop(event) {
+            event.preventDefault();
+            var text;
+            var data = event.dataTransfer;
+            if (data.types == null) return;
+            if (data.types.contains("text/plain")) {
+                text = data.getData("text/plain").trim();
+                let pos = _this.searchPath.indexOf(text);
+                if (pos == -1) return;
+                document.getElementById("rbrowser_searchpath_listbox").getItemAtIndex(pos).checked = true;
+                _addObject(text, "", _this.parseObjListResult);
+            } else if (data.types.contains("Files")) {
+                // TODO check if RData and load/attach?
+                //nsIFile
+                //text/x-moz-url, text/uri-list, text/plain, application/x-moz-file, Files
+            }            
         },
-
-        onDragOver: function (event, flavour, session) {
-            session.canDrop = flavour.contentType == 'text/unicode' ||
-                flavour.contentType == 'text/x-r-package-name';
+        onDragOver(event) {
+            // TODO
+            var dataTypes = event.dataTransfer.types;
+            if (!dataTypes.contains("text/plain") &&
+                !dataTypes.contains("text/x-r-package-name")
+                )
+                dataTypes.effectAllowed = "none"; 
         },
+        
+        onSearchPathDrop(event) {
+            let data = event.dataTransfer;
+            let filePath, text;
+            if (data.types.contains("application/x-moz-file")) {
+                filePath = data.getData("application/x-moz-file").path;
+            } else if (data.types.contains("text/plain")) {
+                filePath = String(data.getData("text/plain")).trim();
+                if (!sv.file.exists(sv.file.path(filePath))) {
+                    text = filePath;
+                    filePath = null;
+                }
+            } /// else  if (data.contains("Files")) {
 
-        getSupportedFlavours: function () {
-            var flavours = new FlavourSet();
-            flavours.appendFlavour("text/x-r-package-name");
-            flavours.appendFlavour("text/unicode");
-            return flavours;
+            // Attach the file if it is an R workspace
+            if (filePath && filePath.search(/\.RData$/i) > 0) {
+                sv.r.loadWorkspace(filePath, true, function (message) {
+                    _this.getPackageList();
+                    sv.addNotification("Upon attaching the workspace \"" + filePath +
+                                       "\", R said: " + message);
+                });
+            } else if(text) {
+                if(!/^(package:)?[a-zA-Z0-9\._]+$/.test(text))
+                    return;
+                if (text.indexOf("package:") === 0)
+                    text = text.substring(8);
+                
+                sv.r.evalAsync("tryCatch(library(\"" + text +
+                    "\"), error = function(e) {cat(\"<error>\"); message(e)})",
+                    (message) => {
+                        let pos;
+                        if ((pos = message.indexOf('<error>')) > -1) {
+                            message = message.substring(pos + 7);
+                        } else {
+                            _this.getPackageList();
+                        }
+                        if (message)
+                            sv.addNotification("Upon loading the library \"" + text +
+                                               "\", R said: " + message);
+                    }
+                );
+            }
+        },
+        onSearchPathDragStart(event) {
+            if (event.target.tagName != 'listitem')
+                return;
+
+            var text = _this.searchPath[document
+                .getElementById("rbrowser_searchpath_listbox")
+                .selectedIndex];
+            event.dataTransfer.setData("text/plain", text);
+            event.dataTransfer.effectAllowed = "copy"; 
+            return;
+        },
+        
+        onSearchPathDragOver(event) {
+            // TODO
+            var dataTypes = event.dataTransfer.types;
+            if (!dataTypes.contains("text/plain") &&
+                !dataTypes.contains("text/x-moz-file") &&
+                !dataTypes.contains("text/x-r-package-name")
+                )
+                event.dataTransfer.effectAllowed = "none"; 
         }
+  
     };
 
     this.canDrop = function () false;
@@ -856,8 +916,7 @@ sv.rbrowser = {};
     this.getPackageList = function () {
         var data;
         try {
-            data = sv.rconn.eval('cat(sv_objSearch(sep="' +
-                sep + '", compare=FALSE))');
+            data = sv.rconn.eval('cat(kor::objSearch(sep="' + sep + '", compare=FALSE))');
         } catch (e) {
             return;
         }
@@ -906,6 +965,19 @@ sv.rbrowser = {};
         _this.displayPackageList(false);
         this.parseObjListResult("Env=.GlobalEnv\nObj=\n");
     };
+    
+    this.clearAll = function () {
+        let rowCount =_this.visibleData.length;
+        _this.visibleData.splice(0);
+        let treeBox = _this.treeBox;
+        _this.treeData.splice(0);
+        treeBox.beginUpdateBatch();
+        treeBox.invalidateRange(treeBox.getFirstVisibleRow(), treeBox.getLastVisibleRow());
+        treeBox.rowCountChanged(0, -rowCount);
+        treeBox.endUpdateBatch();
+        //document.getElementById("rbrowser_objects_tree").disabled = true;
+    };
+    
 
     this.toggleViewSearchPath = function () {
         var button = document.getElementById("rbrowserSubpanelToggle");
@@ -1217,6 +1289,12 @@ sv.rbrowser = {};
         }
 
     };
+	
+	var rCmdGetObject = (name, env) => 
+		env == ".GlobalEnv" ?
+             name : "evalq(" + name + ", envir=as.environment(\"" + 
+			 sv.string.addslashes(env) + "\"))";
+
 
     this.doCommand = function (action) {
         var obj = _this.selectedItemsOrd;
@@ -1277,13 +1355,9 @@ sv.rbrowser = {};
             //TODO: dump data for objects other than 'data.frame'
         case 'write.table':
         case 'writeToFile':
-            var expr;
-
             for (let i in obj)
                 if (obj.hasOwnProperty(i)) {
-                    expr = obj[i].env == ".GlobalEnv" ? obj[i].fullName :
-                        "evalq(" + obj[i].fullName + ", envir = as.environment(\"" +
-                        sv.string.addslashes(obj[i].env) + "\"))";
+                    let expr = rCmdGetObject(obj[i].fullName, obj[i].env);
                     sv.r.saveDataFrame(expr, '', obj[i].name);
                 }
             break;
@@ -1295,43 +1369,38 @@ sv.rbrowser = {};
         case 'names':
             /* falls through */
         default:
-            let commandArr = [],
-                cmdObj;
+            let commandArr = [];
             for (let i in obj)
                 if (obj.hasOwnProperty(i)) {
                     /*cmd.push(action + "(evalq(" + obj[i].fullName +
                     ", envir = as.environment(\"" +
                     obj[i].env.addslashes() + "\")))");*/
-                    cmdObj = obj[i].env == ".GlobalEnv" ?
-                        obj[i].fullName :
-                        "evalq(" + obj[i].fullName + ", envir = as.environment(\"" +
-                        sv.string.addslashes(obj[i].env) + "\"))";
-
+                    let cmdObj = rCmdGetObject(obj[i].fullName, obj[i].env);
                     commandArr.push(action + "(" + cmdObj + ")");
                 }
             sv.r.eval(commandArr.join("\n"));
         }
     };
-
+	
     this.selectedItemsOrd = [];
 
     this.onEvent = function on_Event(event) {
         switch (event.type) {
         case "select":
-            var selectedRows = _this.getSelectedRows();
-            var selectedItems = [];
+            let selectedRows = _this.getSelectedRows();
+            let selectedItems = [];
 
             if (selectedRows.some(x => x >= _this.visibleData.length))
                 return false;
 
             for (let i = 0; i < selectedRows.length; ++i)
                 selectedItems.push(_this.visibleData[selectedRows[i]].origItem);
-            //var curRowIdx = selectedRows.indexOf(_this.selection.currentIndex);
+            //let curRowIdx = selectedRows.indexOf(_this.selection.currentIndex);
 
             // This maintains array of selected items in order they were
             // added to selection
-            var prevItems = _this.selectedItemsOrd;
-            var newItems = [];
+            let prevItems = _this.selectedItemsOrd;
+            let newItems = [];
             for (let i = 0; i < prevItems.length; ++i) {
                 if (selectedItems.indexOf(prevItems[i]) != -1) // Present in Prev, but not in Cur
                     newItems.push(prevItems[i]);
@@ -1347,7 +1416,7 @@ sv.rbrowser = {};
             return false;
         case "keyup":
         case "keypress":
-            var key = event.keyCode ? event.keyCode : event.charCode;
+            let key = event.keyCode ? event.keyCode : event.charCode;
             switch (key) {
             case 46: // Delete key
                 _this.removeSelected(event.shiftKey);
@@ -1369,12 +1438,12 @@ sv.rbrowser = {};
                 return false;
             case 93:
                 // Windows context menu key
-                var contextMenu = document.getElementById("rObjectsContext");
+                let contextMenu = document.getElementById("rObjectsContext");
                 _this.treeBox.ensureRowIsVisible(_this.selection.currentIndex);
-                var y = ((2 + _this.selection.currentIndex -
+                let y = ((2 + _this.selection.currentIndex -
                         _this.treeBox.getFirstVisibleRow()) *
                     _this.treeBox.rowHeight) + _this.treeBox.y;
-                var x = _this.treeBox.x;
+                let x = _this.treeBox.x;
                 contextMenu.openPopup(null, "after_pointer", x, y, true);
                 /* falls through */
                 // TODO: Escape key stops retrieval of R objects
@@ -1389,8 +1458,8 @@ sv.rbrowser = {};
                 return false;
             break;
         case "click":
-        case "draggesture":
-            return false;
+        case "dragstart":
+             return false;
         default:
         }
 
@@ -1403,78 +1472,13 @@ sv.rbrowser = {};
         return false;
     };
 
-    // Drag & drop handling for search paths list
-    this.packageListObserver = {
-        onDrop: function (event, transferData, session) {
-            //var data = transferData;
-            logger.debug("dropped object's contentType was " + transferData.flavour.contentType);
-            var path;
-            if (transferData.flavour.contentType == "application/x-moz-file") {
-                path = transferData.data.path;
-            } else if (transferData.flavour.contentType == "text/unicode") {
-                path = String(transferData.data).trim();
-            }
-
-            // Attach the file if it is an R workspace
-            if (path.search(/\.RData$/i) > 0) {
-                sv.r.loadWorkspace(path, true, function (message) {
-                    _this.getPackageList();
-                    sv.alert(sv.translate("Upon attaching workspace, R said:"), message);
-                });
-            } else {
-                path = path.replace(/^package:/, "");
-
-                sv.r.evalAsync("tryCatch(library(\"" + path +
-                    "\"), error = function(e) {cat(\"<error>\"); message(e)})",
-                    function (message) {
-                        var pos;
-                        if ((pos = message.indexOf('<error>')) > -1) {
-                            message = message.substring(pos + 7);
-                        } else {
-                            _this.getPackageList();
-                        }
-                        if (message)
-                            sv.alert(sv.translate("Upon loading library, R said:"), message);
-                    }
-                );
-            }
-            return true;
-        },
-        //onDragEnter: function (event, flavour, session) {
-        //onDragExit: function (event, session) {
-
-        onDragStart: function (event, transferData, action) {
-            if (event.target.tagName != 'listitem')
-                return false;
-
-            var text = _this.searchPath[document
-                .getElementById("rbrowser_searchpath_listbox")
-                .selectedIndex];
-            transferData.data = new TransferData();
-            transferData.data.addDataForFlavour("text/unicode", text);
-            return true;
-        },
-
-        onDragOver: function (event, flavour, session) {
-            session.canDrop = flavour.contentType == 'text/unicode' ||
-                flavour.contentType == 'application/x-moz-file';
-        },
-
-        getSupportedFlavours: function () {
-            var flavours = new FlavourSet();
-            flavours.appendFlavour("application/x-moz-file", "nsIFile");
-            flavours.appendFlavour("text/unicode");
-            return flavours;
-        }
-    }; // End .packageListObserver
-
     this.packageListKeyEvent = function (event) {
         var keyCode = event.keyCode;
         switch (keyCode) {
         case 46: // Delete key
-            var listbox = event.target;
-            var listItem = listbox.selectedItem;
-            var pkg = listItem.getAttribute("label");
+            let listbox = event.target;
+            let listItem = listbox.selectedItem;
+            let pkg = listItem.getAttribute("label");
 
             if (pkg == ".GlobalEnv" || pkg == "TempEnv") return;
 
@@ -1499,9 +1503,9 @@ sv.rbrowser = {};
     };
 
     this.selectAllSiblings = function (idx, augment) {
-        var startIndex = _this.visibleData[idx].parentIndex + 1;
-        var curLvl = _this.visibleData[idx].level;
-        var endIndex;
+        let startIndex = _this.visibleData[idx].parentIndex + 1;
+        let curLvl = _this.visibleData[idx].level;
+        let endIndex;
         for (endIndex = startIndex; endIndex < _this.visibleData.length &&
             _this.visibleData[endIndex].level >= curLvl;
             ++endIndex) {}
@@ -1511,29 +1515,8 @@ sv.rbrowser = {};
 
     this.focus = function () {};
 
-    //_setOnEvent("rbrowser_searchpath_listbox", "ondragdrop",
-    //		"nsDragAndDrop.drop(event, sv.rbrowser.packageListObserver);"
-    //		);
-    //_setOnEvent("rbrowser_searchpath_listbox", "ondragover",
-    //		"nsDragAndDrop.dragOver(event, sv.rbrowser.packageListObserver);"
-    //		);
-    //_setOnEvent("rbrowser_searchpath_listbox", "ondragexit",
-    //		"nsDragAndDrop.dragExit(event, sv.rbrowser.packageListObserver);"
-    //		);
-    //_setOnEvent("rbrowser_searchpath_listbox", "ondraggesture",
-    //		"nsDragAndDrop.startDrag(event, sv.rbrowser.packageListObserver);"
-    //		);
-    //_setOnEvent("rbrowser_objects_tree_main", "ondragover",
-    //		"nsDragAndDrop.dragOver(event, sv.rbrowser.listObserver);"
-    //		);
-    //_setOnEvent("rbrowser_objects_tree_main", "ondragdrop",
-    //		"nsDragAndDrop.drop(event, sv.rbrowser.listObserver);"
-    //		);
-
     this.onLoad = function ( /*event*/ ) {
-        //alert(".rbrowser.onLoad: r.isRunning : " + sv.r.isRunning);
         if (sv.r.isRunning) _this.refresh(true);
     };
-    //addEventListener("load", _this.onLoad, false);
 
 }).apply(sv.rbrowser);

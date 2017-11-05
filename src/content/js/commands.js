@@ -200,16 +200,16 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             "ko.R.port=" + sv.pref.getPref("RInterface.RPort", sv.pref.defaults["RInterface.RPort"]) +
             ", " +
             "ko.host=\"localhost\")\n" +
-            ".ko.tmp.repos <- getOption(\"repos\"); .ko.tmp.repos[[\"CRAN\"]] <- \"" +
+            "..ko.repos.. <- getOption(\"repos\"); ..ko.repos..[[\"CRAN\"]] <- \"" +
             sv.pref.getPref("CRANMirror") + "\"; " +
-            "options(repos = .ko.tmp.repos); rm(.ko.tmp.repos); \n"
+            "options(repos = ..ko.repos..); rm(..ko.repos..); \n"
         );
         // TODO: use RInterface.RHost
 
         var cmd = sv.pref.getPref("svRCommand");
         var isWin = navigator.platform.indexOf("Win") === 0;
         var id = sv.pref.getPref("RInterface.runRAs", isWin ? "r-gui" : "r-terminal");
-        var env = [];
+        var env = ["KOMODOR_VER=" + sv.version];
         switch (id) {
         case "r-tk":
             env.push("Rid=R-tk");
@@ -241,8 +241,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             // subject = child
             // data = command
             //RProcessObserver = new _ProcessObserver(cmd, process, _RTerminationCallback);
-            RProcessObserver = this.runSystemCommand(cmd, rDir, envStr,
-                _RTerminationCallback);
+            RProcessObserver = this.runSystemCommand(cmd, rDir, envStr, _RTerminationCallback);
             this.RProcess = RProcessObserver._process;
         }
         _this.setRStatus(true);
@@ -302,7 +301,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             }
         } else {
             try {
-                uri = sv.rconn.eval("cat(getHelpURL())");
+                uri = sv.rconn.eval("cat(kor::getHelpURL())");
             } catch (e) {
                 uri = sv.pref.getPref('RInterface.rRemoteHelpURL') + 'doc/index.html';
             }
@@ -399,7 +398,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             var view = ko.views.manager.currentView;
             if (!view || !view.scimoz) return (false);
             return (view.scimoz.selectionEnd - view.scimoz.selectionStart) != 0;
-        }
+        };
 
         var _test = (cmdName) => {
             var test = handlers[cmdName][1];
@@ -410,7 +409,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                     XisRDoc) || _isRCurLanguage()) && (((test & XHasSelection) !=
                     XHasSelection) || _hasSelection())
             );
-        }
+        };
 
         // From: komodo.jar/controller.js
         // The following controller is for any <command> or <broadcaster>

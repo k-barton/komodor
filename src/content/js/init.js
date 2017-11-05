@@ -177,6 +177,7 @@ sv.init = {};
             // For completions
             var cuih = ko.codeintel.CompletionUIHandler;
             if (cuih) {
+				// TODO: replace with svg
                 let baseURI = "chrome://komodor/skin/images/";
                 //cuih.prototype.types.argument = cuih.prototype.types.interface;
                 cuih.prototype.types.environment = cuih.prototype.types.namespace;
@@ -193,13 +194,13 @@ sv.init = {};
     //addEventListener("komodo-post-startup", _this.onLoad, false);
     Services.obs.addObserver(_this.onLoad, "komodo-ui-started", false);
 
-    this.onKomodoRUpdateRestart = function (cancelQuit, topic, data) {
-        if (!sv.command.isRRunning) return;
-        if (topic != "quit-application-requested") return;
+    this.onKomodoRUpdateRestart = function () {
+        if (!sv.command.isRRunning) return true;
+        //if (topic != "quit-application-requested") return;
 
         let staged = sv.file.exists2(sv.file.path("ProfD", "extensions", "staged",
             sv.extensionId)) == sv.file.TYPE_DIRECTORY;
-        if (staged && data == "restart") {
+        if (staged) {
             let result = ko.dialogs.yesNoCancel(
                 "In order to complete the update of \"R Interface\" add-on, " +
                 "the connected R session must be closed. Do you want to save your R workspace? " +
@@ -219,17 +220,26 @@ sv.init = {};
             }
         }
         //cancelQuit.data = true;
+        return true;
     };
 
-    Services.obs.addObserver(_this.onKomodoRUpdateRestart, "quit-application-requested", false);
+   //Services.obs.addObserver(_this.onKomodoRUpdateRestart, "quit-application-requested", false);
 
     // Just in case, run a clean-up before quitting Komodo:
-    ko.main.addWillCloseHandler(() => sv.rconn.stopSocketServer());
+    ko.main.addWillCloseHandler(sv.rconn.stopSocketServer, sv.rconn);
+    ko.main.addWillCloseHandler(_this.onKomodoRUpdateRestart, _this);
 
     var observeR = function () {
         var el = document.getElementById('cmd_svRStarted');
         if (sv.command.isRRunning) el.setAttribute("checked", "true");
         else el.removeAttribute("checked");
+        
+        if (!sv.r.isRunning) {
+            if (sv.rbrowser) {
+                sv.rbrowser.clearPackageList();
+                sv.rbrowser.clearAll();
+            }
+        }
     };
     window.addEventListener("r_app_started_closed", observeR, false);
 

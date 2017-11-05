@@ -1,8 +1,12 @@
+#' @title Parse expressions
+#' @md
+#' @description Parses a string and returns an unevaluated expression, a `"try-error"` object in case of an
+#' invalid code, or `NA` if the (last) expression is incomplete.
+#' @param text character vector. The text to parse. Elements are treated as if they were lines of a file.
+#' @export
 `parseText` <-
 function (text) {
-	## Parse R instructions provided as a string and return the expression if it
-	## is correct, or a 'try-error' object if it is an incorrect code, or NA if
-	## the (last) instruction is incomplete
+
 	res <- tryCatch(parse(text = text), error = identity)
 
 	if(inherits(res, "error")) {
@@ -53,12 +57,3 @@ function (text) {
     return(res)
 }
 
-
-#'msg <- "<text>:2:0: nieoczekiwany koniec wejścia\n1: rere(\n   ^"
-#'msg <- "<text>:3:0: nieoczekiwany koniec wejścia\n1: re\n2: re(\n  ^"
-#'msg <- "<text>:4:0: nieoczekiwany koniec wejścia\n2: \n3: re(\n  ^"
-#'msg <- "<text>:6:0: unexpected end of input\n4: \n5: re(\n  ^"
-#'
-#'cat(msg)
-#'
-#'regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: *([^\n]+)\n", msg, perl = TRUE)

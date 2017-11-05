@@ -10,6 +10,8 @@
 
 // require: rconnection,r,file,utils,command,rbrowser,string
 
+/* globals sv, ko, window, require, navigator */
+
 if (typeof sv.r == "undefined")
     sv.r = {
         RMinVersion: "3.0.0", // Minimum version of R required
@@ -215,9 +217,9 @@ if (typeof sv.r == "undefined")
             var pathEsc = sv.string.addslashes(path);
             if (isTmp) {
                 cmd = comment +
-                    'sv.sourceTemp("' + pathEsc + '", encoding="utf-8")';
+                    'kor::sourceTemp("' + pathEsc + '", encoding="utf-8")';
             } else {
-                cmd = comment + 'source("' + pathEsc + '", encoding="' + view.encoding + '")';
+                cmd = comment + 'base::source("' + pathEsc + '", encoding="' + view.encoding + '")';
             }
 
             rval = _this.eval(cmd);
@@ -248,7 +250,7 @@ if (typeof sv.r == "undefined")
         return res;
     };
 
-    this.rFn = name => "base::get(\"" + name + "\", \"komodoConnection\", inherits=FALSE)";
+    this.rFn = name => "kor::" + name;
 
     // Get help in R (HTML format)
     function _getHelpURI(topic, pkg) {
@@ -267,7 +269,7 @@ if (typeof sv.r == "undefined")
         var cmd = "";
         cmd += topic ? ' topic=' + quote(topic) + ',' : "";
         cmd += pkg ? ' package=' + pkg + '' : "";
-        cmd = 'cat(getHelpURL(' + cmd + '), "\\f\\f")';
+        cmd = 'cat(kor::getHelpURL(' + cmd + '), "\\f\\f")';
         try {
             res = sv.rconn.eval(cmd);
         } catch (e) {

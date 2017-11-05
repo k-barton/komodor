@@ -111,7 +111,7 @@ new _App("r-kde-term", "in Konsole", "konsole --workdir '%cwd%' --title %title% 
 new _App("r-xfce4-term", "in XFCE terminal", "xfce4-terminal --title \"%title%\" -x \"%Path%\" %args%", "R",  "xfce4-terminal,R", "Lin"),
 new _App("r-app", "R app", "open -a \"%Path%\" \"%cwd%\"", "R.app", "/Applications/R.app", "Mac"),
 new _App("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "Win"),
-new _App("r-tk", "R Tk GUI", "\"%Path%\" --interactive --gui:Tk %args%", "R", "R", "Lin,Mac")
+new _App("r-tk", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "R", "R", "Lin,Mac")
 ];
 
 function getSelectedInterpreterPath() {

@@ -1,22 +1,18 @@
-# <LICENSE BLOCK:KomodoR>
+#' @rdname pkgMan
+#' @name pkgMan
+#' @title Package manager supporting routines
+#' @description These functions are used by the R package manager.
 
-# this should be evaluated in "komodoConnection" environment
-# 'imports'
-fromEnv <- asNamespace("utils")
-toEnv <- as.environment("komodoConnection")
-for(x in c("compareVersion", "available.packages", "installed.packages",
-"install.packages", "remove.packages", "old.packages", "packageDescription",
-"getCRANmirrors", "write.table", "contrib.url"))
-	assign(x, get(x, fromEnv), envir = toEnv)
-rm(fromEnv, toEnv, x)
-
-
-sv_pkgManGetDescription <-
-function(pkg, print = TRUE) {
-	if (pkg %in% rownames(installed.packages())) {
-		desc <- packageDescription(pkg)
+#' @rdname pkgMan
+#' @md
+#' @param print logical, if `TRUE` the result is printed in DCF format.
+#' @export
+pkgManGetDescription <-
+function(pkgName, print = TRUE) {
+	if (pkgName %in% rownames(installed.packages())) {
+		desc <- packageDescription(pkgName)
 	} else {
-		con <- url(file.path(getOption("repos")['CRAN'], "web", "packages", pkg,
+		con <- url(file.path(getOption("repos")['CRAN'], "web", "packages", pkgName,
 							 'DESCRIPTION', fsep = '/'))
         m <- try(open(con, "r"), silent = TRUE)
         if (!inherits(m, "try-error")) {
@@ -37,7 +33,10 @@ function(pkg, print = TRUE) {
 	}
 }
 
-sv_pkgManGetMirrors <- function() {
+#' @rdname pkgMan
+#' @export
+pkgManGetMirrors <- 
+function() {
 	tmpVar <- "pkgMan.CRANmirrors"
 	if(existsTemp(tmpVar)) {
 		mirrors <- getTemp(tmpVar)
@@ -49,13 +48,23 @@ sv_pkgManGetMirrors <- function() {
 		row.names = FALSE, col.names = F, sep=';', quote = FALSE, na="")
 }
 
-sv_pkgManGetAvailable <- function(page = "next", pattern = "", ilen=50,
+#' @rdname pkgMan
+#' @md
+#' @param page character string. Either "prev", "next" (default), "first", "last" or "current".
+#' @param pattern an optional regular expression. Only names matching pattern are returned.
+#' @param ilen numeric, number of records per page.
+#' @param col vector of character strings. Column names to be returned.
+#' @param reload Should new data be produced if a cached copy exists?
+#' @param sep,eol record and end of line separators.
+#' @export
+pkgManGetAvailable <- 
+function(page = "next", pattern = "", ilen=50,
 	col=c("Package", "Version", "InstalledVersion", "Status", "Repository"),
 	reload = FALSE, sep = ';', eol = "\t\n") {
 
 	if (!existsTemp('avpkg.list') || reload) {
 		oop <- options(timeout = 2)
-		avpkg.list <- availablePkgs(utils::available.packages(filters=c("R_version",
+		avpkg.list <- availablePkgs(available.packages(filters=c("R_version",
 			"OS_type", "duplicates")), installed = FALSE)
 		options(oop)
 		assignTemp('avpkg.list', avpkg.list)
@@ -103,8 +112,11 @@ sv_pkgManGetAvailable <- function(page = "next", pattern = "", ilen=50,
 				quote = TRUE, eol=eol, na='')
 }
 
-availablePkgs <- function(avpkg = available.packages(), installed = TRUE) {
-	#browser()
+# @md
+# @param avpkg a `data.frame` of available packages.
+# @param installed if `TRUE`, the result has two additional columns: "InstalledVersion" and "Status".
+availablePkgs <- 
+function(avpkg = available.packages(), installed = TRUE) {
 	avpkg <- avpkg[order(toupper(avpkg[, "Package"])), , drop = FALSE]
 	if(installed) {
 		inspkg <- installed.packages()
@@ -125,27 +137,41 @@ availablePkgs <- function(avpkg = available.packages(), installed = TRUE) {
 	avpkg
 }
 
-sv_pkgManGetInstalled <- function(sep=';', eol="\t\n") {
+#' @rdname pkgMan
+#' @export
+pkgManGetInstalled <- 
+function(sep=';', eol="\t\n") {
 	inspkg <- installed.packages(fields="Description")
 	inspkg <- inspkg[order(toupper(inspkg[, "Package"])),
 		c("Package","Version","Description")]
 
-	inspkg[,3] <- gsub("\n", " ", inspkg[,3])
+	inspkg[, 3L] <- gsub("\n", " ", inspkg[, 3L])
 	inspkg <- cbind(inspkg, Installed=inspkg[, 'Package'] %in% .packages())
 	write.table(inspkg, row.names = FALSE, col.names = FALSE, sep=sep, quote = FALSE, eol=eol, na='')
 }
 
-sv_pkgManSetCRANMirror <- function(url) {
+#' @rdname pkgMan
+#' @param url character string. CRAN mirror URL.
+#' @export
+pkgManSetCRANMirror <- 
+function(url) {
 	repos <- getOption("repos")
 	repos['CRAN'] <- url
 	options(repos = repos)
 }
 
-sv_pkgManInstallPackages <- function(upkgs, installDeps = FALSE, ask = TRUE) {
-	dep <- suppressMessages(utils:::getDependencies(upkgs, available = getTemp('avpkg.list')))
+#' @rdname pkgMan
+#' @md
+#' @param pkgName names of the packages to be installed/removed etc.
+#' @param installDeps logical. Install package dependencies?
+#' @param ask if `TRUE`, asks for confirmation first.
+#' @export
+pkgManInstallPackages <- 
+function(pkgName, installDeps = FALSE, ask = TRUE) {
+	dep <- suppressMessages(getFrom("utils", "getDependencies")(pkgName, available = getTemp('avpkg.list')))
 	msg <- status <- ""
-	if (!ask && (installDeps || all(dep %in% upkgs))) {
-		msg <- sv_captureAll(install.packages(dep))
+	if (!ask && (installDeps || all(dep %in% pkgName))) {
+		msg <- captureAll(install.packages(dep))
 		status <- "done"
 	} else {
 		l <- length(dep)
@@ -154,13 +180,16 @@ sv_pkgManInstallPackages <- function(upkgs, installDeps = FALSE, ask = TRUE) {
 			"This will install packages: %s and %s.",
 		), paste(sQuote(dep[-l]), collapse = ", "), sQuote(dep[l]))
 		status <- "question"
-
 	}
 	list(packages=dep, message=msg, status=status)
 	#invisible(dep)
 }
 
-sv_pkgManRemovePackage <- function(pkgName) {
+#' @rdname pkgMan
+#' @md
+#' @export
+pkgManRemovePackage <- 
+function(pkgName) {
 	sapply(pkgName, function(pkgName) {
 		if(pkgName %in% loadedNamespaces()) unloadNamespace(pkgName)
 		pack <- paste("package", pkgName, sep=":")
@@ -183,22 +212,25 @@ sv_pkgManRemovePackage <- function(pkgName) {
 	}, simplify=FALSE)
 }
 
-sv_pkgManLoadPackage  <- function(pkgName) {
+#' @rdname pkgMan
+#' @export
+pkgManLoadPackage  <- 
+function(pkgName) {
 	status <- logical(length(pkgName))
 	names(status) <- pkgName
-	msg <- paste(sv_captureAll(expression(for(i in pkgName) {
+	msg <- paste(captureAll(expression(for(i in pkgName) {
 		status[i] <- library(i, character.only = TRUE, logical.return = TRUE)
 	}), envir = sys.frame(sys.nframe())), collapse = "\n")
 	list(message = msg, status = as.list(status))
 }
 
-#base::get("getRepositories", "komodoConnection")
-getRepositories <- function() {
+getRepositories <- 
+function() {
 	# from: utils::setRepositories
     p <- file.path(Sys.getenv("HOME"), ".R", "repositories")
     if (!file.exists(p)) 
         p <- file.path(R.home("etc"), "repositories")
-    a <- tools:::.read_repositories(p)
+    a <- getFrom("tools", ".read_repositories")(p)
     
 	pkgType <- getOption("pkgType")
     if (any(grepl("mac.binary", pkgType, fixed = TRUE)))
@@ -227,17 +259,25 @@ getRepositories <- function() {
     cbind(a, Contrib.URL = contrib.url(a[, "URL"]))
 }
 
-sv_pkgManGetRepositories <- function (json = TRUE, sep = ";;") {
+#' @rdname pkgMan
+#' @md
+#' @param json logical. Should the result be stringized in JSON format?
+#' @export
+pkgManGetRepositories <- 
+function (json = TRUE, sep = ";;") {
     if (json)
-        cat(simpsON(apply(getRepositories(), 1L, as.list)))
+        cat(stringize(apply(getRepositories(), 1L, as.list)))
     else write.table(getRepositories(), row.names = TRUE, col.names = FALSE,
         sep = sep, quote = FALSE)
 }
 
-sv_pkgManGetUpdateable <- function(sep = ';;', eol = '\n') {
+#' @rdname pkgMan
+#' @export
+pkgManGetUpdateable <- 
+function(sep = ';;', eol = '\n') {
 	if(!existsTemp('avpkg.list')) {
 		oop <- options(timeout = 2)
-		avpkg.list <- availablePkgs(utils::available.packages(filters=c("R_version",
+		avpkg.list <- availablePkgs(available.packages(filters=c("R_version",
 			"OS_type", "duplicates")), installed = FALSE)
 		options(oop)
 		assignTemp('avpkg.list', avpkg.list)
@@ -250,35 +290,13 @@ sv_pkgManGetUpdateable <- function(sep = ';;', eol = '\n') {
 		quote = FALSE, eol=eol, na='')
 }
 
-#sv_pkgManGetAvailable()
-#sv_pkgManGetRepositories()
-##==============================================================================
-#getOption("repos")
-#repositories
-##cat(simpsON(sv_pkgManLoadPackage(c("buc", "aod"))))
-#
-#sv_pkgManGetAvailable(page ="next", ilen =10)
-#sv_pkgManGetAvailable(page ="prev", ilen =10)
-#
-#getRepositories(as.character(avpkg.list["aod", "Repository"]))
-#
-#sv_pkgManGetRepositories()
-#sv_pkgManGetRepositories()
-#
-#unloadNamespace("aod")
-#
-#head(availablePkgs())
-#
-#library(aod)
-#write.table(getRepositories(), sep  = ";;", quote = FALSE)
-#
-#traceback()
-##==============================================================================
-
-sv_pkgManDetachPackage <- function(pkgName) {
+#' @rdname pkgMan
+#' @export
+pkgManDetachPackage <- 
+function(pkgName) {
 	status <- logical(length(pkgName))
 	names(status) <- pkgName
-	msg <- paste(sv_captureAll(expression(for(i in pkgName) {
+	msg <- paste(captureAll(expression(for(i in pkgName) {
 		pack <- paste("package", i, sep=":")
 		if(pack %in% search()) status[i] <-
 			is.null(detach(pack, character.only = TRUE, unload = TRUE))

@@ -1,6 +1,27 @@
-sv_objList <-
-function (id = "default", envir = getCurrentEnv(), object = NULL,
-all.names = FALSE, pattern = "", group = "", all.info = FALSE, sep = "\t",
+#' @title Functions used by R object browser
+#' @description Internal functions for Komodo's R object browser.
+#' @rdname rbrowser
+# @keywords internal
+#' @md
+#' @param id character string.
+#' @param envir which environment to use in listing the objects. Defaults to the current evaluation environment.
+#' @param object optional, name of the object of which elements should be listed.
+#' @param all.names logical. If `FALSE`, names which begin with a `.` are omitted.
+#' @param pattern optional, a regular expression. Only names matching pattern are returned. 
+#' @param group optional, name of the group of object classes. If provided, only object of that group are returned.
+#' @param all.info if `TRUE`, the first column holds the environment name.
+#' @param compare if `TRUE` and the result is identical to the previous one with the same `id`, an empty list is returned. 
+#' @param \dots additional arguments. Ignored.
+#' @examples
+#' if(require(datasets)) {
+#'    objList()
+#'    write.objList(objList(object="npk", compare=FALSE))
+#'    objList(object="Loblolly")
+#'    objList(object="Loblolly") ## an empty list (compare is TRUE)
+#' }
+objList <-
+function (id = "default", envir = getEvalEnv(), object = NULL,
+all.names = FALSE, pattern = "", group = "", all.info = FALSE, 
 compare = TRUE, ...) {
 	## Make sure that id is character
 	id <- as.character(id)[1L]
@@ -27,25 +48,14 @@ compare = TRUE, ...) {
 	if (ename %in% c("baseenv()", ".BaseNamespaceEnv"))
 		ename <- "package:base"
 
-
-	## Object to return in case of empty data
-	# This is ~15x faster than data.frame...
-	Nothing <- structure(list(Name = character(0L), Dims = character(0L),
-							  Group = character(0L), Class = character(0L),
-							  Recursive = logical(0L), stringsAsFactors = FALSE),
-						 class = c("objList", "data.frame"),
-						 all.info = all.info, envir = ename, object = object)
-
-	if (isTRUE(all.info)) Nothing <- cbind(Envir = character(0L), Nothing)
-
-	if (is.null(envir)) return(Nothing)
+	if (is.null(envir)) return(.getEmptyObjList(all.info, ename, object))
 
 	if (!missing(object) && is.character(object) && object != "") {
 		res <- .lsObj(envir = envir, objname = object)
 	} else {
 		## Get the list of objects in this environment
 		Items <- ls(envir = envir, all.names = all.names, pattern = pattern)
-		if (length(Items) == 0L) return(Nothing)
+		if (length(Items) == 0L) return(.getEmptyObjList(all.info, ename, object))
 
 		res <- data.frame(Items, t(vapply(Items, function(x) .objDescr(envir[[x]]),
 				character(4L))), stringsAsFactors = FALSE, check.names = FALSE)
@@ -58,33 +68,21 @@ compare = TRUE, ...) {
 		res <- res[, c(1L, 6L, 2L:5L)]
 	}
 
-	if (NROW(res) == 0L) return(Nothing)
+	if (NROW(res) == 0L) return(.getEmptyObjList(all.info, ename, object))
 
 	if (isTRUE(all.info)) res <- cbind(Envir = ename, res)
 
 	vMode <- Groups <- res$Group
 	vClass <- res$Class
 
-	## Recalculate groups into meaningful ones for the object explorer
-	## 1) Correspondance of typeof() and group depicted in the browser
 	Groups[Groups %in% c("name", "environment", "promise", "language", "char",
 		"...", "any", "(", "call", "expression", "bytecode", "weakref",
 		"externalptr")] <- "language"
-
 	Groups[Groups == "pairlist"] <- "list"
-
-	## 2) All Groups not being language, function or S4 whose class is
-	##    different than typeof are flagged as S3 objects
 	Groups[!(Groups %in% c("language", "function", "S4")) &
 		vMode != vClass] <- "S3"
-
-	## 3) Integers of class factor become factor in group
 	Groups[vClass == "factor"] <- "factor"
-
-	## 4) Objects of class 'data.frame' are also group 'data.frame'
 	Groups[vClass == "data.frame"] <- "data.frame"
-
-	## 5) Objects of class 'Date' or 'POSIXt' are of group 'DateTime'
 	Groups[vClass == "Date" | vClass == "POSIXt"] <- "DateTime"
 
 	## Reaffect groups
@@ -97,14 +95,11 @@ compare = TRUE, ...) {
 	## Determine if it is required to refresh something
 	Changed <- TRUE
 	if (isTRUE(compare)) {
-		allList <- getTemp(".guiObjListCache", default = list())
+		objListCache <- getTemp(".objListCache", default = new.env(hash = TRUE))
 
-		if (identical(res, allList[[id]])) 
-			Changed <- FALSE else {
-				## Keep a copy of the last version in TempEnv
-				allList[[id]] <- res
-				assignTemp(".guiObjListCache", allList)
-			}
+		if (identical(res, objListCache[[id]])) 
+			Changed <- FALSE else
+				objListCache[[id]] <- res
 	}
 
 	## Create the 'objList' object
@@ -113,42 +108,64 @@ compare = TRUE, ...) {
 	attr(res, "object") <- object
 	attr(res, "class") <- c("objList", "data.frame")
 
-	return(if (Changed) res else Nothing)
+	return(if (Changed) res else .getEmptyObjList(all.info, ename, object))
 }
 
-print_objList <-
-function (x, sep = NA, eol = "\n", header = !attr(x, "all.info"),
-		  raw.output = !is.na(sep), ...) {
+
+print.objList <-
+function (x, header = !attr(x, "all.info"), ...) {
 	if (!inherits(x, "objList")) stop("x must be an 'objList' object")
 
-	empty <- NROW(x) == 0L
-
-	if (!raw.output)
-		cat(if (empty) "An empty objects list\n" else "Objects list:\n")
-
+	empty <- !is.data.frame(x) || NROW(x) == 0L
+	cat(if (empty) "An empty objects list\n" else "Objects list:\n")
 	if (header) {
-		header.fmt <- if (raw.output) "Env=%s\nObj=%s\n" else
-			"\tEnvironment: %s\n\tObject: %s\n"
+		header.fmt <- "\tEnvironment: %s\n\tObject: %s\n"
+		objname <- if (is.null(attr(x, "object"))) "<All>" else attr(x, "object")
+		cat(sprintf(header.fmt, attr(x, "envir"), objname))
+	}
+	if (!empty) print.data.frame(x)
+	return(invisible(x))
+}
 
-		objname <- if (is.null(attr(x, "object"))) {
-			if (raw.output) "" else "<All>"
-		} else attr(x, "object")
+#' @rdname rbrowser
+#' @md
+#' @export
+#' @param x an object of class `objList` 
+#' @param file,sep,eol,fileEncoding see `write.table` 
+#' @param header logical. Should a header "Env=environment Obj=object" be printed?
+write.objList <-
+function (x, file = "", sep = " ", eol = "\n", header = !attr(x, "all.info"),
+		  fileEncoding = "", ...) {
+	if (!inherits(x, "objList")) stop("x must be an 'objList' object")
+		
+	if (file == "") file <- stdout() else
+		if (is.character(file)) {
+			file <- if (nzchar(fileEncoding)) file(file, "w", encoding = fileEncoding) else
+			file(file, "w")
+			on.exit(close(file))
+		} else if (!isOpen(file, "w")) {
+			open(file, "w")
+			on.exit(close(file))
+		}
+    if (!inherits(file, "connection")) stop("'file' must be a character string or connection")
 
-		cat(sprintf(header.fmt,  attr(x, "envir"), objname))
+	empty <- !is.data.frame(x) || NROW(x) == 0L
+	
+	if (header) {
+		cat("Env=", attr(x, "envir"), "\n",
+		    "Obj=", if (is.null(attr(x, "object"))) "" else attr(x, "object"), 
+			"\n", sep = "", file = file, append = TRUE)
 	}
 
 	if (!empty) {
-		if (is.na(sep)) {
-			print(as.data.frame(x))
-		} else if (!is.null(nrow(x)) && nrow(x) > 0L) {
-			utils::write.table(x, row.names = FALSE, col.names = FALSE, sep = sep,
+		if (!is.null(nrow(x)) && nrow(x) != 0L) {
+			write.table(x, file = file, append = TRUE, row.names = FALSE, col.names = FALSE, sep = sep,
 				eol = eol, quote = FALSE)
-			cat("\n")
+			cat("\n", file = file, append = TRUE)
 		}
 	}
 	return(invisible(x))
 }
-
 
 ## Called by objList() when object is provided
 .lsObj <-
@@ -207,18 +224,16 @@ function (obj, objname = deparse(substitute(obj))) {
 	itemnames[nsx] <- paste0("`", itemnames[nsx], "`")
 	fullnames <- paste0(objname, "$", itemnames)
 
-	ret <- t(sapply (seq_along(obj), function (i) {
+	ret <- t(sapply(seq_along(obj), function (i) {
 		x <- obj[[i]]
 		lang <- is.language(obj[[i]])
-		o.class <- class(obj[[i]])[1]
+		o.class <- class(obj[[i]])[1L]
 		o.mode <- mode(obj[[i]])
-
 		d <- deparse(obj[[i]])
 		if (lang && o.class == "name") {
 			o.class <- ""
 			o.mode <- ""
 		}
-
 		ret <- c(paste0(d, collapse = "x"), o.class, o.mode, FALSE)
 		return(ret)
 	}))
@@ -263,3 +278,13 @@ function (x) {
 			 !is.language(x) &&
 			 sum(d) != 0L)))
 }
+
+.getEmptyObjList <- function(all.info, envir, object) {
+    rval <- FALSE
+	class(rval) <- c("objList")
+	attr(rval, "all.info") <- all.info
+	attr(rval, "envir") <- envir
+	attr(rval, "object") <- object
+	return(rval)
+}
+

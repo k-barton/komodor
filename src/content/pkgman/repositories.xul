@@ -1,20 +1,28 @@
 <?xml version="1.0"?>
+
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://komodor/content/pkgman/pkgman.css" type="text/css"?>
-<!--<?xml-stylesheet href="file:///temp/pkgman/pkgman.css" type="text/css"?>-->
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/pkgman/pkgman.css" type="text/css"?>
 
 <window id="svRRepositories" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	title="Set R repositories" persist="screenX screenY width height">
 <script type="application/x-javascript">
 <![CDATA[
+
+/* globals window, document, parent */
+
+var require = parent.opener.require;
+var logger = require("ko/logging").getLogger("komodoR");
+logger.setLevel(logger.DEBUG);
+
 var sv, ko;
 if (window.parent && window.parent.sv) {
 	sv = window.parent.sv;
 	ko = window.parent.ko;
 }
 if(!sv) {
-	var p = parent;
-	while (p = p.opener) {
+	let p = parent;
+	while ((p = p.opener)) {
 		if (p.ko) {
 			sv = p.sv;
 			ko = p.ko;
@@ -26,43 +34,53 @@ sv.repositories = {};
 
 function pkgManGetRepositories() {
 	try {
-		var res = sv.io.JSONDecode(sv.rconn.eval("sv_pkgManGetRepositories()"));
+		let cmd = "kor::pkgManGetRepositories()";
+		logger.debug(cmd);
+		let res = JSON.parse(sv.rconn.eval(cmd));
+		let ret = {};
+		for(let i in res)
+			if(res.hasOwnProperty(i))
+				ret[i] = res[i]['Contrib.URL'];
+		return ret;		
 	} catch(e) {
-		return;
+		return null;
 	}
-	var ret = {};
-	for(var i in res) ret[i] = res[i]['Contrib.URL'];
-	return ret;
 }
 
 
 function object2DOMElement(tagName, obj) {
-	var item = document.createElement("richlistitem");
-	for(i in obj) item.setAttribute(i, obj[i]);
+	let item = document.createElement("richlistitem");
+	for(let i in obj)
+		if(obj.hasOwnProperty(i))
+			item.setAttribute(i, obj[i]);
 	return item;
 }
 
 function onLoad() {
 	try {
-		var res = sv.io.JSONDecode(sv.rconn.eval("sv_pkgManGetRepositories()"));
+		let cmd = "kor::pkgManGetRepositories()";
+		logger.debug(cmd);
+		let res = JSON.parse(sv.rconn.eval(cmd));
+		let list = document.getElementById("rRepositoryList");
+		list.parentNode.selectedIndex = 1;
+		let item, reposObj, selected;
+		for(let i in res)
+			if(res.hasOwnProperty(i)) {
+				reposObj = res[i];
+				item = document.createElement("richlistitem");
+				item.id = i;
+				selected = reposObj.default.indexOf("TRUE") != -1;
+				item.setAttribute("checked", selected);
+				item.setAttribute("label", reposObj.menu_name);
+				item.setAttribute("url", reposObj.URL);
+				item.setAttribute("contribUrl", reposObj['Contrib.URL']);
+				list.appendChild(item);
+				sv.repositories[i] = reposObj['Contrib.URL'];
+				//item.reposUrl = reposObj.URL;
+			}
 	} catch(e) {
+		logger.exception(e, "repositories::onLoad");
 		return;
-	}
-	var list = document.getElementById("rRepositoryList");
-	list.parentNode.selectedIndex = 1;
-	var item, reposObj, selected;
-	for(var i in res) {
-		reposObj = res[i];
-		item = document.createElement("richlistitem");
-		item.id = i;
-		selected = reposObj.default.indexOf("TRUE") != -1;
-		item.setAttribute("checked", selected);
-		item.setAttribute("label", reposObj.menu_name);
-		item.setAttribute("url", reposObj.URL);
-		item.setAttribute("contribUrl", reposObj['Contrib.URL']);
-		list.appendChild(item);
-		sv.repositories[i] = reposObj['Contrib.URL'];
-		//item.reposUrl = reposObj.URL;
 	}
 		//var item = item0.cloneNode(true);
 		//
@@ -96,7 +114,7 @@ function applyRepositories() {
 			res.push('"' + item.id  + '"="' + 	item.reposUrl + '"');
 	}
 	if(!res.length)
-		ko.alert("At least one repository must be selected.");
+		ko.dialogs.alert("At least one repository must be selected.", null, "R package manager");
 	else
 		sv.r.eval('options(repos=c(' + res.join(',\n\t')  + '))');
 }
@@ -110,9 +128,9 @@ function applyRepositories() {
 //
 //}
 
-addEventListener("load", onLoad, false);
+window.addEventListener("load", onLoad, false);
 
-]]>
+// ]]>
 </script>
 	<!--<richlistitem id="dummy000" onselect="alert(this.id)">-->
 	<!--	<hbox pack="start" align="left">-->
@@ -134,7 +152,7 @@ addEventListener("load", onLoad, false);
 <box flex="1" pack="center">
 <vbox pack="center">
 	<label value="Not loaded" />
-	<button label="Refresh" oncommand="onLoad()" />
+	<button label="Refresh" oncommand="onLoad();" />
 </vbox>
 </box>
 <richlistbox id="rRepositoryList" class="rRepositoryList"

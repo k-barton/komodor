@@ -1,6 +1,4 @@
-# <LICENSE BLOCK:KomodoR>
-
-`sv_quickParse` <- function(filename, encoding = "UTF-8") {
+`quickParse` <- function(filename, encoding = "UTF-8") {
 	if(file.exists(filename)) {
 		on.exit(close(fconn))
 		fconn <- file(filename, open = "r", encoding = encoding)

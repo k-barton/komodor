@@ -1,0 +1,28 @@
+export(
+existsTemp, getTemp, assignTemp,
+enumConnections, enumServers, startServer, stopAllConnections, stopAllServers, 
+koCmd, koBrowseHere, koBrowseEnd, koPager, koBrowser,
+completion, completeSpecial, completeArgs,
+startup,
+objList, write.objList, objSearch,
+
+pkgManInstallPackages, pkgManRemovePackage, pkgManDetachPackage, 
+pkgManLoadPackage, pkgManGetUpdateable, pkgManGetDescription, 
+pkgManSetCRANMirror, pkgManGetMirrors, pkgManGetInstalled,
+pkgManGetAvailable, pkgManGetRepositories,
+
+stringize, getHelpURL, sourceTemp
+ 
+# TclReval, TclReval2, tclfun,
+
+)
+
+importFrom("tcltk", ".Tcl.callback", ".Tcl", "tcl")
+importFrom("methods", "selectMethod", "slot", "slotNames")
+importFrom("utils", "compareVersion", "contrib.url", "getCRANmirrors",
+           "install.packages", "installed.packages", "old.packages",
+           "packageDescription", "remove.packages", "write.table",
+		   "getSrcFilename", "getS3method", "tail", "data", 
+		   "available.packages", "loadhistory", "browseURL")
+		   
+S3method(print, objList)
