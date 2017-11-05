@@ -43,18 +43,18 @@ sv.rbrowser = {};
     var dQuote = s => "\"" + s + "\"";
 		
 	// id +'_' + 
-	var createCommand = (env, obj, all) => 
+	var createCommand = (env, obj, all) =>
 		"print_objList(sv_objList(id=" + dQuote(sv.uid(1) + "_" + env + "_" + obj) + 
 		", envir=" + (env ? dQuote(env) : "") +  
 		", object=" + dQuote(obj) + ", all.info=FALSE, compare=FALSE, " + 
 		"all.names=" + (all ? "TRUE" : "FALSE") + "), sep=" + dQuote(sep) + 
 		    ", eol=" + dQuote(recordSep) + ")";
 
-    var _getObjListCommand = function(env, objName) {
-               var rval = createCommand(env ? sv.string.addslashes(env) : env,
-                   objName ? objName.replace(/\$/g, "$$$$") : "",
-                   _listAllNames
-               );
+    var _getObjListCommand = (env, obj) => {
+	    var rval = createCommand(env ? sv.string.addslashes(env) : env,
+		   obj? obj.replace(/\$/g, "$$$$").replace(/^([`"'])(.*)\1/, "$2") : "",
+		   _listAllNames
+	    );
 
         logger.debug("R-browser command: \n"  + "\n" + rval);
         return rval;

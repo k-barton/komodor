@@ -1,0 +1,16 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "koBrowseOption toggle", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "sv.r.eval(\"options(koBrowse = !isTRUE(getOption(\\\"koBrowse\\\"))); cat(\\\"koBrowse is\\\", getOption(\\\"koBrowse\\\"), \\\"\\\\n\\\")\");", 
+    ""
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/cord.svg", 
+  "type": "macro", 
+  "trigger": "trigger_postopen"
+}

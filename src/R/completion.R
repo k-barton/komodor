@@ -241,7 +241,6 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	## Save funarg.suffix and use " = " locally
 	ComplEnv <- utils:::.CompletionEnv
 
-
 	## Calculate completion with standard R completion tools
 	utils:::.assignLinebuffer(code)
 	utils:::.assignEnd(pos)

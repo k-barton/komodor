@@ -1,6 +1,6 @@
 {
   "keyboard_shortcut": "Ctrl+L", 
-  "name": "Clear console", 
+  "name": "Clear command output pane", 
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
@@ -11,5 +11,5 @@
   "version": "1.0.12", 
   "async": false, 
   "type": "macro", 
-  "icon": "koicon://ko-svg/chrome/icomoon/skin/screen4.svg"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/console.svg"
 }

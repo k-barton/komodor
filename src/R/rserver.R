@@ -16,8 +16,8 @@
 # - command ends with a newline.
 # Old format ("<<<xxx>>>>" marks) is also accepted, but ignored.
 # The result returned is an object with two components "result" and "message".
-# The "message" can be one of: "Want more" (incomplete code, waiting for
-# continuation), "Parse error" or "Done".
+# The "message" can be one of: "more" (incomplete code, waiting for
+# continuation), "parse-error" or "done".
 # In the "result", element 'stdout' and 'stdin' streams are delimited by ASCII
 # 03 and 02.
 #
@@ -249,7 +249,6 @@ function() as.character(.Tcl("array names Rserver::Connection"))
 {
 	if(!is.numeric(port)) stop("Invalid port: ", port)
 
-
     cmd <- paste(gsub("\f", "\\f", gsub("\r", "\\r", gsub("\n", "\\n",
 				gsub("\\", "\\\\", cmd, fixed = TRUE), fixed = TRUE),
 				fixed = TRUE), fixed = TRUE),
@@ -260,7 +259,7 @@ function() as.character(.Tcl("array names Rserver::Connection"))
 
 	tryCatch(con <- socketConnection(host = host, port = port, blocking = !async),
 		warning = function(e) stop(simpleError(paste("timeout on ", host, ":",
-													 port, sep = ""))))
+		    port, sep = ""))))
 
     writeLines(paste("<<<js>>>", cmd, sep = ""), con)
     res <- readLines(con)
@@ -324,7 +323,6 @@ init.Rserver <- function() {
 	tclfun(TclRprint, 'Rserver::Rprint')
 	# tclfun(tcJSON, "TestJSON", retval = "retval")
 	# cat("R server (tcl) functions defined \n")
-
 }
 
 #===============================================================================

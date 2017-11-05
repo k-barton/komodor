@@ -77,7 +77,7 @@ sv.init = {};
         if (!sfx) sfx = "";
         var kkfContent;
         try {
-            kkfContent = sv.file.readURI("chrome://komodor/content/keybindings" + sfx + ".kkf");
+            kkfContent = sv.file.readURI("chrome://komodor/content/keybindings/keybindings" + sfx + ".kkf");
         } catch (e) {
             return false;
         }
@@ -205,7 +205,7 @@ sv.init = {};
                 "the connected R session must be closed. Do you want to save your R workspace? " +
                 "Click \"Cancel\" to leave R open " +
                 "(the add-on will not be updated until you restart Komodo" +
-                " with R unconnected", null, null,
+                " with R unconnected).", null, null,
                 "\"R interface\" update");
 
             switch (result) {

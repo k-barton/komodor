@@ -22,11 +22,11 @@ with(as.environment("komodoConnection"), {
 
 	env <- as.environment("komodoConnection")
 	src <- dir(pattern = "^[^_].*\\.R$")
-	Rdata <- "startup.RData"
+	Rdatafile <- "startup.RData"
 	
-	createStartupData <- function(Rdata) {
+	createStartupData <- function(Rdatafile, srcfiles) {
 		funcEnv <- new.env()
-		lapply(src, sys.source, envir = funcEnv, keep.source = FALSE)
+		lapply(srcfiles, sys.source, envir = funcEnv, keep.source = FALSE)
 		if(length(find.package("compiler", quiet = TRUE))) {
 			for(fun in ls(funcEnv)) if(exists(fun, funcEnv, mode = "function"))
 					assign(fun, compiler::cmpfun(get(fun, funcEnv),
@@ -34,19 +34,19 @@ with(as.environment("komodoConnection"), {
 		}
 		assign("funcEnv", funcEnv, envir = funcEnv)
 		assign(".withRVersion", getRversion(), envir = funcEnv)
-		suppressWarnings(save(list = ls(funcEnv), file = Rdata, envir = funcEnv))
+		suppressWarnings(save(list = ls(funcEnv), file = Rdatafile, envir = funcEnv))
 		cat("created startup data \n")
 	}
 
-	if(!file.exists(Rdata) || {
-		mtime <- file.info(c(Rdata, src))[, "mtime"]
+	if(!file.exists(Rdatafile) || {
+		mtime <- file.info(c(Rdatafile, src))[, "mtime"]
 		any(mtime[-1L] > mtime[1L])
-	}) createStartupData(Rdata)
+	}) createStartupData(Rdatafile, src)
 
-	load(Rdata, envir = env)
+	load(Rdatafile, envir = env)
 	if(!exists(".withRVersion", funcEnv) || get(".withRVersion", funcEnv) != getRversion()) {
-		createStartupData(Rdata)
-		load(Rdata, envir = env)
+		createStartupData(Rdatafile, src)
+		load(Rdatafile, envir = env)
 	}
 	
 	#sys.source("rserver.R", envir = env)
@@ -56,7 +56,7 @@ with(as.environment("komodoConnection"), {
 	
 	init.Rserver()
 
-	rm(env, Rdata, src)
+	suppressWarnings(rm(env, Rdatafile, src, mtime))
 	invisible()
 })
 
@@ -97,6 +97,18 @@ local({
 
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
 		koMsg("Server started at port", portstr)
+		
+		ok <- tryCatch(koCmd("'ok'"), error = function(e) {
+			stop(simpleError(paste0(strwrap(paste(
+				"cannot connect to Komodo. This may be caused by a previous R",
+				"session that was improperly closed. Quit R, kill any running",
+				"ghost R processes, then start R again."), 
+				prefix = "  ", initial = ""), 
+				collapse = "\n"), "Ko/R Startup"))
+		})
+		if(ok != "ok") warning(simpleWarning("invalid response received from Komodo"))
+
+		
 		invisible(koCmd(paste(
 			"sv.cmdout.clear()",
 			sprintf("sv.cmdout.append('%s is started')", R.version.string),
@@ -109,14 +121,14 @@ local({
 					gettext("[Previously saved workspace restored]", domain="R-base"))
 			},
 			sep = ";")))
-		sv.ver <- koCmd("sv.version")
-		ko.ver <- koCmd("sv.misc.getKomodoVersion()")
-		if(sv.ver != "") {
-			koMsg("Using R interface ", sv.ver, " on Komodo ", ko.ver, sep = "")
-				if(.Platform$GUI == "Rgui")
-					utils::setWindowTitle("[connected to Komodo]")
+		
+		ver <- koCmd("sv.version + '\n' + sv.misc.getKomodoVersion()")
+		if(length(ver) == 2L) {
+			koMsg("Using R interface ", ver[1L], " on Komodo ", ver[2L], sep = "")
+			if(.Platform$GUI == "Rgui") 
+				utils::setWindowTitle("[connected to Komodo]")
 		} else {
-			stop("cannot connect to Komodo. Quit R and try restarting Komodo")
+			warning(simpleWarning("invalid response received from Komodo", "Ko/R Startup"))
 		}
 	}
 
