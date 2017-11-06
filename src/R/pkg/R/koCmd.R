@@ -23,9 +23,12 @@
 
 	#set command [string map [list "\\" {\\} "\n" {\n} "\r" {\r} "\f" {\f}] $command]
     prevopt <- options(timeout = max(1, floor(timeout)))
+
+	con <- NULL
 	on.exit({
 		options(prevopt)
-		if(isOpen(con)) close(con)
+		if(inherits(con, "connection") && isOpen(con))
+			close(con)
 	})
 
 	tryCatch(con <- socketConnection(host = host, port = port, blocking = !async),

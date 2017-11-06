@@ -173,6 +173,8 @@ sv.init = {};
             sv.command.setRStatus(sv.rconn.isRConnectionUp(true));
 
             if (sv.command.isRRunning) sv.rbrowser.refresh();
+			
+			ko.commands.updateCommand("cmd_svREscape"); // ?
 
             // For completions
             var cuih = ko.codeintel.CompletionUIHandler;

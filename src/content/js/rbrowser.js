@@ -9,14 +9,13 @@
 /*
  * TODO: identify packages by pos rather than name (allow for non-unique names)
  * TODO: context menu for search-paths list
- * TODO: renaming objects on the list - editable names
  * TODO: add context menu item for environments: remove all objects
  * TODO: automatic refresh of the browser from R
  * TODO: make this a sv.robjects.tree 
+[ERROR] console-logger: TypeError: treeBox is null (2) in chrome://komodor/content/js/rbrowser.js:972
  */
 
-/* globals sv, ko, require, Components, document, self, TransferData,
-           FlavourSet */
+/* globals sv, ko, require, Components, document, self */
 
 sv.rbrowser = {};
 
@@ -49,7 +48,8 @@ sv.rbrowser = {};
 		", object=" + dQuote(obj) + ", all.info=FALSE, compare=FALSE, " + 
 		"all.names=" + (all ? "TRUE" : "FALSE") + "), sep=" + dQuote(sep) + 
 		    ", eol=" + dQuote(recordSep) + ")";
-            
+    
+
     var _listAllNames = false;
   
     var _getObjListCommand = (env, obj) => {

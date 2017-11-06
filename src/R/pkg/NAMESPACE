@@ -23,6 +23,7 @@ importFrom("utils", "compareVersion", "contrib.url", "getCRANmirrors",
            "install.packages", "installed.packages", "old.packages",
            "packageDescription", "remove.packages", "write.table",
 		   "getSrcFilename", "getS3method", "tail", "data", 
-		   "available.packages", "loadhistory", "browseURL")
+		   "available.packages", "loadhistory", "browseURL",
+		   "setWindowTitle")
 		   
 S3method(print, objList)

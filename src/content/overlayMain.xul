@@ -95,6 +95,15 @@
 	<commandset id="cmdset_rApp" commandupdater="true"
 		oncommandupdate="ko.commands.updateCommandset(this);"
 		events="r_app_started_closed">
+		
+		<commandset id="cmdset_rApp" commandupdater="true"
+			oncommandupdate="ko.commands.updateCommandset(this);"
+			events="r_command_executed">
+			<command id="cmd_svREscape" key="key_cmd_svREscape"
+				oncommand="ko.commands.doCommand('cmd_svREscape');"
+				desc="R: &rEscape;" label="&rEscape;" accesskey="&rEscape.key;"/>			
+		</commandset>
+		
 		<command id="cmd_svStartR" key="key_cmd_svStartR"
 			oncommand="ko.commands.doCommand('cmd_svStartR');"
 			desc="R: &StartR;" label="&StartR;" accesskey="&StartR.key;"
@@ -102,11 +111,10 @@
 		<command id="cmd_svQuitR" key="key_cmd_svQuitR"
 			oncommand="ko.commands.doCommand('cmd_svQuitR');"
 			desc="R: &QuitR;" label="&QuitR;" accesskey="&QuitR.key;"/>
-		<command id="cmd_svREscape" key="key_cmd_svREscape"
-			oncommand="ko.commands.doCommand('cmd_svREscape');"
-			desc="R: &rEscape;" label="&rEscape;" accesskey="&rEscape.key;"/>
+
 		<command id="cmd_svOpenPkgManager" key="key_cmd_svOpenPkgManager"
-			oncommand="ko.commands.doCommand('cmd_svOpenPkgManager');" disabled="false"
+			oncommand="ko.commands.doCommand('cmd_svOpenPkgManager');" 
+			disabled="false"
 			desc="R: &pkgMgr;" label="&pkgMgr;" accesskey="&pkgMgr.key;"/>
 		<command id="cmd_svOpenHelp" key="key_cmd_svOpenHelp"
 			oncommand="ko.commands.doCommand('cmd_svOpenHelp');"

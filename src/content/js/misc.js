@@ -118,13 +118,6 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 
 }).apply(sv.misc.colorPicker);
 
-
-sv.misc.getKomodoVersion = function() {
-	if (ko.version) return ko.version;
-	return Components.classes["@activestate.com/koInfoService;1"]
-		.getService(Components.interfaces.koIInfoService).version;
-};
-
 // Fix broken margin click
 (function() {
 	// Fixed bookmark-toggling
@@ -145,7 +138,7 @@ sv.misc.getKomodoVersion = function() {
 	}
 
 	// TODO: Komodo 9 dispatches an event "editor_margin_clicked"
-	if(sv._versionCompare(sv.misc.getKomodoVersion(), "9") >= 0) {
+	if(sv._versionCompare(ko.version, "9") >= 0) {
 		window.addEventListener("editor_margin_clicked", function marginClickListener(event) {
 			bookmarkToggleFix.call(event.detail.view, event.detail.modifiers,
 								   event.detail.position, event.detail.margin);

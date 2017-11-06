@@ -33,12 +33,15 @@ Contributors:
 <!--<?xml-stylesheet href="chrome://places/skin/places.css" type="text/css"?>-->
 <?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/rbrowser.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodor/skin/rbrowser8.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/rbrowser10.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript">
 <![CDATA[
+
+//* globals ko */
+
 // find sv object in the main Komodo window:
 var sv;
 var p = self;
@@ -62,9 +65,17 @@ if (typeof(sv) == 'undefined')
 <script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
 <script type="application/x-javascript">
 <![CDATA[
-addEventListener("DOMContentLoaded", function(event) {
-	sv.rbrowser.onLoad();
+if(sv._versionCompare(ko.version, "10") < 0) {
+  let styleSheets = Array.apply(null, document.styleSheets);
+  let styleSheet = styleSheets.find(ss => ss.href.indexOf("rbrowser10.css") != -1);
+  styleSheet.disabled = true;
+}
+    
+window.addEventListener("DOMContentLoaded", function(/*event*/) {
+   sv.rbrowser.onLoad();
 }, false);
+
+
 ]]>
 </script>
 

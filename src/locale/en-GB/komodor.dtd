@@ -42,7 +42,7 @@
 <!ENTITY openRPrefs "R preferences">
 <!ENTITY openRPrefs.key "p">
 
-<!ENTITY rEscape "Escape current calculation">
+<!ENTITY rEscape "Interrupt current command">
 <!ENTITY rEscape.key "E">
 
 <!ENTITY RToolbar.label "R toolbar">

@@ -6,7 +6,6 @@
 #' @export
 `parseText` <-
 function (text) {
-
 	res <- tryCatch(parse(text = text), error = identity)
 
 	if(inherits(res, "error")) {
@@ -22,13 +21,16 @@ function (text) {
 
 		# Check if this is incomplete code
 		msg <- conditionMessage(res)
-
+		
 		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)",  msg, perl = TRUE)
 		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: *([^\n]+)\n", msg, perl = TRUE)
 		m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: ", msg, perl = TRUE)
 		if(m != -1) {
 			if(identical(.regcaptures(msg, m)[1L], gettext("unexpected end of input", domain = "R")))
 				return(NA)
+		    #if(identical(.regcaptures(msg, m)[1L], gettext("unexpected end of line", domain = "R")))
+				#return(NA)
+			
 			# remove "<text>:n:n:" from the beginning of message
 			res$message <- substr(msg, attr(m,"capture.start")[1L], nchar(msg))
 		}

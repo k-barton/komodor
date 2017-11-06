@@ -344,6 +344,21 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         //_this.RHelpWin.closed = true;
     };
 
+	//var  _isRRunning = () => _RIsRunning;
+    var _isRCurLanguage = () => true;
+	
+    var RWantsMore = {};
+	(function() {
+		'use strict';
+		this.value = false;
+		this.observe = function(subject, topic, data) {
+			this.value = subject.message == "more";
+			window.updateCommands('r_command_executed');
+		};
+	}).apply(RWantsMore);
+	Services.obs.addObserver(RWantsMore, "r-command-executed", false);
+	
+	
     this.setControllers = function _setControllers() {
         //Based on: chrome://komodo/content/library/controller.js
         // backwards compatibility APIs
@@ -362,7 +377,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             'cmd_svStartR': ['sv.command.startR();', XRStopped],
             'cmd_svQuitR': ['sv.r.quit();', XRRunning],
 
-            'cmd_svREscape': ['sv.r.escape();', XRRunning],
+            'cmd_svREscape': ['sv.r.escape();', () => _RIsRunning && RWantsMore.value],
             'cmd_svRRunAll': ['sv.r.send("all");', XisRDoc | XRRunning],
             'cmd_svRSourceAll': ['sv.r.source("all");', XisRDoc | XRRunning],
             'cmd_svRRunBlock': ['sv.r.send("block");', XisRDoc | XRRunning],
@@ -385,8 +400,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             'cmd_viewrtoolbar': ['ko.uilayout.toggleToolbarVisibility(\'RToolbar\')', -1]
         };
 
-        var  _isRRunning = () => _RIsRunning;
-        var _isRCurLanguage = () => true;
+
         //{
         //    return true;
         //    // var view = ko.views.manager.currentView;
@@ -396,16 +410,17 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
         var _hasSelection = () => {
             var view = ko.views.manager.currentView;
-            if (!view || !view.scimoz) return (false);
+            if (!view || !view.scimoz) return false;
             return (view.scimoz.selectionEnd - view.scimoz.selectionStart) != 0;
         };
 
         var _test = (cmdName) => {
             var test = handlers[cmdName][1];
-            if (test < 0) return true;
+            if (test == -1) return true;
+			if (typeof test === "function") return test();
             return (
-                (((test & XRRunning) != XRRunning) || _isRRunning()) && (((test &
-                    XRStopped) != XRStopped) || !_isRRunning()) && (((test & XisRDoc) !=
+                (((test & XRRunning) != XRRunning) || _RIsRunning) && (((test &
+                    XRStopped) != XRStopped) || !_RIsRunning) && (((test & XisRDoc) !=
                     XisRDoc) || _isRCurLanguage()) && (((test & XHasSelection) !=
                     XHasSelection) || _hasSelection())
             );
@@ -422,9 +437,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             } else {
                 // ko.main will not be defined in dialogs that load controller.js.
                 var self = this;
-                window.addEventListener("unload", function () {
-                    self.destructor();
-                }, false);
+                window.addEventListener("unload", function () self.destructor(),
+				false);
             }
         }
 

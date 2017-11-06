@@ -1,21 +1,25 @@
 .r-run-command-icon {
-	/* list-style-image: url("chrome://komodor/skin/images/R.svg"); */
-	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R.svg);
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/R.svg");
 }
 
 .r-run-command-icon[disabled="true"] {
 	opacity: 0.5;
 	filter: grayscale(50%);
-	/* list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_disabled.svg); */
 }
 
 .r-quit-command-icon {
-	list-style-image: url("chrome://komodor/skin/images/quitR.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/exit.svg");
 }
 
 .r-pkg-manager {
-	list-style-image: url("chrome://komodor/skin/images/box-label.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/pkgman.svg");
 }
+
+.r-pkg-manager[disabled="true"] {
+	opacity: 0.5;
+	filter: grayscale(50%);
+}
+
 
 .r-working-dir-icon {
 	list-style-image: url("chrome://komodor/skin/images/folder_home.png");
@@ -26,62 +30,66 @@
 }
 
 .r-run-all-icon {
-	/* list-style-image: url("chrome://komodor/skin/images/run_all.png"); */
-	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/file-run.svg);
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/run-all.svg");
 }
 
 .r-run-all-icon[disabled="true"] {
-	/* list-style-image: url("chrome://komodor/skin/images/run_all_disabled.png"); */
 	opacity: 0.7;
 	filter: grayscale(50%);
 }
 
 .r-run-selection-icon {
-	list-style-image: url("chrome://komodor/skin/images/run_line.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/run-selection.svg");
 }
 
 .r-run-selection-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/run_line_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-run-block-icon {
-	list-style-image: url("chrome://komodor/skin/images/run_block.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/run-block.svg");
 }
 
 .r-run-block-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/run_block_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-run-function-icon {
-	list-style-image: url("chrome://komodor/skin/images/run_function.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/run-function.svg");
 }
 
 .r-run-function-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/run_function_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-run-line-icon {
-	list-style-image: url("chrome://komodor/skin/images/run_line.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/run-selection.svg");
 }
 
 .r-run-line-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/run_line_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-run-para-icon {
-	list-style-image: url("chrome://komodor/skin/images/run_para.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/run-para.svg");
 }
 
 .r-run-para-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/run_para_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-source-all-icon {
-	list-style-image: url("chrome://komodor/skin/images/source.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/source-all.svg");
 }
 
 .r-source-all-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/source_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-source-selection-icon {
@@ -93,21 +101,21 @@
 }
 
 .r-source-block-icon {
-	/* list-style-image: url("chrome://komodor/skin/images/source_block.png"); */
-	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/file-source-block.svg);
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/source-block.svg);
 }
 
 .r-source-block-icon[disabled="true"] {
-	opacity: 0.5;
-	/* list-style-image: url("chrome://komodor/skin/images/source_block_disabled.png"); */
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-source-function-icon {
-	list-style-image: url("chrome://komodor/skin/images/source_function.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/source-function.svg");
 }
 
 .r-source-function-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/source_function_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .r-source-line-icon {
@@ -119,11 +127,12 @@
 }
 
 .r-source-para-icon {
-	list-style-image: url("chrome://komodor/skin/images/source_para.png");
+	list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/source-para.svg");
 }
 
 .r-source-para-icon[disabled="true"] {
-	list-style-image: url("chrome://komodor/skin/images/source_para_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 
@@ -205,18 +214,19 @@
 
 
 .stop-icon {
-	list-style-image: url("chrome://komodor/skin/images/stop.png");
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/stop.svg);
 }
 
 .stop-icon:hover,
 .stop-icon:hover:active {
-	list-style-image: url("chrome://komodor/skin/images/stop_a.png");
+	filter: brightness(1.5);
 }
 
 .stop-icon[disabled="true"],
 .stop-icon[disabled="true"]:hover,
 .stop-icon[disabled="true"]:hover:active {
-	list-style-image: url("chrome://komodor/skin/images/stop_disabled.png");
+	opacity: 0.7;
+	filter: grayscale(50%);
 }
 
 .reload-icon {

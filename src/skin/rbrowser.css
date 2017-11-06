@@ -210,3 +210,20 @@
 #rbrowserToolbar .refresh-icon {
     list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/refresh.svg);
 }
+
+
+
+
+#rbrowserToolbar > toolbarbutton {
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+}
+
+#rbrowserToolbar > toolbarbutton[checked] {
+  box-shadow: inset 0px 1px 5px rgba(0, 0, 0, 0.15);
+  background-color: transparent;
+  background-image: none;
+  border-color: rgba(0, 0, 0, 0.4);
+}
+

@@ -62,7 +62,10 @@ function (verbose = FALSE) {
 				prefix = "  ", initial = ""), 
 				collapse = "\n"), title))
 		})
-		if(!identical(ok, "ok")) warning(simpleWarning("invalid response received from Komodo", title))
+		if(!identical(ok, "ok")) {
+			warning(simpleWarning("invalid response received from Komodo", title))
+			vmsg("Expected \"ok\", got", deparse(ok, control = NULL))
+		}
 
 		invisible(koCmd(paste(
 			"sv.cmdout.clear()",
@@ -77,13 +80,17 @@ function (verbose = FALSE) {
 			},
 			sep = ";")))
 		
-		ver <- koCmd("sv.version + '\n' + sv.misc.getKomodoVersion()")
+		ver <- koCmd("sv.version + '\n' + ko.version")
 		if(length(ver) == 2L) {
 			msg("Using R interface ", ver[1L], " on Komodo ", ver[2L], sep = "")
-			if(.Platform$GUI == "Rgui") utils::setWindowTitle("[connected to Komodo]")
+			if(.Platform$GUI == "Rgui") setWindowTitle("[connected to Komodo]")
 		} else {
 			warning(simpleWarning("invalid response received from Komodo", title))
+			vmsg("Expected \"sv.version\\nko.version\", got", deparse(ver, control = NULL))
 		}
+		
+		oldoptions <- options(browser=koBrowser, pager=koPager)
+		assignTemp("oldoptions", oldoptions)
 	}
 	
 	assign(".First", function() {

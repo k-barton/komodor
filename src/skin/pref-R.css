@@ -14,7 +14,7 @@ button.menulist-buttons:last-of-type {
 
 
 button.refresh-icon[label] .button-text {
-	margin-left: 4px;
+	padding-left: 4px;
 }
 
 menulist.short {
