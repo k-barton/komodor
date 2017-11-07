@@ -371,7 +371,6 @@ sv.cmdout = {};
     var _this = this;
 
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
 
     Object.defineProperty(this, 'eolChar', {
         get: () => ["\r\n", "\n", "\r"][_this.scimoz.eOLMode]

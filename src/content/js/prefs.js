@@ -7,10 +7,7 @@
  * 
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
-
 /* globals sv, ko, require */
-
-
 if (sv.pref === undefined) sv.pref = {};
 
 //This can be used in the Preferences page to set/restore missing values:
@@ -45,9 +42,8 @@ if (sv.pref === undefined) sv.pref = {};
 
     this.defaults[sv.langName + "HelpCommand"] = 'javascript:sv.r.help(\"%W\")';
 
-	// Update preference names:
-	var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.INFO);
+    // Update preference names:
+    var logger = require("ko/logging").getLogger("komodoR");
 
     var renamePref = function (fromName, toName) {
         if (prefset.hasPref(fromName) && !prefset.hasPref(toName)) {
@@ -55,21 +51,22 @@ if (sv.pref === undefined) sv.pref = {};
             if (type == -1) return false;
             let typeName = ['Long', 'Double', 'Boolean', 'String'][type];
             let value = prefset['get' + typeName + 'Pref'](fromName);
-			prefset.deletePref(fromName);
-			prefset['set' + typeName + 'Pref'](toName, value);
-			return true;
+            prefset.deletePref(fromName);
+            prefset['set' + typeName + 'Pref'](toName, value);
+            return true;
         }
-		return false;
+        return false;
     };
     var oldNames = ["sciviews.ko.port", "sciviews.r.port", "sciviews.r.host", "svRDefaultInterpreter",
-		"svRApplication", "svRArgs", "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
+        "svRApplication", "svRArgs", "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
         "rRemoteHelpURL", "sciviews.margin.click", "R_extendedHelpCommand"
     ];
-	var newNames = [];
-	for(let i in this.defaults) if(this.defaults.hasOwnProperty(i)) newNames.push(i);
-	for (let i = 0; i < newNames.length; ++i) {
-        if(renamePref(oldNames[i], newNames[i]))
-		  logger.info("Updated preference name from " + oldNames[i] + " to " + newNames[i]);  
+    var newNames = [];
+    for (let i in this.defaults)
+        if (this.defaults.hasOwnProperty(i)) newNames.push(i);
+    for (let i = 0; i < newNames.length; ++i) {
+        if (renamePref(oldNames[i], newNames[i]))
+            logger.info("Updated preference name from " + oldNames[i] + " to " + newNames[i]);
     }
 
     //// Set default preferences
@@ -85,7 +82,6 @@ if (sv.pref === undefined) sv.pref = {};
                 _this.setPref(i, _this.defaults[i], rev);
             }
     };
-
 
     this.getPref = function (prefName, defaultValue) {
         var ret, typeName, type;
@@ -123,7 +119,6 @@ if (sv.pref === undefined) sv.pref = {};
     };
 
 }).apply(sv.pref);
-
 
 // TODO: move to INIT
 sv.pref.setDefaults(false);

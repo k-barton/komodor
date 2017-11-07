@@ -40,7 +40,7 @@ from xpcom import components #, nsError, COMException, ServerException
 
 
 log = logging.getLogger("koRLanguage")
-log.setLevel(logging.DEBUG)
+# log.setLevel(logging.DEBUG)
 
 
 def registerLanguage(registry):

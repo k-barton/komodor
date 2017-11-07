@@ -8,7 +8,6 @@ var pmDeck;
 var require = parent.opener.require;
 
 var logger = require("ko/logging").getLogger("komodoR");
-logger.setLevel(logger.DEBUG);
 
 function _notify(message, msgid, type, buttons) {
 	var image, priority;

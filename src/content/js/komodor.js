@@ -16,7 +16,6 @@ sv = {
     var _version;
 
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
 
     Object.defineProperty(this, "version", {
         get: () => _version,

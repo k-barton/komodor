@@ -44,9 +44,6 @@ from uuid import uuid1
 
 import logging
 log = logging.getLogger('svUtils')
-log.setLevel(logging.ERROR)
-# log.setLevel(logging.DEBUG)
-
 
 class svUtils:
     _com_interfaces_ = [components.interfaces.svIUtils]

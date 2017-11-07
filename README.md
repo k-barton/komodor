@@ -70,7 +70,7 @@ are required, however your R installation needs to have Tcl capability
     * press Ctrl+R to run selected text as R code (or choose command from the 
 	  context menu).
 * R language help (Shift+F1 while in an *R_extended* document):
-    * the selected keyword is searched for in the loaded packages. If noting is 
+    * the selected keyword is searched for in the loaded packages. If nothing is 
 	  found, press Shift+F1 again to search in all packages.
 * The *R tools* toolbox has some more of less useful commands:
     * R markdown preview;
@@ -90,24 +90,28 @@ The extension provides some debugging capabilities, see
 **Known issues:**
 
 * Output from R is displayed in the command output pane only at the end of 
-  operation (dynamic output may be introduced in future version)
+  operation (dynamic command output will be introduced in version 0.3)
 * Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape 
   key in RGui)
 * Executing Rgui's command “Stop all computations” will also stop R's socket 
   server and hence break the connection with Komodo. It may also cause R crash 
-  (happens sometimes on Windows).
+  (it happens sometimes on Windows).
 * On Linux, Tk-Gui sometimes does not close properly. It is recommended not to 
   use it with Komodo.
 * Problems with connection with Komodo server in R may cause R not exit 
-  properly and need to kill the R process (happens very rarely though - Windows only?).
+  properly and need to kill the R process (it happens very rarely though - 
+  perhaps a Windows-specific problem).
+* If something went wrong and Komodo shows R is running when it is not, 
+  run “R: check connection” macro in “R Tools” toolbox.
 * Connection timeout on longer operations: a prompt is shown as if the calculation
-  in R has finished and no output will be shown. There does not seem to be a way
-  to set socket timeout in Tcl.
+  in R has finished and no output is shown. There does not seem to be a way
+  to set socket timeout in Tcl. (no longer in version 0.3)
 * R object browser has to be refreshed manually (click sidebar's refresh button)
-  This is for performance, yet it may become an option in future version.
+  Automatic refreshing will be an option in future version.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
-  colouring dissappears occassionally. This seems to be related to brace 
-  counting in UDL (`spush_check`/`spop_check`, possibly a bug in Komodo).
+  colouring dissappears occassionally. There is also some flickering inside
+  Roxygen comments. This seems to be related to brace counting in UDL 
+  (bug in Komodo?).
 
 
 **[Hacks for classic Windows styling in Komodo Edit](improveKo9.md)**

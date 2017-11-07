@@ -5,36 +5,31 @@
  *  Copyright (c) 2009-2015, K. Barton & Ph. Grosjean (phgrosjean@sciviews.org)
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
-
-
 // require file,string,rconnection,utils (translate),pref,rbrowser
-
 /* globals sv, ko, Components, window, document, navigator, xtk, require,
    prefs_doGlobalPrefs
    */
-
 if (typeof (sv.command) == 'undefined') sv.command = {};
 
 (function () { // sv.command constructor
-    
+
     const {
         classes: Cc,
         interfaces: Ci
     } = Components;
 
     var logger = require("ko/logging").getLogger("komodoR");
- //   logger.setLevel(logger.DEBUG);
-    
+
     this.RHelpWin = null; // A reference to the R Help Window
     var _this = this;
     this.RProcess = null;
-    
+
     var _RIsRunning;
     // read only sv.command.isRRunning
     // set via sv.command.setRStatus - TODO merge?
     Object.defineProperty(_this, "isRRunning", {
-       get: () => _RIsRunning,
-       enumerable: true
+        get: () => _RIsRunning,
+        enumerable: true
     });
 
     function _getWindowByURI(uri) {
@@ -63,7 +58,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 args = args.slice(0, 3).concat(args.slice(4));
                 if (!features) args[2] = "chrome,modal,titlebar";
                 win = window.openDialog.apply(null, args);
-            } catch (e) {    
+            } catch (e) {
                 logger.exception(e, "Error opening window: " + uri);
             }
         }
@@ -195,9 +190,11 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         svfile.write(svfile.path(rDir, "_init.R"),
             "setwd('" + svstr.addslashes(sv.command.getCwd(false)) +
             "')\n" + "options(" +
-            "ko.port=" + sv.pref.getPref("RInterface.koPort", sv.pref.defaults["RInterface.koPort"]) +
+            "ko.port=" + sv.pref.getPref("RInterface.koPort", sv.pref.defaults[
+                "RInterface.koPort"]) +
             ", " +
-            "ko.R.port=" + sv.pref.getPref("RInterface.RPort", sv.pref.defaults["RInterface.RPort"]) +
+            "ko.R.port=" + sv.pref.getPref("RInterface.RPort", sv.pref.defaults[
+                "RInterface.RPort"]) +
             ", " +
             "ko.host=\"localhost\")\n" +
             "..ko.repos.. <- getOption(\"repos\"); ..ko.repos..[[\"CRAN\"]] <- \"" +
@@ -344,21 +341,20 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         //_this.RHelpWin.closed = true;
     };
 
-	//var  _isRRunning = () => _RIsRunning;
+    //var  _isRRunning = () => _RIsRunning;
     var _isRCurLanguage = () => true;
-	
+
     var RWantsMore = {};
-	(function() {
-		'use strict';
-		this.value = false;
-		this.observe = function(subject, topic, data) {
-			this.value = subject.message == "more";
-			window.updateCommands('r_command_executed');
-		};
-	}).apply(RWantsMore);
-	Services.obs.addObserver(RWantsMore, "r-command-executed", false);
-	
-	
+    (function () {
+        'use strict';
+        this.value = false;
+        this.observe = function (subject, topic, data) {
+            this.value = subject.message == "more";
+            window.updateCommands('r_command_executed');
+        };
+    }).apply(RWantsMore);
+    Services.obs.addObserver(RWantsMore, "r-command-executed", false);
+
     this.setControllers = function _setControllers() {
         //Based on: chrome://komodo/content/library/controller.js
         // backwards compatibility APIs
@@ -400,7 +396,6 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             'cmd_viewrtoolbar': ['ko.uilayout.toggleToolbarVisibility(\'RToolbar\')', -1]
         };
 
-
         //{
         //    return true;
         //    // var view = ko.views.manager.currentView;
@@ -417,7 +412,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         var _test = (cmdName) => {
             var test = handlers[cmdName][1];
             if (test == -1) return true;
-			if (typeof test === "function") return test();
+            if (typeof test === "function") return test();
             return (
                 (((test & XRRunning) != XRRunning) || _RIsRunning) && (((test &
                     XRStopped) != XRStopped) || !_RIsRunning) && (((test & XisRDoc) !=
@@ -438,7 +433,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 // ko.main will not be defined in dialogs that load controller.js.
                 var self = this;
                 window.addEventListener("unload", function () self.destructor(),
-				false);
+                    false);
             }
         }
 
@@ -487,7 +482,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         get anyRFilesSelected()
         _RIsRunning &&
         ko.places.manager.getSelectedItems().some(
-			x => x.file.isLocal && x.file.ext.toLowerCase() == ".r"),
+            x => x.file.isLocal && x.file.ext.toLowerCase() == ".r"),
 
         get anyRDataFilesSelected()
         _RIsRunning &&
@@ -533,6 +528,5 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         }
 
     }; // end this.places
-
 
 }).apply(sv.command);

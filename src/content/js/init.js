@@ -77,7 +77,8 @@ sv.init = {};
         if (!sfx) sfx = "";
         var kkfContent;
         try {
-            kkfContent = sv.file.readURI("chrome://komodor/content/keybindings/keybindings" + sfx + ".kkf");
+            kkfContent = sv.file.readURI("chrome://komodor/content/keybindings/keybindings" + sfx +
+                ".kkf");
         } catch (e) {
             return false;
         }
@@ -173,13 +174,13 @@ sv.init = {};
             sv.command.setRStatus(sv.rconn.isRConnectionUp(true));
 
             if (sv.command.isRRunning) sv.rbrowser.refresh();
-			
-			ko.commands.updateCommand("cmd_svREscape"); // ?
+
+            ko.commands.updateCommand("cmd_svREscape"); // ?
 
             // For completions
             var cuih = ko.codeintel.CompletionUIHandler;
             if (cuih) {
-				// TODO: replace with svg
+                // TODO: replace with svg
                 let baseURI = "chrome://komodor/skin/images/";
                 //cuih.prototype.types.argument = cuih.prototype.types.interface;
                 cuih.prototype.types.environment = cuih.prototype.types.namespace;
@@ -225,24 +226,34 @@ sv.init = {};
         return true;
     };
 
-   //Services.obs.addObserver(_this.onKomodoRUpdateRestart, "quit-application-requested", false);
+    //Services.obs.addObserver(_this.onKomodoRUpdateRestart, "quit-application-requested", false);
 
     // Just in case, run a clean-up before quitting Komodo:
     ko.main.addWillCloseHandler(sv.rconn.stopSocketServer, sv.rconn);
     ko.main.addWillCloseHandler(_this.onKomodoRUpdateRestart, _this);
 
-    var observeR = function () {
+    // DEBUG
+    this.rbrowserRefreshDelay = 500;
+
+    var RObserver = function () {
         var el = document.getElementById('cmd_svRStarted');
         if (sv.command.isRRunning) el.setAttribute("checked", "true");
         else el.removeAttribute("checked");
-        
         if (!sv.r.isRunning) {
             if (sv.rbrowser) {
                 sv.rbrowser.clearPackageList();
                 sv.rbrowser.clearAll();
             }
+        } else {
+            //sv.rbrowser.refresh();
+            //let onRStartupTimeoutId;
+            //onRStartupTimeoutId = window.setInterval(() => {
+            //    if(sv.rbrowser) window.clearInterval(onRStartupTimeoutId);
+            //    sv.rbrowser.refresh();
+            //    logger.debug("R started. Reloading object browser.");
+            //}, _this.rbrowserRefreshDelay);
         }
     };
-    window.addEventListener("r_app_started_closed", observeR, false);
+    window.addEventListener("r_app_started_closed", RObserver, false);
 
 }).apply(sv.init);

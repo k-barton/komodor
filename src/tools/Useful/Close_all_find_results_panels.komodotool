@@ -1,0 +1,17 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Close all find results panels", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "/* globals ko */", 
+    "let panelIds = ko.widgets.widgets.filter(id => id.indexOf(\"findresults_tabpanel\") === 0);", 
+    "panelIds.forEach(id => ko.widgets.unregisterWidget(id));"
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/binoculars.svg", 
+  "type": "macro", 
+  "trigger": "trigger_postopen"
+}

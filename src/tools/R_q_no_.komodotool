@@ -1,0 +1,15 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "R: q(\"no\")", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "sv.r.quit(\"no\");"
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/exit3.svg", 
+  "type": "macro", 
+  "trigger": "trigger_postopen"
+}

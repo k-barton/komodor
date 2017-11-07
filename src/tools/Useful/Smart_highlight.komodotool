@@ -6,6 +6,8 @@
   "rank": 100, 
   "trigger": "trigger_postopen", 
   "value": [
+    "/* globals Components, ko, self */", 
+    "", 
     "var findSvc = Components.classes[\"@activestate.com/koFindService;1\"]", 
     "    .getService(Components.interfaces.koIFindService);", 
     "", 
@@ -22,7 +24,7 @@
     "if(text != \"\") {", 
     "\tfindSvc.options.matchWord = (text == word);", 
     "\tfindSvc.options.displayInFindResults2 = true;", 
-    "    ko.find.findAll(self, context, text, null, function() {}, true);", 
+    "    ko.find.findAll(self, context, text, null, () => ({}), true);", 
     "\t//ko.uilayout.ensureTabShown(\"findresults2_tab\", false);", 
     "}"
   ], 

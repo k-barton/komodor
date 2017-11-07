@@ -13,7 +13,6 @@
 
 var require = parent.opener.require;
 var logger = require("ko/logging").getLogger("komodoR");
-logger.setLevel(logger.DEBUG);
 
 var sv, ko;
 if (window.parent && window.parent.sv) {

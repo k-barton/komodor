@@ -52,8 +52,6 @@ function (verbose = FALSE) {
     } else portstr <- NULL
 	
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
-		msg("Server started at port", portstr)
-		
 		ok <- tryCatch(koCmd("'ok'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
 				"cannot connect to Komodo. This may be caused by a previous R",
@@ -76,7 +74,7 @@ function (verbose = FALSE) {
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
 				&& file.exists(".RData")) {
 				sprintf("sv.cmdout.append('%s')",
-					gettext("[Previously saved workspace restored]", domain="R-base"))
+					gettext("[Previously saved workspace restored]", domain = "R-base"))
 			},
 			sep = ";")))
 		
@@ -89,10 +87,11 @@ function (verbose = FALSE) {
 			vmsg("Expected \"sv.version\\nko.version\", got", deparse(ver, control = NULL))
 		}
 		
-		oldoptions <- options(browser=koBrowser, pager=koPager)
+		oldoptions <- options(browser = koBrowser, pager = koPager)
 		assignTemp("oldoptions", oldoptions)
 	}
 	
+	# if there is ".First" in the workspace to be loaded this one will be overwritten.
 	assign(".First", function() {
 			invisible(koCmd("sv.rbrowser.refresh(true)"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct

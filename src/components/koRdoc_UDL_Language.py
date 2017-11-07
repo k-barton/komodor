@@ -5,8 +5,6 @@ from koUDLLanguageBase import KoUDLLanguage
 from xpcom import components #, nsError, COMException, ServerException
 
 log = logging.getLogger("koRdocLanguage")
-log.setLevel(logging.DEBUG)
-#log.setLevel(logging.ERROR)
 
 def registerLanguage(registry):
     log.debug("Registering language R documentation")

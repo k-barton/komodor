@@ -4,6 +4,7 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
+    "/*globals sv, ko*/", 
     "", 
     "let beVerbose = false;", 
     "", 
