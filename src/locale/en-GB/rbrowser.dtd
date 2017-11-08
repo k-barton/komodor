@@ -10,14 +10,14 @@
 <!ENTITY sv.Group "Group">
 <!ENTITY sv.Class "Class">
 <!ENTITY sv.FullName "Full name">
-<!ENTITY sv.foldAll "Fold all objects of current branch">
-<!ENTITY sv.unfoldAll "Unfold all objects of current branch">
+<!ENTITY sv.foldAll "Fold all items of current branch">
+<!ENTITY sv.unfoldAll "Unfold all items of current branch">
 
 <!ENTITY sv.insName "Insert name into text">
 <!ENTITY sv.insFullName "Insert full name">
-<!ENTITY sv.rmObj "Insert code to remove objects">
-<!ENTITY sv.loadPkg "Load package">
-<!ENTITY sv.detach "Detach package">
+<!ENTITY sv.rmObj "Remove objects (insert R code)">
+<!ENTITY sv.loadPkg "Load R package">
+<!ENTITY sv.detach "Detach R package">
 <!ENTITY sv.clrFilter "Clear filter text">
 <!ENTITY sv.filterByDims "Filter dimensions">
 <!ENTITY sv.filterByGroup "Filter group">
@@ -31,11 +31,11 @@
 <!ENTITY sv.plot "Plot">
 <!ENTITY sv.print "Print">
 <!ENTITY sv.summary "Summary">
-<!ENTITY sv.write_table "Write to textfile">
-<!ENTITY sv.save "Save objects">
+<!ENTITY sv.write_table "Write to textfile...">
+<!ENTITY sv.save "Save selected...">
 
-<!ENTITY sv.deleteNow "Delete immediately">
-<!ENTITY sv.deleteNow.acc "D">
+<!ENTITY sv.deleteNow "Remove R objects">
+<!ENTITY sv.deleteNow.acc "R">
 <!ENTITY sv.insertQuoted "Insert quoted">
 <!ENTITY sv.insertQuoted.acc "Q">
 <!ENTITY sv.selectAll "Select all">

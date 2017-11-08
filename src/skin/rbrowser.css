@@ -62,10 +62,12 @@
 
 #rbrowser_objects_tree treechildren::-moz-tree-row(type-sub-object) {
 	background-color: rgba(157, 130, 190, 0.3);
+	box-shadow: inset -5px -5px 4px 1px #FFFFFF, inset 4px 9px 17px -20px #000000;
 }
 
 #rbrowser_objects_tree treechildren::-moz-tree-row(type-args) {
-	background-color: rgba(215, 150, 230, 0.3);
+	background-color: rgba(179, 0, 219, 0.15);
+	box-shadow: inset -5px -5px 4px 1px #FFFFFF, inset 4px 9px 17px -20px #000000;
 }
 
 #rbrowser_objects_tree treechildren::-moz-tree-row(lastChild) {
@@ -192,6 +194,11 @@
 	list-style-image: url("chrome://komodor/skin/images/filter-a.png");
 }*/
 
+
+.save-buffer-icon {
+	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/save.svg);
+}
+
 .robjects-fold-all-icon {
 	/* list-style-image: url("chrome://komodor/skin/images/toggle_close.png"); */
 	list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/minus-circle.svg);
@@ -202,15 +209,9 @@
     list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/plus-circle.svg);
 }
 
-.searchPath-icon{
-	list-style-image: url("chrome://komodo/skin/images/bulletlist.png");
-}
-
-
 #rbrowserToolbar .refresh-icon {
     list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/refresh.svg);
 }
-
 
 
 

@@ -50,12 +50,10 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
     var text = "";
     var curPos = scimoz.currentPos;
     var curLine = scimoz.lineFromPosition(curPos);
-
     var pStart = Math.min(scimoz.anchor, curPos);
     var pEnd = Math.max(scimoz.anchor, curPos);
 
     // Depending on 'what', we select different parts of the file
-    // By default, we keep current selection
 
     if (what == "line/sel") what = (pStart == pEnd) ? "line" : "sel";
 
@@ -64,10 +62,10 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
         // Simply retain current selection
         var nSelections = scimoz.selections;
         if (nSelections > 1) { // rectangular selection
-            var msel = [];
-            for (var i = 0; i < scimoz.selections; ++i) {
+            let msel = [];
+            for (let i = 0; i < scimoz.selections; ++i)
                 msel.push(scimoz.getTextRange(scimoz.getSelectionNStart(i), scimoz.getSelectionNEnd(i)));
-            }
+            
             text = msel.join("\n");
             // TODO: What to do with multiple ranges?
             pStart = scimoz.getSelectionNStart(0);
@@ -76,14 +74,14 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
         break;
     case "word":
         if (pStart == pEnd) { // only return word if no selection
-            var inR = view.koDoc.languageForPosition(scimoz.currentPos) == sv.langName;
+            let inR = view.koDoc.languageForPosition(scimoz.currentPos) == sv.langName;
 
             if (!includeChars && inR) includeChars = ".";
 
-            var wordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" +
+            let wordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_" +
                 includeChars;
 
-            var wordCharTest = function (s)(s.charCodeAt(0) > 0x80) || wordChars.indexOf(s) > -1;
+            let wordCharTest = (s) => (s.charCodeAt(0) > 0x80) || wordChars.indexOf(s) > -1;
 
             for (pStart = scimoz.positionBefore(curPos);
                 (pStart > 0) && wordCharTest(scimoz.getWCharAt(pStart)); pStart = scimoz.positionBefore(
@@ -110,7 +108,7 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
             .getService(Components.interfaces.koIFindService);
 
         // save previous find settings
-        var oldFindPref = {
+        let oldFindPref = {
             searchBackward: true,
             matchWord: false,
             patternType: 0
@@ -228,11 +226,6 @@ sv.getTextRange = function (what, gotoend, select, range, includeChars) {
         pStart = scimoz.positionFromLine(curLine);
         pEnd = scimoz.textLength;
         break;
-    case "codefrag":
-        // This is used by calltip and completion. Returns all text backwards from current
-        // position to the beginning of the current folding level
-        pStart = scimoz.positionFromLine(scimoz.getFoldParent(curLine));
-        break;
     case "all":
         /*falls through*/
     default:
@@ -330,29 +323,28 @@ sv.fileOpen = function (directory, filename, title, filter, multiple, save,
     return null;
 };
 
-// translate messages using data from chrome://komodor/locale/main.properties
-sv.translate = function (textId) {
-    var bundle = Components.classes["@mozilla.org/intl/stringbundle;1"]
-        .getService(Components.interfaces.nsIStringBundleService)
-        .createBundle("chrome://komodor/locale/main.properties");
-    var param;
 
+(function() {
+    
+var translStrings = Services.strings.createBundle("chrome://komodor/locale/main.properties"); 
+    
+// translate messages using data from chrome://komodor/locale/main.properties
+this.translate = function (textId) {
+    var param;
     try {
         if (arguments.length > 1) {
             param = [];
-
             for (let i = 1; i < arguments.length; ++i)
                 param = param.concat(arguments[i]);
-            return (bundle.formatStringFromName(textId, param, param.length));
+            return translStrings.formatStringFromName(textId, param, param.length);
 
         } else {
-            //return(strbundle.getString(textId));
-            return (bundle.GetStringFromName(textId));
+            return translStrings.GetStringFromName(textId);
         }
     } catch (e) {
         // fallback if no translation found
         if (param) { // a wannabe sprintf, just substitute %S and %nS patterns:
-            var rx;
+            let rx;
             for (let i = 0; i < param.length; ++i) {
                 rx = new RegExp("%(" + (i + 1) + ")?S");
                 textId = textId.replace(rx, param[i]);
@@ -361,8 +353,14 @@ sv.translate = function (textId) {
         return (textId);
     }
 };
+    
+    
+}).apply(sv);
 
-//// Control the command output tab ////////////////////////////////////////////
+
+
+
+// Control the command output tab
 if (typeof (sv.cmdout) == 'undefined') sv.cmdout = {};
 
 sv.cmdout = {};
