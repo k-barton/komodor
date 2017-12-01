@@ -136,12 +136,10 @@ sv.rconn = {};
 
     // Evaluate in R instantaneously and return result
     // stdOut - if true, stderr stream is omitted
-    this.eval = function (command, timeout, stdOut) {
+    this.eval = function (command, timeout = 0.5, stdOut = false) {
 		if(command === undefined || command == null) 
 			throw new Error("'command' is null or undefined");
 		
-        if (timeout === undefined) timeout = 0.5;
-        if (stdOut === undefined) stdOut = false;
         var res = connector.evalInR(command, 'json h', timeout);
         if (res[0] == '\x15') 
 			throw new Error("(sv.rconn.eval) R command was \"" + command + "\"");
@@ -381,7 +379,7 @@ sv.rconn = {};
     //	}
     //	scimoz.appendText(ko.stringutils.bytelength(prompt), prompt + eolChar);
     //	var lineCount = scimoz.lineCount;
-    //			//cmdout.styleLines(lineNum, lineCount - 2);
+    //	//cmdout.styleLines(lineNum, lineCount - 2);
     //	cmdout.styleLines(lineCount - 2, lineCount - 1, styleNumCode);
     //
     //	var firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen - 1, 0);

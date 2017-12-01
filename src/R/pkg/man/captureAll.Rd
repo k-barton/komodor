@@ -8,9 +8,9 @@ captureAll(expr, conn = NULL, markStdErr = FALSE, envir = getEvalEnv(),
   doTraceback = TRUE)
 }
 \arguments{
-\item{expr}{A single \code{expression} to be evaluated.}
+\item{expr}{a single \code{expression} to be evaluated.}
 
-\item{conn}{Currently not used. A file name or a connection, or \code{NULL} to return the output as a
+\item{conn}{currently not used. A file name or a connection, or \code{NULL} to return the output as a
 character vector. If the connection is not open, it will be opened initially and closed on exit.}
 
 \item{markStdErr}{logical, should \emph{stdout} be separated from \emph{strerr} by ASCII characters STX (002) and
@@ -18,9 +18,9 @@ ETX (#003)}
 
 \item{envir}{the \code{environment} in which \code{expr} is to be evaluated.}
 
-\item{doTraceback}{logical, should a traceback data be constructed in case of error? If \code{FALSE} no
-\code{traceback} is possible for the captured computations. Set \code{doTraceback=FALSE} for internal commands
-to avoid overwriting of user's errors and warnings.}
+\item{doTraceback}{logical, should traceback data be constructed in case of error? If \code{FALSE} no
+\code{traceback} would be possible for the captured computations. Set \code{doTraceback=FALSE} for internal commands
+to avoid overwriting of most recent user's errors and \code{warnings}.}
 }
 \description{
 Send output and error stream to a character string or connection.

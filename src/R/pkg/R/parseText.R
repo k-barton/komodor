@@ -10,15 +10,6 @@ function (text) {
 
 	if(inherits(res, "error")) {
 
-		.regcaptures <- function (x, m, ...) {
-			mstart <- attr(m, "capture.start")
-			mstop <- mstart + attr(m, "capture.length") - 1L
-			n <- length(mstart)
-			rval <- character(n)
-			for(i in 1L:n) 	rval[i] <- substr(x, mstart[i], mstop[i])
-			rval
-		}
-
 		# Check if this is incomplete code
 		msg <- conditionMessage(res)
 		
@@ -26,11 +17,12 @@ function (text) {
 		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: *([^\n]+)\n", msg, perl = TRUE)
 		m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: ", msg, perl = TRUE)
 		if(m != -1) {
-			if(identical(.regcaptures(msg, m)[1L], gettext("unexpected end of input", domain = "R")))
-				return(NA)
-		    #if(identical(.regcaptures(msg, m)[1L], gettext("unexpected end of line", domain = "R")))
-				#return(NA)
+			err <- .regcaptures(msg, m)[1L]
 			
+			if(identical(err, .cachedGettext("unexpected end of input", id = "unxpEOI"))) return(NA)
+		    if(identical(err, .cachedGettext("unexpected end of line", id = "unxpEOL"))) return(NA)
+			if(identical(err, .cachedGettext("unexpected %s", "INCOMPLETE_STRING", id = "unxpINCPLSTR"))) return(NA)
+
 			# remove "<text>:n:n:" from the beginning of message
 			res$message <- substr(msg, attr(m,"capture.start")[1L], nchar(msg))
 		}
@@ -59,3 +51,25 @@ function (text) {
     return(res)
 }
 
+.regcaptures <- function (x, m, ...) {
+	mstart <- attr(m, "capture.start")
+	mstop <- mstart + attr(m, "capture.length") - 1L
+	n <- length(mstart)
+	rval <- character(n)
+	for(i in 1L:n) 	rval[i] <- substr(x, mstart[i], mstop[i])
+	rval
+}
+
+
+.cachedGettext <- function(fmt, ..., id = NULL, domain = "R") {
+	dots <- list(...)
+	if(is.null(id)) id <- paste0(as.character(c(fmt, dots, domain)), collapse = ".")
+	cache <- getTemp(".messages", new.env(hash = TRUE))
+	if(exists(id, cache)) {
+		return(get(id, cache))
+	} else {
+		msg <- if(length(dots) == 0L) gettext(fmt, domain = domain) else gettextf(fmt, ..., domain = domain)
+		assign(id, msg, cache)
+		return(msg)
+	}
+}

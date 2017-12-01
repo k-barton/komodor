@@ -27,7 +27,7 @@ function CSVRow(rowArr, colNames, hasRowNames) {
 this.csvToObj = function csvToObj(data, sep, omitNRows, hasHeader, colNames) {
 	var arr = _this.csvToArray(data, sep);
 	var header = omitNRows ? arr.splice(0, omitNRows) : null;
-	if(colNames == undefined) {
+	if(colNames === undefined) {
 		colNames = arr[0];
 		arr.shift();
 	} else if(hasHeader)

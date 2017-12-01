@@ -16,15 +16,15 @@ completeSpecial(what, x = NULL, field.sep = "\\036", argpos = 1L)
 \arguments{
 \item{code}{character string, the code to be completed.}
 
-\item{field.sep}{character string to be used as a field separator.}
+\item{field.sep}{character string to be used as a field separator in the result.}
 
-\item{sep}{character string to be used as a record separator.}
+\item{sep}{character string to be used as a record separator in the result.}
 
-\item{pos}{cursor position. Defaults to at end of the \code{code}.}
+\item{pos}{cursor position within \code{code}. Defaults to at end of \code{code}.}
 
 \item{min.length}{minimum length of the code.}
 
-\item{skip.used.args}{logical. Should alredy used argument be omitted?}
+\item{skip.used.args}{logical. Should alredy used arguments be omitted from the result?}
 
 \item{FUNC.NAME}{name of the function of which arguments are to be listed.}
 
@@ -41,7 +41,7 @@ elements should be listed.}
 the square brackets to complete.}
 }
 \description{
-These functions provide choices for code completion.
+Provide choices for code completion.
 }
 \details{
 If 'object' is provided and
@@ -66,6 +66,7 @@ The function assumes that method is dispatched based on the first
 argument which may be incorrect.
 }
 \examples{
+## TODO: define gm1 && object
 completeArgs("anova", fm1) # if 'fm1' is of class 'glm', it returns argument
    						  #names for 'anova.glm'
 completeArgs("[", object)

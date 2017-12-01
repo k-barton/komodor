@@ -27,12 +27,12 @@ class RConn(object):
         return self.default_port
     
     def eval_in_R(self, command, timeout=0.5):
-        rval = self.rconnect(command, self.port, timeout)
+        rval = self.connect(command, self.port, timeout)
         if len(rval) == 0 or rval[0] == u'\x15':
             return u''
         return rval
     
-    def rconnect(self, command, port, timeout):
+    def connect(self, command, port, timeout):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(timeout)
             try: s.connect(('localhost', port))

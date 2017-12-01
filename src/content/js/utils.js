@@ -507,14 +507,13 @@ sv.cmdout = {};
         scimoz.replaceTarget(text.length, text);
     };
 
-    this.append = function (str, newline, scrollToStart) {
+    this.append = function (str, newline = true, scrollToStart = false) {
         var scimoz = _this.scimoz;
         var eolChar = _this.eolChar;
         _this.ensureShown();
-        if (scrollToStart === undefined) scrollToStart = false;
         str = fixEOL(str.toString());
         var lineCountBefore = scimoz.lineCount;
-        if (newline || newline === undefined) str += eolChar;
+        if (newline) str += eolChar;
         var readOnly = scimoz.readOnly;
         try {
             scimoz.readOnly = false;
@@ -550,8 +549,8 @@ sv.cmdout = {};
         let scimoz = _this.scimoz;
         let eolChar = _this.eolChar;
 
-        if (startLine === undefined) startLine = 0;
-        if (endLine === undefined) endLine = scimoz.lineCount;
+        if (startLine === null) startLine = 0;
+        if (endLine === null) endLine = scimoz.lineCount;
         let styleMask = (1 << scimoz.styleBits) - 1;
         let readOnly = scimoz.readOnly;
         scimoz.readOnly = false;

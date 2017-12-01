@@ -1,10 +1,10 @@
 #' @title temporary environment
-#' @aliases getTemp assignTemp rmTemp
+#' @aliases getTemp assignTemp rmTemp setEvalEnv getEvalEnv
 #' @rdname tempEnv
 #' @encoding utf-8
 #' @keywords internal
 #' @description
-#' Maintain temporary environment.
+#' Maintain temporary environment. Set evaluation environment.
 #' @param x,item a variable or list item name, given as a character string.
 #' @param value a value to be assigned to x.
 #' @param mode the mode or type of object sought.
@@ -60,14 +60,16 @@ function (x, default = NULL, mode = "any", item = NULL) {
 `tempEnv` <- 
 function() .tempEnv
 
-
+#' @rdname tempEnv
+#' @export
 getEvalEnv <-
 function() 
 getTemp(".EvalEnv", default = .GlobalEnv)
 
-
+#' @rdname tempEnv
+#' @md
+#' @export
+#' @param envir the `environment` to use for evaluation of commands in Komodo.
 setEvalEnv <-
 function(envir = .GlobalEnv) 
 assignTemp(".EvalEnv", envir)
-
-

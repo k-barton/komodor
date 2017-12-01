@@ -1,7 +1,8 @@
 #' @title Code completion
-#' @description These functions provide choices for code completion.
+#' @description Provide choices for code completion.
 #' @md
 #' @examples 
+#' ## TODO: define gm1 && object
 #' completeArgs("anova", fm1) # if 'fm1' is of class 'glm', it returns argument
 #'    						  #names for 'anova.glm'
 #' completeArgs("[", object)
@@ -10,11 +11,11 @@
 
 #' @describeIn completion generic code completion.
 #' @param code character string, the code to be completed.
-#' @param pos cursor position. Defaults to at end of the `code`.
+#' @param pos cursor position within `code`. Defaults to at end of `code`.
 #' @param min.length minimum length of the code.
-#' @param skip.used.args logical. Should alredy used argument be omitted?
-#' @param field.sep character string to be used as a field separator.
-#' @param sep character string to be used as a record separator.
+#' @param skip.used.args logical. Should alredy used arguments be omitted from the result?
+#' @param field.sep character string to be used as a field separator in the result.
+#' @param sep character string to be used as a record separator in the result.
 #' @examples
 #' completion("print(x")
 #' completeSpecial("data")

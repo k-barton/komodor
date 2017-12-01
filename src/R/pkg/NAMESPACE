@@ -11,7 +11,9 @@ pkgManLoadPackage, pkgManGetUpdateable, pkgManGetDescription,
 pkgManSetCRANMirror, pkgManGetMirrors, pkgManGetInstalled,
 pkgManGetAvailable, pkgManGetRepositories,
 
-stringize, getHelpURL, sourceTemp
+stringize, getHelpURL, sourceTemp,
+
+setEvalEnv, getEvalEnv
  
 # TclReval, TclReval2, tclfun,
 

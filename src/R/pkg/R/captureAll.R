@@ -1,21 +1,22 @@
 #' Send output and error stream to a character string or connection.
 #'
 #' @md
-#' @param expr A single `expression` to be evaluated.
-#' @param conn Currently not used. A file name or a connection, or `NULL` to return the output as a
+#' @param expr a single `expression` to be evaluated.
+#' @param conn currently not used. A file name or a connection, or `NULL` to return the output as a
 #'        character vector. If the connection is not open, it will be opened initially and closed on exit.
 #' @param markStdErr logical, should *stdout* be separated from *strerr* by ASCII characters STX (002) and
 #'        ETX (#003)
 #' @param envir the `environment` in which `expr` is to be evaluated. 
-#' @param doTraceback logical, should a traceback data be constructed in case of error? If `FALSE` no
-#'        `traceback` is possible for the captured computations. Set `doTraceback=FALSE` for internal commands
-#'        to avoid overwriting of user's errors and warnings.
+#' @param doTraceback logical, should traceback data be constructed in case of error? If `FALSE` no
+#'        `traceback` would be possible for the captured computations. Set `doTraceback=FALSE` for internal commands
+#'        to avoid overwriting of most recent user's errors and `warnings`.
 #' @note The code is based on functions `capture.output` and `.try_silent` from package \pkg{utils}.
 #' @export
 `captureAll` <-
 function (expr, conn = NULL, markStdErr = FALSE,
 		envir = getEvalEnv(), doTraceback = TRUE) {
 	# TODO: support for 'file' and 'split'
+	
 
 	last.warning <- list()
 	Traceback <- NULL
@@ -50,13 +51,15 @@ function (expr, conn = NULL, markStdErr = FALSE,
 			}}
 		}
 	} else mark <- function (to.stdout, id) {}
-
+	
 	## Marker functions to recognize internal errors
 	#`.._captureAll.evalVis_..` <- function (x) withVisible(eval(x, envir))
 	`.._captureAll.envir_..` <- envir
 	`.._captureAll.evalVis_..` <- function (.._captureAll.expr_..)
-	     withVisible(.RInternal("eval", .._captureAll.expr_.., .._captureAll.envir_.., baseenv()))
+	     withVisible(..korInternal(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv())))
+	     #withVisible(.Internal("eval", .._captureAll.expr_.., .._captureAll.envir_.., baseenv()))
 
+		 
 	#dExpr <- quote(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv()))
 	#deparse(dExpr)
 	fooVars <- c(".._captureAll.expr_..", ".._captureAll.envir_..")
@@ -71,6 +74,9 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		#	e$message <- "WTF"# sub("<text>:\\d+:\\d+: *", "", e$message, perl = TRUE)
 		#}
 		DEBUG("Call: ", e$call)
+		
+		#koBrowseHere()
+		
 		if(doTraceback) {
 			cfrom <- ncls
 			cto <- 1L
@@ -98,8 +104,9 @@ function (expr, conn = NULL, markStdErr = FALSE,
 				e$call <- NULL
 
 			# DEBUG
-			# for(i in 1:ncls) cat(">>", i, ": ", deparse(calls[[i]], width.cutoff = 20, nlines = 1), "\n")
-			# cat("from: ", cfrom, " to", cto, " [n = ", ncls, "]\n")
+			#
+			#for(i in 1:ncls) cat(">>", i, ": ", deparse(calls[[i]], width.cutoff = 20, nlines = 1), "\n")
+			#cat("from: ", cfrom, " to", cto, " [n = ", ncls, "]\n")
 			###
 			Traceback <<- if(cfrom < cto) list() else
 				calls[seq.int(cfrom, cto)]
@@ -174,7 +181,7 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	# Restarts:
 
 	# Handling user interrupts. Currently it works only from within R.
-	# TODO: how to trigger interrupt remotely?
+	# XXX: how to trigger interrupt remotely?
 	abort = function (...) {
 		mark(FALSE, 4L)
 		cat("Execution aborted. \n")
@@ -198,9 +205,10 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		if(nwarn <= 10L) {
 			print.warnings(last.warning)
 		} else if (nwarn < 50L) {
-		   cat(.gettextfx("There were %d warnings (use warnings() to see them)\n", nwarn))
+		  cat(sprintf(ngettext("There was %d warning (use warnings() to see it)", "There were %d warnings (use warnings() to see them)",
+			    n = nwarn, domain = "R"), nwarn))
 		} else {
-			cat(.gettextx("There were 50 or more warnings (use warnings() to see the first 50)\n"))
+			cat(gettextf("There were %d or more warnings (use warnings() to see the first %d)", nwarn, 50, domain = "R"))
 		}
 	}
 	mark(TRUE, 7L)
@@ -239,14 +247,6 @@ function (expr, conn = NULL, markStdErr = FALSE,
 }
 
 
-DEBUG <- function (...) {}
-#DEBUG <- function (x, ...) {
-#	cat("DEBUG: ")
-#	if(!is.character(substitute(x)))
-#		cat("[", deparse(substitute(x)), "] ")
-#	cat(x, "\n")
-#}
-
 # Replacement for 'base::as.character.error', which does not translate "Error"
 `as.character.error` <- function (x, ...) {
 	DEBUG("as.character.error")
@@ -268,7 +268,7 @@ DEBUG <- function (...) {}
 `print.warnings` <-
 function (x, ...) {
     if (n <- length(x)) {
-        cat(ngettext(n, "Warning message:\n", "Warning messages:\n"))
+        cat(ngettext(n, "Warning message:", "Warning messages:", domain = "R"), "\n")
         msgs <- names(x)
         for (i in seq_len(n)) {
             ind <- if (n == 1L) ""
@@ -291,6 +291,9 @@ function (x, ...) {
     invisible(x)
 }
 
+..korInternal <- .Internal
+
+
 # use ngettext instead of gettext, which fails to translate many strings in "R" domain
 # bug in R or a weird feature?
 `.gettextfx` <- function (fmt, ..., domain = "R")
@@ -306,3 +309,12 @@ unsink <- function () {
     sink(type = "message")
     sink(type = "output")
 }
+
+
+DEBUG <- function (...) {}
+#DEBUG <- function (x, ...) {
+#	cat("DEBUG: ")
+#	if(!is.character(substitute(x)))
+#		cat("[", deparse(substitute(x)), "] ")
+#	cat(x, "\n")
+#}

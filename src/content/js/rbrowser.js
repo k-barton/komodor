@@ -116,9 +116,8 @@ sv.rbrowser = {};
         return vItem;
     };
 
-    var _addVisibleDataItems = function addVisibleDataItems(item, parentIndex, level) {
+    var _addVisibleDataItems = function addVisibleDataItems(item, parentIndex, level = -1) {
         if (item === undefined) return parentIndex;
-        if (level === undefined) level = -1;
         if (!parentIndex) parentIndex = 0;
 
         var idx = parentIndex;
@@ -1161,8 +1160,7 @@ sv.rbrowser = {};
         return true;
     };
 
-    this.getSelectedNames = function (fullNames, extended) {
-        if (extended === undefined) extended = false;
+    this.getSelectedNames = function (fullNames, extended = false) {
         let namesArr = [];
         let text, item;
         let modif;
@@ -1396,7 +1394,7 @@ sv.rbrowser = {};
                 if (obj.hasOwnProperty(i)) {
                     /*cmd.push(action + "(evalq(" + obj[i].fullName +
                     ", envir = as.environment(\"" +
-                    obj[i].env.addslashes() + "\")))");*/
+                    obj[i].env. !!!addslashes() + "\")))");*/
                     let cmdObj = rCmdGetObject(obj[i].fullName, obj[i].env);
                     commandArr.push(action + "(" + cmdObj + ")");
                 }

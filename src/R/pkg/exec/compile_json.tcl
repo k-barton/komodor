@@ -49,15 +49,13 @@ proc escape_nonprintable {str} {
 	set str [string map [list \\ \\\\ \" \\" \n \\n \b \\b \r \\r \t \\t ] $str]
 
 	# meaningful Tcl characters must be escaped too
-	#set RE {[\[\]\{\};#\$\u0000-\u001f]}
-	set RE {[\[\{\};#\$\u0000-\u001f]}
+    set RE {[\[\{\};#\$\u0000-\u001f]}
 
-	# We will substitute with a fragment of Tcl script in brackets
+	# substitute with a fragment of Tcl script in brackets
 	set substitution {[format \\\\u%04x [scan "\\&" %c]]}
 
-	# Now we apply the substitution to get a subst-string that
-	# will perform the computational parts of the conversion.
-
+	# Now apply the substitution to get a subst-string that
+	# will perform the computational parts of the conversion
 
 	#return [subst -nobackslashes -novariables [regsub -all $RE $str $substitution]]
 	return [string map {\\u005b [ \\u007b \{} \

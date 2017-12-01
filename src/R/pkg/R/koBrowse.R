@@ -33,5 +33,5 @@ function() {
 	if(!identical(getEvalEnv(), .GlobalEnv)) {
 		setEvalEnv(.GlobalEnv)
 		message("Evaluating in '.GlobalEnv'")
-	} else message("Already evaluating in '.GlobalEnv'")
+	} else message("Already in '.GlobalEnv'")
 }

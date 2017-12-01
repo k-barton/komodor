@@ -6,8 +6,10 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 
-if (typeof(sv) == 'undefined') sv = {};
-if (typeof(sv.string) == 'undefined') sv.string = {};
+/* globals sv, navigator */
+
+if (typeof sv === 'undefined') sv = {};
+if (typeof sv.string === 'undefined') sv.string = {};
 
 // Replace line feed and carriage return by 'code'
 sv.string.replaceCRLF = function (str, code) {
@@ -40,7 +42,7 @@ sv.string.filename = function (str) {
 	// Remove last trailing '/'
 	str = str.replace(/\/$/, "");
 	// Split into components
-	items = str.split("/");
+	var items = str.split("/");
 	// Return last component
 	return items[items.length - 1];
 };
@@ -55,8 +57,7 @@ sv.string.addslashes = function(str) {
         .replace(/\v/g, "\\v");
 };
 
-sv.string.trim = function (str, which) {
-	if (which === undefined) which = "both";
+sv.string.trim = function (str, which = "both") {
 	var rx;
 	switch(which) {
 	 case "left":
@@ -71,18 +72,3 @@ sv.string.trim = function (str, which) {
 	}
 	return str.replace(rx, "");
 };
-
-// Trim function for String
-String.prototype.trim = function() sv.string.trim(this);
-
-// Right trim
-String.prototype.rtrim = function() sv.string.trim(this, "right");
-
-// Left trim
-String.prototype.ltrim = function() sv.string.trim(this, "left");
-
-// Add slashes
-String.prototype.addslashes = function () sv.string.addslashes(this);
-
-// Escape string for regular expression
-String.prototype.regExpEscape = function() sv.string.toRegex(this);

@@ -231,14 +231,12 @@ if (typeof sv.r == "undefined")
     };
 
     // Send whole or a part of the current buffer to R and place cursor at next line
-    this.send = function (what) {
-        var scimoz = sv._getCurrentScimoz();
+    this.send = function (what = "all") {
+        let scimoz = sv._getCurrentScimoz();
         if (scimoz === null) return false;
 
         try {
-            if (!what) what = "all"; // Default value
-
-            var cmd = sv.getTextRange(what, what.indexOf("sel") == -1).rtrim();
+            let cmd = sv.string.trim(sv.getTextRange(what, what.indexOf("sel") == -1), "right");
             if (cmd) res = sv.rconn.evalAsync(cmd);
 
             if (what == "line" || what == "linetoend") // || what == "para"
@@ -304,23 +302,22 @@ if (typeof sv.r == "undefined")
     };
 
     this.help = function (topic) {
-        if (topic == undefined || topic == "")
-            topic = sv.getTextRange("word");
-        topic = sv.string.trim(String(topic));
-        if (topic == "") {
+        if (!topic) topic = sv.getTextRange("word");
+        topic = topic.toString().trim();
+        if (topic === "") {
             sv.addNotification(sv.translate("Selection is empty"));
             return null;
         }
-        var helpUri = this.getHelp(topic);
-        if (helpUri == null) return false;
-        sv.command.openHelp(helpUri);
+        var helpURI = this.getHelp(topic);
+        if (helpURI == null) return false;
+        sv.command.openHelp(helpURI);
         return true;
     };
 
     // Run the example for selected item
-    this.example = function (topic) {
+    this.example = function (topic = "") {
         var res = false;
-        if (typeof (topic) == "undefined" | topic == "")
+        if (topic == "")
             topic = sv.getTextRange("word");
         if (topic == "") {
             sv.addNotification(sv.translate("Selection is empty"));
@@ -332,7 +329,7 @@ if (typeof sv.r == "undefined")
     };
 
     // Display some text from a file
-    this.pager = function (file, title, cleanUp) {
+    this.pager = function (file, title, cleanUp = true) {
         var rSearchURI = "chrome://komodor/content/rsearch.html";
         var content = sv.file.read(file);
         content = content.replace(/([\w\.\-]+)::([\w\.\-\[]+)/ig,
@@ -342,7 +339,7 @@ if (typeof sv.r == "undefined")
         //var charset = sv.socket.charset;
         sv.file.write(file, content, 'utf-8');
         sv.command.openHelp(rSearchURI + "?file:" + file);
-        if (cleanUp || cleanUp === undefined)
+        if (cleanUp)
             window.setTimeout(file => {
                 try {
                     sv.file.getLocalFile(file).remove(false);
@@ -353,7 +350,7 @@ if (typeof sv.r == "undefined")
     // Search R help for topic
     this.search = function (topic) {
         topic = sv.string.trim(topic);
-        if (topic == "") return;
+        if (topic === "") return;
         sv.rconn.evalAsync('utils::help.search("' + sv.string.addslashes(topic) + '")', null,
             true, false);
     };
@@ -361,7 +358,7 @@ if (typeof sv.r == "undefined")
     // Quit R (ask to save in save in not defined)
     this.quit = function (save) {
         var response;
-        if (typeof (save) == "undefined") {
+        if (typeof (save) === "undefined") {
             // Ask for saving or not
             response = ko.dialogs.customButtons("Do you want to save the" +
                 " workspace and the command history in" +
@@ -377,9 +374,9 @@ if (typeof sv.r == "undefined")
             1000);
     };
 
-    this.saveDataFrame = function _saveDataFrame(name, fileName, objName, dec, sep) {
-        if (!dec) dec = sv.pref.getPref("RInterface.CSVDecimalSep");
-        if (!sep) sep = sv.pref.getPref("RInterface.CSVSep");
+    this.saveDataFrame = function _saveDataFrame(name, fileName, objName,
+        dec = sv.pref.getPref("RInterface.CSVDecimalSep"),
+        sep = sv.pref.getPref("RInterface.CSVSep")) {
 
         if (!fileName) {
             var filterIndex;

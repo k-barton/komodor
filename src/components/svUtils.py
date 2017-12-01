@@ -160,11 +160,11 @@ class svUtils:
         return unicode(sys.platform)
 
     def evalInR(self, command, mode, timeout = .5):
-        return self.rconnect(command, mode, False, timeout, self.uid())
+        return self.connect(command, mode, False, timeout, self.uid())
 
     def evalInRNotify(self, command, mode, uid):
         log.debug("evalInRNotify: %s..." % command[0:10])
-        t = threading.Thread(target=self.rconnect, args=(command, mode, True,
+        t = threading.Thread(target=self.connect, args=(command, mode, True,
                                                          None, uid))
         t.daemon = True
         t.start()
@@ -180,11 +180,11 @@ class svUtils:
     def requestHandlerEvent(self, requestHandler, data):
         return requestHandler.onStuff(data)
 
-    def rconnect(self, command, mode, notify, timeout, uid):
+    def connect(self, command, mode, notify, timeout, uid):
         pretty_command = self.pushLeft(command, indent=3L, eol='\n', tabwidth=4)[3:]
         self.lastCommand = unicode(command)
         ssLastCmd = self._asSString(command)
-        log.debug("rconnect: %s... (%d)" % (command[0:10], notify))
+        log.debug("connect: %s... (%d)" % (command[0:10], notify))
 
         modeArr = mode.split(' ')
         useJSON = modeArr.count('json')
@@ -283,16 +283,16 @@ class svUtils:
                 WrapObject(cmdInfo, components.interfaces.svICommandInfo),
                 'r-command-executed',
                 result)
-            log.debug("rconnect notify: %s..." % result[0:50])
+            log.debug("connect notify: %s..." % result[0:50])
             return
 
-        log.debug("rconnect return: %s..." % result[0:50])
+        log.debug("connect return: %s..." % result[0:50])
         return unicode(result)
 
 
 #  File "components\svUtils.py", line 126, in evalInR
-#    return self.rconnect(command, mode, False, .5, "")
-#  File "components\svUtils.py", line 153, in rconnect
+#    return self.connect(command, mode, False, .5, "")
+#  File "components\svUtils.py", line 153, in connect
 #    data = s.recv(1024)
 #timeout: timed out
 
