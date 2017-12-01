@@ -8,16 +8,18 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 
-/*globals parent, self, navigator, document, Components, ko */
+/*globals parent, self, navigator, document,
+   Components, unescape, escape, xtk */
 
-
-var sv;
+var sv, ko;
 
 var PrefR_CranMirrors = { http : [], https : [] };
 var PrefR_CMSecure;
 
-if (typeof xtk === "undefined")
-	var xtk = parent.opener.xtk;
+if (typeof self.xtk === "undefined")
+	xtk = parent.opener.xtk;
+
+xtk.include('domutils');
 
 // For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
@@ -121,20 +123,38 @@ function getSelectedInterpreterPath() {
 	} else return null;
 }
 
-var getDialogs = () => {
-    var p = parent;
-    var dialogs = ko.dialogs;
-    while (p.opener && (p = p.opener) && !dialogs.yesNo)
-        if (p.ko && p.ko.dialogs && p.ko.dialogs.yesNo)
-            dialogs = p.ko.dialogs;
-    return dialogs;
-};
+//var getDialogs = () => {
+//    var p = parent;
+//    var dialogs = ko.dialogs;
+//    while (p.opener && (p = p.opener) && !dialogs.yesNo)
+//        if (p.ko && p.ko.dialogs && p.ko.dialogs.yesNo)
+//            dialogs = p.ko.dialogs;
+//    return dialogs;
+//};
+
+var getDialogs = () => ko.dialogs;
+
+//var getKoObject = (name, item) => {
+//    var p = parent;
+//    var rval = ko[name];
+//    while (p.opener && (p = p.opener) && !rval[item])
+//        if (p.ko && p.ko[name] && p.ko[name][item])
+//            rval = p.ko[name];
+//    return rval;
+//};
 
 function PrefR_OnLoad(/*event*/) {
 
     // Get the sv object:
 	var p = parent;
-	while (p.opener && (p = p.opener) && !sv) if (p.sv) sv = p.sv;
+	while (p.opener && (p = p.opener) && !sv) if (p.sv) {
+		sv = p.sv;
+		ko = p.ko;
+	}
+	
+	if (!ko.logging || !ko.logging.getLogger) 
+        ko.logging = parent.opener.require("ko/logging");
+
 
     // for Komodo != 9, show/hide elements related to "advanced" option
 	// sv._versionCompare(ko.version, "9.0.0") != 0 // but no 'ko' available here
@@ -430,8 +450,8 @@ function PrefR_setExecutable(path) {
 		os = Components.classes['@activestate.com/koOs;1']
 			.getService(Components.interfaces.koIOs);
 		path = menu.value;
-        path = ko.filepicker.openExeFile(os.path.dirname(path),
-			os.path.basename(path));
+        path = ko.filepicker.browseForExeFile(os.path.dirname(path), os.path.basename(path),
+			"Select R executable");
 	}
     if (!path) return;
     path = os.path.normpath(path);
@@ -605,10 +625,10 @@ function PrefR_PopulateCranMirrors(secure) {
         value = JSON.parse(menuList.value);
 		value.unshift(menuList.label);
     } else {
-		var url = prefset.getString("CRANMirror");
-		var mirrorType = (url.indexOf("https") === 0) ? "https" : "http";
+		let url = prefset.getString("CRANMirror");
+		let mirrorType = (url.indexOf("https") === 0) ? "https" : "http";
 		//var data1 = PrefR_CranMirrors[mirrorType];
-		var valIdx1 = PrefR_CranMirrors[mirrorType].findIndex(function(elem) elem[3] == url);
+		let valIdx1 = PrefR_CranMirrors[mirrorType].findIndex(function(elem) elem[3] == url);
 		if (valIdx1 == -1) valIdx1 = 0;
 		if(PrefR_CranMirrors[mirrorType].length > valIdx1)
 			value = PrefR_CranMirrors[mirrorType][valIdx1].slice(0, 3);
@@ -619,8 +639,8 @@ function PrefR_PopulateCranMirrors(secure) {
 	data = PrefR_CranMirrors[which];
 
 	menuList.removeAllItems();
-	for (var i = 0; i < data.length; ++i) { // Name, Country, City, URL, Host, cc
-		var item = menuList.appendItem(data[i][0], JSON.stringify(data[i].slice(1, 3)), data[i][2]);
+	for (let i = 0; i < data.length; ++i) { // Name, Country, City, URL, Host, cc
+		let item = menuList.appendItem(data[i][0], JSON.stringify(data[i].slice(1, 3)), data[i][2]);
 	    item.setAttribute("image", "chrome://komodor/skin/images/flags/" + data[i][5] + ".gif");
 		item.className = "menuitem-iconic";
 	}
