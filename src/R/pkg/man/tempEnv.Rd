@@ -5,6 +5,8 @@
 \alias{assignTemp}
 \alias{getTemp}
 \alias{rmTemp}
+\alias{setEvalEnv}
+\alias{getEvalEnv}
 \alias{existsTemp}
 \alias{rmTemp}
 \alias{getTemp}

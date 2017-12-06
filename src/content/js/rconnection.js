@@ -182,11 +182,11 @@ sv.rconn = {};
         } catch (e) {
             connected = false;
         }
-        if (!quiet) {
-            var message = connected ? "success" :
-                "cannot connect";
-            sv.addNotification("R connection test result: " + message + ".", 0, 1000);
-        }
+        if (!quiet)
+             sv.addNotification("R connection test result: " + 
+             (connected ? "success" : "cannot connect") + 
+             ".");
+      
         return connected;
     };
 
@@ -287,6 +287,7 @@ sv.rconn = {};
 
     this.handlers = {};
 
+    // if stdOut, stderr is removed, else stream delimiters #002/#003 are removed   
     var _REvalListener = function (callback, keep, stdOut, args) {
         if (typeof callback == "function") this.callback = callback;
         this.keep = keep;

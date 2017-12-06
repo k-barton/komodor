@@ -1,5 +1,3 @@
-<!ENTITY pkgMgr "Package manager">
-<!ENTITY pkgMgr.key "M">
 <!ENTITY rSendBlock "Run marked block">
 <!ENTITY rSendBlock.key "B">
 <!ENTITY rSendFile "Run all file">
@@ -15,7 +13,7 @@
 <!ENTITY rSrcLineOrSelection.key "T">
 
 <!ENTITY rSendPara "Run paragraph">
-<!ENTITY rSendPara.key "P">
+<!ENTITY rSendPara.key "G">
 <!ENTITY rSendSel "Run selection">
 <!ENTITY rSendSel.key "S">
 <!ENTITY rSrcBlock "Source marked block">
@@ -36,11 +34,17 @@
 <!ENTITY svBrowseWD "Working directory">
 <!ENTITY svBrowseWD.key "D">
 
-<!ENTITY helpStart "R Help start">
-<!ENTITY helpStart.key "h">
+<!ENTITY helpStart "R Help window">
+<!ENTITY helpStart.key "H">
 
-<!ENTITY openRPrefs "R preferences">
-<!ENTITY openRPrefs.key "p">
+<!ENTITY openRPrefs "R preferences...">
+<!ENTITY openRPrefs.key "P">
+
+<!ENTITY pkgMgr "Package manager...">
+<!ENTITY pkgMgr.key "M">
+
+<!ENTITY formatRCode "Format R code">
+<!ENTITY formatRCode.key "F">
 
 <!ENTITY rEscape "Interrupt current command">
 <!ENTITY rEscape.key "E">

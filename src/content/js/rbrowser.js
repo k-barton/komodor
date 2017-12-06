@@ -1150,7 +1150,7 @@ sv.rbrowser = {};
             if (!view) return false;
             //view.setFocus();
             var scimoz = view.scimoz;
-            var nl = ";" + ["\r\n", "\n", "\r"][scimoz.eOLMode];
+            var nl = ";" + sv.eOLChar(scimoz);
             scimoz.scrollCaret();
             scimoz.insertText(scimoz.currentPos, cmd.join(nl) + nl);
         }

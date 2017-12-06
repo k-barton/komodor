@@ -44,7 +44,7 @@ function (text) {
 
 		# for legacy uses, make it a try-error
 		e <- res
-		res <- .makeMessage(res)
+		res <- as.character.error(res)
 		class(res) <- "try-error"
 		attr(res, 'error') <- e
 	}

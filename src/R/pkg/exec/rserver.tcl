@@ -80,8 +80,6 @@ proc ConnectionAccept {sock addr port} {
 #    invoked from within
 #"Rserver::DoServe sock448"
 
-
-
 proc DoServe {sock} {
     variable Connection
     # Check end of file or abnormal connection drop,

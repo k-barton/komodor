@@ -264,7 +264,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             xtk.domutils.fireEvent(window, 'r_app_started_closed');
             // Note: all other buttons/menu items respond to:
             window.updateCommands('r_app_started_closed');
-            sv.addNotification(running ? "R is running" : "R is not running", 0, 2000);
+            sv.addNotification(running ? "R is running" : "R is not running");
         }
     };
 
@@ -369,6 +369,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             'cmd_svOpenPkgManager': ["sv.command.openPkgManager();", XRRunning],
             'cmd_svOpenHelp': ["sv.command.openHelp();", XRRunning],
             'cmd_svOpenRPreferences': ["sv.command.openRPreferences();", -1],
+            
+            'cmd_svFormatRCodeInView': ["sv.r.formatRCodeInView()", XisRDoc | XRRunning],
 
             'cmd_svStartR': ['sv.command.startR();', XRStopped],
             'cmd_svQuitR': ['sv.r.quit();', XRRunning],

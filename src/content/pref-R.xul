@@ -216,6 +216,31 @@
 		  </rows>
 		</grid>
 	</groupbox>
+	
+	<groupbox orient="vertical">
+			<caption label="Code formatting"/>
+			<vbox id="no-avail-formatR-message" flex="1" align="center">
+			<description style="font-weight: bold;">
+				Code formatting requires R package &quot;formatR&quot; to be installed.
+				<label id="formatR-install-offer" style="visibility: collapse;">
+					Click <button class="button-link-a" oncommand="installFormatR();" style="border-width: 0;">here</button>
+					to install it from CRAN.</label>
+			</description>
+		</vbox>
+		
+			<vbox>
+				<checkbox id="RInterface.format.keepBlankLines"
+						  label="Keep blank lines"
+						  pref="true" prefattribute="checked" />
+				<checkbox id="RInterface.format.replaceAssign"
+						  label="Replace assignment operator '=' for '&lt;-'"
+						  pref="true" prefattribute="checked" />
+				<checkbox id="RInterface.format.newlineBeforeBrace"
+						  label="Insert new line before curly braces"
+						  pref="true" prefattribute="checked" />
+			</vbox>
+	</groupbox>
+	
 
 <!--<groupbox orient="vertical">
 	<caption label="Komodo interface"/>

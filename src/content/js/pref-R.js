@@ -9,7 +9,7 @@
  */
 
 /*globals parent, self, navigator, document,
-   Components, unescape, escape, xtk */
+   Components, unescape, escape, xtk, prefset */
 
 var sv, ko;
 
@@ -95,25 +95,25 @@ function menulistSetValue(menuList, value, attrName, vdefault) {
 
 // List of R applications
 // Constructor
-function _App(id, name, path, app, required, platform) {
+function RAppSpecs(id, name, path, app, required, platform) {
 	this.id = id;
 	this.name = name;
 	this.path = path;
 	this.app = app;
 	this.required = required? required.split(/\s*,\s*/) : [];
-	this.platform = platform? platform.split(/\s*,\s*/): [];
+	this.platform = platform? platform : "";
 }
 
 var apps = [
-new _App("", "Choose...", "", "", "", "Lin,Mac,Win"),
-new _App("r-terminal", "in default terminal", "x-terminal-emulator -e '%Path%'%args%", "R", "x-terminal-emulator,R", "Lin,Mac"),
-new _App("r-terminal", "in console window", "\"%Path%\" %args%", "R.exe", "R", "Win"),
-new _App("r-gnome-term", "in Gnome terminal", "gnome-terminal --hide-menubar --working-directory='%cwd%' -t '%title%' -x '%Path%' %args%", "R", "gnome-terminal,R", "Lin"),
-new _App("r-kde-term", "in Konsole", "konsole --workdir '%cwd%' --title %title% -e \"%Path%\" %args%", "R", "konsole,R", "Lin"),
-new _App("r-xfce4-term", "in XFCE terminal", "xfce4-terminal --title \"%title%\" -x \"%Path%\" %args%", "R",  "xfce4-terminal,R", "Lin"),
-new _App("r-app", "R app", "open -a \"%Path%\" \"%cwd%\"", "R.app", "/Applications/R.app", "Mac"),
-new _App("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "Win"),
-new _App("r-tk", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "R", "R", "Lin,Mac")
+new RAppSpecs("", "Choose...", "", "", "", "Lin,Mac,Win"),
+new RAppSpecs("r-terminal", "in default terminal", "x-terminal-emulator -e '%Path%'%args%", "R", "x-terminal-emulator,R", "lm"),
+new RAppSpecs("r-terminal", "in console window", "\"%Path%\" %args%", "R.exe", "R", "w"),
+new RAppSpecs("r-gnome-term", "in Gnome terminal", "gnome-terminal --hide-menubar --working-directory='%cwd%' -t '%title%' -x '%Path%' %args%", "R", "gnome-terminal,R", "l"),
+new RAppSpecs("r-kde-term", "in Konsole", "konsole --workdir '%cwd%' --title %title% -e \"%Path%\" %args%", "R", "konsole,R", "l"),
+new RAppSpecs("r-xfce4-term", "in XFCE terminal", "xfce4-terminal --title \"%title%\" -x \"%Path%\" %args%", "R",  "xfce4-terminal,R", "l"),
+new RAppSpecs("r-app", "R app", "open -a \"%Path%\" \"%cwd%\"", "R.app", "/Applications/R.app", "m"),
+new RAppSpecs("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "w"),
+new RAppSpecs("r-tk", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "R", "R", "lm")
 ];
 
 function getSelectedInterpreterPath() {
@@ -171,9 +171,13 @@ function PrefR_OnLoad(/*event*/) {
 	sv.pref.prefset = prefset;
 	sv.pref.setDefaults(); // Check if all preference values are ok, if not, restore defaults
 
-	PrefR_CMSecure = prefset.getBooleanPref('CRANMirrorSecure');
-	document.getElementById("CRANMirrorSecure").checked = PrefR_CMSecure; // ?
+    let boolPrefs = ['CRANMirrorSecure', 'RInterface.format.keepBlankLines',
+					 'RInterface.format.replaceAssign', 'RInterface.format.newlineBeforeBrace'];
 
+    boolPrefs.forEach((prefName) => {
+		document.getElementById(prefName).checked = prefset.getBooleanPref(prefName); // ?
+	});
+	
 	var menu1 = document.getElementById("CRANMirror");
 	menu1.addEventListener("focus", function(event) {
 		var menu1 = event.target;
@@ -193,7 +197,7 @@ function PrefR_OnLoad(/*event*/) {
 	} else {
 		apps.shift();
 	}
-    var platform = navigator.platform.substr(0, 3);
+    var platform = navigator.platform.substr(0, 1).toLowerCase();
 	apps = apps.filter(
 	    a => (a.platform.indexOf(platform) != -1) && 
 	         (!a.required.length || 
@@ -293,6 +297,13 @@ function PrefR_PopulateRInterpreters() {
 
     document.getElementById("no-avail-interps-message").hidden = rFound;
 	
+	if (sv.r.isRunning)
+		document.getElementById("formatR-install-offer").style.visibility = "visible";
+		
+	sv.r.isPackageInstalled("formatR", (result) => {
+		if (result) document.getElementById("no-avail-formatR-message").style.visibility = "collapse";
+	});
+
 }
 
 //function OnPreferencePageLoading(prefset) {}
@@ -655,6 +666,14 @@ function PrefR_PopulateCranMirrors(secure) {
     if (valIdx == -1) valIdx = 0;
 	menuList.selectedIndex = valIdx;
 }
+
+function installFormatR() {
+    sv.r.installPackage("formatR", (result) => {
+        document.getElementById("no-avail-formatR-message").style.visibility = "collapse";
+    });
+}
+
+
 
 
 // From: http://www.bennadel.com/index.cfm?dax=blog:1504.view

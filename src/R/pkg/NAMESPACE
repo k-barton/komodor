@@ -12,8 +12,10 @@ pkgManSetCRANMirror, pkgManGetMirrors, pkgManGetInstalled,
 pkgManGetAvailable, pkgManGetRepositories,
 
 stringize, getHelpURL, sourceTemp,
+qParse, formatCode,
 
-setEvalEnv, getEvalEnv
+setEvalEnv, getEvalEnv,
+isInstalledPkg
  
 # TclReval, TclReval2, tclfun,
 
@@ -25,7 +27,7 @@ importFrom("utils", "compareVersion", "contrib.url", "getCRANmirrors",
            "install.packages", "installed.packages", "old.packages",
            "packageDescription", "remove.packages", "write.table",
 		   "getSrcFilename", "getS3method", "tail", "data", 
-		   "available.packages", "loadhistory", "browseURL",
-		   "setWindowTitle")
+		   "available.packages", "loadhistory", "browseURL"
+		   )
 		   
 S3method(print, objList)

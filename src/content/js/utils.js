@@ -353,12 +353,10 @@ this.translate = function (textId) {
         return (textId);
     }
 };
-    
+
+this.eOLChar = (scimoz) => ["\r\n", "\r", "\n"][scimoz.eOLMode];
     
 }).apply(sv);
-
-
-
 
 // Control the command output tab
 if (typeof (sv.cmdout) == 'undefined') sv.cmdout = {};
@@ -371,7 +369,7 @@ sv.cmdout = {};
     var logger = require("ko/logging").getLogger("komodoR");
 
     Object.defineProperty(this, 'eolChar', {
-        get: () => ["\r\n", "\n", "\r"][_this.scimoz.eOLMode]
+        get: () => sv.eOLChar(_this.scimoz)
     });
 
     Object.defineProperty(this, 'scimoz', {
@@ -597,19 +595,9 @@ sv.cmdout = {};
 
 }).apply(sv.cmdout);
 
-if (true || typeof require == "undefined") {
-    sv.addNotification = (msg, severity, timeout) => {
-        var sm = Components.classes["@activestate.com/koStatusMessage;1"]
-            .createInstance(Components.interfaces.koIStatusMessage);
-        sm.category = "komodor";
-        sm.msg = msg;
-        sm.log = true;
-        sm.severity = severity | Components.interfaces.koINotification.SEVERITY_INFO;
-        sm.timeout = timeout | 2000;
-        ko.notifications.addNotification(sm);
-    };
-} else {
-    sv.addNotification = (msg, severity, timeout) => {
-        require("notify/notify").addMessage(msg, "komodor", timeout | 2000, false, false, true);
-    };
-}
+sv.addNotification = function(msg, category = "R-interface", highlight = false) {
+    require("notify/notify").send(msg, category, {
+        priority: highlight ? "warning" : "info"
+    });
+};
+

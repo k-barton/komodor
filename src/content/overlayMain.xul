@@ -123,7 +123,11 @@
 		<command id="cmd_svOpenRPreferences" key="key_cmd_svOpenRPreferences"
 			oncommand="ko.commands.doCommand('cmd_svOpenRPreferences');"
 			desc="R: &openRPrefs;" label="&openRPrefs;" accesskey="&openRPrefs.key;"/>
-	
+
+		<command id="cmd_svFormatRCodeInView" key="key_cmd_svFormatRCodeInView"
+			oncommand="ko.commands.doCommand('cmd_svFormatRCodeInView');"
+			desc="R: &formatRCode;" label="&formatRCode;" accesskey="&formatRCode.key;"/>
+
 	</commandset>
 
 <commandset id="cmdset_r_control" commandupdater="true"
@@ -189,6 +193,9 @@
 					  class="menuitem-iconic help-icon"/>
 			<menuitem id="r_start_pkg_manager" observes="cmd_svOpenPkgManager"
 				class="menuitem-iconic r-pkg-manager"/>
+			
+			<menuitem id="r_format_r_code" observes="cmd_svFormatRCodeInView"
+				class="menuitem"/>
 
 			<menuitem id="r_open_r_prefs" observes="cmd_svOpenRPreferences"
 				class="menuitem"/>

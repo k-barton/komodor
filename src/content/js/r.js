@@ -7,16 +7,25 @@
  * 
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
-
 // require: rconnection,r,file,utils,command,rbrowser,string
+/* globals sv, ko, window, require, navigator, setTimeout */
 
-/* globals sv, ko, window, require, navigator */
 
 if (typeof sv.r == "undefined")
     sv.r = {
         RMinVersion: "3.0.0", // Minimum version of R required
         sep: ";;", // Separator used for items
         get isRunning() sv.command.isRRunning // Indicate if R is currently running
+    };
+
+// from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+if (!Object.entries)
+    Object.entries = function (obj) {
+        var ownProps = Object.keys(obj),
+            i = ownProps.length,
+            resArray = new Array(i); // preallocate the Array
+        while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
+        return resArray;
     };
 
 (function () {
@@ -28,7 +37,7 @@ if (typeof sv.r == "undefined")
     // first argument. All additional arguments will be passed to callback
     this.evalAsync = function ( /*cmd*/ ) {
         // TODO try FUNCTION.bind(this, args...));
-    
+
         var args = Array.apply(null, arguments);
         args.splice(2, 0, true, false);
         sv.rconn.evalAsync.apply(sv.rconn, args);
@@ -39,7 +48,7 @@ if (typeof sv.r == "undefined")
     // XXX: remove in favour of sv.r.eval(cmd, hidden)
     this.evalHidden = function (cmd)
     sv.rconn.evalAsync.call(sv.rconn, cmd, null, true);
-    
+
     this.escape = function (cmd) sv.rconn.escape(cmd);
 
     // Set the current working directory (to current buffer dir, or ask for it)
@@ -131,10 +140,10 @@ if (typeof sv.r == "undefined")
     };
 
     // Source the current buffer or some part of it
-    this.pathWithCurrentViewContent = function (isTempFile) {
+    this.pathWithCurrentViewContent = function (view, isTempFile) {
         var rval = false;
         try {
-            var view = ko.views.manager.currentView;
+            if (!view) view = ko.views.manager.currentView;
             if (!view) return null;
             view.setFocus();
             var scimoz = view.scimoz;
@@ -172,7 +181,7 @@ if (typeof sv.r == "undefined")
             var cmd, path, isTmp, comment = "";
             if (!what || what == "all") {
                 let isTempFile = {};
-                path = _this.pathWithCurrentViewContent(isTempFile);
+                path = _this.pathWithCurrentViewContent(view, isTempFile);
                 if (path === null) return false;
                 isTmp = isTempFile.value;
             } else {
@@ -233,19 +242,18 @@ if (typeof sv.r == "undefined")
     // Send whole or a part of the current buffer to R and place cursor at next line
     this.send = function (what = "all") {
         let scimoz = sv._getCurrentScimoz();
-        if (scimoz === null) return false;
+        if (!scimoz) return;
 
         try {
-            let cmd = sv.string.trim(sv.getTextRange(what, what.indexOf("sel") == -1), "right");
-            if (cmd) res = sv.rconn.evalAsync(cmd);
+            let cmd = sv.string.trim(sv.getTextRange(what, what.indexOf("sel") === -1), "right");
+            if (cmd) sv.rconn.evalAsync(cmd);
 
             if (what == "line" || what == "linetoend") // || what == "para"
                 scimoz.charRight();
-
         } catch (e) {
-            return e;
-        }
-        return res;
+            logger.exception(e, "");
+         }
+        return;
     };
 
     this.rFn = name => "kor::" + name;
@@ -379,7 +387,7 @@ if (typeof sv.r == "undefined")
         sep = sv.pref.getPref("RInterface.CSVSep")) {
 
         if (!fileName) {
-            var filterIndex;
+            let filterIndex;
             switch (sep) {
             case '\\t':
                 filterIndex = 1;
@@ -395,9 +403,8 @@ if (typeof sv.r == "undefined")
                 filterIndex = 3;
             }
 
-            var dir = sv.command.getCwd(true);
-
-            oFilterIdx = {
+            let dir = sv.command.getCwd(true);
+            let oFilterIdx = {
                 value: filterIndex
             };
             fileName = sv.fileOpen(dir, objName, "", ["Comma separated values (*.csv)|*.csv",
@@ -413,6 +420,183 @@ if (typeof sv.r == "undefined")
             '", dec="' + dec + '", sep="' + sep + '", col.names=NA)';
         sv.r.eval(cmd);
         return cmd;
+    };
+
+    this.arg = function r_arg(...args) {
+        return args.map((a) => {
+            switch (typeof a) {
+            case "object":
+                let rval;
+                if (Array.isArray(a))
+                    rval = a.map(b => r_arg(b));
+                else if (a === null)
+                    return "NULL";
+                else {
+                    let entries = Object.entries(a),
+                        i = 0;
+                    rval = new Array(entries.length);
+                    for (let [key, value] of entries) rval[i++] =
+                        `${sv.string.addslashes(key)}=${r_arg(value)}`;
+                }
+                return "c(" + rval.join(", ") + ")";
+            case "boolean":
+                return a ? "TRUE" : "FALSE";
+            case "number":
+                if(!isFinite(a)) {
+                    if (isNaN(a)) return "NaN";
+                    return (a < 0) ? "-Inf" : "Inf";
+                }
+                return a.toString();
+            case "string":
+                return "\"" + sv.string.addslashes(a) + "\"";
+            default:
+            }
+        });
+    };
+
+    this.formatRCodeInView = function () {
+        var view = ko.views.manager.currentView;
+        if (!view) return;
+        var pkgName = "formatR";
+
+        sv.r.isPackageInstalled(pkgName, (yes) => {
+            if (yes) 
+                _this.doFormatCode(view);
+            else {
+                if (ko.dialogs.yesNo(
+                        "R package \"" + pkgName +
+                        "\" is not installed. Would you like to install it now from CRAN?",
+                        null, null, "R Interface") == "Yes") {
+                    sv.r.installPackage(pkgName, (isInstalled) => {
+                        if (!isInstalled) {
+                            ko.dialogs.alert(
+                                "R failed to install \"" + pkgName +
+                                "\". See \"Command Output\" for details.",
+                                null, "R Interface");
+                        } else 
+                            _this.doFormatCode(view);
+                    });
+                }
+            }
+        });
+    };
+
+    this.doFormatCode = function (view) {
+        if (!view) return;
+        var scimoz = view.scimoz; /* var not let */
+        let inFile, firstLine = 0;
+        var isTmp = true;
+        var extent, encoding;
+        if (scimoz.selectionEmpty) {
+            extent = null;
+            let isTempFile = {};
+            inFile = sv.r.pathWithCurrentViewContent(view, isTempFile);
+            isTmp = isTempFile.value;
+            encoding = isTmp ? "UTF-8" : view.koDoc.encoding.short_encoding_name;
+        } else {
+            extent = {
+                start: scimoz.positionFromLine(scimoz.lineFromPosition(scimoz.selectionStart)),
+                end: scimoz.getLineEndPosition(scimoz.lineFromPosition(scimoz.selectionEnd))
+            };
+            let content = scimoz.getTextRange(extent.start, extent.end); // scimoz.selText;
+            inFile = sv.file.temp("kor_tidyin");
+            sv.file.write(inFile, content, 'utf-8');
+            firstLine = scimoz.lineFromPosition(extent.start);
+            encoding = "UTF-8";
+        }
+
+        // baseIndentation is in character units
+        var baseIndentation = scimoz.getLineIndentation(firstLine); /* var not let */
+        var outFile = sv.file.temp("kor_tidyout");
+
+        let formatOpt = {
+            keepBlankLines: true,
+            replaceAssign: false,
+            newlineBeforeBrace: false, //indentBy: view.koDoc.indentWidth
+            indentBy: scimoz.indent, //width: view.koDoc.getEffectivePrefs().getLongPref("editAutoWrapColumn") 
+            width: scimoz.edgeColumn
+        };
+        for (let i in formatOpt)
+            if (formatOpt.hasOwnProperty(i)) {
+                let prefVal = sv.pref.getPref("RInterface.format." + i);
+                if (prefVal !== undefined) formatOpt[i] = prefVal;
+            }
+        let rArg = sv.r.arg;
+        let cmd =
+            `kor::formatCode(${rArg(inFile)},\
+blank = ${rArg(formatOpt.keepBlankLines)}, arrow = ${rArg(formatOpt.replaceAssign)}, \
+brace.newline = ${rArg(formatOpt.newlineBeforeBrace)}, indent = ${formatOpt.indentBy}, \
+width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encoding}")`;
+
+        sv.rconn.evalAsync(cmd, (result) => {
+            if (!scimoz) return;
+            if (parseInt(result) == 0) {
+                sv.addNotification("R code not formatted because it contains syntax errors.", "R-formatter");
+                return;
+            }
+        
+            let code;
+            try {
+                code = sv.file.read(outFile, 'utf-8');
+                let fout = sv.file.getLocalFile(outFile);
+                if (fout.exists()) fout.remove(false);
+                if (isTmp) {
+                    let fin = sv.file.getLocalFile(inFile);
+                    if (fin.exists()) fin.remove(false);
+                }
+            } catch (e) {
+                logger.exception(e, "reading formatted R code from " + outFile);
+                return;
+            }
+            if (!code) return;
+            // SC_EOL_CRLF (0), SC_EOL_CR (1), or SC_EOL_LF (2)
+            let eolChar = sv.eOLChar(scimoz);
+            code = code.replace(/(\r?\n|\r)/g, eolChar);
+
+            if (extent === null) {
+                scimoz.targetWholeDocument();
+                scimoz.replaceTarget(code);
+            } else {
+                if (baseIndentation > 0) {
+                    // TODO: if selection does not start at first column...
+                    let nSpaces, nTabs;
+                    if (scimoz.useTabs) {
+                        nTabs = Math.floor(baseIndentation / scimoz.tabWidth);
+                        nSpaces = baseIndentation % scimoz.tabWidth;
+                    } else
+                        nSpaces = baseIndentation;
+                    let rx = new RegExp("(^|" + eolChar + ")", "g");
+                    code = code.replace(rx, "$1" + "\t".repeat(nTabs) + " ".repeat(
+                        nSpaces));
+                }
+                scimoz.targetStart = extent.start;
+                scimoz.targetEnd = extent.end;
+                scimoz.replaceTarget(code);
+                scimoz.selectionStart = scimoz.targetStart;
+                scimoz.selectionEnd = scimoz.targetEnd;
+            }
+            sv.addNotification("R code formatted", "R-formatter");
+        }, true, true);
+    }; // end doFormatCode
+
+    this.installPackage = function (pkgName, callback) {
+        if (!_this.isRunning) {
+            callback(undefined);
+            return;
+        }
+        sv.rconn.evalAsync(`utils::install.packages("${pkgName}")`,
+            () => sv.r.isPackageInstalled(pkgName, callback), false);
+    };
+
+    this.isPackageInstalled = function (pkgName, callback) {
+        // TODO use system command R CMD --slave --vanilla -e "find.package(...)"
+        if (!_this.isRunning) {
+            callback(undefined);
+            return;
+        }
+        sv.rconn.evalAsync("kor::isInstalledPkg(\"" + pkgName + "\")", (result) => {
+            callback(parseInt(result) > 0);
+        }, true, true);
     };
 
 }).apply(sv.r);

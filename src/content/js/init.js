@@ -191,6 +191,24 @@ sv.init = {};
             }
         }, 1000);
         Services.obs.removeObserver(sv_onLoadObserver, "komodo-ui-started");
+        
+        var notify = require("notify/notify");
+        notify.categories.register("R-formatter", {
+            label: "R code formatter",
+            opts: {
+                duration: 2000,
+            }
+        });
+        notify.categories.register("R-interface", {
+            label: "R Interface",
+            opts: {
+                severity: "info",
+                duration: 3000,
+                icon: "koicon://ko-svg/chrome/icomoon/skin/notification2.svg", 
+            }
+        });
+        
+        
     }; // onLoad
 
     // "komodo-post-startup" event in Komodo 9 only.
