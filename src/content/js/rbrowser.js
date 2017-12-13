@@ -13,7 +13,7 @@
  * TODO: make this a sv.robjects.tree 
 [ERROR] console-logger: TypeError: treeBox is null (2) in chrome://komodor/content/js/rbrowser.js:973
  */
-/* globals sv, ko, require, Components, document, self */
+/* globals sv, ko, require, document, self */
 sv.rbrowser = {};
 
 // Control characters + separators (make them sv-wide):
@@ -34,26 +34,21 @@ sv.rbrowser = {};
     var sep = "\x1f"; // ";;"
     var recordSep = "\x1e";
     //var recordSep = "\n"; //"\x1e";
-
-    var dQuote = s => "\"" + s + "\"";
-
     var _listAllNames = false;
-    // id +'_' +
-    // TODO: merge _getObjListCommand+createCommand
-    var createCommand = (env, obj, all) =>
-        "kor::write.objList(kor::objList(id=" + dQuote(sv.uid(1) + "_" + env + "_" + obj) +
-        ", envir=" + (env ? dQuote(env) : "") +
-        (obj ? ", object=" + dQuote(obj) : "") + ", all.info=FALSE, compare=FALSE, " +
-        "all.names=" + (all ? "TRUE" : "FALSE") + "), sep=" + dQuote(sep) +
-        ", eol=" + dQuote(recordSep) + ")";
+    var dQuote = s => "\"" + s + "\"";
+    var svgParams = "?size=16&color=" + encodeURIComponent("#0060bf");
 
+    // Note: first 3 objList arguments are unnamed. Update order on any modification of objList.
     var _getObjListCommand = (env, obj) => {
-        var rval = createCommand(env ? sv.string.addslashes(env) : env,
-            obj ? obj.replace(/^([`"'])(.*)\1/, "$2") : null, // WTF? replace(/\$/g, "$$$$"). 
-            _listAllNames
-        );
-
-        logger.debug("R-browser command: \n" + "\n" + rval);
+        env = env ? sv.string.addslashes(env) : env;
+        //sv.uid(1) + "_" +
+        var rval = "kor::write.objList(kor::objList(" +
+            dQuote(env + (obj ? "_" + obj : "")) +
+            ", " + (env ? dQuote(env) : "") +
+            (obj ? ", " + obj : "") + ", compare=FALSE, " +
+            "all.names=" + (_listAllNames ? "TRUE" : "FALSE") + "), sep=" + dQuote(sep) +
+            ", eol=" + dQuote(recordSep) + ")";
+        //logger.debug("R-browser command: \n" + "\n" + rval);
         return rval;
     };
 
@@ -64,6 +59,8 @@ sv.rbrowser = {};
         'package', 'standardGeneric', 'S3', 'S4', 'ts', 'environment',
         'formula'
     ];
+    var iconTypesSvg = [ 'expression', 'language', 'name', 'NULL' ];
+    Array.prototype.push.apply(iconTypes, iconTypesSvg);
 
     // Used in .contextOnShow
     var nonDetachable = [".GlobalEnv", "package:kor", "package:utils",
@@ -81,9 +78,6 @@ sv.rbrowser = {};
     this.treeBox = null;
     this.selection = null;
 
-    var atomSvc = Components.classes["@mozilla.org/atom-service;1"]
-        .getService(Components.interfaces.nsIAtomService);
-
     Object.defineProperty(this, "rowCount", {
         get: function () this.visibleData.length,
         enumerable: true
@@ -92,25 +86,25 @@ sv.rbrowser = {};
     var _getVItem = function (obj, index, level, first, last, parentIndex) {
         var vItem = {};
 
-        if (obj.group == "list" || obj.group == "function" || obj.list) {
+        if (obj.isList) {
             vItem.isContainer = true;
             vItem.isContainerEmpty = false;
             vItem.childrenLength = obj.children ? obj.children.length : 0;
-            vItem.isOpen = (typeof (obj.isOpen) != "undefined") && obj.isOpen;
+            vItem.isOpen = typeof obj.isOpen != "undefined" && obj.isOpen;
             vItem.isList = true;
         } else {
-            vItem.isContainer = typeof (obj.children) != "undefined";
+            vItem.isContainer = typeof obj.children != "undefined";
             vItem.isContainerEmpty = vItem.isContainer &&
-                (obj.children.length == 0);
+                obj.children.length == 0;
             vItem.childrenLength = vItem.isContainer ? obj.children.length : 0;
             vItem.isList = false;
         }
-        vItem.isOpen = (typeof (obj.isOpen) != "undefined") && obj.isOpen;
+        vItem.isOpen = typeof obj.isOpen != "undefined" && obj.isOpen;
         vItem.parentIndex = parentIndex;
         vItem.level = level;
         vItem.first = first;
         vItem.last = last;
-        vItem.labels = [obj.name, obj.dims, obj.group, obj.class, obj.fullName];
+        vItem.labels = [obj.name, obj.dims, obj.group, obj.className, obj.fullName];
         vItem.origItem = obj;
         vItem.origItem.index = index;
         return vItem;
@@ -124,7 +118,7 @@ sv.rbrowser = {};
         var len = item.length;
 
         for (let i = 0; i < len; ++i) {
-            //item[i].class != "package" &&
+            //item[i].className != "package" &&
             if (level == 1 && !_this.filter(item[i].sortData[filterBy])) {
                 item[i].index = -1;
                 continue;
@@ -148,17 +142,15 @@ sv.rbrowser = {};
     };
 
     var _createVisibleData = function () {
-        //if (!isInitialized) throw new Error("treeData not initialized");
         if (!isInitialized) return;
 
-        var rowsBefore = _this.visibleData.length;
-        var firstVisibleRow = _this.treeBox ? _this.treeBox.getFirstVisibleRow() : 0;
-        _this.visibleData = [];
-
+        let rowsBefore = _this.visibleData.length;
+        let firstVisibleRow = _this.treeBox ? _this.treeBox.getFirstVisibleRow() : 0;
+       
+        _this.visibleData.splice(0);
         _addVisibleDataItems(_this.treeData, -1, 0);
 
-        var rowsChanged = _this.visibleData.length - rowsBefore;
-
+        let rowsChanged = _this.visibleData.length - rowsBefore;
         if (rowsChanged) _this.treeBox.rowCountChanged(0, rowsChanged);
 
         if (_this.treeBox.view.rowCount > _this.visibleData.length)
@@ -174,8 +166,8 @@ sv.rbrowser = {};
 
     // RObjectLeaf constructor:
     function RObjectLeaf(env, obj, arr, index, parentElement) {
-        var type = parentElement ? ((parentElement.type == "environment") ? 'object' :
-                (parentElement.group == "function" ? "args" : "sub-object")) :
+        var type = parentElement ? (parentElement.type == "environment") ? 'object' :
+                (parentElement.group == "function" ? "args" : "sub-object") :
             'environment';
 
         var dimNumeric = 1;
@@ -186,19 +178,20 @@ sv.rbrowser = {};
             if (/^(\d+x)*\d+$/.test(arr[2]))
                 dimNumeric = arr[2].split(/x/).reduce((x, y) => x * parseInt(y));
             this.name = arr[0];
-            this.fullName = arr[1];
+            this.fullName = arr[1] || this.name;
             this.dims = arr[2];
             this.group = arr[3];
             try {
-                this.class = arr[4];
+                this.className = arr[4] || this.group;
                 this.env = env;
-                this.list = (arr[5] == "TRUE");
-                if (this.list) this.children = [];
-                this.sortData = [this.name.toLowerCase(), dimNumeric, this.class.toLowerCase(),
+                this.isList = arr[5].indexOf('r') !== -1;
+                this.isHidden = arr[5].indexOf('h') !== -1;
+                if (this.isList) this.children = [];
+                this.sortData = [this.name.toLowerCase(), dimNumeric, this.className.toLowerCase(),
                     this.group.toLowerCase(), index
                 ];
             } catch (e) {
-                //print(e); //DEBUG
+                logger.exception(e, "in RObjectLeaf constructor [" + arr + "]");
                 //print(arr);
             }
             this.parentObject = parentElement;
@@ -206,9 +199,9 @@ sv.rbrowser = {};
             pos = _this.searchPath.indexOf(env);
             this.name = this.fullName = env;
             this.children = [];
-            this.class = "package";
+            this.className = "package";
             this.dims = dimNumeric = pos;
-            this.sortData = [this.name.toLowerCase(), pos, this.class.toLowerCase(),
+            this.sortData = [this.name.toLowerCase(), pos, this.className.toLowerCase(),
                 this.type.toLowerCase()
             ];
             this.isOpen = true;
@@ -223,7 +216,8 @@ sv.rbrowser = {};
         class: "package",
         group: "",
         env: null,
-        list: false,
+        isList: false,
+        isHidden: false,
         isOpen: false,
         dims: 0,
         sortData: [],
@@ -238,7 +232,7 @@ sv.rbrowser = {};
         //get childrenLength() this.children ? this.children.length : 0,
         //set childrenLength(x) null
     };
-
+    
     var _objTreeCrawler = function objTreeCrawler(name, root) {
         let children = root.children;
         let n = children.length;
@@ -264,22 +258,21 @@ sv.rbrowser = {};
     };
 
     _this.getRowByName = function (name, env) {
-        var vd = _this.visibleData;
+        let vd = _this.visibleData;
         let i;
         for (i = 0; i < vd.length; ++i)
             if (name == vd[i].labels[4] && env == vd[i].origItem.env) break;
         return i >= vd.length ? undefined : i;
     };
 
-    var fullname = (vd, i) => vd[i].origItem.env + "::" + vd[i].origItem.fullName;
-
+    var getItemId = (vd, i) => vd[i].origItem.env + "::" + vd[i].origItem.fullName;
     // TODO: make internal
     var _storedSelection;
     this.saveSelection =
         function () {
             var idx = this.getSelectedRows();
             var vd = this.visibleData;
-            _storedSelection = idx.map(i => fullname(vd, i));
+            _storedSelection = idx.map(i => getItemId(vd, i));
         };
 
     this.restoreSelection =
@@ -288,14 +281,12 @@ sv.rbrowser = {};
             this.selection.clearSelection();
             if (_storedSelection && _storedSelection.map) {
                 let vd = this.visibleData;
-                for (let j = 0; j < _storedSelection.length; ++j) {
-                    for (let i = 0; i < vd.length; ++i) {
-                        if (_storedSelection[j] == fullname(vd, i)) {
+                for (let j = 0; j < _storedSelection.length; ++j) 
+                    for (let i = 0; i < vd.length; ++i)
+                        if (_storedSelection[j] == getItemId(vd, i)) {
                             this.selection.toggleSelect(i);
                             break;
                         }
-                    }
-                }
             }
         };
 
@@ -329,8 +320,8 @@ sv.rbrowser = {};
             let treeBranch, envName, objName;
             for (let i = 0; i < lines.length; ++i) {
                 let itemConsumed = false;
-                //logger.debug(`line ${i}, looking for ${['env', 'obj', 'data'][lookFor]}: \n` +
-                //			 lines[i].substring(0, 10) + "...");
+//                logger.debug(`line ${i}, looking for ${['env', 'obj', 'data'][lookFor]}: \n` +
+//                			 lines[i].substring(0, 10) + "...");
 
                 switch (lookFor) {
                 case LF.Env:
@@ -387,7 +378,7 @@ sv.rbrowser = {};
                     break;
                 default:
                 } // switch lookFor
-                if (!itemConsumed) logger.debug(`parseObjListResult: stray item[${i}]: ${lines[i]}`);
+                if (!itemConsumed) logger.warn(`parseObjListResult: stray item[${i}]: ${lines[i]}`);
             } // for i
 
             //logger.debug(DEBUG.join("\n"));
@@ -409,14 +400,13 @@ sv.rbrowser = {};
     this.getOpenItems = function () {
         let vd = _this.visibleData;
         let ret = [];
-        for (let i = 0; i < vd.length; ++i) {
+        for (let i = 0; i < vd.length; ++i)
             if (_this.isContainerOpen(i)) {
                 let oi = vd[i].origItem;
                 let env = oi.env || oi.fullName;
                 let objName = oi.type == "environment" ? "" : oi.fullName;
                 ret.push([env, objName]);
             }
-        }
         return ret;
     };
 
@@ -435,7 +425,7 @@ sv.rbrowser = {};
         var cmd, init;
         init = !isInitialized || force || !_this.treeData.length || !_this.treeBox;
 
-        logger.debug("running sv.rbrowser.refresh(init=" + init + ")");
+        //logger.debug("running sv.rbrowser.refresh(init=" + init + ")");
 
         _this.getPackageList();
         if (init) {
@@ -461,9 +451,8 @@ sv.rbrowser = {};
         if (init) {
             let thisWindow = self;
             //if (thisWindow.location.pathname != "rbrowser_tabpanel") { // in main window
-            if (thisWindow.location.pathname.indexOf("komodo.xul") != -1) { // in main window
+            if (thisWindow.location.pathname.indexOf("komodo.xul") != -1)  // in main window
                 thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
-            }
             thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
         }
 
@@ -559,14 +548,13 @@ sv.rbrowser = {};
         // If the column is passed and sort already done, reverse it
         if (column) {
             columnName = column.id;
-            if (tree.getAttribute("sortResource") == columnName) {
+            if (tree.getAttribute("sortResource") == columnName)
                 realOrder = ((realOrder + 2) % 3) - 1;
-            } else {
+            else
                 realOrder = 1;
-            }
-        } else {
+        } else
             columnName = tree.getAttribute("sortResource");
-        }
+
 
         var colNames = ["r-name", "r-dims", "r-class", "r-group", "r-fullName",
             "r-position"
@@ -636,7 +624,6 @@ sv.rbrowser = {};
         if (currentElement) {
             this.selection.select(currentElement.index);
             this.treeBox.ensureRowIsVisible(currentElement.index);
-
             this.restoreSelection();
         }
     };
@@ -650,22 +637,16 @@ sv.rbrowser = {};
         var curItem = this.visibleData[idx].origItem;
         var parentObject = curItem.parentObject;
         if (parentObject) {
-            var siblings;
-            if (parentObject.children) {
-                siblings = parentObject.children;
-            } else {
-                siblings = parentObject;
-            }
-            for (var i = 0; i < siblings.length; ++i) {
+            let siblings = parentObject.children ? 
+                parentObject.children : parentObject;
+            for (let i = 0; i < siblings.length; ++i)
                 if (siblings[i].isOpen == open)
                     this.toggleOpenState(siblings[i].index);
-            }
         }
     };
 
     this.toggleOpenState = function (idx) {
-        var vd = this.visibleData,
-            vd2;
+        var vd = this.visibleData, vd2;
         var item = vd[idx];
         var iLevel = item.level;
         var rowsChanged;
@@ -704,9 +685,8 @@ sv.rbrowser = {};
                 _addVisibleDataChildren(item, idx, false);
 
             // Filter child items
-            for (let i = 0; i < item.children.length; ++i) {
+            for (let i = 0; i < item.children.length; ++i)
                 insertItems.push(item.children[i]);
-            }
 
             rowsChanged = insertItems.length;
             // Change parentIndexes of child rows from relative to absolute
@@ -752,15 +732,18 @@ sv.rbrowser = {};
     this.hasNextSibling = function (idx /*, after*/ ) !_this.visibleData[idx].last;
     this.getImageSrc = function (row, col) {
         if (col.index == 0) {
-            var Class = _this.visibleData[row].origItem.class;
-            if (Class == "package" && this.visibleData[row].origItem.name
-                .indexOf("package") != 0) {
-                Class = "environment";
-            } else if (iconTypes.indexOf(Class) == -1) {
-                Class = _this.visibleData[row].origItem.group;
-                if (iconTypes.indexOf(Class) == -1) return "";
+            let className = _this.visibleData[row].origItem.className;
+            if (className == "package" &&
+                this.visibleData[row].origItem.name.indexOf("package") != 0) {
+                className = "environment";
+            } else if (iconTypes.indexOf(className) == -1) {
+                className = _this.visibleData[row].origItem.group;
+                if (iconTypes.indexOf(className) == -1) return "";
             }
-            return "chrome://komodor/skin/images/" + Class + ".png";
+            if (iconTypesSvg.indexOf(className) !== -1)
+                return "koicon://ko-svg/chrome/komodor/skin/images/" + className + ".svg" + svgParams;
+            else
+                return "chrome://komodor/skin/images/" + className + ".png";
         } else
             return "";
     };
@@ -772,49 +755,35 @@ sv.rbrowser = {};
     this.performAction = function ( /*action*/ ) {};
     this.performActionOnCell = function ( /*action, index, column*/ ) {};
 
-    this.getRowProperties = function (idx, props) {
+	
+	//var getClassName = item => 
+		///\W/.test(item.className) ? "language" : item.className;
+	
+    // this works only on Komodo >= 9 (Gecko 22)
+    this.getRowProperties = function (idx) {
         if (!(idx in _this.visibleData)) return null;
         var item = _this.visibleData[idx];
         var origItem = item.origItem;
-
-        if (props === undefined) {
-            props = "type-" + origItem.type + " class-" + origItem.class;
-            if (item.last) props += " lastChild";
-            if (item.first) props += " firstChild";
-            return props;
-        } else { // XXX: Obsolete since Gecko 22 (komodo 9)
-            props.AppendElement(atomSvc.getAtom("type-" + origItem.type));
-            props.AppendElement(atomSvc.getAtom("class-" + origItem.class));
-            if (item.last) props.AppendElement(atomSvc.getAtom("lastChild"));
-            if (item.first) props.AppendElement(atomSvc.getAtom("firstChild"));
-        }
-        return null;
+        return "type-" + origItem.type +
+           //" class-" + getClassName(origItem) + 
+           (origItem.isHidden ? " hidden" : "") + 
+           (item.last ? " lastChild" : "") +
+           (item.first ? " firstChild" : "");
     };
 
-    this.getCellProperties = function (idx, column, props) {
-        if (column.id == "r-name") {
-            var item = this.visibleData[idx];
-            var origItem = item.origItem;
+    this.getCellProperties = function (idx, column) {
+        let item = _this.visibleData[idx];
+        let origItem = item.origItem;
+        return (column.index == 0 ? "icon" : "") +
+            " type-" + origItem.type +
+            //" class-" + getClassName(origItem) +
+            " group-" + (origItem.group || origItem.className) +
+            " col-" + column.id +
+            (item.isContainerEmpty ? " empty" : "") +
+            (origItem.isHidden ? " hidden" : "");
 
-            if (props === undefined) {
-                props = "icon" + " type-" + origItem.type +
-                    " class-" + origItem.class +
-                    " group-" + origItem.group;
-                if (item.isContainerEmpty && origItem.class == "package")
-                    props += " empty_package";
-                return props;
-            } else { // XXX: Obsolete since Gecko 22 (komodo 9)
-                props.AppendElement(atomSvc.getAtom("icon"));
-                props.AppendElement(atomSvc.getAtom("type-" + origItem.type));
-                props.AppendElement(atomSvc.getAtom("class-" + origItem.class));
-                props.AppendElement(atomSvc.getAtom("group-" + origItem.group));
-                if (item.isContainerEmpty && origItem.class == "package")
-                    props.AppendElement(atomSvc.getAtom("empty_package"));
-            }
-        }
-        return null;
     };
-
+    
     this.getColumnProperties = function ( /*column, element, prop*/ ) {};
 
     this.getSelectedRows = function () {
@@ -832,106 +801,108 @@ sv.rbrowser = {};
         },
 
         // Drag'n'drop support
-        this.draghandlers = {
-            onDragStart(event) {
-                if (_this.rowCount === 0) return;
-                //_this.onEvent(event);
-                var namesArr = _this.getSelectedNames(event.ctrlKey, event.shiftKey);
-                event.dataTransfer.setData("text/plain", namesArr.join(', '));
-                event.dataTransfer.effectAllowed = "copy";
-            },
-            onDrop(event) {
-                event.preventDefault();
-                var text;
-                var data = event.dataTransfer;
-                if (data.types == null) return;
-                if (data.types.contains("text/plain")) {
-                    text = data.getData("text/plain").trim();
-                    let pos = _this.searchPath.indexOf(text);
-                    if (pos == -1) return;
-                    document.getElementById("rbrowser_searchpath_listbox").getItemAtIndex(pos).checked =
-                        true;
-                    _addObject(text, "", _this.parseObjListResult);
-                } else if (data.types.contains("Files")) {
-                    // TODO check if RData and load/attach?
-                    //nsIFile
-                    //text/x-moz-url, text/uri-list, text/plain, application/x-moz-file, Files
-                }
-            },
-            onDragOver(event) {
-                // TODO
-                var dataTypes = event.dataTransfer.types;
-                if (!dataTypes.contains("text/plain") &&
-                    !dataTypes.contains("text/x-r-package-name")
-                )
-                    dataTypes.effectAllowed = "none";
-            },
-
-            onSearchPathDrop(event) {
-                let data = event.dataTransfer;
-                let filePath, text;
-                if (data.types.contains("application/x-moz-file")) {
-                    filePath = data.getData("application/x-moz-file").path;
-                } else if (data.types.contains("text/plain")) {
-                    filePath = String(data.getData("text/plain")).trim();
-                    if (!sv.file.exists(sv.file.path(filePath))) {
-                        text = filePath;
-                        filePath = null;
-                    }
-                } /// else  if (data.contains("Files")) {
-
-                // Attach the file if it is an R workspace
-                if (filePath && filePath.search(/\.RData$/i) > 0) {
-                    sv.r.loadWorkspace(filePath, true, function (message) {
-                        _this.getPackageList();
-                        sv.addNotification("Upon attaching the workspace \"" + filePath +
-                            "\", R said: " + message);
-                    });
-                } else if (text) {
-                    if (!/^(package:)?[a-zA-Z0-9\._]+$/.test(text))
-                        return;
-                    if (text.indexOf("package:") === 0)
-                        text = text.substring(8);
-
-                    sv.r.evalAsync("tryCatch(library(\"" + text +
-                        "\"), error = function(e) {cat(\"<error>\"); message(e)})",
-                        (message) => {
-                            let pos;
-                            if ((pos = message.indexOf('<error>')) > -1) {
-                                message = message.substring(pos + 7);
-                            } else {
-                                _this.getPackageList();
-                            }
-                            if (message)
-                                sv.addNotification("Upon loading the library \"" + text +
-                                    "\", R said: " + message);
-                        }
-                    );
-                }
-            },
-            onSearchPathDragStart(event) {
-                if (event.target.tagName != 'listitem')
-                    return;
-
-                var text = _this.searchPath[document
-                    .getElementById("rbrowser_searchpath_listbox")
-                    .selectedIndex];
-                event.dataTransfer.setData("text/plain", text);
-                event.dataTransfer.effectAllowed = "copy";
-                return;
-            },
-
-            onSearchPathDragOver(event) {
-                // TODO
-                var dataTypes = event.dataTransfer.types;
-                if (!dataTypes.contains("text/plain") &&
-                    !dataTypes.contains("text/x-moz-file") &&
-                    !dataTypes.contains("text/x-r-package-name")
-                )
-                    event.dataTransfer.effectAllowed = "none";
+    this.draghandlers = {
+        onDragStart(event) {
+            if (_this.rowCount === 0) return;
+            //_this.onEvent(event);
+            var namesArr = _this.getSelectedNames(event.ctrlKey, event.shiftKey);
+            event.dataTransfer.setData("text/plain", namesArr.join(', '));
+            event.dataTransfer.effectAllowed = "copy";
+        },
+        onDragEnd(event) {
+            event.preventDefault();
+        },
+        onDrop(event) {
+            event.preventDefault();
+            var data = event.dataTransfer;
+            if (data.types == null) return;
+            if (data.types.contains("text/plain")) {
+                let text = data.getData("text/plain").trim();
+                let pos = _this.searchPath.indexOf(text);
+                if (pos == -1) return;
+                document.getElementById("rbrowser_searchpath_listbox").getItemAtIndex(pos).checked =
+                    true;
+                _addObject(text, "", _this.parseObjListResult);
+            } else if (data.types.contains("Files")) {
+                // TODO check if RData and load/attach?
+                //nsIFile
+                //text/x-moz-url, text/uri-list, text/plain, application/x-moz-file, Files
             }
-        };
+        },
+        onDragOver(event) {
+            // TODO
+            var dataTypes = event.dataTransfer.types;
+            if (!dataTypes.contains("text/plain") &&
+                !dataTypes.contains("text/x-r-package-name")
+            )
+                dataTypes.effectAllowed = "none";
+        },
 
+        onSearchPathDrop(event) {
+            let data = event.dataTransfer;
+            let filePath, text;
+            if (data.types.contains("application/x-moz-file")) {
+                filePath = data.getData("application/x-moz-file").path;
+            } else if (data.types.contains("text/plain")) {
+                filePath = String(data.getData("text/plain")).trim();
+                if (!sv.file.exists(sv.file.path(filePath))) {
+                    text = filePath;
+                    filePath = null;
+                }
+            } /// else  if (data.contains("Files")) {
+
+            // Attach the file if it is an R workspace
+            if (filePath && filePath.search(/\.RData$/i) > 0) {
+                sv.r.loadWorkspace(filePath, true, function (message) {
+                    _this.getPackageList();
+                    sv.addNotification("Upon attaching the workspace \"" + filePath +
+                        "\", R said: " + message);
+                });
+            } else if (text) {
+                if (!/^(package:)?[a-zA-Z0-9\._]+$/.test(text))
+                    return;
+                if (text.indexOf("package:") === 0)
+                    text = text.substring(8);
+
+                sv.r.evalAsync("tryCatch(library(\"" + text +
+                    "\"), error = function(e) {cat(\"<error>\"); message(e)})",
+                    (message) => {
+                        let pos;
+                        if ((pos = message.indexOf('<error>')) > -1) {
+                            message = message.substring(pos + 7);
+                        } else {
+                            _this.getPackageList();
+                        }
+                        if (message)
+                            sv.addNotification("Upon loading the library \"" + text +
+                                "\", R said: " + message);
+                    }
+                );
+            }
+        },
+        onSearchPathDragStart(event) {
+            if (event.target.tagName != 'listitem')
+                return;
+
+            var text = _this.searchPath[document
+                .getElementById("rbrowser_searchpath_listbox")
+                .selectedIndex];
+            event.dataTransfer.setData("text/plain", text);
+            event.dataTransfer.effectAllowed = "copy";
+            return;
+        },
+
+        onSearchPathDragOver(event) {
+            // TODO
+            var dataTypes = event.dataTransfer.types;
+            if (!dataTypes.contains("text/plain") &&
+                !dataTypes.contains("text/x-moz-file") &&
+                !dataTypes.contains("text/x-r-package-name")
+            )
+                event.dataTransfer.effectAllowed = "none";
+        }
+    };
+    
     this.canDrop = function () false;
     this.drop = function ( /*idx, orientation*/ ) {};
 
@@ -939,7 +910,7 @@ sv.rbrowser = {};
     this.getPackageList = function () {
         var data;
         try {
-            data = sv.rconn.eval('cat(kor::objSearch(sep="' + sep + '", compare=FALSE))');
+            data = sv.rconn.eval('base::cat(kor::objSearch(sep="' + sep + '", compare=FALSE))');
         } catch (e) {
             return;
         }
@@ -1049,13 +1020,13 @@ sv.rbrowser = {};
             objectsToRemove = {},
             envToDetach = [];
         var objectsToSetNull = {};
-        var rows = this.getSelectedRows();
+        var rows = _this.getSelectedRows();
         if (rows.length == 0) return false;
 
         var rxBackticked = /^`.*`$/;
 
         for (let i = 0; i < rows.length; ++i) {
-            vItem = this.visibleData[rows[i]];
+            vItem = _this.visibleData[rows[i]];
             item = vItem.origItem;
             name = item.fullName;
             type = item.type;
@@ -1065,13 +1036,13 @@ sv.rbrowser = {};
 
             switch (type) {
             case "environment":
-                if (name != ".GlobalEnv" && name != "TempEnv")
+                if (nonDetachable.indexOf(name) == -1)
                     envToDetach.push(name);
                 break;
             case "object":
             case "sub-object":
                 var env = item.env;
-                thisItem: // FIXME: label
+                thisItem: // FIXME: label!
 
                     if (envToDetach.indexOf(env) == -1) {
                         var parent = vItem;
@@ -1099,8 +1070,8 @@ sv.rbrowser = {};
                             objectsToRemove[env].push(name);
                         }
 
-                        var siblings = item.parentObject.children;
-                        for (var j in siblings) {
+                        let siblings = item.parentObject.children;
+                        for (let j = 0; j < siblings.length; ++j) {
                             if (siblings[j] == item) {
                                 siblings.splice(j, 1);
                                 break;
@@ -1113,7 +1084,7 @@ sv.rbrowser = {};
         }
 
         for (let i = 0; i < envToDetach.length; ++i) {
-            cmd.push('detach("' + sv.string.addslashes(envToDetach[i]) + '", unload = TRUE)');
+            cmd.push('base::detach(' + sv.r.arg(envToDetach[i]) + ', unload=TRUE)');
             for (let j = 0; j < _this.treeData.length; ++j) {
                 if (_this.treeData[j].name == envToDetach[i]) {
                     _this.treeData.splice(j, 1);
@@ -1124,14 +1095,14 @@ sv.rbrowser = {};
 
         for (let j in objectsToRemove)
             if (objectsToRemove.hasOwnProperty(j))
-                cmd.push('rm(list = c("' + objectsToRemove[j].join('", "') +
-                    '"), pos = "' + j + '")');
+                cmd.push("base::rm(list=" + sv.r.arg(objectsToRemove[j]) + 
+					"), pos=\"" + j + "\")");
 
         for (let j in objectsToSetNull)
             if (objectsToSetNull.hasOwnProperty(j)) {
-                cmd.push('eval(expression(' +
+                cmd.push('base::eval(base::expression(' +
                     objectsToSetNull[j].join(" <- NULL, ") +
-                    ' <- NULL), envir = as.environment("' + j + '"))');
+                    ' <- NULL), envir=base::as.environment("' + j + '"))');
             }
 
         _createVisibleData();
@@ -1159,7 +1130,24 @@ sv.rbrowser = {};
         //_this.selection.clearSelection();
         return true;
     };
-
+    
+    var isTopLevelItem = item => !item.parentObject || item.parentObject.type === undefined;
+    var getTopParent = item => {
+        let p = item;
+        while(!isTopLevelItem(p.parentObject)) p = p.parentObject;
+        return p;
+    };
+    var getNSPrefix = item => {
+      let tp = getTopParent(item);
+      return tp.env.indexOf("package:") === 0 ? tp.env.substring(8) + (tp.isHidden ? ":::" : "::") : "";
+    };
+    var getFullName = item => item.type == "args" ?
+        "formals(args(" + getNSPrefix(item) + item.parentObject.fullName + "))$" + item.name :
+        getNSPrefix (item) + item.fullName;
+    
+    var isInPackage = item => item.env && item.env.indexOf("package:") === 0; // faster than 'substr(...) == "package"
+    //var mayHaveHelp = item => isInPackage(item) && item.type === "object" && !item.isHidden;
+    
     this.getSelectedNames = function (fullNames, extended = false) {
         let namesArr = [];
         let text, item;
@@ -1172,16 +1160,21 @@ sv.rbrowser = {};
                     s += "()";
                 } else if (item.type == "args") {
                     s += "="; // Attach '=' to function args
-                };
+                }
                 return s;
             };
         else modif = (s) => s;
 
-        let name = fullNames && !extended ? "fullName" : "name";
+        let getName;
+        if (fullNames && !extended)
+            getName = item => getFullName(item);
+            else
+            getName = item => item.name;
+        
         let selectedItemsOrd = _this.selectedItemsOrd;
         for (let i = 0; i < selectedItemsOrd.length; ++i) {
             item = selectedItemsOrd[i];
-            text = item[name];
+            text = getName(item);
             if (text) namesArr.push(modif(text, item));
         }
         return namesArr;
@@ -1238,44 +1231,47 @@ sv.rbrowser = {};
     };
 
     this.contextOnShow = function (event) {
-        var currentIndex = _this.selection.currentIndex;
+        let currentIndex = _this.selection.currentIndex;
         if (currentIndex == -1) return;
 
-        var isEnvironment, isPackage, isInPackage, noDelete, isFunction;
-        var item, type, name;
+        let itemIsEnvironment, itemIsPackage, itemIsInPackage, noDelete, itemIsFunction;
+        let item, className, name;
         item = _this.visibleData[currentIndex].origItem;
-        type = item.class;
+        className = item.className;
         name = item.fullName;
 
-        isEnvironment = item.type == "environment" || item.class == "environment";
-        isPackage = isEnvironment && (item.name.indexOf("package:") == 0);
-        isInPackage = !isPackage && item.env &&
-            (item.env.indexOf("package:") == 0);
+        itemIsEnvironment = item.className == "package" || item.className == "environment";
+        itemIsPackage = itemIsEnvironment && (item.name.indexOf("package:") == 0);
+        itemIsInPackage = !itemIsPackage && isInPackage(item);
 
-        noDelete = (isEnvironment && (nonDetachable.indexOf(name) != -1)) ||
-            isInPackage;
-        isFunction = type == "function";
+        noDelete = (itemIsEnvironment && (nonDetachable.indexOf(name) != -1)) || itemIsInPackage;
+        itemIsFunction = className == "function";
 
-        var cannotSaveToFile = ["data.frame", "matrix", "table"]
-            .indexOf(item.class) == -1;
-        var cannotSave = _this.selectedItemsOrd.filter(function (item) item.type == 'object' && item.group !=
+        let cannotSaveToFile = ["data.frame", "matrix", "table"]
+            .indexOf(item.className) == -1;
+        let cannotSave = _this.selectedItemsOrd.filter(item => item.className == 'object' && item.group !=
             'function').length == 0;
 
-        var multipleSelection = _this.selection.count > 1;
+        let multipleSelection = _this.selection.count > 1;
 
         // Help can be shown only for one object:
-        var noHelp = isPackage || !isInPackage;
+        let noHelp = itemIsPackage || !itemIsInPackage || item.type !== "object" || item.isHidden;
 
         //var menuNode = document.getElementById("rObjectsContext");
-        var menuItems = event.target.childNodes;
-        var testDisableIf, disable = false;
+        let menuItems = event.target.childNodes;
 
-        for (var i = 0; i < menuItems.length; ++i) {
+        for (let i = 0; i < menuItems.length; ++i) {
             if (!menuItems[i].hasAttribute('testDisableIf')) continue;
-            testDisableIf = menuItems[i].getAttribute('testDisableIf').split(/\s+/);
-            disable = false;
+            let testDisableIf = menuItems[i].getAttribute('testDisableIf').split(/\s+/);
+            let disable = false;
 
-            for (var j = 0; j < testDisableIf.length && !disable; ++j) {
+            //let props = [multipleSelection, noHelp, itemIsFunction, itemIsEnvironment, itemIsPackage, cannotSaveToFile,
+                //cannotSave, noDelete ];
+            //let testNames = ['t:multipleSelection', 't:noHelp', 't:isFunction', 't:isEnvironment', 't:isPackage',
+                //'t:cannotSaveToFile', 't:cannotSave', 't:noDelete' ];
+                       
+            
+            for (let j = 0; j < testDisableIf.length && !disable; ++j) {
                 switch (testDisableIf[j]) {
                 case 't:multipleSelection':
                     disable = disable || multipleSelection;
@@ -1284,13 +1280,13 @@ sv.rbrowser = {};
                     disable = disable || noHelp;
                     break;
                 case 't:isFunction':
-                    disable = disable || isFunction;
+                    disable = disable || itemIsFunction;
                     break;
                 case 't:isEnvironment':
-                    disable = disable || isEnvironment;
+                    disable = disable || itemIsEnvironment;
                     break;
                 case 't:isPackage':
-                    disable = disable || isPackage;
+                    disable = disable || itemIsPackage;
                     break;
                 case 't:cannotSaveToFile':
                     disable = disable || cannotSaveToFile;
@@ -1311,38 +1307,34 @@ sv.rbrowser = {};
 
     };
 
-    var rCmdGetObject = (name, env) =>
-        env == ".GlobalEnv" ?
-        name : "evalq(" + name + ", envir=as.environment(\"" +
-        sv.string.addslashes(env) + "\"))";
-
     this.doCommand = function (action) {
-        var obj = _this.selectedItemsOrd;
+        var items = _this.selectedItemsOrd;
         var command;
         switch (action) {
         case 'save':
             // Select only objects:
-            obj = obj.filter(function (x) {
+            items = items.filter(x => {
                 if (x.type != "object") {
                     _this.selection.toggleSelect(x.index);
                     return false;
                 } else return true;
             });
 
-            var dup = sv.array.duplicates(obj.map(function (x) x.name));
+            let dup = sv.array.duplicates(items.map(function (x) x.name));
             if (dup.length &&
                 ko.dialogs.okCancel("Objects with the same names from different" +
                     "environments selected. Following object will be taken from the " +
                     "foremost location in the search path: " + dup.join(', '),
                     "Cancel") == "Cancel") return;
 
-            var fileName = (obj.length == 1) ? obj[0].name
+            let fileName = items.length == 1 ? items[0].name
                 .replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
 
-            var dir;
+            let dir;
             try {
-                dir = sv.file.path(sv.rconn.eval("cat(getwd())"));
+                dir = sv.file.path(sv.rconn.eval("base::cat(base::getwd())"));
             } catch (e) {
+                // TODO: logging
                 return;
             }
 
@@ -1353,32 +1345,37 @@ sv.rbrowser = {};
                 true, oFilterIdx);
 
             if (!fileName) return;
-            command = 'save(list=c(' + obj.map(x => '"' + x.name + '"')
+            command = 'base::save(list=c(' + items.map(x => '"' + x.name + '"')
                 .join(',') + '), file="' + sv.string.addslashes(fileName) + '")';
 
             sv.r.eval(command);
             break;
             // Special handling for help
         case 'help':
-            for (var i in obj) {
-                // Help only for packages and objects inside a package
-                if (obj[i].fullName.indexOf("package:") == 0) {
-                    sv.r.help("", obj[i].fullName.replace(/^package:/, ''));
-                } else if (obj[i].env.indexOf("package:") == 0) {
-                    sv.r.help(obj[i].fullName, obj[i].env.replace(/^package:/, ''));
-                } else {
-                    sv.r.help(obj[i].fullName);
-                }
+            // help only for first item
+            //if (items.length > 1) 
+            let item = items[0];         
+        
+            //for (let i in items) {
+            // Help only for packages and objects inside a package
+            //isPackage
+            if (item.name.indexOf("package:") == 0) {
+                sv.r.help("", item.name.replace(/^package:/, ''));
+            } else if (isInPackage(item)) {
+                sv.r.help(item.name, item.env.replace(/^package:/, ''));
+            } else {
+                sv.r.help(item.name);
             }
+            //}
             break;
 
             //TODO: dump data for objects other than 'data.frame'
         case 'write.table':
         case 'writeToFile':
-            for (let i in obj)
-                if (obj.hasOwnProperty(i)) {
-                    let expr = rCmdGetObject(obj[i].fullName, obj[i].env);
-                    sv.r.saveDataFrame(expr, '', obj[i].name);
+            for (let i in items)
+                if (item.hasOwnProperty(i)) {
+                    let expr = getFullName(items[i]);
+                    sv.r.saveDataFrame(expr, '', items[i].name);
                 }
             break;
 
@@ -1390,12 +1387,12 @@ sv.rbrowser = {};
             /* falls through */
         default:
             let commandArr = [];
-            for (let i in obj)
-                if (obj.hasOwnProperty(i)) {
+            for (let i in items)
+                if (items.hasOwnProperty(i)) {
                     /*cmd.push(action + "(evalq(" + obj[i].fullName +
                     ", envir = as.environment(\"" +
                     obj[i].env. !!!addslashes() + "\")))");*/
-                    let cmdObj = rCmdGetObject(obj[i].fullName, obj[i].env);
+                    let cmdObj = getFullName(items[i]);
                     commandArr.push(action + "(" + cmdObj + ")");
                 }
             sv.r.eval(commandArr.join("\n"));
@@ -1504,7 +1501,7 @@ sv.rbrowser = {};
 
             sv.r.evalAsync(
                 'base::tryCatch(base::detach("' + sv.string.addslashes(pkg) +
-                '", unload=TRUE), error=function(e) cat("<error>"));',
+                '", unload=TRUE), error=function(e) base::cat("<error>"));',
                 function /*_packageListKeyEvent_callback*/ (data) {
                     logger.debug("packageListKeyEvent with data=" + data);
                     if (data.trim() != "<error>") {

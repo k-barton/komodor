@@ -9,11 +9,22 @@
 #' @param delete.file logical. Should the file be deleted afterwards?
 #' @export
 koPager <- function(files, header, title, delete.file) {
-    files <- gsub("\\", "\\\\", files[1L], fixed = TRUE)
-    tryCatch(koCmd(sprintf("sv.r.pager(\"%1$s\", \"%2$s\", %3$s)",
-        files, title,
-        if (delete.file) "true" else "false")),
-        error = function(e) browseURL(files, NULL))
+    file <- gsub("\\", "\\\\", files[1L], fixed = TRUE)
+ 
+    enc <- getOption("encoding")
+	charset <- if(enc %in% c("native.enc", "")) {
+		enc <- l10n_info()
+		if(enc$`UTF-8`) "utf-8" else
+			if (enc$`Latin-1`) "iso-8859-1" else
+			if(!is.null(enc$codepage)) sprintf("windows-%d", enc$codepage) else ""
+	} else enc
+		
+    tryCatch(koCmd(sprintf("sv.r.pager(\"%s\", \"%s\", \"%s\", %s, \"%s\")",
+        file, header, title, if (delete.file) "true" else "false", charset)
+	),  error = function(e) {
+		if(!is.null(origpager <- getTemp("oldoptions", item = "pager")))
+			browseURL(files, origpager)
+	})
 }
 
 
@@ -22,13 +33,14 @@ koPager <- function(files, header, title, delete.file) {
 #' @param url the URL to open.
 #' @export
 koBrowser <- function(url) {
-    url <- gsub("\\", "\\\\", url, fixed = TRUE)
     ## If the URL starts with '/', assume a file path
     ## on Unix or Mac and prepend 'file://'
-    url <- sub("^/", "file:///", url)
-    res <- tryCatch(koCmd(sprintf("sv.command.openHelp(\"%s\")", url)),
+    escapedUrl <- sub("^/", "file:///", url)
+	escapedUrl <-gsub("\\", "\\\\", escapedUrl, fixed = TRUE)
+    res <- tryCatch(koCmd(sprintf("sv.command.openHelp(\"%s\")", escapedUrl)),
         warning = function(e) e, error = function(e) e)
-	if(inherits(res, "condition")) browseURL(url, NULL)
+	if(inherits(res, "condition"))
+		browseURL(url, NULL)
 }
 		
 kmdrSaveObject <- 

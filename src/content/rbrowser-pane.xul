@@ -25,23 +25,21 @@ Contributors:
 %rbrowserDTD;
 ]>
 
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/platform.css" type="text/css"?>
-<!--<?xml-stylesheet href="chrome://places/skin/places.css" type="text/css"?>-->
 <?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/rbrowser.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodor/skin/rbrowser10.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
 <script type="application/x-javascript">
 <![CDATA[
 
-//* globals ko */
-
+//* globals ko, self */
 // find sv object in the main Komodo window:
 var sv;
 var p = self;
@@ -52,31 +50,24 @@ do {
 		break;
 	}
 } while(p.parent != p);
-if (typeof(sv) == 'undefined')
+if (typeof sv == 'undefined')
 	while ((p = p.opener)) {
 		if (p.sv) {
 			sv = p.sv;
 			break;
 		}
 	}
-]]>
+// ]]>
 </script>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
 <script type="application/x-javascript">
 <![CDATA[
-if(sv._versionCompare(ko.version, "10") < 0) {
-  let styleSheets = Array.apply(null, document.styleSheets);
-  let styleSheet = styleSheets.find(ss => ss.href.indexOf("rbrowser10.css") != -1);
-  styleSheet.disabled = true;
-}
-    
 window.addEventListener("DOMContentLoaded", function(/*event*/) {
    sv.rbrowser.onLoad();
 }, false);
 
-
-]]>
+// ]]>
 </script>
 
 
@@ -167,6 +158,7 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_help"
 			label="&sv.help;"
+			class="menuitem-iconic help-icon"
 			oncommand="sv.rbrowser.doCommand('help')"
 			testDisableIf="t:multipleSelection t:noHelp"
 			accesskey="H" />
@@ -175,7 +167,7 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 
 <vbox flex="1" id="rbrowserViewbox_rbrowserWrapper">
 	<vbox flex="99" id="rbrowserViewbox_rbrowser">
-		<hbox align="center" id="rbrowserToolbar" class="toolbar-box"
+		<hbox align="center" id="rbrowserToolbar" class="toolbar-box status-toolbar"
 			type="icons">
 			<toolbarbutton id="rbrowser_refresh_button"
 				tooltiptext="&sv.refresh.tip;"
@@ -315,11 +307,9 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 				ondblclick="sv.rbrowser.toggleViewSearchPath()"
 				collapse="none">
 				<vbox flex="1" height="32">
-					<hbox id="rbrowserSubpanelSplitterHboxBorder"/>
-				    <hbox id="rbrowserSubpanelSplitterHbox"
-						  flex="1" align="center">
-						  <label id="rbrowserSubpanelSplitterProjectLabel"
-						  class="panel-label">R search path</label>
+					<hbox id="rbrowserSubpanelSplitterHboxBorder" flex="1">
+				    <hbox id="rbrowserSubpanelSplitterHbox" flex="1" align="center" class="status-toolbar">
+						  <label id="rbrowserSubpanelSplitterProjectLabel" class="panel-label">R search path</label>
 						  <spacer flex="1"/>
 						  <toolbarbutton id="rbrowserSubpanelToggle"
 							  buttonstyle="pictures"
@@ -329,7 +319,8 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 							  tooltiptext="Open the R Search Path Subpanel"
 							  />
 						  <spacer flex="1"/>
-					</hbox>
+					  </hbox>
+          </hbox>
 				</vbox>
 			</splitter>
 

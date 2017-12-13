@@ -1,0 +1,169 @@
+
+@images: "chrome://komodor/skin/images";
+@svg-images: "koicon://ko-svg/chrome/komodor/skin/images";
+
+
+#rbrowserSubpanelToggle[state="open"] {
+  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg");
+}
+#rbrowserSubpanelToggle[state="collapsed"] {
+  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-up2.svg");
+}
+
+
+#rbrowserViewbox_rbrowserWrapper toolbarbutton image.toolbarbutton-icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* No default grippy image. Splitter-like cursor as appropriate. */
+#rbrowserSubpanelSplitter {
+  background: transparent !important;
+  border: none;
+  border-top: solid 1px ThreeDShadow;
+}
+
+#rbrowserSubpanelSplitterHboxBorder {
+  -moz-box-orient: horizontal;
+  height: 1px;
+  margin: 0 10px;
+}
+#rbrowserSubpanelSplitter > grippy {
+  background-image: none !important;
+}
+#rbrowserSubpanelSplitter,
+#rbrowserSubpanelSplitter label {
+  cursor: ns-resize;
+}
+#rbrowserSubpanelSplitter toolbarbutton  {
+  cursor: default;
+}
+
+#rbrowser_objects_tree {
+
+  treecol#r-dims {
+	  text-align: right;
+  }
+  
+  treechildren::-moz-tree-indentation {
+	  width: 15px !important;
+  }
+  
+  treechildren::-moz-tree-line {
+	  border: 1px red dotted;
+  }
+
+  treechildren::-moz-tree-image(icon) {
+	  list-style-image: url("@{images}/empty.png");
+	  padding-right: 8px;
+  }
+  
+  treechildren::-moz-tree-indentation(type-sub-object) {
+	  width: 15px;
+  }
+  
+  treechildren::-moz-tree-cell-text(group-package) {
+	  font-weight: bold;
+  }
+  
+  treechildren::-moz-tree-cell-text(group-package, empty) {
+	  opacity: 0.7;
+	  font-style: italic;
+  }
+  
+  treechildren::-moz-tree-cell-text(hidden) {
+      opacity: 0.4;
+  }
+  
+  treechildren::-moz-tree-cell-text(type-args),
+  treechildren::-moz-tree-cell-text(type-sub-object) {
+	  font-size: 95%;
+  }
+	  
+  treechildren::-moz-tree-cell-text(type-args, col-r-name) {
+	  font-style: italic;
+  }
+	
+  treechildren::-moz-tree-cell-text(group-language, col-r-name) {
+	  font-family: Consolas, Source Code Pro, monospace;
+  }
+  
+}
+// #rbrowser_objects_tree
+
+#rbrowser_filterbox {
+	margin: 4px 4px 2px 2px;
+	/*min-width: 40px;
+	max-width: 200px;*/
+}
+
+#rbrowser_filterbox.badRegEx {
+	color: #ea0000;
+}
+
+*[type=icons] > toolbarbutton .toolbarbutton-text {
+	display: none;
+}
+
+
+#rbrowser_filterByName_button {
+	list-style-image: url("@{svg-images}/filter-name.svg");
+
+}
+
+#rbrowser_filterByClass_button {
+	list-style-image: url("@{svg-images}/filter-class.svg");
+}
+
+
+#rbrowser_filterByName_button[checked="true"],
+#rbrowser_filterByClass_button[checked="true"] {
+	visibility: collapse;
+}
+
+#rbrowser_showAll_button {
+	list-style-image: url("@{svg-images}/eye-closed.svg");
+}
+
+#rbrowser_showAll_button[checked="true"] {
+	list-style-image: url("@{svg-images}/eye-red.svg");
+}
+
+#rbrowser_showAttributes_button {
+	list-style-image: url("@{images}/objects-hide-attributes.png");
+}
+
+#rbrowser_showAttributes_button[checked="true"] {
+	list-style-image: url("@{images}/objects-show-attributes.png");
+}
+
+
+.save-buffer-icon {
+	list-style-image: url("@{svg-images}/save.svg");
+}
+
+.robjects-fold-all-icon {
+	list-style-image: url("@{svg-images}/minus-circle.svg");
+}
+
+.robjects-expand-all-icon {
+    list-style-image: url("@{svg-images}/plus-circle.svg");
+}
+
+#rbrowserToolbar .refresh-icon {
+    list-style-image: url("@{svg-images}/refresh.svg");
+}
+
+
+#rbrowserToolbar > toolbarbutton {
+  border-width: 1px;
+  border-style: solid;
+  border-color: transparent;
+}
+
+#rbrowserToolbar > toolbarbutton[checked] {
+  box-shadow: inset 0px 1px 5px rgba(0, 0, 0, 0.15);
+  background-color: transparent;
+  background-image: none;
+  border-color: rgba(0, 0, 0, 0.4);
+}

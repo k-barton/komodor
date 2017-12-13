@@ -79,20 +79,6 @@ if (sv.pref === undefined) sv.pref = {};
             logger.info("Updated preference name from " + oldNames[i] + " to " + newNames[i]);
     }
 
-    //// Set default preferences
-    this.setDefaults = function sv_checkAllPref(revert) {
-        let val, rev, hasPref;
-        for (let i in _this.defaults)
-            if (_this.defaults.hasOwnProperty(i)) {
-                hasPref = _prefset.hasPref(i);
-                val = hasPref ? _this.getPref(i) : null;
-                rev = revert || (typeof val == "number" && isNaN(val)) ||
-                    val == "None";
-                //|| (_this.defaults[i] !== '' && val === '');
-                _this.setPref(i, _this.defaults[i], rev);
-            }
-    };
-
     this.getPref = function (prefName, defaultValue) {
         var ret, typeName, type;
         if (_prefset.hasPref(prefName)) {
@@ -105,20 +91,34 @@ if (sv.pref === undefined) sv.pref = {};
         return ret;
     };
 
-    this.setPref = function (prefName, value, overwrite, asInt) {
-        var typeName, type;
+    // exists =
+    // "convert" (overwrite + convert value) 
+    // "replace" (overwrite + convert preference)
+    // "omit" (no overwrite)
+    // "fix" (overwrite if wrong type)
+    this.setPref = function (prefName, value, exists = "convert", asInteger = false) {
+        var typeName, prefType = null, valueType = typeof value;
+        if (valueType == 'number') valueType = asInteger ? "long" : "double";
+        //console.log("prefName=", prefName);
         if (_prefset.hasPref(prefName)) {
-            if (overwrite === false) return '';
-            type = _prefset.getPrefType(prefName);
-
-        } else {
-            type = typeof value;
-            if (type == 'number') type = asInt ? "long" : "double";
-        }
-        type = ['double', 'long', 'boolean', 'string'].indexOf(type);
-        if (type == -1 || type == null)
+            if (exists == "omit") return '';
+            prefType = _prefset.getPrefType(prefName);
+            
+            if(prefType != valueType) {
+                if(exists != "convert") {
+                    _prefset.deletePref(prefName);
+                     prefType = valueType;
+                }
+            } else if(exists == "fix") // correct type
+                return '';
+        } else 
+            prefType = valueType;
+            
+        //console.log("prefType=", prefType, " valueType=", valueType);
+        let typeIndex = ['double', 'long', 'boolean', 'string'].indexOf(prefType);
+        if (typeIndex === -1 || typeIndex === null)
             return undefined;
-        typeName = ['Double', 'Long', 'Boolean', 'String'][type];
+        typeName = ['Double', 'Long', 'Boolean', 'String'][typeIndex];
         _prefset['set' + typeName + 'Pref'](prefName, value);
         return typeName;
     };
@@ -127,5 +127,19 @@ if (sv.pref === undefined) sv.pref = {};
         _prefset.deletePref(prefName);
         return _prefset.hasPref(prefName);
     };
+    
+    // Set default preferences
+    this.setDefaults = function (revert) {
+        let val, hasPref;
+        for (let i in _this.defaults)
+            if (_this.defaults.hasOwnProperty(i)) {
+                hasPref = _prefset.hasPref(i);
+                val = hasPref ? _this.getPref(i) : null;
+                let valType = typeof val;
+                let rev = revert || (valType == "number" && isNaN(val)) || val == "None";
+                _this.setPref(i, _this.defaults[i], rev ? "replace" : "fix", valType == "number" && Number.isInteger(_this.defaults[i]));
+            }
+    };
+    
 
 }).apply(sv.pref);

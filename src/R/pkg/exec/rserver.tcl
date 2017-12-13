@@ -22,7 +22,7 @@ proc Start {port} {
 	if [catch {
 		set Server($port) [socket -server Rserver::ConnectionAccept $port]
 	} err1] {
-			Rprint "Rserver::Start: $err1" 1
+			Rprint "Error: in 'Rserver::Start': $err1" 1
 			return 0
 		}
 	}
@@ -34,7 +34,7 @@ proc Stop {port} {
 	if {[ info exists Server($port) ]} {
 
 		if [catch { close $Server($port) } err1] {
-			Rprint "Rserver::Stop: $err1" 1
+			Rprint "Error: in 'Rserver::Stop': $err1" 1
 		}
 		#close $Server($port)
 		unset Server($port)
@@ -48,7 +48,7 @@ proc CloseAllConnections {} {
 	variable Connection
 	foreach {id conn} [array get Connection] {
 		if [catch { close [lindex $conn 2] } err1] {
-			Rprint "Rserver::CloseAllConnections: $err1" 1
+			Rprint "Error in 'Rserver::CloseAllConnections': $err1" 1
 		}
 		#close [lindex $conn 2]
 		unset Connection($id)
@@ -87,7 +87,7 @@ proc DoServe {sock} {
 
     if {[eof $sock] || [catch {gets $sock line}]} {
 		if [catch { close $sock } err1] {
-			Rprint "Rserver::DoServe: $err1" 1
+			Rprint "Error: in 'Rserver::DoServe': $err1" 1
 		}
 		#close $sock
 		#set x Connection(addr,$sock)
@@ -100,16 +100,17 @@ proc DoServe {sock} {
 #		Replace different newlines with \n
 		set line [string map [list "\r\n" "\n" "\r" "\n"] $line]
 
-		#Rprint "* $line *" 1
 		catch {
 			regexp  {(?s)\A\x01(.)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
-			#puts "$smode / $sid / '$scommand'"
+			
+			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
+
 			#set line [Reval $line "addr,$sock"]
 			set line [Reval "$r_command" $r_sid $r_mode]
 			# XXX Here Raccept "$r_command" $r_sid $r_mode
 			#          assign command to tempEnv$commands$r_sid
 			if [catch { puts $sock $line } err1] {
-				Rprint "Rserver::DoServe: $err1" 1
+				Rprint "Error: in 'Rserver::DoServe': $err1" 1
 				close $sock
 				unset Connection(addr,$sock)
 			}
@@ -121,8 +122,6 @@ proc DoServe {sock} {
 }
 # END namespace Rserver
 
-
-###=============================================================================
 
 # A simple client
 
@@ -151,7 +150,7 @@ proc Start_TO { port {host "127.0.0.1"} {timeout 5} } {
 
 proc Start { port {host "127.0.0.1"} {timeout 5}} {
 	if [catch { set conn [socket $host $port] } err1] {
-		Rserver::Rprint "Rclient::Start: $err1" 1
+		Rserver::Rprint "Error: in 'Rclient::Start': $err1" 1
 		return -1
 	}
 

@@ -4,14 +4,14 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "var res = [];", 
-    "for(var i in sv.pref.defaults)", 
-    "    res.push(i + \"=\" + sv.pref.getPref(i));", 
-    "ko.dialogs.alert(\"R preferences:\", res.join(\"\\r\\n\"), \"Komodo-R interface\");"
+    "/* globals sv, ko */", 
+    "", 
+    "let str = Object.keys(sv.pref.defaults).map((i) => `${i} = ${sv.pref.getPref(i)} (${sv.pref.prefset.getPrefType(i)})`);", 
+    "ko.dialogs.alert(\"R preferences:\", str.join(\"\\r\\n\"), \"Komodo-R interface\");"
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 
-  "version": "1.0.12", 
+  "version": "1.1.5", 
   "async": false, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/equalizer3.svg"

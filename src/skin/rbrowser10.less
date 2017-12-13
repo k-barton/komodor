@@ -1,0 +1,104 @@
+
+//@scc-ok: foo;
+@import url("chrome://komodo/skin/global/colors.less");
+@import url("resource://profile/colors.less");
+
+@twisty-closed: "koicon://ko-svg/chrome/komodo/skin/images/trees/twisty-right.svg";
+@twisty-open: "koicon://ko-svg/chrome/komodo/skin/images/trees/twisty-down.svg";
+
+@import url("chrome://komodor/skin/rbrowser-common.less");
+
+
+  #rbrowser_objects_tree {
+    scrollbar {
+      -moz-appearance: scrollbartrack-horizontal;
+      cursor: default;
+      background: transparent;
+      pointer-events: auto;
+      margin: 1px;
+    }
+    
+    @media all and (-moz-overlay-scrollbars) {
+      scrollbar[root="true"] {
+        position: relative ;
+        z-index: 2147483647; /* largest positive value of a signed 32-bit integer */
+      }
+    
+      scrollbar:not([active="true"]),
+      scrollbar[disabled="true"] {
+        visibility: hidden;
+      }
+    }
+    
+    scrollbar[orient="vertical"] {
+      -moz-appearance: scrollbartrack-vertical;
+    }
+    
+    treecolpicker,
+    treecol {
+      background-color: @contrast-widget;
+      color: @icons;
+      border-top: 1px @contrast-widget inset; 
+      border-bottom: 1px @contrast-widget outset;
+      //border-right: 1px @contrast-widget inset;
+      line-height: 0.5em;
+    }
+    
+    //treecolpicker,
+    //treecol:last-of-type {
+    //  border-right-style: none;
+    //}
+    
+    treecol label {
+      padding: 0.2rem 4px;
+      font-size: 85%;
+    }
+
+    treechildren::-moz-tree-line {
+	  visibility: visible;
+	  border: 1px dotted @selected;
+    }
+    
+    treechildren::-moz-tree-line(selected) {
+	  border-color: @selected-foreground;
+    }
+    
+    treechildren::-moz-tree-twisty {
+      list-style-image: none ;
+      background-image: url("@{twisty-closed}?size=14&scheme-name=interface&scheme-color=selected");
+      background-size: 14px;
+      background-repeat: no-repeat;
+      visibility: visible !important;
+    }
+    
+    treechildren::-moz-tree-twisty(open) {
+      background-image: url("@{twisty-open}?size=14&scheme-name=interface&scheme-color=selected");
+    }
+    treechildren::-moz-tree-twisty(hover) {
+      background-image: url("@{twisty-closed}?size=14&scheme-name=interface&scheme-color=special");
+    }
+    treechildren::-moz-tree-twisty(hover, open) {
+      background-image: url("@{twisty-open}?size=14&scheme-name=interface&scheme-color=special");
+    }
+    
+    treechildren::-moz-tree-twisty(selected) {
+      background-image: url("@{twisty-closed}?size=14&scheme-name=interface&scheme-color=foreground");
+    }
+    treechildren::-moz-tree-twisty(selected, open) {
+      background-image: url("@{twisty-open}?size=14&scheme-name=interface&scheme-color=foreground");
+    }
+    
+    treechildren::-moz-tree-row(selected) {
+      background-color: @special-widget;
+    }
+    
+    treechildren::-moz-tree-cell-text(selected) {
+      color: @selected-foreground !important;
+    }
+    
+  }
+  
+  #rbrowserSubpanelSplitterHbox {
+    margin: 0px;
+  }
+

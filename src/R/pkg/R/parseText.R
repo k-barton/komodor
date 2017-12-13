@@ -1,7 +1,7 @@
 #' @title Parse expressions
 #' @md
-#' @description Parses a string and returns an unevaluated expression, a `"try-error"` object in case of an
-#' invalid code, or `NA` if the (last) expression is incomplete.
+#' @description Parses a string and returns an unevaluated expression, an `"error"` object in case of 
+#' invalid code, or `NA` if the (most recent) expression is incomplete.
 #' @param text character vector. The text to parse. Elements are treated as if they were lines of a file.
 #' @export
 `parseText` <-
@@ -43,10 +43,10 @@ function (text) {
 		#}
 
 		# for legacy uses, make it a try-error
-		e <- res
-		res <- as.character.error(res)
-		class(res) <- "try-error"
-		attr(res, 'error') <- e
+		#e <- res
+		#res <- as.character.error(res)
+		#class(res) <- "try-error"
+		#attr(res, 'error') <- e
 	}
     return(res)
 }

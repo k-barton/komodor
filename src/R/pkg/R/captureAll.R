@@ -17,6 +17,14 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		envir = getEvalEnv(), doTraceback = TRUE) {
 	# TODO: support for 'file' and 'split'
 	
+	
+	## FIXED?: warning() remove ..korInternal
+	## Komunikat ostrzegawczy:
+	## In withVisible(..korInternal(eval(.._captureAll.expr_..,  ... :
+	##
+	
+	## FIXME "./TODO.error.traceback.RData"
+
 
 	last.warning <- list()
 	Traceback <- NULL
@@ -162,6 +170,9 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		error = function (e) invokeRestart("grmbl", e, sys.calls()),
 		warning = function (e) {
 			DEBUG("warning")
+			
+			if(".._captureAll.expr_.." %in% all.vars(conditionCall(e)))
+				e$call <- NULL
 
 			if(.getWarnLevel() != 0L) {
 				mark(FALSE, 2L)

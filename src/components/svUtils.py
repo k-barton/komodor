@@ -208,7 +208,7 @@ class svUtils:
             self.notifyObservers(WrapObject(cmdInfo, 
                 components.interfaces.svICommandInfo),
                 'r-command-sent', None)
-
+        
 
         rMode = 'h' if modeArr.count('h') else 'e'
         do_print = rMode == 'h'
@@ -253,7 +253,7 @@ class svUtils:
             result = re.sub('(?<=\\\\)[0-9]{3}',
                             lambda x: ("u%04x" % int(x.group(0), 8)), result)
             # TODO: shouldn't this be done elsewhere?
-			# Fix bad JSON from RSONIO::toJSON: control characters are not
+            # Fix bad JSON from RSONIO::toJSON: control characters are not
             #  escaped at all.
             #  Must not escape e.g. any newlines outside the JSON object:
             result = re.sub('[\x00-\x08\x0e-\x1f]',

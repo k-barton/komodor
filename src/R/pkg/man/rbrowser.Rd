@@ -6,8 +6,8 @@
 \alias{objSearch}
 \title{Functions used by R object browser}
 \usage{
-objList(id = "default", envir = getEvalEnv(), object = NULL,
-  all.names = FALSE, pattern = "", group = "", all.info = FALSE,
+objList(id = "default", envir = getEvalEnv(), expr = NULL,
+  all.names = FALSE, pattern = NULL, group = NULL, all.info = FALSE,
   compare = TRUE, ...)
 
 write.objList(x, file = "", sep = " ", eol = "\\n", header = !attr(x,
@@ -20,7 +20,7 @@ objSearch(sep = "\\t", compare = TRUE)
 
 \item{envir}{which environment to use in listing the objects. Defaults to the current evaluation environment.}
 
-\item{object}{optional, name of the object of which elements should be listed.}
+\item{expr}{optional, the object of which elements should be listed.}
 
 \item{all.names}{logical. If \code{FALSE}, names which begin with a \code{.} are omitted.}
 
@@ -44,10 +44,11 @@ objSearch(sep = "\\t", compare = TRUE)
 Internal functions for Komodo's R object browser.
 }
 \examples{
+ objList()
+ 
 if(require(datasets)) {
-   objList()
-   write.objList(objList(object="npk", compare=FALSE))
-   objList(object="Loblolly")
-   objList(object="Loblolly") ## an empty list (compare is TRUE)
+   write.objList(objList(expr=npk, compare=FALSE))
+   objList(expr=Loblolly)
+   objList(expr=Loblolly) ## an empty list (compare is TRUE)
 }
 }

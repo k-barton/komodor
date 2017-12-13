@@ -25,7 +25,9 @@
 <!ENTITY sv.filterByName "Filter name">
 <!ENTITY sv.filterEmptyText "Filter name...">
 <!ENTITY sv.listAllNames "List all objects (toggle)">
-<!ENTITY sv.help "Help">
+<!ENTITY sv.showHiddenObjects "List hidden objects">
+<!ENTITY sv.hideHiddenObjects "Do not list hidden objects">
+<!ENTITY sv.help "R help on object">
 <!ENTITY sv.names "Names">
 <!ENTITY sv.str "Structure">
 <!ENTITY sv.plot "Plot">
@@ -42,5 +44,3 @@
 <!ENTITY sv.selectAll.acc "A">
 <!ENTITY sv.selectSiblings "Select current level">
 <!ENTITY sv.selectSiblings.acc "L">
-
-

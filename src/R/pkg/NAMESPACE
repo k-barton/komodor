@@ -2,6 +2,7 @@ export(
 existsTemp, getTemp, assignTemp,
 enumConnections, enumServers, startServer, stopAllConnections, stopAllServers, 
 koCmd, koBrowseHere, koBrowseEnd, koPager, koBrowser,
+koDebug,
 completion, completeSpecial, completeArgs,
 startup,
 objList, write.objList, objSearch,
@@ -22,7 +23,7 @@ isInstalledPkg
 )
 
 importFrom("tcltk", ".Tcl.callback", ".Tcl", "tcl")
-importFrom("methods", "selectMethod", "slot", "slotNames")
+importFrom("methods", "selectMethod", "slot", "slotNames", "is")
 importFrom("utils", "compareVersion", "contrib.url", "getCRANmirrors",
            "install.packages", "installed.packages", "old.packages",
            "packageDescription", "remove.packages", "write.table",

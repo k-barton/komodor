@@ -105,11 +105,9 @@ def scan_buf(buf, mtime=None, lang="R_extended"):
     else:
         path = buf.path
         
-    tree = ET.Element("codeintel", version="2.0",
-                      xmlns="urn:activestate:cix:2.0")
+    tree = ET.Element("codeintel", version="2.0", xmlns="urn:activestate:cix:2.0")
     file = ET.SubElement(tree, "file", lang=lang, mtime=str(mtime))
-    blob = ET.SubElement(file, "scope", ilk="blob", lang=lang,
-                         name=os.path.basename(path))
+    blob = ET.SubElement(file, "scope", ilk="blob", lang=lang, name=os.path.basename(path))
 
     # Dev Note:
     # This is where you process the R content and add CIX elements

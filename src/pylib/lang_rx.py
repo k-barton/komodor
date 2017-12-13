@@ -77,7 +77,6 @@ except ImportError:
 lang = "R_extended"
 # log = logging.getLogger("codeintel.R")
 
-
 # These keywords and builtin functions are copied from "Rlex.udl".
 # Reserved keywords
 keywords = [
@@ -179,7 +178,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             self._rconn = RConn(-1)
             self._rconn_set_r_port(env, "RInterface.RPort")
             # env.add_pref_observer("RInterface.RPort", self._rconn_set_r_port)
-        return self._rconn.eval_in_R(cmd)
+        return self._rconn.eval_in_r(cmd)
     
     ##
     # Implicit triggering event, i.e. when typing in the editor.
@@ -231,7 +230,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         return None
 
     def _unquote(self, text, quotes = '`"\''):
-        if(text[0] in quotes and text[-1] == text[0]):
+        if(len(text) > 1 and text[0] in quotes and text[-1] == text[0]):
             return text[1:len(text) - 1]
         return text
 
@@ -343,6 +342,9 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             ctlr.error("Unknown trigger type: %r" % (trg, ))
             ctlr.done("error")
             return
+        
+        # TODO ctlr.set_calltips()
+        # TODO TRG_FORM_CALLTIP, TRG_FORM_DEFN
 
         if completions is None:
             ctlr.done("not found")
@@ -386,7 +388,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         if not abspath or abspath[-1] not in self.pathsep:
             abspath += os.sep
         if not isabs:
-            pwd = self._rconn.eval_in_R('cat(getwd())').strip()
+            pwd = self._rconn.eval_in_r('base::cat(base::getwd())').strip()
             if os.path.exists(pwd):
                 abspath = os.path.join(pwd, abspath)
         # log.debug("complete path: " + abspath);
@@ -604,9 +606,8 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
     def _in_func(self, pos, acc):
         p = pos - 1
-        p_min = max(0, pos - 512) #  whole function call in R can be very long
-                                  #  e.g. with 'lapply'
-        
+        p_min = max(0, pos - 1024) #  whole function call in R can be very long
+       
         arg_count = 1
         argnames = list()
         commapos = -1
@@ -639,7 +640,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
                     #start, end, word = self._get_word_back(fn_start - 1, acc)
                     if acc.style_at_pos(start) in self.word_styles:
                         argnames.reverse()
-                        return (fn_start, p, fn_word, arg_count, argnames, ''.join(word) )
+                        return (fn_start, p, fn_word, arg_count, argnames, ''.join(word))
                 return None
 
             elif ch == "(":

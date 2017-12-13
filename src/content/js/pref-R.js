@@ -175,7 +175,7 @@ function PrefR_OnLoad(/*event*/) {
 					 'RInterface.format.replaceAssign', 'RInterface.format.newlineBeforeBrace'];
 
     boolPrefs.forEach((prefName) => {
-		document.getElementById(prefName).checked = prefset.getBooleanPref(prefName); // ?
+		document.getElementById(prefName).checked = prefset.getBooleanPref(prefName);
 	});
 	
 	var menu1 = document.getElementById("CRANMirror");
@@ -191,12 +191,12 @@ function PrefR_OnLoad(/*event*/) {
     var menu = document.getElementById("RInterface.runRAs");
 	// Remove the 'Choose...' menu option on first showing
 	if(prefset.getStringPref("RInterface.runRAs") == '') {
-		menu.addEventListener("popupshowing", function(event) {
+		menu.addEventListener("popupshowing", (/*event*/) => {
 			if (menu.getItemAtIndex(0).value == '') menu.removeItemAt(0);
 		}, true);
-	} else {
+	} else 
 		apps.shift();
-	}
+
     var platform = navigator.platform.substr(0, 1).toLowerCase();
 	apps = apps.filter(
 	    a => (a.platform.indexOf(platform) != -1) && 
@@ -204,13 +204,16 @@ function PrefR_OnLoad(/*event*/) {
 			 a.required.every(y => sv.file.whereIs(y).length != 0))
 		);
 		
-	var tmp = {};
-	for (let i in apps) tmp[apps[i].id] = apps[i];
-	apps = tmp;
-
 	menu.removeAllItems();
-    for (let i in apps) menu.appendItem(apps[i].name, i, null);
-
+	
+	var tmp = {};
+	for (let i = 0; i < apps.length; ++i) {
+		tmp[apps[i].id] = apps[i];
+		menu.appendItem(apps[i].name, apps[i].id, null);
+	}
+	apps = tmp;
+	tmp = null;
+	
 	// DEBUGGING in JSShell:
 	// scope(Shell.enumWins[2]) //chrome://komodo/content/pref/pref.xul
 	// scope(document.getElementsByTagName("iframe")[0].contentWindow)

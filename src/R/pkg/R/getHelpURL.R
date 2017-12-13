@@ -1,4 +1,5 @@
 #' @rdname kor-internal
+#' @name kor-internal
 #' @md
 #' @description `getHelpURL` gets the URL of an R help page.
 #' @param topic,package see `help`

@@ -1,3 +1,13 @@
+#' @rdname koDebug
+#' @name koDebug
+#' @title Browsing after an error
+#' @md
+#' @description This function allows for debugging (browsing) after an error occurred in the environment
+#'    (frame) that caused the error. Similar to `recover` with only the innermost frame available.
+#'    It does not set a debug flag like `debug` does, instead returns a modified function `FUN`.
+#' @param FUN the function to modify 
+#' @return a new function, being `FUN` wrapped in a debugging code that executes `koBrowseHere` after an error.
+#' @export
 koDebug <-
 function(FUN) {
 	expr <- expression(tryCatch(BODY, error = function(e) {

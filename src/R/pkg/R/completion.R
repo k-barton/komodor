@@ -275,8 +275,10 @@ argNamesFun <- function(f) if(is.function(f)) names(formals(f)) else NULL
 
 # "imports" from unexported "utils"
 cplutils <- list()
-for(i in c(".assignLinebuffer", ".assignEnd", ".guessTokenFromLine", ".completeToken", ".retrieveCompletions")) 
+for(i in c(".assignLinebuffer", ".assignEnd", ".guessTokenFromLine", 
+    ".completeToken", ".retrieveCompletions")) 
 	cplutils[[i]] <- getFrom("utils", i)
+rm(i)
 
 
 .reserved.words <- c("if", "else", "repeat", "while", "function", "for", "in",

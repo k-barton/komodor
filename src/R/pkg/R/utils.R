@@ -6,8 +6,9 @@
 #' @export
 isInstalledPkg <-
 function(pkgName, json = TRUE) {
-   rval <- length(find.package(pkgName[1L], quiet = TRUE)) == 1L # length(pkgName)
-   if(json) cat(as.integer(rval))
+   rval <- length(find.package(pkgName[1L], quiet = TRUE)) == 1L  # length(pkgName)
+   if (json) 
+      cat(as.integer(rval))
    invisible(rval)
 }
 
@@ -15,11 +16,15 @@ function(pkgName, json = TRUE) {
 #' @export
 #' @md
 #' @param \dots arguments passed to `formatR::tidy_source`.
-#' @param encoding the name of the encoding to be assumed.
-formatCode <- function(..., encoding = "UTF-8") {
-	oo <- options(encoding = encoding)
-    on.exit(options(oo))
-	result <- tryCatch(formatR::tidy_source(...), error = function(e) e)
-	cat(if(inherits(result, "condition")) 0 else 1)
-	invisible()
+## @param encoding the name of the encoding to be assumed.
+formatCode <-
+function(..., encoding = "UTF-8") {
+   oo <- options(encoding = encoding)
+   on.exit(options(oo))
+   result <- tryCatch(get("tidy_source", asNamespace("formatR"))(...), error = function(e) e)
+   cat(if (inherits(result, "condition")) 
+      0 else 1)
+   invisible()
 }
+
+
