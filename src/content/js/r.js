@@ -224,9 +224,9 @@ if (!Object.entries)
             }
 
             if (isTmp)
-                cmd = comment + 'kor::sourceTemp("' + sv.r.arg(path) + '", encoding="utf-8")';
+                cmd = comment + 'kor::sourceTemp(' + sv.r.arg(path) + ', encoding="utf-8")';
             else
-                cmd = comment + 'base::source("' + sv.r.arg(path) + '", encoding="' + view.encoding + '")';
+                cmd = comment + 'base::source(' + sv.r.arg(path) + ', encoding="' + view.encoding + '")';
 
             rval = _this.eval(cmd);
 
@@ -410,7 +410,8 @@ if (!Object.entries)
             let oFilterIdx = {
                 value: filterIndex
             };
-            fileName = sv.fileOpen(dir, objName, "", ["Comma separated values (*.csv)|*.csv",
+            fileName = sv.fileOpen(dir, objName, "", [
+                "Comma separated values (*.csv)|*.csv",
                 "Tab delimited (*.txt)|*.txt",
                 "Whitespace delimited values (*.txt)|*.txt"
             ], false, true, oFilterIdx);
@@ -429,23 +430,28 @@ if (!Object.entries)
         return args.map((a) => {
             switch (typeof a) {
             case "object":
-                let rval;
-                if (Array.isArray(a))
+                let rval, named = false;
+                if (Array.isArray(a)) {
                     rval = a.map(b => r_arg(b));
-                else if (a === null)
+                } else if (a === null)
                     return "NULL";
                 else {
                     let entries = Object.entries(a),
                         i = 0;
+                    named = true;
                     rval = new Array(entries.length);
                     for (let [key, value] of entries) rval[i++] =
                         `${sv.string.addslashes(key)}=${r_arg(value)}`;
+                    a = Object.values(a);
                 }
-                return "c(" + rval.join(", ") + ")";
+                let t1 = typeof a[0];
+                return !named && rval.length == 1 ? rval[0] :
+                    (a.every(item => typeof item === t1) ? "c" : "list") +
+                    "(" + rval.join(", ") + ")";
             case "boolean":
                 return a ? "TRUE" : "FALSE";
             case "number":
-                if(!isFinite(a)) {
+                if (!isFinite(a)) {
                     if (isNaN(a)) return "NaN";
                     return (a < 0) ? "-Inf" : "Inf";
                 }
@@ -456,6 +462,14 @@ if (!Object.entries)
             }
         });
     };
+    
+    // TODO key.indexOf("#") !== -1)? key + "=" : ""
+    // TODO key.indexOf("!") !== -1)? args[key] : sv.r.arg(args[key])
+    
+    this.rCall = (fun, args) =>
+        fun + "(" + Object.keys(args).map(key => 
+            (((key.indexOf("#") === -1)? key.replace("!", '') + "=" : "") +
+             ((key.indexOf("!") !== -1)? args[key] : sv.r.arg(args[key])))).join(", ") + ")";
 
     this.formatRCodeInView = function () {
         var view = ko.views.manager.currentView;
