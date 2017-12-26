@@ -5,9 +5,12 @@
 \alias{koBrowseEnd}
 \title{Environment browser}
 \usage{
-koBrowseHere()
+koBrowseHere(refresh = TRUE)
 
-koBrowseEnd()
+koBrowseEnd(refresh = TRUE)
+}
+\arguments{
+\item{refresh}{logical, if \code{TRUE} (default), R Object Browser widget is refreshed.}
 }
 \description{
 Interrupt the execution of an expression and allow the inspection of the environment where

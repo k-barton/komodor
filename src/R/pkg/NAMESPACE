@@ -4,8 +4,9 @@ enumConnections, enumServers, startServer, stopAllConnections, stopAllServers,
 koCmd, koBrowseHere, koBrowseEnd, koPager, koBrowser,
 koDebug,
 completion, completeSpecial, completeArgs,
+
 startup,
-objList, write.objList, objSearch,
+objls, write.objList, objSearch,
 
 pkgManInstallPackages, pkgManRemovePackage, pkgManDetachPackage, 
 pkgManLoadPackage, pkgManGetUpdateable, pkgManGetDescription, 
@@ -16,7 +17,9 @@ stringize, getHelpURL, sourceTemp,
 qParse, formatCode,
 
 setEvalEnv, getEvalEnv,
-isInstalledPkg
+isInstalledPkg,
+
+rmElement
  
 # TclReval, TclReval2, tclfun,
 

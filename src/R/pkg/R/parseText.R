@@ -27,26 +27,8 @@ function (text) {
 			res$message <- substr(msg, attr(m,"capture.start")[1L], nchar(msg))
 		}
 
-		#'res$message <- paste0("(parser) ", res$message)
+		# res$message <- paste0("(parser) ", res$message)
 		res$call <- NULL
-
-		# XXX: Removes line numbers (we don't do that currently)
-		#if(m != -1) {
-		#	mstart <- attr(m,"capture.start")
-		#	mstop <- mstart + attr(m,"capture.length") - 1
-		#	#'for(i in 1:length(mstart)) print(substr(msg, mstart[i], mstop[i]))
-		#	e$message <- gettextf("%s in \"%s\"",
-		#						  substr(msg, mstart[1L], mstop[1L]),
-		#						  substr(msg, mstart[2L], mstop[2L]),
-		#						  domain = "R")
-		#	e$call <- NULL
-		#}
-
-		# for legacy uses, make it a try-error
-		#e <- res
-		#res <- as.character.error(res)
-		#class(res) <- "try-error"
-		#attr(res, 'error') <- e
 	}
     return(res)
 }

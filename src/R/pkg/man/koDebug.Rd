@@ -4,10 +4,12 @@
 \alias{koDebug}
 \title{Browsing after an error}
 \usage{
-koDebug(FUN)
+koDebug(FUN, refresh = TRUE)
 }
 \arguments{
 \item{FUN}{the function to modify}
+
+\item{refresh}{logical, if \code{TRUE} (default), R Object Browser widget is refreshed.}
 }
 \value{
 a new function, being \code{FUN} wrapped in a debugging code that executes \code{koBrowseHere} after an error.

@@ -2,19 +2,12 @@
 #' @md
 #' @export
 `objSearch` <-
-function(sep = "\t", compare = TRUE) {
+function(sep = "\t") {
     rval <- search()
-	changed <- TRUE
-    if (isTRUE(compare)) {
-        oldSearch <- getTemp(".objSearchCache")
-        changed <- !identical(rval, oldSearch)
-        if (changed) assignTemp(".objSearchCache", rval)
-    }
-    if (changed) {
-        if (!is.null(sep)) return(paste0(rval, collapse = sep))
-        return(rval)
-    } else return("")
+	if(!identical(ee <- getEvalEnv(), .GlobalEnv)) {
+		eeName <- attr(ee, "name")
+		rval <- c(if(is.null(eeName)) "EvalEnv" else paste0("<EvalEnv[", eeName[1L], "]>"), rval)
+	}
+	return(paste(rval, collapse = sep))
 }
-
-
 

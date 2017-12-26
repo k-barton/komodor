@@ -8,9 +8,10 @@
 #'          environment.
 
 #' @rdname koBrowse
+#' @param refresh logical, if `TRUE` (default), R Object Browser widget is refreshed.
 #' @export
 koBrowseHere <-
-function() {
+function(refresh = TRUE) {
 	if(!identical(sys.frame(sys.nframe()), .GlobalEnv)) {
 	    expr <- sys.call(sys.nframe() - 1L)
 		if(all(c(".._captureAll.expr_..", ".._captureAll.envir_..") %in% all.vars(expr))) {
@@ -18,20 +19,28 @@ function() {
 			message("koBrowseHere called from top level")
 		} else {
 			eval.parent(expression(setEvalEnv(sys.frame(sys.nframe()))))
+			env <- getEvalEnv()
+			attr(env, "name") <- envName <- format(expr)[1L]
+            
+			if(refresh) koCmd("setTimeout(() => sv.rbrowser.refresh(), 100)");
+
 			stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
-				format(expr)[1L],
+				envName,
 				"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
 				"\n(Note this will not resume execution of the function)")))
 		}
 	}
 }
 
+
 #' @rdname koBrowse
 #' @export
 koBrowseEnd <-
-function() {
+function(refresh = TRUE) {
 	if(!identical(getEvalEnv(), .GlobalEnv)) {
 		setEvalEnv(.GlobalEnv)
 		message("Evaluating in '.GlobalEnv'")
+        if(refresh) koCmd("setTimeout(() => sv.rbrowser.refresh(), 100)");
 	} else message("Already in '.GlobalEnv'")
+	invisible()
 }

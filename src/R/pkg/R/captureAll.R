@@ -16,15 +16,9 @@
 function (expr, conn = NULL, markStdErr = FALSE,
 		envir = getEvalEnv(), doTraceback = TRUE) {
 	# TODO: support for 'file' and 'split'
-	
-	
-	## FIXED?: warning() remove ..korInternal
-	## Komunikat ostrzegawczy:
-	## In withVisible(..korInternal(eval(.._captureAll.expr_..,  ... :
-	##
-	
 	## FIXME "./TODO.error.traceback.RData"
 
+	## XXX: delegate some code from tryCatch 'error' expressions to reduce amount of code passed to call stack 
 
 	last.warning <- list()
 	Traceback <- NULL
@@ -66,7 +60,6 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	`.._captureAll.evalVis_..` <- function (.._captureAll.expr_..)
 	     withVisible(..korInternal(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv())))
 	     #withVisible(.Internal("eval", .._captureAll.expr_.., .._captureAll.envir_.., baseenv()))
-
 		 
 	#dExpr <- quote(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv()))
 	#deparse(dExpr)
@@ -82,8 +75,6 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		#	e$message <- "WTF"# sub("<text>:\\d+:\\d+: *", "", e$message, perl = TRUE)
 		#}
 		DEBUG("Call: ", e$call)
-		
-		#koBrowseHere()
 		
 		if(doTraceback) {
 			cfrom <- ncls
@@ -112,7 +103,6 @@ function (expr, conn = NULL, markStdErr = FALSE,
 				e$call <- NULL
 
 			# DEBUG
-			#
 			#for(i in 1:ncls) cat(">>", i, ": ", deparse(calls[[i]], width.cutoff = 20, nlines = 1), "\n")
 			#cat("from: ", cfrom, " to", cto, " [n = ", ncls, "]\n")
 			###
@@ -128,47 +118,31 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		if(.getWarnLevel() == 0L && length(last.warning) > 0L)
 			cat(.gettextx("In addition: "))
 	}
-
-	res <- tryCatch(withRestarts(withCallingHandlers({
-			# TODO: allow for multiple expressions and calls (like in
-			# 'capture.output'). The problem here is how to tell 'expression'
-			# from 'call' without evaluating it?
-
-			for(ex in expr) {
-				DEBUG("before eval")
-				res1 <- .._captureAll.evalVis_..(ex)
-				DEBUG("after eval")
-
-				DEBUG("print")
-				if(res1$visible) {
-					DEBUG("is visible")
-
-					# print/show should be evaluated also in 'envir'
-					resval <- res1$value
-					if(!missing(resval)) {
-						printfun <- as.name(if(isS4(resval)) "show" else "print")
-						if(is.language(resval)) {
-							eval(substitute(printfun(quote(resval))), envir)
-						} else
-							eval(substitute(printfun(resval)), envir)
-					} else {
-						cat("\n")
-					}
-				} else DEBUG("not visible")
-				DEBUG("after print")
-			}
-		},
-
-		message = function (e)  {
-			mark(FALSE, 8L)
-			DEBUG("message")
-
-			cat(conditionMessage(e), sep = "")
-			mark(TRUE, 9L)
-			invokeRestart("muffleMessage")
-		},
-		error = function (e) invokeRestart("grmbl", e, sys.calls()),
-		warning = function (e) {
+	
+	.onMessage <- function(e) {
+	    mark(FALSE, 8L)
+	    DEBUG("message")
+	    cat(conditionMessage(e), sep = "")
+	    mark(TRUE, 9L)
+	    invokeRestart("muffleMessage")
+	}
+	
+	.onErrorWCH <- function (e) invokeRestart("grmbl", e, sys.calls())
+	
+	.onErrorTC <- function (e) { #XXX: this is called if warnLevel=2
+		mark(FALSE, 5L)
+		DEBUG("error#2")
+		cat(as.character.error(e))
+		DEBUG("end error#2")
+		e #identity
+	}
+	
+	.onAbort <- function (...) {
+		mark(FALSE, 4L)
+		cat("Execution aborted. \n")
+	}
+	
+	.onWarning <- function (e) {
 			DEBUG("warning")
 			
 			if(".._captureAll.expr_.." %in% all.vars(conditionCall(e)))
@@ -188,24 +162,51 @@ function (expr, conn = NULL, markStdErr = FALSE,
 			DEBUG("END warning")
 
 			invokeRestart("muffleWarning")
-		}),
+	}
+
+
+
+	res <- tryCatch(withRestarts(withCallingHandlers({
+			# TODO: allow for multiple expressions and calls (like in
+			# 'capture.output'). The problem here is how to tell 'expression'
+			# from 'call' without evaluating it?
+
+			for(ex in expr) {
+				DEBUG("before eval")
+				res1 <- .._captureAll.evalVis_..(ex)
+				DEBUG("after eval")
+
+				DEBUG("print")
+				if(res1$visible) {
+					DEBUG("is visible")
+
+					# print/show should be evaluated also in 'envir'
+					resval <- res1$value
+					if(!missing(resval)) {
+						printfun <- as.name(if(isS4(resval)) "show" else "print")
+						if(is.language(resval))
+							eval(substitute(printfun(quote(resval))), envir)
+						else
+							eval(substitute(printfun(resval)), envir)
+					} else {
+						cat("\n")
+					}
+				} else DEBUG("not visible")
+				DEBUG("after print")
+			}
+		},
+
+		message = .onMessage,
+		error = .onErrorWCH,
+		warning = .onWarning),
 	# Restarts:
 
 	# Handling user interrupts. Currently it works only from within R.
 	# XXX: how to trigger interrupt remotely?
-	abort = function (...) {
-		mark(FALSE, 4L)
-		cat("Execution aborted. \n")
-	},
+	abort = .onAbort,
 	muffleMessage = function () NULL,
 	grmbl = restartError),
-	error = function (e) { #XXX: this is called if warnLevel=2
-		mark(FALSE, 5L)
-		DEBUG("error#2")
-		cat(as.character.error(e))
-		DEBUG("end error#2")
-		e #identity
-	}, finally = {	}
+	error = .onErrorTC, finally = {	}
 	)
 
 	if(.getWarnLevel() == 0L) {
