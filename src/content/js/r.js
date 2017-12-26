@@ -194,7 +194,7 @@ if (!Object.entries)
                 let content = sv.getTextRange(what);
                 let description = '';
                 if (what == "function") {
-                    let rx = /(([`'"])(.+)\2|([\w\u0100-\uFFFF\.]+))(?=\s*<-\s*function)/;
+                    let rx = /(([`'"])(.+)\2|([\w\u00C0-\uFFFF\.]+))(?=\s*<-\s*function)/;
                     let match = content.match(rx);
                     let funcName = (match ? match[3] || match[4] : '');
                     //.replace(/^(['"`])(.*)\1/, "$2")
@@ -380,7 +380,7 @@ if (!Object.entries)
 
         _this.evalHidden('base::q("' + response.toLowerCase() + '")');
         // Clear the objects browser
-        sv.rbrowser.clearPackageList();
+        sv.rbrowser.clearAll();
         setTimeout(() => sv.command.setRStatus(sv.rconn.isRConnectionUp(false)),
             1000);
     };

@@ -182,9 +182,9 @@
 </commandset>
 
 <menubar id="menubar_main">
-	<menu id="sciviews_menu" label="R" accesskey="R"
+	<menu id="menu_r" label="R" accesskey="R"
 		insertbefore="menu_window,help_menu">
-		<menupopup id="popup_sciviews_main">
+		<menupopup id="popup_r">
 			<menuitem id="r_start_console_menu" observes="cmd_svStartR"
 				class="menuitem-iconic r-run-command-icon"/>
 			<menuitem id="r_quit_console_menu" observes="cmd_svQuitR"
@@ -192,7 +192,7 @@
 			<menuitem id="r_start_help" observes="cmd_svOpenHelp"
 					  class="menuitem-iconic help-icon"/>
 			<menuitem id="r_start_pkg_manager" observes="cmd_svOpenPkgManager"
-				class="menuitem-iconic r-pkg-manager"/>
+				class="menuitem-iconic r-pkg-manager-icon"/>
 			
 			<menuitem id="r_format_r_code" observes="cmd_svFormatRCodeInView"
 				class="menuitem"/>

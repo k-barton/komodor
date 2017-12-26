@@ -24,9 +24,13 @@
 <!ENTITY sv.filterByClass "Filter class">
 <!ENTITY sv.filterByName "Filter name">
 <!ENTITY sv.filterEmptyText "Filter name...">
-<!ENTITY sv.listAllNames "List all objects (toggle)">
-<!ENTITY sv.showHiddenObjects "List hidden objects">
-<!ENTITY sv.hideHiddenObjects "Do not list hidden objects">
+<!ENTITY sv.listAttributes "List attributes">
+<!ENTITY sv.listAttributes.acc "A">
+<!ENTITY sv.listAttributes.desc "R Object Browser: List attributes">
+<!ENTITY sv.listAllNames "List hidden objects">
+<!ENTITY sv.listAllNames.acc "H">
+<!ENTITY sv.listAllNames.tip "List hidden objects">
+<!ENTITY sv.listAllNames.desc "R Object Browser: List hidden objects">
 <!ENTITY sv.help "R help on object">
 <!ENTITY sv.names "Names">
 <!ENTITY sv.str "Structure">
@@ -44,3 +48,9 @@
 <!ENTITY sv.selectAll.acc "A">
 <!ENTITY sv.selectSiblings "Select current level">
 <!ENTITY sv.selectSiblings.acc "L">
+
+
+<!ENTITY sv.RSearchPath "R search path">
+<!ENTITY sv.RSearchPathButton.tip "Open the R Search Path Subpanel">
+
+

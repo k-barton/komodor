@@ -70,6 +70,18 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 // ]]>
 </script>
 
+<commandset id="cmdset_rbrowser" commandupdater="false">
+	<command id="cmd_rbrowserToggleListAttributes" key="key_cmd_rbrowserToggleListAttributes"
+		oncommand="sv.rbrowser.toggleValue(event, 'listAttributes');"
+		label="&sv.listAttributes;" desc="&sv.listAttributes.desc;"
+		accesskey="&sv.listAttributes.acc;"/>
+	<command id="cmd_rbrowserToggleListAll" key="key_cmd_rbrowserToggleListAll"
+		oncommand="sv.rbrowser.toggleValue(event, 'listAllNames');"
+        label="&sv.listAllNames;" 
+		desc="&sv.listAllNames.desc;"
+		tooltiptext="&sv.listAllNames.tip;"
+		accesskey="&sv.listAllNames.acc;" />
+</commandset>
 
 <popupset id="extensionPopupSet">
 	<menupopup id="rObjectsContext" onpopupshowing="sv.rbrowser.contextOnShow(event)">
@@ -120,7 +132,7 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 		<menuitem id="cmd_rbrowser_plot"
 			label="&sv.plot;"
 			oncommand="sv.rbrowser.doCommand('plot')"
-			testDisableIf="t:isFunction t:isEnvironment"
+			testDisableIf="t:noPlot"
 			accesskey="O"/>
 		<menuitem id="cmd_rbrowser_str"
 			label="&sv.str;"
@@ -145,14 +157,14 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 			class="menuitem-iconic write-table-icon"
 			label="&sv.write_table;"
 			oncommand="sv.rbrowser.doCommand('write.table')"
-			testDisableIf="t:cannotSaveToFile"
+			testDisableIf="t:noSaveToFile"
 			accesskey="T"/>
 
 		<menuitem id="menu_rbrowser_save"
 			class="menuitem-iconic save-buffer-icon"
 			label="&sv.save;"
 			oncommand="sv.rbrowser.doCommand('save')"
-			testDisableIf="t:cannotSave"
+			testDisableIf="t:noSave"
 			accesskey="S" />
 
 		<menuseparator keep="false" intoplevel="true"/>
@@ -188,29 +200,6 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 
 				<toolbarseparator style="min-width:10px;" flex="1"/>
 
-		<!--		<toolbarbutton id="rbrowser_filter"
-					tooltiptext="&sv.filter.tip;"
-					buttonstyle="pictures" type="menu" orient="horizontal"
-					class="rightarrow-button-a r-objects-filter">
-					<menupopup id="rbrowser_filterPopup">
-						<menuitem id="rbrowser_context_filterByName"
-							label="&sv.filterByName;"
-							checked="true" accesskey="n" type="checkbox"
-							oncommand="sv.rbrowser.setFilterBy(this, 'name')"/>
-						<menuitem id="rbrowser_context_filterByClass"
-							label="&sv.filterByClass;"
-							accesskey="c" type="checkbox"
-							oncommand="sv.rbrowser.setFilterBy(this, 'class')"/>
-						<menuitem id="rbrowser_context_filterByGroup"
-							label="&sv.filterByGroup;"
-							accesskey="g" type="checkbox"
-							oncommand="sv.rbrowser.setFilterBy(this, 'group')"/>
-						<menuseparator/>
-						<menuitem id="rbrowser_context_clrFilter"
-							label="&sv.clrFilter;" accesskey="l"
-							oncommand="document.getElementById('rbrowser_filterbox').value = ''; sv.rbrowser.applyFilter();"/>
-					</menupopup>
-				</toolbarbutton>-->
 				<textbox id="rbrowser_filterbox" flex="1"
 					type="search" timeout="500"
 					tooltiptext="&sv.filter.tip;"
@@ -236,27 +225,20 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 							   />
 							   
 				<toolbarbutton id="rbrowser_showAll_button"
+							   observes="cmd_rbrowserToggleListAll"
 							   type="checkbox" 
-							   oncommand="sv.rbrowser.listAllNames = this.checked;"
-							   label="&sv.listAllNames;"
-							   tooltiptext="&sv.listAllNames;"
 							   />
 							   
 				<toolbarbutton id="rbrowser_tools" buttonstyle="pictures" type="menu" 
 					tooltiptext="R browser options" orient="horizontal" 
-					class="project-tools-icon">
+					class="tools-icon">
 						<menupopup id="rbrowser_toolsPopup">
-							<menuitem id="rbrowser_tools_showAllObjectsButton" 
-								observes="cmd_rbrowser_showAllObjects" 
-								label="Show all objects" desc="R browser: Show all objects" 
-								oncommand="ko.commands.doCommand('cmd_rbrowser_showAllObjects', event)" 
-								key="key_cmd_rbrowser_showAllObjects"
-								disabled="true" />
-							<menuitem id="rbrowser_tools_showAttribButton" observes="cmd_rbrowser_showAttrib" 
-								label="Show attributes" desc="R browser: Show object attributes" 
-								oncommand="ko.commands.doCommand('cmd_rbrowser_showAttrib', event)" 
-								key="key_cmd_rbrowser_showAttrib"
-								disabled="true" />
+							<menuitem id="rbrowser_tools_listAll" 
+								type="checkbox" observes="cmd_rbrowserToggleListAll"
+								/>
+							<menuitem id="rbrowser_tools_listAttributes"
+								type="checkbox" observes="cmd_rbrowserToggleListAttributes" 
+								/>
 							</menupopup>
 				</toolbarbutton>		   
 				
@@ -279,16 +261,12 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 							persist="width ordinal hidden"
 							onclick="sv.rbrowser.sort(this)" flex="1" ordinal="3"/>
 						<splitter class="tree-splitter" ordinal="4"/>
-						<treecol id="r-group" label="&sv.Group;"
+						<treecol id="r-class" label="&sv.Class;"
 							flex="2" hidden="true" persist="width ordinal hidden"
 							onclick="sv.rbrowser.sort(this)" ordinal="5"/>
 						<splitter class="tree-splitter" ordinal="6"/>
-						<treecol id="r-class" label="&sv.Class;"
-							flex="2" hidden="true" persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this)" ordinal="7"/>
-						<splitter class="tree-splitter" ordinal="8"/>
 						<treecol id="r-fullName" label="&sv.FullName;"
-							persist="width ordinal hidden" flex="1" hidden="true" ordinal="9"/>
+							persist="width ordinal hidden" flex="1" hidden="true" ordinal="7"/>
 					</treecols>
 					<treechildren id="rbrowser_objects_tree_main"
 						ondragstart="sv.rbrowser.draghandlers.onDragStart(event);"
@@ -302,30 +280,35 @@ window.addEventListener("DOMContentLoaded", function(/*event*/) {
 				</tree>
 			</vbox>
 			<splitter id="rbrowserSubpanelSplitter"
-				orient="vertical"
-				resizeafter="farthest"
-				ondblclick="sv.rbrowser.toggleViewSearchPath()"
-				collapse="none">
+					  orient="vertical"
+					  resizeafter="farthest"
+					  ondblclick="sv.rbrowser.toggleViewSearchPath()"
+					  collapse="after">
 				<vbox flex="1" height="32">
 					<hbox id="rbrowserSubpanelSplitterHboxBorder" flex="1">
-				    <hbox id="rbrowserSubpanelSplitterHbox" flex="1" align="center" class="status-toolbar">
-						  <label id="rbrowserSubpanelSplitterProjectLabel" class="panel-label">R search path</label>
-						  <spacer flex="1"/>
-						  <toolbarbutton id="rbrowserSubpanelToggle"
-							  buttonstyle="pictures"
-							  oncommand="sv.rbrowser.toggleViewSearchPath();"
-							  persist="state"
-							  state="collapsed"
-							  tooltiptext="Open the R Search Path Subpanel"
-							  />
-						  <spacer flex="1"/>
-					  </hbox>
-          </hbox>
+						<hbox id="rbrowserSubpanelSplitterHbox" flex="1"
+							  align="center" class="status-toolbar">
+							<label
+								   id="rbrowserSubpanelSplitterProjectLabel"
+								   class="panel-label">&sv.RSearchPath;</label>
+							<spacer flex="1" />
+							<toolbarbutton id="rbrowserSubpanelToggle"
+										   buttonstyle="pictures"
+										   oncommand="sv.rbrowser.toggleViewSearchPath();"
+										   persist="state"
+										   state="collapsed"
+										   tooltiptext="&sv.RSearchPathButton.tip;"
+										   />
+							<spacer flex="1" />
+						</hbox>
+					</hbox>
 				</vbox>
-			</splitter>
+				</splitter>
+
 
 			<vbox id="rbrowserSubpanelBox"
-				persist="height collapsed" collapsed="true" flex="1">
+				 orient="vertical" height="250" minheight="50"
+				  persist="height collapsed" flex="1">
 				<listbox flex="1" id="rbrowser_searchpath_listbox"
 					ondrop="sv.rbrowser.draghandlers.onSearchPathDrop(event);"
 					ondragover="sv.rbrowser.draghandlers.onSearchPathDragOver(event);"
