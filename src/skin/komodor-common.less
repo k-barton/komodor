@@ -1,0 +1,185 @@
+
+@images: "chrome://komodor/skin/images";
+@svg-images: "koicon://ko-svg/chrome/komodor/skin/images";
+
+.r-run-command-icon {
+	list-style-image: url("@{svg-images}/R.svg");
+}
+
+.r-run-command-icon[disabled="true"] {
+	opacity: 0.5;
+	filter: grayscale(50%);
+}
+
+.r-quit-command-icon {
+	list-style-image: url("@{svg-images}/exit.svg");
+}
+
+.r-pkg-manager-icon {
+	list-style-image: url("@{svg-images}/pkgman.svg");
+}
+
+.r-run-all-icon {
+	list-style-image: url("@{svg-images}/run-all.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-run-selection-icon {
+	list-style-image: url("@{svg-images}/run-selection.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-run-block-icon {
+	list-style-image: url("@{svg-images}/run-block.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-run-function-icon {
+	list-style-image: url("@{svg-images}/run-function.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-run-line-icon {
+	list-style-image: url("@{svg-images}/run-selection.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-run-para-icon {
+	list-style-image: url("@{svg-images}/run-para.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-source-all-icon {
+	list-style-image: url("@{svg-images}/source-all.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-source-selection-icon {
+	list-style-image: url("@{images}/source_sel.png?@{toolbar-svg-icon-suffix}");
+}
+
+.r-source-selection-icon[disabled="true"] {
+	list-style-image: url("@{images}/source_sel_disabled.png?@{toolbar-svg-icon-suffix}");
+}
+
+.r-source-block-icon {
+	list-style-image: url("@{svg-images}/source-block.svg?@{toolbar-svg-icon-suffix}");
+}
+
+
+.r-source-function-icon {
+	list-style-image: url("@{svg-images}/source-function.svg?@{toolbar-svg-icon-suffix}");
+}
+
+.r-source-line-icon {
+	list-style-image: url("@{images}/source_sel.png");
+}
+
+.r-source-line-icon[disabled="true"] {
+	list-style-image: url("@{images}/source_sel_disabled.png");
+}
+
+.r-source-para-icon {
+	list-style-image: url("@{svg-images}/source-para.svg?@{toolbar-svg-icon-suffix}");
+}
+
+[class*="r-"][class$="-icon"][disabled="true"] image,
+image[class*="r-"][class$="-icon"][disabled="true"] {
+	opacity: 0.5;
+}
+
+
+.write-table-icon {
+	list-style-image: url("@{svg-images}/table-export.svg");
+}
+
+
+.refresh-icon{
+	list-style-image: url("chrome://komodo/skin/global/images/refresh.png");
+}
+
+
+.find-icon {
+	list-style-image: url("@{images}/find.png");
+}
+
+.home-icon {
+	list-style-image: url("@{images}/home.png");
+}
+
+
+.r-web-icon {
+	list-style-image: url("@{images}/globe-green-chain.png");
+}
+
+.go-icon {
+	list-style-image: url("@{images}/navigation.png");
+}
+
+.go-icon:hover,
+.go-icon:hover:active {
+	list-style-image: url("@{images}/navigation-hover.png");
+}
+
+.search-icon {
+	list-style-image: url("@{images}/light-bulb.png");
+}
+
+.search-icon:hover,
+.search-icon:hover:active {
+	list-style-image: url("@{images}/light-bulb-off.png");
+}
+
+
+.stop-icon {
+	list-style-image: url("@{svg-images}/stop.svg");
+}
+
+.stop-icon:hover,
+.stop-icon:hover:active {
+	filter: brightness(1.5);
+}
+
+.stop-icon[disabled="true"],
+.stop-icon[disabled="true"]:hover,
+.stop-icon[disabled="true"]:hover:active {
+	opacity: 0.7;
+	filter: grayscale(50%);
+}
+
+.reload-icon {
+  list-style-image: url("@{images}/arrow_refresh.png");
+}
+
+.reload-icon:hover {
+  list-style-image : url("@{images}/arrow_refresh_hover.png");
+}
+
+.reload-icon[disabled="true"],
+.reload-icon[disabled="true"]:hover,
+.reload-icon[disabled="true"]:hover:active {
+  list-style-image : url("@{images}/arrow_refresh_disabled.png");
+}
+
+.r-escape-icon[disabled="true"],
+.r-escape-icon[disabled="true"]:hover,
+.r-escape-icon[disabled="true"]:hover:active {
+	list-style-image: url("@{images}/r_escape_disable.png");
+}
+
+/* Ko<11 */
+.languageicon[language="R_extended"],
+treechildren::-moz-tree-image(LanguageR) {
+  list-style-image: url("@{images}/r-lang.svg");
+}
+
+/* Ko>9 */
+tab[widget="rbrowser_tabpanel"] .tab-icon { 
+  width: 16px;
+  height: 16px;
+  visibility: visible;
+  list-style-image: url("@{svg-images}/R_browser.svg?@{widget-svg-icon-suffix}");
+}
+
+/*
+ko-pane[type="icons"] tab[widget="rbrowser_tabpanel"] {
+  list-style-image: none !important;
+}
+*/
+/* ko-pane[type="icons"] tab[widget="rbrowser_tabpanel"] { */
+  /* list-style-image: none !important; */
+/* } */
+

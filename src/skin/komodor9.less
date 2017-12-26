@@ -1,0 +1,14 @@
+
+@toolbar-svg-icon-suffix: "preset=toolbar";
+@widget-svg-icon-suffix: "size=16&preset=widgets";
+@widget-selected-svg-icon-suffix: "size=16&preset=selected";
+
+@import url("chrome://komodor/skin/komodor-common.less");
+
+ko-pane tab[widget="rbrowser_tabpanel"].tab-icon {
+  list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?@{widget-svg-icon-suffix}");
+}
+
+ko-pane[type="icons"] tab[widget="rbrowser_tabpanel"][selected] .tab-icon {
+  list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?@{widget-selected-svg-icon-suffix}");
+}

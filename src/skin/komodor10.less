@@ -1,0 +1,24 @@
+
+@widget-icon-size: 14px;
+@toolbar-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=icons-special";
+@widget-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=foreground";
+@widget-selected-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=foreground";
+
+@import url("chrome://komodor/skin/komodor-common.less");
+
+
+ko-pane
+tab[widget="rbrowser_tabpanel"] .tab-icon { 
+  list-style-image: none;
+  width: 0;
+}
+
+ko-pane[type="icons"]
+tab[widget="rbrowser_tabpanel"] .tab-icon { 
+  width: @widget-icon-size;
+  height: @widget-icon-size;
+  visibility: visible;
+  background-image: url("koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?@{widget-svg-icon-suffix}");
+  background-repeat: no-repeat;
+  background-size: @widget-icon-size @widget-icon-size;
+}

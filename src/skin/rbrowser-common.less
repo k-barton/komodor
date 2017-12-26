@@ -4,10 +4,10 @@
 
 
 #rbrowserSubpanelToggle[state="open"] {
-  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg");
+  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg?preset=widgets");
 }
 #rbrowserSubpanelToggle[state="collapsed"] {
-  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-up2.svg");
+  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-up2.svg?preset=widgets");
 }
 
 
@@ -26,7 +26,7 @@
 #rbrowserSubpanelSplitterHboxBorder {
   -moz-box-orient: horizontal;
   height: 1px;
-  margin: 0 10px;
+  margin: 0 0;
 }
 #rbrowserSubpanelSplitter > grippy {
   background-image: none !important;
@@ -62,11 +62,11 @@
 	  width: 15px;
   }
   
-  treechildren::-moz-tree-cell-text(group-package) {
+  treechildren::-moz-tree-cell-text(type-environment) {
 	  font-weight: bold;
   }
   
-  treechildren::-moz-tree-cell-text(group-package, empty) {
+  treechildren::-moz-tree-cell-text(type-environment, empty) {
 	  opacity: 0.7;
 	  font-style: italic;
   }
@@ -79,7 +79,8 @@
   treechildren::-moz-tree-cell-text(type-sub-object) {
 	  font-size: 95%;
   }
-	  
+
+  treechildren::-moz-tree-cell-text(attr, col-r-name),
   treechildren::-moz-tree-cell-text(type-args, col-r-name) {
 	  font-style: italic;
   }
@@ -107,12 +108,12 @@
 
 
 #rbrowser_filterByName_button {
-	list-style-image: url("@{svg-images}/filter-name.svg");
+	list-style-image: url("@{svg-images}/filter-name.svg?size=@{icon-size}&preset=widgets");
 
 }
 
 #rbrowser_filterByClass_button {
-	list-style-image: url("@{svg-images}/filter-class.svg");
+	list-style-image: url("@{svg-images}/filter-class.svg?size=@{icon-size}&preset=widgets");
 }
 
 
@@ -122,11 +123,11 @@
 }
 
 #rbrowser_showAll_button {
-	list-style-image: url("@{svg-images}/eye-closed.svg");
+	list-style-image: url("@{svg-images}/eye-closed.svg?size=@{icon-size}&preset=widgets");
 }
 
 #rbrowser_showAll_button[checked="true"] {
-	list-style-image: url("@{svg-images}/eye-red.svg");
+	list-style-image: url("@{svg-images}/eye-red.svg?size=@{icon-size}&preset=widgets");
 }
 
 #rbrowser_showAttributes_button {
@@ -143,16 +144,28 @@
 }
 
 .robjects-fold-all-icon {
-	list-style-image: url("@{svg-images}/minus-circle.svg");
+	list-style-image: url("@{svg-images}/minus-circle.svg?size=@{icon-size}&preset=widgets");
 }
 
 .robjects-expand-all-icon {
-    list-style-image: url("@{svg-images}/plus-circle.svg");
+    list-style-image: url("@{svg-images}/plus-circle.svg?size=@{icon-size}&preset=widgets");
 }
 
-#rbrowserToolbar .refresh-icon {
-    list-style-image: url("@{svg-images}/refresh.svg");
+#rbrowserToolbar{
+ 
+.refresh-icon {
+    list-style-image: url("@{svg-images}/refresh.svg?size=@{icon-size}&preset=widgets");
 }
+
+.tools-icon {
+    list-style-image: url("@{svg-images}/cog.svg?size=@{icon-size}&preset=widgets");
+}
+ 
+  
+  
+}
+
+
 
 
 #rbrowserToolbar > toolbarbutton {
@@ -167,3 +180,16 @@
   background-image: none;
   border-color: rgba(0, 0, 0, 0.4);
 }
+
+#rbrowser_searchpath_listbox {
+  
+  .eval-env {
+	font-style: italic;
+  }
+  
+  .non-detachable {
+	opacity: 0.6;
+  }
+  
+}
+ 
