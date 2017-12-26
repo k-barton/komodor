@@ -13,6 +13,12 @@ skin    komodor  classic/1.0  jar:komodor.jar!/skin/
 override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser9.less appversion<10.00
 override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser10.less appversion>=10.00
 
+override chrome://komodor/skin/komodor.css less://komodor/skin/komodor9.less appversion<10.00
+override chrome://komodor/skin/komodor.css less://komodor/skin/komodor10.less appversion>=10.00
+
+override chrome://komodor/content/js/r-help.js chrome://komodor/content/js/r-help9.js appversion<10.00
+override chrome://komodor/content/js/r-help.js chrome://komodor/content/js/r-help10.js appversion>=10.00
+
 category toolbox komodor@komodor 1
 
 manifest components/component.manifest

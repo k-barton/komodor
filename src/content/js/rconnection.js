@@ -13,8 +13,7 @@
  * .listRProcesses(property) get information on currently running R processes
  * 		(property is one of 'Handle','ProcessId' or 'CommandLine'
  * .evalAsync(command, ...) evaluate in R, optional further arguments (see below)
- * .eval(command) - do 'quick' evaluation in R, and
- * 		return the result
+ * .eval(command) - do synchronous evaluation in R, and return the result
  * .startSocketServer(requestHandler) - optional 'requestHandler' is a function that
  * 		handles the received data and returns a string
  * .stopSocketServer()
@@ -25,8 +24,8 @@
 
 // requires sv.utils (sv.cmdout), sv.pref
  
- 
 /* globals sv, ko, require, Components */
+/* jshint evil: true */
 
 
 sv.rconn = {};
@@ -46,23 +45,24 @@ sv.rconn = {};
 
     var connector = Cc["@komodor/svUtils;1"]
         .getService(Ci.svIUtils);
-    var _obsSvc = Cc["@mozilla.org/observer-service;1"]
-        .getService(Ci.nsIObserverService);
+        
+    var obsSvc = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 
     this.rConnector = connector;
 
     //var observers = {};
     //var obsCallback = function() { sv.cmdout.append("test")};
+    Object.defineProperties(this, {
+        command: {
+            get: () => connector.lastCommand
+        },
+        result: {
+            get: () => connector.lastResult
+        }});
 
-    Object.defineProperty(this, 'command', {
-        get: () => connector.lastCommand
-    });
-    Object.defineProperty(this, 'result', {
-        get: () => connector.lastResult
-    });
-
-    var _curPrompt = ':>';
-    var _curCommand = "";
+    var promptStr = { normal: ":>", continued: ":+", browse: "~>" };
+    
+    var _curPrompt = promptStr.normal, _curCommand = "";
     var _waitMessageTimeout;
 
     var rxResultStripCtrlChars = /[\x02\x03\x1b]/g;
@@ -78,14 +78,18 @@ sv.rconn = {};
     };
 
     this.printResults = function (result, commandInfo, executed, wantMore) {
-        var msg;
-        var command = commandInfo.command;
-        command = _curCommand + _curPrompt + ' ' + command + sv.cmdout.eolChar;
+
         window.clearTimeout(_waitMessageTimeout);
+
+        var msg, command = commandInfo.command;
+        
+        command = _curCommand + _curPrompt + ' ' + command + sv.cmdout.eolChar;
 
         let prompt = "";
         if (executed) {
-            let newPrompt = wantMore ? ':+' : ':>';
+            let newPrompt = wantMore ? promptStr.continued :
+                commandInfo.browserMode ? promptStr.browse : promptStr.normal;
+            
             prompt = '\n' + newPrompt;
             _curCommand = wantMore ? command : '';
             _curPrompt = newPrompt;
@@ -101,16 +105,54 @@ sv.rconn = {};
     };
 
     // get list of running R processes
-    this.listRProcesses = function (property) {
-        if (!property) property = "CommandLine";
+    this.listRProcesses = function (property = "CommandLine") {
         var procList = connector.getproc(property);
         var proc = [];
         while (procList.hasMoreElements()) proc.push(_str(procList.getNext()));
         return proc;
     };
+    
+    
+    // if stdOut, stderr is removed, else stream delimiters #002/#003 are removed   
+    var REvalListener = function (callback, keep, stdOut, args) {
+        if (typeof callback === "function") this.callback = callback;
+        this.keep = keep;
+        this.stdOut = stdOut;
+        this.args = Array.apply(null, args);
+    };
+    
+    REvalListener.prototype = {
+        callback: null,
+        keep: false,
+        stdOut: false,
+        args: null,
+        onDone(result, command, mode) {
+            if (this.callback) {
+                let args = this.args;
+                if (result) result = result.trim();
+                // XXX: this is silent about connection errors
+                result = result.replace(this.stdOut ? rxResultStripStdErr :
+                    rxResultStripCtrlChars, '');
 
+                args.unshift(result);
+                try {
+                    this.callback.apply(this, args);
+                } catch (e) {
+                    logger.exception(e);
+                }
+                //[Exception... "Illegal operation on WrappedNative prototype
+                //object" nsresult: "0x8057000c (NS_ERROR_XPC_BAD_OP_ON_WN_PROTO)"]
+            }
+            //if (mode == "e" || mode == "json")	_this.printResults(result, command, true);
+            return this.keep;
+        }
+    };
+    
+    this.handlers = {};
+
+    
     // Evaluate in R
-    this.evalAsync = function (command, callback, hidden, stdOut) { //, ...
+    this.evalAsync = function (command, callback, hidden, stdOut, ...args) { //, ...
         if(command === undefined || command == null) 
 			throw new Error("'command' is null or undefined");
 		// Note: to check if a variable is declared and is not undefined:
@@ -119,16 +161,13 @@ sv.rconn = {};
 		// any value stored in it:
 		//v === "undefined" 
 		
-		var handlers = _this.handlers,
-            keep = false;
-        var args = Array.apply(null, arguments);
-
+		var handlers = _this.handlers, keep = false, mode = ['json'];
+        
         // XXX: background calls (e.g. object browser) need to have unique id.
         // but ID for user commands should be one and fixed (to allow for multiline)
         var id = callback ? connector.uid() : this.userCommandId;
-        args.splice(0, 4);
-        handlers[id] = new _REvalListener(callback, keep, stdOut, args);
-        var mode = ['json'];
+        handlers[id] = new REvalListener(callback, keep, stdOut, args);
+
         if (hidden) mode.push('h');
         connector.evalInRNotify(command, mode.join(' '), id);
         return id;
@@ -137,25 +176,23 @@ sv.rconn = {};
     // Evaluate in R instantaneously and return result
     // stdOut - if true, stderr stream is omitted
     this.eval = function (command, timeout = 0.5, stdOut = false) {
-		if(command === undefined || command == null) 
+		if(command === undefined || command === null) 
 			throw new Error("'command' is null or undefined");
 		
         var res = connector.evalInR(command, 'json h', timeout);
-        if (res[0] == '\x15') 
+        if (res[0] === '\x15') 
 			throw new Error("(sv.rconn.eval) R command was \"" + command + "\"");
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
     };
 
     // For internal use with repeated commands (result handler is defined only once)
     // reuse result handler predefined with '.defineResultHandler'
-    this.evalPredefined = function (command, handlerId, hidden) {
+    this.evalPredefined = function (command, handlerId, hidden, ...args) {
 		if(command === undefined || command == null) 
 			throw new Error("'command' is null or undefined");
 		
         var handlers = _this.handlers;
-        var args = Array.apply(null, arguments);
         if (handlerId in handlers) {
-            args.splice(0, 3); // remove first 3 items
             handlers[handlerId].args = args;
         } else {
             throw new Error("No handler for id=" + handlerId);
@@ -165,20 +202,18 @@ sv.rconn = {};
         connector.evalInRNotify(command, mode.join(' '), handlerId);
     };
 
-    this.defineResultHandler = function (id, callback, stdOut) {
-        var args = Array.apply(null, arguments);
-        args.splice(0, 3); // remove first three arguments
-        _this.handlers[id] = new _REvalListener(callback, true, stdOut, args);
+    this.defineResultHandler = function (id, callback, stdOut, ...args) {
+        _this.handlers[id] = new REvalListener(callback, true, stdOut, args);
         return id;
     };
 
     this.escape = function ( /*command*/ ) _this.evalAsync("\x1b");
 
-    this.isRConnectionUp = function (quiet /*checkProc*/ ) {
+    this.isRConnectionUp = function (quiet) {
         var connected;
         try {
-            var test = _this.eval("cat('" + ko.version + "')");
-            connected = test.indexOf(ko.version) != -1;
+            var test = _this.eval("base::cat(" + sv.r.arg(ko.version) + ")");
+            connected = test.indexOf(ko.version) !== -1;
         } catch (e) {
             connected = false;
         }
@@ -197,11 +232,8 @@ sv.rconn = {};
     var defaultRequestHandler = function (str) {
         str = str.trim();
         try {
-            if (str.indexOf("{js}") === 0) {
-                //var result = eval(str.substring(8));
-                //sv.cmdout.append("JS request handler result:" + result);
+            if (str.startsWith("{js}")) 
                 return eval(str.substring(4));
-            }
         } catch (e) {
             logger.exception(e, "koCmd request was: \n" + str);
             return e.message;
@@ -226,17 +258,10 @@ sv.rconn = {};
         } else if (port > 0) {
             sv.addNotification('Server started at port ' + port);
             sv.pref.setPref("RInterface.koPort", port, true, true);
-            _this.evalAsync("options(ko.port=" + port + ")", null, true);
-            //setTimeout(function() {
-            //try {
-            //_this.eval("options(ko.port=" + port + ")");
-            //} catch(e) { }
-            //}, 1000);
+            _this.evalAsync("base::options(ko.port=" + port + ")", null, true);
         }
         return port;
     };
-
-    var sServerDoRestart = false;
 
     this.stopSocketServer = function () connector.stopSocketServer();
 
@@ -282,42 +307,6 @@ sv.rconn = {};
         observe: function (subject, topic, data) {
             _socketPrefs[topic] = sv.pref.getPref(topic);
             _updateSocketInfo();
-        }
-    };
-
-    this.handlers = {};
-
-    // if stdOut, stderr is removed, else stream delimiters #002/#003 are removed   
-    var _REvalListener = function (callback, keep, stdOut, args) {
-        if (typeof callback == "function") this.callback = callback;
-        this.keep = keep;
-        this.stdOut = stdOut;
-        this.args = Array.apply(null, args);
-    };
-    _REvalListener.prototype = {
-        callback: null,
-        keep: false,
-        stdOut: false,
-        args: null,
-        onDone: function (result, command, mode) {
-            if (this.callback) {
-                args = this.args;
-                if (result) result = result.trim();
-                // XXX: this is silent about connection errors
-                result = result.replace(this.stdOut ? rxResultStripStdErr :
-                    rxResultStripCtrlChars, '');
-
-                args.unshift(result);
-                try {
-                    this.callback.apply(this, args);
-                } catch (e) {
-                    logger.exception(e);
-                }
-                //[Exception... "Illegal operation on WrappedNative prototype
-                //object" nsresult: "0x8057000c (NS_ERROR_XPC_BAD_OP_ON_WN_PROTO)"]
-            }
-            //if (mode == "e" || mode == "json")	_this.printResults(result, command, true);
-            return this.keep;
         }
     };
 
@@ -394,10 +383,10 @@ sv.rconn = {};
             // TODO: use 'subject.result' instead of 'data'
             data = subject.result;
 
-            var wantMore = false;
+            let wantMore = false;
             switch (topic) {
             case 'r-command-executed':
-                var cid = subject.commandId;
+                let cid = subject.commandId;
                 switch (subject.message) {
                 case 'more':
                     wantMore = true;
@@ -419,10 +408,10 @@ sv.rconn = {};
                 }
                 /* falls through */
             case 'r-command-sent':
-                sv.lastCmdInfo = subject;
-                if (subject.mode.split(' ').indexOf('h') == -1) {
+                _this.lastCmdInfo = subject;
+                if (subject.mode.split(' ').indexOf('h') === -1) {
                     _this.printResults(data, subject,
-                        topic == 'r-command-executed', wantMore);
+                        topic === 'r-command-executed', wantMore);
 
                     //_this.printResults(data, subject.command,
                     //topic == 'r-command-executed', wantMore);
@@ -438,10 +427,10 @@ sv.rconn = {};
         }
     };
 
-    //_obsSvc.addObserver(_REvalObserver, "r-command-chunk", false);
-    _obsSvc.addObserver(_REvalObserver, "r-command-sent", false);
-    _obsSvc.addObserver(_REvalObserver, "r-command-executed", false);
-    _obsSvc.addObserver(_this._sServerObserver, 'r-server-stopped', false);
+    //obsSvc.addObserver(_REvalObserver, "r-command-chunk", false);
+    obsSvc.addObserver(_REvalObserver, "r-command-sent", false);
+    obsSvc.addObserver(_REvalObserver, "r-command-executed", false);
+    obsSvc.addObserver(_this._sServerObserver, 'r-server-stopped', false);
 
     for (let i in _socketPrefs)
         if (_socketPrefs.hasOwnProperty(i)) {
@@ -456,18 +445,18 @@ sv.rconn = {};
             'r-server-stopped'
         ].forEach(function (notification) {
             try {
-                var obsEnum = _obsSvc.enumerateObservers(notification);
+                var obsEnum = obsSvc.enumerateObservers(notification);
                 while (obsEnum.hasMoreElements()) {
                     let observer = obsEnum.getNext();
                     observer.QueryInterface(Ci.nsIObserver);
-                    _obsSvc.removeObserver(observer, notification, false);
+                    obsSvc.removeObserver(observer, notification, false);
                 }
             } catch (e) {}
         });
 
         var prefObsSvc = sv.pref.prefset.prefObserverService;
         for (let pref in _socketPrefs)
-            if (_socketPrefs.hasOwnProperty(i)) {
+            if (_socketPrefs.hasOwnProperty(pref)) {
                 try {
                     var obsEnum = prefObsSvc.enumerateObservers(pref);
                     while (obsEnum.hasMoreElements()) {
@@ -476,12 +465,9 @@ sv.rconn = {};
                         prefObsSvc.removeObserver(observer, pref, true);
                     }
                 } catch (e) {
-                    logger.exception(e, "While cleaning up 'rconn'");
+                    logger.exception(e, "while cleaning up 'sv.rconn'");
                 }
             }
     };
 
 }).apply(sv.rconn);
-
-// seems to be no problem with encoding (!?)
-//sv.rconn.evalAsync("cat('pchn¹æ w tê ³ódŸ je¿a i óœm skrzyñ fig')") // Note this is CP1250 encoding

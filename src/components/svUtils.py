@@ -53,10 +53,11 @@ class svUtils:
 
     class CommandInfo:
         _com_interfaces_ = components.interfaces.svICommandInfo
-        def __init__(self, cmd_id, cmd, mode, message = '', result = ''):
+        def __init__(self, cmd_id, cmd, mode, browserMode = False, message = '', result = ''):
             self.commandId = cmd_id
             self.command = cmd
             self.mode = mode
+            self.browserMode = browserMode
             self.message = message
             self.result = result
 
@@ -198,7 +199,7 @@ class svUtils:
             # e.message or e.strerror
             return unicode('\x15' + (e.args[0] if (e.errno == None) else e.strerror))
 
-        cmdInfo = self.CommandInfo(uid, pretty_command, mode, 'Not ready')
+        cmdInfo = self.CommandInfo(uid, pretty_command, mode, False, 'Not ready')
 
         #wrappedCmdInfo = WrapObject(cmdInfo, components.interfaces.svICommandInfo)
         if notify:
@@ -261,7 +262,6 @@ class svUtils:
             try:
                 resultObj = json.loads(result)
                 if(isinstance(resultObj, dict)):
-                    message = resultObj.get('message')
                     result = resultObj.get('result')
                     if isinstance(result, list):
                         result = os.linesep.join(result)
@@ -269,8 +269,9 @@ class svUtils:
                     #    result = resultObj.get('result')
                     #log.debug(type(result)) # <-- should be: <type 'unicode'>
                     result = result.replace('\x02\x03', '') # XXX: temporary fix
-                    cmdInfo.message = unicode(message)
+                    cmdInfo.message = unicode(resultObj.get('message'))
                     cmdInfo.result = unicode(result)
+                    cmdInfo.browserMode = resultObj.get('browserMode') == "TRUE"
 
             except Exception, e:
                 log.debug(e)

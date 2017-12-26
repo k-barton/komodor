@@ -16,6 +16,7 @@ interface svICommandInfo: nsISupports {
     readonly attribute ACString commandId;
     readonly attribute AUTF8String command;
     readonly attribute ACString mode;
+    readonly attribute boolean browserMode;
 	attribute AUTF8String message;
 	attribute AUTF8String result;
 	ACString styledResult();

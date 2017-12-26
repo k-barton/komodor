@@ -15,7 +15,13 @@
 	# dynamicOutput <- bitwAnd(4L, mode) == 4L
 	# stringizeOutput <- bitwAnd(4L, mode) == 0L # zero
 
+## XXX: make wrapper for TclReval? Whole body shows in call stack
+
 `TclReval` <- 
+function(x, id, mode) .Reval(x, id, mode)
+
+
+`.Reval` <- 
 function(x, id, mode) {
 
 	if (identical(x, "")) {
@@ -54,7 +60,12 @@ function(x, id, mode) {
 	        ret <- c("\003", as.character.error(expr), "\002")
 	        msg <- "parse-error"
 	    } else {
-	        ret <- captureAll(expr, markStdErr = markStdErr, envir = getEvalEnv(), doTraceback = evalShown)
+			# XXX currently hidden eval mode implies: no traceback, evaluation in .GlobalEnv.
+			#     These should become separate options.
+	
+	        ret <- captureAll(expr, markStdErr = markStdErr,
+					envir = if(evalShown) getEvalEnv() else .GlobalEnv,
+					doTraceback = evalShown)
 	        msg <- "done"
 	    }
 	}
@@ -62,6 +73,8 @@ function(x, id, mode) {
 	if (evalShown)
 		if (msg == "more") assignTemp(prevcodeVarName, c(prevcode, x)) else
 			rmTemp(prevcodeVarName)
+			
+    browserMode <- evalShown && identical(msg, "done") && !identical(.GlobalEnv, getEvalEnv())
 	
-	tcl("set", "retval", stringize(list(result = c(ret), message = msg)))
+	tcl("set", "retval", stringize(list(result = c(ret), message = msg, browserMode = browserMode)))
 }
