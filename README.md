@@ -10,9 +10,9 @@ R environment and Komodo.
 This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, and since then has been largely rewritten. 
 
-"R" language provided by this add-on is named “R_extended” to 
+"R" language provided by this add-on is named __“R\_extended”__ to 
 avoid conflict with Komodo's own R syntax highlighter. Code completion 
-and syntax checking works only with “R_extended” not “R“.
+and syntax checking works only with “R\_extended” not “R“.
 
 **Features:**
 
@@ -47,7 +47,7 @@ are required, however your R installation needs to have Tcl capability
    if any.
    
    
-**Some other obscure features:**
+**Some other, obscure features:**
 
 * *_Places_ panel*:
     * load workspace from “.RData” files or source script from “.R” files: 
@@ -81,7 +81,7 @@ are required, however your R installation needs to have Tcl capability
 	  
 **Debugging R code**
 
-The extension provides some debugging capabilities, see 
+The extension provides some code debugging capabilities, see 
 [Debugging R code](debugging.md).   
 
 **Known issues:**
