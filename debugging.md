@@ -19,8 +19,8 @@ Put `koBrowseHere()` call inside a function.
 
 ```r
 testFun <- function(x,y,z) {
-	insideTestFun2 <- TRUE
-	koBrowseHere()
+    insideTestFun2 <- TRUE
+    koBrowseHere()
 }
 
 ```
@@ -80,9 +80,9 @@ debugged function, not the one where the error occurred (see second example belo
 Example:
   
 ```r
-    test <- function(x, y, inside.test = TRUE) x + y 
-    dtest <- koDebug(test)
-    dtest("1", 2)
+test <- function(x, y, inside.test = TRUE) x + y 
+dtest <- koDebug(test)
+dtest("1", 2)
 ```
 
 ```no-highlight
@@ -93,7 +93,7 @@ x + y
 ```
 
 ```r
-    ls() # we are now working inside `test`
+ls() # we are now working inside `test`
 ```
 ```no-highlight
 ~> [1] "inside.test", "x" "y"
@@ -104,14 +104,14 @@ When finished, use `koBrowseEnd()` to go back to `.GlobalEnv`.
 
 ```r
 
-	test2 <- function(x,y,z) {
-		inside.test2 <- TRUE
-		stop("stopped inside test2")
-	}
-	test1 <- function(x,y,z) {
-		inside.test1 <- TRUE
-		test2(x,z,y)
-	}
+test2 <- function(x,y,z) {
+    inside.test2 <- TRUE
+    stop("stopped inside test2")
+}
+test1 <- function(x,y,z) {
+    inside.test1 <- TRUE
+    test2(x,z,y)
+}
 
 # Note: there is no (simple) way to undebug the function. 
 #       Be careful when overwriting the original function
