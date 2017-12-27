@@ -7,15 +7,12 @@ R environment and Komodo.
 
 ***
 
-This extension has initially been a slimmed-down fork of
-[“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
-Philippe Grosjean, but since then it has been largely rewritten. 
-It is compatible with Komodo 9 to 11, and has been tested to work on Windows 
-and Linux.
+This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
+Philippe Grosjean, and since then has been largely rewritten. 
 
-**Note:** Komodo, since version 9.3, provides its own R syntax highlighting 
-not compatible with this add-on. Therefore “R” language provided by 
-this extension has been renamed to *“R_extended”* to avoid conflicts.
+"R" language provided by this add-on is named “R_extended” to 
+avoid conflict with Komodo's own R syntax highlighter. Code completion 
+and syntax checking works only with “R_extended” not “R“.
 
 **Features:**
 
@@ -26,9 +23,9 @@ this extension has been renamed to *“R_extended”* to avoid conflicts.
      block, function at cursor, or a whole file.
 * Syntax highlighting:
    + R language including [Roxygen](http://roxygen.org/) tags
-   + R documentation (.Rd files, partially implemented)
+   + R documentation (*.Rd* files, partially implemented.)
    + [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
-     (.Rmd files, partially implemented)
+     (*.Rmd* files, partially implemented.)
 * Syntax checking
 * Code completion (objects, argument names, list items)
 * R object browser (sidebar)
@@ -106,12 +103,12 @@ The extension provides some debugging capabilities, see
 * Connection timeout on longer operations: a prompt is shown as if the calculation
   in R has finished and no output is shown. There does not seem to be a way
   to set socket timeout in Tcl. (no longer in version 0.3)
-* R object browser has to be refreshed manually (click sidebar's refresh button)
-  Automatic refreshing will be an option in future version.
+* R object browser is refreshed manually (click sidebar's refresh button)
+  Automatic refreshing may become an option in future version.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. There is also some flickering inside
   Roxygen comments. This seems to be related to brace counting in UDL 
-  (bug in Komodo?).
+  (bug in Komodo).
 
 
 **[Hacks for classic Windows styling in Komodo Edit](improveKo9.md)**
