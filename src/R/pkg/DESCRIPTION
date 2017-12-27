@@ -1,8 +1,8 @@
 Package: kor
 Type: Package
 Title: Connects R with Komodo
-Version: 0.2.220
-Date: 2017-12-26
+Version: 0.2.247
+Date: 2017-12-27
 Encoding: UTF-8
 Author: Kamil Bartoń
 Maintainer: Kamil Bartoń <kamil.barton@go2.pl>

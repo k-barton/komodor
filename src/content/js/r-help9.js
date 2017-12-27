@@ -16,50 +16,50 @@
  * @param {string} searchTerm  Open language help for this search term.
  */
 
-/* globals ko, sv, window, Components, require */
+/* globals ko, window, Components */
  
 // Komodo 9
-	ko.help.language = function () {
-		var language = null;
-		var view = ko.window.focusedView();
-		if (!view) 
-			view = ko.views.manager.currentView;
-		if (view != null) {
-			if (view.koDoc) {
-				language = view.koDoc.subLanguage;
-				if (language === "XML") language = view.koDoc.language;
-			} else language = view.language;
-		}
+ko.help.language = function () {
+	var language = null;
+	var view = ko.window.focusedView();
+	if (!view) 
+		view = ko.views.manager.currentView;
+	if (view != null) {
+		if (view.koDoc) {
+			language = view.koDoc.subLanguage;
+			if (language === "XML") language = view.koDoc.language;
+		} else language = view.language;
+	}
 
-		var command = null, name = null;
-		if (language) {
-			if (ko.prefs.hasStringPref(language + "HelpCommand")) {
-				command = ko.prefs.getStringPref(language + "HelpCommand");
-			} else {
-				var langRegistrySvc = Components
-					.classes['@activestate.com/koLanguageRegistryService;1']
-					.getService(Components.interfaces.koILanguageRegistryService);
-				var languageObj = langRegistrySvc.getLanguage(language);
-				if (languageObj.searchURL) {
-					command = "%(browser) " + languageObj.searchURL;
-				}
-			}
-			if (command) {
-				name = language + " Help";
+	var command = null, name = null;
+	if (language) {
+		if (ko.prefs.hasStringPref(language + "HelpCommand")) {
+			command = ko.prefs.getStringPref(language + "HelpCommand");
+		} else {
+			var langRegistrySvc = Components
+				.classes['@activestate.com/koLanguageRegistryService;1']
+				.getService(Components.interfaces.koILanguageRegistryService);
+			var languageObj = langRegistrySvc.getLanguage(language);
+			if (languageObj.searchURL) {
+				command = "%(browser) " + languageObj.searchURL;
 			}
 		}
-		if (!command) {
-			command = ko.prefs.getStringPref("DefaultHelpCommand");
-			name = "Help";
+		if (command) {
+			name = language + " Help";
 		}
-		
-		command = command.trim();
-		if (command.startsWith("javascript:")) { // jshint ignore: line
-			command = command.substring(11).trim();
-			eval(ko.interpolate.interpolateString(command)); // jshint ignore: line
-		} else { 
-			ko.run.runCommand(window, command, null, null, false, false, true,
-				"no-console", 0, "", 0, name);
-		}
-	};
+	}
+	if (!command) {
+		command = ko.prefs.getStringPref("DefaultHelpCommand");
+		name = "Help";
+	}
+	
+	command = command.trim();
+	if (command.startsWith("javascript:")) { // jshint ignore: line
+		command = command.substring(11).trim();
+		eval(ko.interpolate.interpolateString(command)); // jshint ignore: line
+	} else { 
+		ko.run.runCommand(window, command, null, null, false, false, true,
+			"no-console", 0, "", 0, name);
+	}
+};
 

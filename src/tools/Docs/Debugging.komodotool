@@ -1,0 +1,18 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Debugging R code", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "/* globals Services, ko */", 
+    "", 
+    "var doc = Services.koDocSvc.createDocumentFromURI(\"chrome://komodor/content/doc/koDebug.html\");", 
+    "ko.views.manager.topView.createViewFromDocument(doc, 'browser', -1);"
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/file8.svg", 
+  "type": "macro", 
+  "trigger": "trigger_postopen"
+}

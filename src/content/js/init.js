@@ -87,7 +87,7 @@ sv.init = {};
         logger.info("Setting default key bindings.");
 
         var kbMgr = ko.keybindings.manager;
-        if (kbMgr.currentConfiguration == undefined) {
+        if (kbMgr.currentConfiguration === undefined) {
             kbMgr = new ko.keybindings.manager();
         }
         var currentConfiguration = kbMgr.currentConfiguration;
@@ -99,8 +99,7 @@ sv.init = {};
         //var bindingRx = /[\r\n]+(# *SciViews|binding cmd_sv.*)/g;
 
         var bindingStr = kkfContent.match(new RegExp("^binding cmd_.*$", "gm"));
-        var schemeKeys = {},
-            cmdName, key, cmdNames = [];
+        var schemeKeys = {}, cmdName, key, cmdNames = [];
         for (let j = 0; j < bindingStr.length; ++j) {
             try {
                 [, cmdName, key] = /^binding\s+(\S+)\s+(\S+)$/.exec(bindingStr[j]);
@@ -153,12 +152,31 @@ sv.init = {};
     this.onLoad = function sv_onLoadObserver( /*win, topic, ...data */ ) {
         //topic="komodo-ui-started"
         // first run:
-        var firstRunPref = "rInterface.firstRunDone";
-        if (!ko.prefs.hasPref(firstRunPref) || sv.version != ko.prefs.getStringPref(firstRunPref)) {
+        var firstRunPref = "RInterface.firstRunDone";
+
+        if (!ko.prefs.hasPref(firstRunPref) || sv.version !== ko.prefs.getStringPref(firstRunPref)) {
             ko.prefs.setStringPref(firstRunPref, sv.version);
             let osName = Cc['@activestate.com/koOs;1'].getService(Ci.koIOs).name;
             if (!_setKeybindings(false, osName)) // use system specific keybindings
                 _setKeybindings(false, ''); // fallback - use default
+               
+             // clean icon cache 
+             //let path = sv.file.path(sv.file.specDir("ProfD"), "icons", "chrome", "komodor");
+             //let file = sv.file.getLocalFile(path);
+             //try {
+             //   file.remove(true);
+             //} catch(e) {
+             //   logger.exception(e, "failed to clean icon cache");
+             //}
+             
+             // remove:
+            ko.prefs.deletePref("rInterface.firstRunDone");
+            
+            // Open NEWS:
+            let doc = Services.koDocSvc.createDocumentFromURI("chrome://komodor/content/doc/NEWS.html");
+            ko.views.manager.topView.createViewFromDocument(doc, 'browser', -1);
+    
+        
         } // end first run
 
         var thisWin = window;
@@ -259,7 +277,6 @@ sv.init = {};
         else el.removeAttribute("checked");
         if (!sv.r.isRunning) {
             if (sv.rbrowser) {
-                sv.rbrowser.clearPackageList();
                 sv.rbrowser.clearAll();
             }
         } else {

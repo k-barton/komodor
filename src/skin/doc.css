@@ -1,0 +1,29 @@
+
+
+h1, h2 {
+   font-family: sans-serif;
+}
+
+ p {
+   font-family: serif;
+}
+
+img.inline {
+   vertical-align: middle;
+   width: 16px;
+}
+
+pre.sourceCode {
+   background-color: #e7eff1;
+   border: 1px solid #c9c9c9;
+   padding: 0.5em;
+   border-radius: 2px;
+
+}
+
+pre.no-highlight {
+   background-color: #141b2c;
+   color: #6fb7ff;
+   padding: 0.5em;
+   border-radius: 2px;
+}

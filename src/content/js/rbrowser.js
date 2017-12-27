@@ -32,10 +32,8 @@ sv.rbrowser = {};
     
     var _this = this;
 
-
     // FIXME: sep is also defined as sv.r.sep
     const sep = "\x1f", recordSep = "\x1e";
-    //var recordSep = "\n"; //"\x1e";
     var _listAllNames = false, _listAttributes = false;
     var dQuote = s => "\"" + s + "\"";
     var svgParams = "?size=16&color=" + encodeURIComponent("#0060bf");
@@ -43,11 +41,7 @@ sv.rbrowser = {};
     // XXX make internal
     this.evalEnv = { name: undefined, searchPathItem: undefined, isNew: false };
     
-    //var evalEnvName = "<eval.env>";
- 
-    // Note: first 3 objList arguments are unnamed. Update order on any modification of objList.
     var makeObjListCommand = (env, obj) => {
-        
         env = !env ? "\"\"" : (_this.evalEnv.name && env === _this.evalEnv.name ? "getEvalEnv()" :
             dQuote(sv.string.addslashes(env)));
         
@@ -63,27 +57,19 @@ sv.rbrowser = {};
     };
 
     // This should be changed if new icons are added
-    var iconTypes = ['dist', 'htest', 'lme', 'nls', 'object', 'ts'];
-    var iconTypesSvg = ['expression', 'name', 'formula', 'language', 'NULL',
-        'standardGeneric', 'function',
-        'data.frame', 'DateTime', 'array',
-        'character', 'integer', 'numeric', 'logical', 'list',
-        'environment', 'package', 'GlobalEnv',
-        'factor',
-		'family', 'logLik', 'srcref', 'srcfilecopy', 'srcref', 
-        'glm', 'lm', 'merMod', 'matrix', 'Matrix4', 'empty', 'S4', 'S3',
-        "_lm", "missing-arg"
-    ];
+    var iconTypes = [
+	    "S3", "S4", "missing-arg", "attrib", "function",
+		"standardGeneric", "environment", "GlobalEnv", "package", "character",
+		"integer", "numeric", "logical", "list", "factor", "NULL", "DateTime",
+		"array", "matrix", "data.frame", "Matrix4", "expression", "language",
+		"name", "srcfilecopy", "srcref", "dist", "_lm", "_lme", "_lmm_", "lm",
+		"lme", "gam", "glm", "gls", "merMod", "formula", "family", "terms",
+		"logLik", "connection", 'htest', 'ts', 'nls'
+		];
+
     
     var hasIcon = (name) => iconTypes.indexOf(name) !== -1;
-    var hasSvgIcon = (name) => iconTypesSvg.indexOf(name) !== -1;
-    
-// TODO find first matching
-    // objls column class e.g lmerMod,merMod,S4
-    // glm,lm,S3; expression,language
-   Array.prototype.push.apply(iconTypes, iconTypesSvg);
 
-    // Used in .contextOnShow
     var nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils",
         "package:base"]);
 
@@ -101,7 +87,6 @@ sv.rbrowser = {};
         get: function () this.visibleData.length,
         enumerable: true
     });
-
 
     function VisibleItem(obj, index, level, first, last, parentIndex) {
         if ((this.isList = obj.isRecursive)) {
@@ -168,8 +153,9 @@ sv.rbrowser = {};
         getImage() {
             let name = this.origItem.className;
             let noicon = !hasIcon(name);
-            if (name === "package" || name === "environment" && !this.origItem.name.startsWith("package:"))
-               name = this.origItem.name === ".GlobalEnv" ? "GlobalEnv" : "environment";
+            if (this.origItem.isTopLevelItem)
+                name = this.origItem.isPackage ? "package" :
+                    this.origItem.name === ".GlobalEnv" ? "GlobalEnv" : "environment";
             else if (name.endsWith("merMod") && name.search(/(^|\w)merMod$/) !== -1)
                 name = "merMod";
             else if (name.endsWith("Matrix"))
@@ -179,12 +165,14 @@ sv.rbrowser = {};
             else if (noicon) {
                 if (name.contains("glmm"))
                     name = "_glmm";
+				if (name.endsWith("lme"))
+                    name = "_lme";
                 else if (name.endsWith("lm"))
                     name = "_lm";
                 else
                     name = this.origItem.group;
             }
-            if (!hasIcon(name)) name = "";
+            if (!hasIcon(name)) name = "empty";
             return name;
         }
     };
@@ -217,7 +205,7 @@ sv.rbrowser = {};
         return idx;
     };
 
-    var createVisibleData = function () {
+    var createVisibleData = () => {
         if (!isInitialized) return;
 
         let rowsBefore = _this.visibleData.length;
@@ -240,12 +228,49 @@ sv.rbrowser = {};
             _this.treeBox.getLastVisibleRow());
     };
 
+    var parseRObjectName = (name, posObj) => {
+        var parents = [name], pos = 0;
+        while (name) {
+            if (name.startsWith("attr(") && name.endsWith(")")) {
+                let m = name.match(/^attr\((.+), "(?:[^"\\]|\\.)*"\)$/);
+                if (Array.isArray(m)) {
+                    name = m[1];
+                    pos += 5;
+                    } else name = "";
+            } else {
+                // remove last [@$]`?element`? 
+                if (name.endsWith("`")) { // match final `quoted name`
+                    let endpos = name.search(/(?:[@$]|^)`((?:[^`\\]|\\.)*)`$/);
+                    if (endpos > 0) {
+                        name = name.substr(0, endpos);
+                    } else name = "";
+                } else if (name.endsWith("]")) { // match final syntactic.name
+                    let endpos = name.search(/\[\[\d+\]\]?$/); // [[n]]
+                    if (endpos > 0) {
+                        name = name.substr(0, endpos);
+                    } else name = "";
+                } else {
+                    // Note: inline rx is faster than rx as variable. ???
+                    let endpos = name.search(/(?:[@$]|^)[a-zA-Z\u00c0-\uffef\.][\w\u00c0-\uffef\._]*$/);
+                    if (endpos > 0) {
+                        name = name.substr(0, endpos);
+                    } else name = "";
+                }
+                if (name && name.startsWith("formals(args(")) {
+                    name = name.substring(13, name.length - 2);
+                    pos += 13;
+                }
+            }
+            if (name) parents.push(name);
+        }
+        if (typeof posObj === "object") posObj.value = pos;
+        return parents;
+    };
+    
     // RObjectLeaf constructor:
     function RObjectLeaf(env, obj, arr, index, parentElement) {
 
         var dimNumeric = 1;
-        //let pos = index; // XXX ????
-        //this.index = index;
         if (obj) { /// Objects
             if (/^(\d+x)*\d+$/.test(arr[2]))
                 dimNumeric = arr[2].split(/x/).reduce((x, y) => x * parseInt(y));
@@ -309,10 +334,8 @@ sv.rbrowser = {};
         sortData: [],
         index: -1,
         parentObject: this.treeData,
-        childrenLoaded: false,
-        
+        childrenLoaded: false,  
         isCurrentEvalEnv: false,
-
         
         get isRecursive() this._isRecursive || _listAttributes && this.hasAttributes,
 
@@ -335,13 +358,10 @@ sv.rbrowser = {};
             let tp = this.getTopParent;
             return tp.env.startsWith("package:") ? tp.env.substring(8) + (tp.isHidden ? ":::" : "::") : "";
         },
-        //get getFullName() this.type === "args" ?
-        //    "formals(args(" + this.getNSPrefix + this.parentObject.fullName + "))$" + this.name :
-        //    this.getNSPrefix + this.fullName,
-        //    
+        // XXX: make a variable
         get getFullName() {
             var pos = {};
-            _this.parseRObjectName(this.fullName, pos);
+            parseRObjectName(this.fullName, pos);
             return this.fullName.substr(0, pos.value) + this.getNSPrefix +
                 this.fullName.substr(pos.value); 
         },
@@ -354,9 +374,6 @@ sv.rbrowser = {};
             while((p = p.parentObject)) ++i;
             return i;
             },
-        
-        //get childrenLength() this.children ? this.children.length : 0,
-        //set childrenLength(x) null
     };
     Object.defineProperty(RObjectLeaf.prototype, "toString", {enumerable: false, configurable: false, writable: false});
     
@@ -371,10 +388,6 @@ sv.rbrowser = {};
         }
     };
     
-    //var rebuildSortIndices = () => {
-    //    _this.treeData.forEach(updateTopLevelItem);
-    //};
-        
     var cleanupObjectLists = () => {
         if (!_this.treeData) return;
         // TODO: filter + Array.from ?
@@ -387,48 +400,8 @@ sv.rbrowser = {};
         //createVisibleData();
     };
     
-    this.parseRObjectName = function (name, posObj) {
-        var parents = [name], pos = 0;
-        while (name) {
-            if (name.startsWith("attr(") && name.endsWith(")")) {
-                let m = name.match(/^attr\((.+), "(?:[^"\\]|\\.)*"\)$/);
-                if (Array.isArray(m)) {
-                    name = m[1];
-                    pos += 5;
-                    } else name = "";
-            } else {
-                // remove last [@$]`?element`? 
-                if (name.endsWith("`")) { // match final `quoted name`
-                    let endpos = name.search(/(?:[@$]|^)`((?:[^`\\]|\\.)*)`$/);
-                    if (endpos > 0) {
-                        name = name.substr(0, endpos);
-                    } else name = "";
-                } else if (name.endsWith("]")) { // match final syntactic.name
-                    let endpos = name.search(/\[\[\d+\]\]?$/); // [[n]]
-                    if (endpos > 0) {
-                        name = name.substr(0, endpos);
-                    } else name = "";
-                } else {
-                    // Note: inline rx is faster than rx as variable. ???
-                    let endpos = name.search(/(?:[@$]|^)[a-zA-Z\u00c0-\uffef\.][\w\u00c0-\uffef\._]*$/);
-                    if (endpos > 0) {
-                        name = name.substr(0, endpos);
-                    } else name = "";
-                }
-                if (name && name.startsWith("formals(args(")) {
-                    name = name.substring(13, name.length - 2);
-                    pos += 13;
-                }
-            }
-            if (name) parents.push(name);
-        }
-        if (typeof posObj === "object") posObj.value = pos;
-        return parents;
-    };
-    
-    
-
-    this.getTreeLeafByName = function (name, env) {
+   
+    var getTreeLeafByName = (name, env) => {
         let p = _this.treeData, res;
         if (!p.length) return null;
         
@@ -437,7 +410,7 @@ sv.rbrowser = {};
         if(res === undefined) return null;
         if (!name) return res;
         
-        var ancestry = _this.parseRObjectName(name);
+        var ancestry = parseRObjectName(name);
         p = res;
         for(let k = ancestry.length - 1; k >= 0; --k) {
            let res1 = findFullName(p.children, ancestry[k]);
@@ -447,15 +420,12 @@ sv.rbrowser = {};
         return p;
     };
     
-    // TODO: make internal
     var _storedSelection;
-    this.saveSelection = function () {
+    var saveSelection = () => {
         var vd = this.visibleData;
         _storedSelection = this.getSelectedRows().map(i => vd[i].id);
     };
-
-    this.restoreSelection =
-        function () {
+    var restoreSelection = () => {
             if (!this.selection) return;
             this.selection.clearSelection();
             if (Array.isArray(_storedSelection) && _storedSelection.length > 0) {
@@ -470,113 +440,115 @@ sv.rbrowser = {};
             }
         };
 
-    this.parseObjListResult = function (data, rebuild, scrollToRoot) {
-        
-            //logger.debug("parseObjListResult: \n" + data.replace(/[^\w ]/g, "."));
-            var closedPackages = {};
-            var currentPackages = _this.treeData.map(x => {
-                closedPackages[x.name] = !x.isOpen;
-                return x.name;
-            });
+    var parseObjListResult = (data, rebuild, scrollToRoot) => {
 
-            if (rebuild) _this.treeData.splice(0);
+        //logger.debug("parseObjListResult: \n" + data.replace(/[^\w ]/g, "."));
+        var closedPackages = {};
+        var currentPackages = _this.treeData.map(x => {
+            closedPackages[x.name] = !x.isOpen;
+            return x.name;
+        });
 
-            _this.saveSelection();
+        if (rebuild) _this.treeData.splice(0);
 
-            var lastAddedRootElement;
-            data = data.trim();
-            if (!data) return;
-            var lines = data.split(/[\r\n]{1,2}/);
+        saveSelection();
 
-            const LF = {
-                Env: 0,
-                Obj: 1,
-                Data: 2
-            };
-            var lookFor = LF.Env;
-            
-            // debug:
-            var prettyLine = l => l.replace(new RegExp(sep, "g"), "·")
-                .replace(new RegExp(recordSep, "g"), "\n")
-                .substring(0, 100);
+        var lastAddedRootElement;
+        data = data.trim();
+        if (!data) return;
+        var lines = data.split(/[\r\n]{1,2}/);
 
-            let treeBranch, envName, objName;
-            for (let i = 0; i < lines.length; ++i) {
-                let itemConsumed = false;
-                logger.debug(`parseObjListResult: \nline ${i}, looking for ${['env', 'obj', 'data'][lookFor]} in: \n` +
-                			 prettyLine(lines[i]));
-
-                switch (lookFor) {
-                case LF.Env:
-                    if (lines[i].indexOf("Env=") != 0) break;
-                    envName = lines[i].substr(4).trim();
-                    lookFor = LF.Obj;
-                    itemConsumed = true;
-                    //DEBUG.push(`found Env=${envName}`);
-                    break;
-                case LF.Obj:
-                    if (lines[i].indexOf("Obj=") != 0) break;
-                    objName = lines[i].substr(4).trim();
-                    treeBranch = _this.getTreeLeafByName(objName, envName);
-                    logger.debug(`parseObjListResult: \nfound Obj=${objName}, Env=${envName}. Exists in tree=${treeBranch? 'yes' : 'no'}`);
-                    if (!treeBranch && !objName) { // This is environment
-                        treeBranch = new RObjectLeaf(envName, false);
-                        _this.treeData.push(treeBranch);
-                        if (currentPackages.indexOf(envName) == -1)
-                            lastAddedRootElement = treeBranch;
-                    }
-                    if (treeBranch) {
-                        //var isEmpty = (lines.length == i + 2) || (lines[i + 2].indexOf('Env') == 0);
-                        if (!objName) { // XXX: one-liner
-                            if (closedPackages[envName]) treeBranch.isOpen = false;
-                        } else treeBranch.isOpen = true;
-                        treeBranch.children = [];
-                        treeBranch.childrenLoaded = true;
-                        lookFor = LF.Data;
-                    } else lookFor = LF.Env; // this object is missing, skip all children
-                    itemConsumed = true;
-                    break;
-                case LF.Data:
-                    if (lines[i].indexOf("Env=") == 0) { // previous Env is empty
-                        lookFor = LF.Env;
-                        --i;
-                        break;
-                    }
-                    if (!lines[i].contains(sep)) break;
-                    try {
-                        let objlist = lines[i].split(recordSep);
-                        for (let k = 0; k < objlist.length; ++k) {
-                            if (objlist[k].length === 0) break;
-                            let leaf = new RObjectLeaf(envName, true, objlist[k].split(sep), k /* or i?*/ ,
-                                treeBranch);
-                            treeBranch.children.push(leaf);
-                        }
-                        logger.debug(`parseObjListResult: \nfound data n=${objlist.length}`);
-                    } catch (e) {
-                        logger.exception(e);
-                    }
-
-                    itemConsumed = true;
-                    lookFor = LF.Env;
-                    break;
-                default:
-                } // switch lookFor
-                if (!itemConsumed) logger.warn(`parseObjListResult: skipped item[${i}]: \n${lines[i]}`);
-            } // for i
-            
-            cleanupObjectLists();
-            //_this.sort(null, null); // .index'es are generated here
-
-            if (scrollToRoot && lastAddedRootElement) { //only if rebuild, move the selection
-                let idx = lastAddedRootElement.index;
-                if (idx != -1) {
-                    //_this.treeBox.ensureRowIsVisible(idx);
-                    _this.treeBox.scrollToRow(Math.min(idx, _this.rowCount - _this.treeBox.getPageLength()));
-                    _this.selection.select(idx);
-                }
-            }
-            _this.restoreSelection();
+        const LF = {
+            Env: 0,
+            Obj: 1,
+            Data: 2
         };
+        var lookFor = LF.Env;
+
+        // debug:
+        var prettyLine = l => l.replace(new RegExp(sep, "g"), "·")
+            .replace(new RegExp(recordSep, "g"), "\n")
+            .substring(0, 100);
+
+        let treeBranch, envName, objName;
+        for (let i = 0; i < lines.length; ++i) {
+            let itemConsumed = false;
+            logger.debug(
+                `parseObjListResult: \nline ${i}, looking for ${['env', 'obj', 'data'][lookFor]} in: \n` +
+                prettyLine(lines[i]));
+
+            switch (lookFor) {
+            case LF.Env:
+                if (lines[i].indexOf("Env=") != 0) break;
+                envName = lines[i].substr(4).trim();
+                lookFor = LF.Obj;
+                itemConsumed = true;
+                break;
+            case LF.Obj:
+                if (lines[i].indexOf("Obj=") != 0) break;
+                objName = lines[i].substr(4).trim();
+                treeBranch = getTreeLeafByName(objName, envName);
+                logger.debug(
+                    `parseObjListResult: \nfound Obj=${objName}, Env=${envName}. Exists in tree=${treeBranch? 'yes' : 'no'}`
+                );
+                if (!treeBranch && !objName) { // This is environment
+                    treeBranch = new RObjectLeaf(envName, false);
+                    _this.treeData.push(treeBranch);
+                    if (currentPackages.indexOf(envName) == -1)
+                        lastAddedRootElement = treeBranch;
+                }
+                if (treeBranch) {
+                    //var isEmpty = (lines.length == i + 2) || (lines[i + 2].indexOf('Env') == 0);
+                    if (!objName) { // XXX: one-liner
+                        if (closedPackages[envName]) treeBranch.isOpen = false;
+                    } else treeBranch.isOpen = true;
+                    treeBranch.children = [];
+                    treeBranch.childrenLoaded = true;
+                    lookFor = LF.Data;
+                } else lookFor = LF.Env; // this object is missing, skip all children
+                itemConsumed = true;
+                break;
+            case LF.Data:
+                if (lines[i].indexOf("Env=") == 0) { // previous Env is empty
+                    lookFor = LF.Env;
+                    --i;
+                    break;
+                }
+                if (!lines[i].contains(sep)) break;
+                try {
+                    let objlist = lines[i].split(recordSep);
+                    for (let k = 0; k < objlist.length; ++k) {
+                        if (objlist[k].length === 0) break;
+                        let leaf = new RObjectLeaf(envName, true, objlist[k].split(sep), k /* or i?*/ ,
+                            treeBranch);
+                        treeBranch.children.push(leaf);
+                    }
+                    logger.debug(`parseObjListResult: \nfound data n=${objlist.length}`);
+                } catch (e) {
+                    logger.exception(e);
+                }
+
+                itemConsumed = true;
+                lookFor = LF.Env;
+                break;
+            default:
+            } // switch lookFor
+            if (!itemConsumed) logger.warn(`parseObjListResult: skipped item[${i}]: \n${lines[i]}`);
+        } // for i
+
+        cleanupObjectLists();
+        //_this.sort(null, null); // .index'es are generated here
+
+        if (scrollToRoot && lastAddedRootElement) { //only if rebuild, move the selection
+            let idx = lastAddedRootElement.index;
+            if (idx != -1) {
+                //_this.treeBox.ensureRowIsVisible(idx);
+                _this.treeBox.scrollToRow(Math.min(idx, _this.rowCount - _this.treeBox.getPageLength()));
+                _this.selection.select(idx);
+            }
+        }
+        restoreSelection();
+    };
 
     this.getOpenItems = function () {
         let vd = _this.visibleData;
@@ -611,18 +583,11 @@ sv.rbrowser = {};
         
     });
 
- 
     this.refresh = function (force = false) {
         var cmd, init;
         init = !isInitialized || force || !_this.treeData.length || !_this.treeBox;
-
-        //logger.debug("running sv.rbrowser.refresh(init=" + init + ")");
-
         _this.getPackageList();
-        //cleanupObjectLists();
         if (init) {
-            //_this.getPackageList();
-            // TODO EvalEnv
             let globalEnvIdx = _this.searchPath.indexOf(".GlobalEnv");
             if (globalEnvIdx < 1)
                 cmd = makeObjListCommand(".GlobalEnv", "");
@@ -641,12 +606,6 @@ sv.rbrowser = {};
             for (let v of map.values()) cmdArr.push(makeObjListCommand(v[0], v[1]));
             cmd = cmdArr.join("\n");
         }
-        // Komodo9:
-        // panel = ko.widgets.getWidget("rbrowser_tabpanel")
-        // Komodo7+9:
-        // panelWin = document.getElementById("rbrowser_tabpanel").contentWindow
-        // document.getElementById("rbrowser_objects_tree").tree
-
         if (init) {
             let thisWindow = self;
             if (thisWindow.location.pathname.indexOf("komodo.xul") != -1)  // in main window
@@ -654,36 +613,34 @@ sv.rbrowser = {};
             thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
         }
 
-        sv.rconn.evalAsync(cmd, _this.parseObjListResult, true);
+        sv.rconn.evalAsync(cmd, parseObjListResult, true);
         isInitialized = true;
     };
     
-
-    function removeObjectList(pack) {
+    var removeObjectList = (pack) => {
         //if (pack === evalEnvName)
             //pack = _this.evalEnv.name;
-        for (let i = 0; i < _this.treeData.length; ++i) {
+        for (let i = 0; i < _this.treeData.length; ++i)
             if (_this.treeData[i].name === pack) {
                 _this.treeData.splice(i, 1);
                 break;
             }
-        }
         cleanupObjectLists();
         //createVisibleData();
-    }
+    };
 
-    function addObjectList(env, objName = "") {
+    var addObjectList = (env, objName = "") => {
         // if no object name - adding a package and scroll to its item
         logger.debug(`addObjectList: ${env}, ${objName}\n${makeObjListCommand(env, objName)} \n`);
         
         cleanupObjectLists();
         
-        sv.r.evalAsync(makeObjListCommand(env, objName), _this.parseObjListResult,
+        sv.r.evalAsync(makeObjListCommand(env, objName), parseObjListResult,
             /*args for parseObjListResult = */ false, !objName  /* = scrollToRoot*/ );
-    }
+    };
 
     // filtering by exclusion: prepend with "~"
-    function _getFilter() {
+    var _getFilter = () => {
         var tb = document.getElementById("rbrowser_filterbox");
         var obRx, text, not;
         text = tb.value;
@@ -699,9 +656,9 @@ sv.rbrowser = {};
             tb.className = "badRegEx";
             return x => (x.indexOf(text) != -1);
         }
-    }
+    };
 
-    this.applyFilter = function () {
+    this.applyFilter = function () { // keep as a method
         _this.filter = _getFilter();
         createVisibleData();
     };
@@ -721,7 +678,7 @@ sv.rbrowser = {};
         } catch (e) {
             currentElement = null;
         }
-        if (currentElement) this.saveSelection();
+        if (currentElement) saveSelection();
 
         // If the column is passed and sort already done, reverse it
         if (column) {
@@ -802,7 +759,7 @@ sv.rbrowser = {};
         if (currentElement) {
             this.selection.select(currentElement.index);
             this.treeBox.ensureRowIsVisible(currentElement.index);
-            this.restoreSelection();
+            restoreSelection();
         }
     };
 
@@ -818,7 +775,7 @@ sv.rbrowser = {};
             let siblings = parentObject.children ? 
                 parentObject.children : parentObject;
             for (let i = 0; i < siblings.length; ++i)
-                if (siblings[i].isOpen == open)
+                if (siblings[i].isOpen === open)
                     this.toggleOpenState(siblings[i].index);
         }
     };
@@ -910,8 +867,7 @@ sv.rbrowser = {};
     this.getImageSrc = function (row, col) {
         if (col.index === 0) {
             let name = _this.visibleData[row].imageName;
-            if (hasSvgIcon(name)) return "koicon://ko-svg/chrome/komodor/skin/images/" + name + ".svg" + svgParams;
-            else return "chrome://komodor/skin/images/" + name + ".png";
+            return "koicon://ko-svg/chrome/komodor/skin/images/" + name + ".svg" + svgParams;
         } else return "";
     };
     
@@ -1182,10 +1138,6 @@ sv.rbrowser = {};
         else removeObjectList(pack);
     };
 
-    //this.refreshGlobalEnv = function refreshGlobalEnv(data) {
-    //    if (!data) addObjectList(".GlobalEnv"); else _this.parseObjListResult(data);
-    //};
-    
     this.selectedItemsOrd = [];
     
     this.removeSelected = function (doRemove) {
@@ -1665,7 +1617,5 @@ sv.rbrowser = {};
         cleanupObjectLists: cleanupObjectLists,
         getWindow: () => ko.widgets.getWidget("rbrowser_tabpanel").contentWindow
     };
-    
-    
 
 }).apply(sv.rbrowser);
