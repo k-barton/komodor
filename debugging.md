@@ -1,8 +1,5 @@
----
-title: "Debugging R code in Komodo"
-output: html_document
-css: chrome://komodor/skin/doc.css
----
+Debugging R code in Komodo
+======
 
 R's debugging functions like `debug`, `browser` or `recover` cannot be used from
 within Komodo since they interrupt its communication with R. Any R code
@@ -50,7 +47,7 @@ Use 'koBrowseEnd()' to return to '.GlobalEnv'.
 
 A new branch is added to the top of the R Object Browser tree, which lists 
 contents of the current environment. It is named after the last function call, 
-in this case <img src="chrome://komodor/skin/images/environment.svg" width="16"
+in this case <img src="img/environment.svg" width="16"
 style="vertical-align: middle;" />`testFun2(x, z, y)`.
 
 Afterwards, send `koBrowseEnd()` to go back to global environment. 
@@ -70,7 +67,7 @@ Evaluating in '.GlobalEnv'
 ```
 
 Alternatively, delete the respective
-<img src="chrome://komodor/skin/images/environment.svg" class="inline" /> item 
+<img src="img/environment.svg" class="inline" /> item 
 in the R Object Browser (Shift+Delete) or in the "R Search path" panel (Delete).
 
 
