@@ -1,8 +1,8 @@
 Package: kor
 Type: Package
 Title: Connects R with Komodo
-Version: 0.2.247
-Date: 2017-12-27
+Version: 0.2.279
+Date: 2018-01-03
 Encoding: UTF-8
 Author: Kamil Bartoń
 Maintainer: Kamil Bartoń <kamil.barton@go2.pl>
@@ -10,7 +10,7 @@ Description: A part of the "R Interface (KomodoR)" add-on for
     Komodo editor. Provides communication between R and Komodo.
 License: GPL-2
 Depends:
-    R (>= 3.0.0)
+    R (>= 3.3.0)
 Imports:
     tcltk, utils, methods
 ByteCompile: yes

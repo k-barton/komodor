@@ -36,37 +36,12 @@ Contributors:
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-<script type="application/x-javascript">
-<![CDATA[
-
-//* globals ko, self */
-// find sv object in the main Komodo window:
-var sv;
-var p = self;
-do {
-	p = p.parent;
-	if (p.sv) {
-		sv = p.sv;
-		break;
-	}
-} while(p.parent != p);
-if (typeof sv == 'undefined')
-	while ((p = p.opener)) {
-		if (p.sv) {
-			sv = p.sv;
-			break;
-		}
-	}
-// ]]>
-</script>
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
+
 <script type="application/x-javascript">
 <![CDATA[
-window.addEventListener("DOMContentLoaded", function(/*event*/) {
-   sv.rbrowser.onLoad();
-}, false);
-
+//window.addEventListener("DOMContentLoaded", () => { sv.rbrowser.onLoad(); }, false);
 // ]]>
 </script>
 

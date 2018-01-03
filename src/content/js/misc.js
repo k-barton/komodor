@@ -123,7 +123,7 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 	// Fixed bookmark-toggling
 	function bookmarkToggleFix(modifiers, position, margin) {
 		var s = this.scimoz;
-		if (margin == (this.scimoz.MARGIN_SYMBOLS === undefined ? 2 : this.scimoz.MARGIN_SYMBOLS) &&
+		if (margin === (this.scimoz.MARGIN_SYMBOLS === undefined ? 2 : this.scimoz.MARGIN_SYMBOLS) &&
 			this._mouseButton == 0) { // 1 --> 0
 			// original onMarginClick uses this.scintilla.scimoz, which apparently
 			// has no effect
@@ -137,47 +137,10 @@ if ((os_prefix == "win") || (os_prefix == "mac")) {
 		}
 	}
 
-	// TODO: Komodo 9 dispatches an event "editor_margin_clicked"
-	if(sv._versionCompare(ko.version, "9") >= 0) {
-		window.addEventListener("editor_margin_clicked", function marginClickListener(event) {
+	window.addEventListener("editor_margin_clicked",  (event) => {
 			bookmarkToggleFix.call(event.detail.view, event.detail.modifiers,
 								   event.detail.position, event.detail.margin);
 		}, true);
-	} else {
-		// XXX: REMOVE Ko7 & Ko8
-		var onMarginClick = function (modifiers, position, margin) {
-			var mouseButton = this._mouseButton;
-			//XXX this.getPrototypeOf();
-			var res = this.__proto__.onMarginClick.call(this, modifiers, position, margin);
-			this._mouseButton = mouseButton;
-			bookmarkToggleFix.call(this, modifiers, position, margin);
-			this._mouseButton = -1;
-			return res;
-		};
-
-		var addMarginClickHandler = function (view) {
-			if (view.cancelable !== undefined) // view is Event object
-				view = ko.views.manager.currentView;
-			if(!view || view.onMarginClick == onMarginClick) return;
-			view.onMarginClick = onMarginClick;
-		};
-
-		window.addEventListener("view_opened", addMarginClickHandler, true);
-		var _observerSvc = Components.classes['@mozilla.org/observer-service;1']
-			.getService(Components.interfaces.nsIObserverService);
-
-		var onLoad = function() {
-			var views = ko.views.manager.getAllViews();
-			for (var i = 0; i < views.length; ++i) {
-				var view = views[i];
-				sv.cmdout.append("view: " + view.koDoc.displayPath);
-				addMarginClickHandler(view);
-			}
-			_observerSvc.removeObserver(onLoad, "komodo-ui-started");
-			_observerSvc = null;
-		};
-		_observerSvc.addObserver(onLoad, "komodo-ui-started", false);
-	}
 
 }).apply();
 

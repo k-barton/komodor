@@ -43,16 +43,17 @@ import json
 from uuid import uuid1
 
 import logging
-log = logging.getLogger('svUtils')
+log = logging.getLogger('korRConnector')
+log.setLevel(logging.DEBUG)
 
-class svUtils:
-    _com_interfaces_ = [components.interfaces.svIUtils]
-    _reg_desc_ = "Komodo R connection utilities"
+class korRConnector:
+    _com_interfaces_ = [components.interfaces.korIRConnector]
+    _reg_desc_ = "KomodoR R connection mediator"
     _reg_clsid_ = "{22A6C234-CC35-D374-2F01-FD4C605C905C}"
-    _reg_contractid_ = "@komodor/svUtils;1"
+    _reg_contractid_ = "@komodor/korRConnector;1"
 
     class CommandInfo:
-        _com_interfaces_ = components.interfaces.svICommandInfo
+        _com_interfaces_ = components.interfaces.korICommandInfo
         def __init__(self, cmd_id, cmd, mode, browserMode = False, message = '', result = ''):
             self.commandId = cmd_id
             self.command = cmd
@@ -80,36 +81,6 @@ class svUtils:
         self.outScimoz = None
         pass
 
-    #def setScimoz(self, outScimoz):
-    #    self.outScimoz = outScimoz
-    def printResult(self, cmdinfo):
-        self.printResult2(cmdinfo.result)
-
-    def printResult2(self, result):
-        if self.outScimoz is None:
-            raise Exception("'outScimoz' is not set")
-            return
-        scimoz = self.outScimoz
-        readOnly = scimoz.readOnly
-        scimoz.readOnly = False
-        styleMask = (1 << scimoz.styleBits) - 1
-        try:
-            chunks = re.split('[\x03\x02]', result)
-            s = ''.join(chunks)
-            txtlen = len(s.encode('utf-8'))
-            pos = scimoz.textLength
-            scimoz.appendText(txtlen, s)
-            state = 0
-            for s in chunks:
-                state = (state + 1) % 2
-                curStyle = 0 if state else 23
-                txtlen = len(s.encode('utf-8'))
-                scimoz.startStyling(pos, styleMask)
-                scimoz.setStyling(txtlen, curStyle)
-                pos += txtlen
-        finally:
-            scimoz.readOnly = readOnly
-
     def setSocketInfo(self, host, port, outgoing):
         log.debug("setSocketInfo (%s): %s:%d" % ('outgoing' if outgoing else
                                                  'incoming', host, port))
@@ -129,44 +100,12 @@ class svUtils:
         ret.data = long(n)
         return(ret)
 
-# XXX REMOVE?
-    def getproc(self, propertyName):
-#       TODO: error handling here
-#       TODO: checking for correct propertyName, return several properties at a time
-        ret = []
-        if sys.platform.startswith('win'):
-            from win32com.client import GetObject
-            WMI = GetObject('winmgmts:')
-            processes = WMI.ExecQuery('select ' + propertyName + \
-                ' from Win32_Process where Name="Rgui.exe" or Name="R.exe" or Name="Rterm.exe"')
-            if len(processes) > 0 :
-                for p in processes:
-                    ret.append(p.Properties_(propertyName).Value)
-        else:
-            propertyName = {
-                'Handle': 'pid',
-                'ProcessId': 'pid',
-                'CommandLine': 'cmd'
-                }[propertyName]
-
-            import subprocess
-            ret = subprocess.Popen(['ps', '--no-header', '-o', propertyName, '-C', 'R'],
-                stdout=subprocess.PIPE).communicate()[0].split("\n")
-            ret = [el for el in ret if el != '']
-
-        ret = map(self._asSString, ret);
-        return SimpleEnumerator(ret)
-
-    def platform(self):
-        return unicode(sys.platform)
-
     def evalInR(self, command, mode, timeout = .5):
         return self.connect(command, mode, False, timeout, self.uid())
 
     def evalInRNotify(self, command, mode, uid):
-        log.debug("evalInRNotify: %s..." % command[0:10])
-        t = threading.Thread(target=self.connect, args=(command, mode, True,
-                                                         None, uid))
+        log.debug("evalInRNotify: command=%s ..." % command[0:10])
+        t = threading.Thread(target=self.connect, args=(command, mode, True, None, uid))
         t.daemon = True
         t.start()
         
@@ -179,10 +118,10 @@ class svUtils:
 
     @components.ProxyToMainThread
     def requestHandlerEvent(self, requestHandler, data):
-        return requestHandler.onStuff(data)
+        return requestHandler.onDone(data)
 
     def connect(self, command, mode, notify, timeout, uid):
-        pretty_command = self.pushLeft(command, indent=3L, eol='\n', tabwidth=4)[3:]
+        # pretty_command = self.pushLeft(command, indent=3L, eol='\n', tabwidth=4)[3:]
         self.lastCommand = unicode(command)
         ssLastCmd = self._asSString(command)
         log.debug("connect: %s... (%d)" % (command[0:10], notify))
@@ -194,20 +133,20 @@ class svUtils:
         s.settimeout(timeout)
         try: s.connect(self.socketOut)
         except IOError, e:
-            # Windows has : timeout('timed out',)
-            # Linux has: error(111, '... rejected')
+            # Windows: timeout('timed out',)
+            # Linux: error(111, '... rejected')
             # e.message or e.strerror
             return unicode('\x15' + (e.args[0] if (e.errno == None) else e.strerror))
 
-        cmdInfo = self.CommandInfo(uid, pretty_command, mode, False, 'Not ready')
+        cmdInfo = self.CommandInfo(uid, command, mode, False, 'Not ready')
 
-        #wrappedCmdInfo = WrapObject(cmdInfo, components.interfaces.svICommandInfo)
+        #wrappedCmdInfo = WrapObject(cmdInfo, components.interfaces.korICommandInfo)
         if notify:
             # self._proxiedObsSvc.notifyObservers(
-                # WrapObject(cmdInfo, components.interfaces.svICommandInfo),
+                # WrapObject(cmdInfo, components.interfaces.korICommandInfo),
                 # 'r-command-sent', None)
             self.notifyObservers(WrapObject(cmdInfo, 
-                components.interfaces.svICommandInfo),
+                components.interfaces.korICommandInfo),
                 'r-command-sent', None)
         
 
@@ -220,6 +159,7 @@ class svUtils:
                 + '<' + uid + '>' \
                 + command.replace("\\", "\\\\"). \
                 replace("\n", "\\n").replace("\r", "\\r").replace("\f", "\\f")
+        #XXX: remove
         else:
             full_command = '<<<id=' + uid + '>>><<<' + mode + '>>>' + \
                 re.sub("(\r?\n|\r)", '<<<n>>>', command)
@@ -233,12 +173,12 @@ class svUtils:
             while True:
                 data = s.recv(1024L)
                 if not data: break
-                if notify:
+                # if notify:
                     #self._proxiedObsSvc.notifyObservers(cmdInfo, 'r-command-chunk', data)
                     # self._proxiedObsSvc.notifyObservers(
-                    self.notifyObservers(
-                        WrapObject(cmdInfo, components.interfaces.svICommandInfo),
-                        'r-command-chunk', data)
+                    # self.notifyObservers(
+                        # WrapObject(cmdInfo, components.interfaces.korICommandInfo),
+                        # 'r-command-chunk', data)
                 #if do_print:
                     #self.printResult(cmdInfo)
                 result += unicode(data)
@@ -278,10 +218,11 @@ class svUtils:
 
         self.lastMessage = message
         self.lastResult = result
-        self.lastCommandInfo = WrapObject(cmdInfo, components.interfaces.svICommandInfo)
+        self.lastCommandInfo = WrapObject(cmdInfo, components.interfaces.korICommandInfo)
         if notify:
             self.notifyObservers(
-                WrapObject(cmdInfo, components.interfaces.svICommandInfo),
+                # XXX self.lastCommandInfo
+                WrapObject(cmdInfo, components.interfaces.korICommandInfo),
                 'r-command-executed',
                 result)
             log.debug("connect notify: %s..." % result[0:50])
@@ -289,13 +230,6 @@ class svUtils:
 
         log.debug("connect return: %s..." % result[0:50])
         return unicode(result)
-
-
-#  File "components\svUtils.py", line 126, in evalInR
-#    return self.connect(command, mode, False, .5, "")
-#  File "components\svUtils.py", line 153, in connect
-#    data = s.recv(1024)
-#timeout: timed out
 
     def __del__(self):
         try:
@@ -349,7 +283,7 @@ class svUtils:
         log.debug('Told socket server to stop')
 
     def _Serve(self, requestHandler):
-        # requestHandler is a Javascript object with component 'onStuff'
+        # requestHandler is a Javascript object with component 'onDone'
         # which is a function accepting one argument (string), and returning
         # a string
         try:
@@ -404,25 +338,6 @@ class svUtils:
             log.debug(e)
             pass
         pass
-
-    #import string, re, os, sys
-    def pushLeft(self, text, eol = os.linesep, indent = 0, tabwidth = 4):
-        text = text.lstrip("\r\n\f")
-        if not text: return ''
-        re_line = re.compile('(^[\t ]*)(?=\S)(.*$)', re.MULTILINE)
-        if type(indent) in (str, unicode):
-           indentstr = indent
-           indent = len(indentstr)
-        else:
-           indentstr = ' ' * indent
-        lines = re.findall(re_line, text)
-        indent_len = map(lambda line: len(string.expandtabs(line[0], tabwidth)), lines)
-        ## XXX: indent_len = [ len(string.expandtabs(line[0], tabwidth)) for line in lines ]
-        baseind = min(indent_len)
-        if (baseind == 0 and indent == 0): return text
-        return eol.join(map(lambda nspaces, line: \
-                indentstr + (' ' * (nspaces - baseind)) + \
-                line[1], indent_len, lines))
 
     def uid(self):
         return(uuid1().hex)

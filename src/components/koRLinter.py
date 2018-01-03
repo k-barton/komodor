@@ -58,8 +58,8 @@ class KoRLinter:
     def __init__(self):
         self.pattern = re.compile('^(?:.*:)?(?P<line>\d+):(?P<col>\d+):(?P<descr>.*?)(?=[\r\n])')
         ##self.pattern = re.compile('^(.*):(?P<line>\d+):(?P<col>\d+):(?P<descr>.*?)(?=[\r\n])[\s\S]*(?<=[\r\n])(?P=line): (?P<code>.*?)(?=[\r\n])')
-        self.sv_utils = components.classes["@komodor/svUtils;1"].\
-            getService(components.interfaces.svIUtils)
+        self.sv_utils = components.classes["@komodor/korRConnector;1"].\
+            getService(components.interfaces.korIRConnector)
         pass
 
         # 'lint' first evaluates in R 'kor::qParse(filename)' which returns R-style

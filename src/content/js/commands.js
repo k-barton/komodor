@@ -15,10 +15,18 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
     const {
         classes: Cc,
-        interfaces: Ci
+        interfaces: Ci,
+        utils: Cu
     } = Components;
 
+    if (typeof Services === "undefined") Components.utils.import("resource://gre/modules/Services.jsm");
+
     var logger = require("ko/logging").getLogger("komodoR");
+    logger.setLevel(logger.DEBUG);
+
+const ArrayUtils = sv.array;
+const StringUtils = sv.string;
+const FileUtils = sv.file;
 
     this.RHelpWin = null; // A reference to the R Help Window
     var _this = this;
@@ -41,7 +49,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             var win;
             while (en.hasMoreElements()) {
                 win = en.getNext();
-                if (win.location.href == uri) return (win);
+                if (win.location.href === uri) return (win);
             }
         }
         return (null);
@@ -80,16 +88,12 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 currentView.scimoz.selectionStart) != 0));
     }
 
-    // Services.obs
-    var _observerSvc = Cc['@mozilla.org/observer-service;1']
-        .getService(Ci.nsIObserverService);
-
     function _ProcessObserver(command, process, callback) {
         this._command = command;
         this._process = process;
         this._callback = (callback || function () {});
 
-        _observerSvc.addObserver(this, 'run_terminated', false);
+        Services.obs.addObserver(this, 'run_terminated', false);
         try {
             this._process.wait(0);
             this.cleanUp();
@@ -113,7 +117,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         },
         cleanUp: function () {
             if (this._command) {
-                _observerSvc.removeObserver(this, 'run_terminated');
+                Services.obs.removeObserver(this, 'run_terminated');
                 this._command = null;
             }
             if (this._process) {
@@ -125,7 +129,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         },
         kill: function () {
             if (this._command) {
-                _observerSvc.removeObserver(this, 'run_terminated');
+                Services.obs.removeObserver(this, 'run_terminated');
                 this._command = null;
             }
             if (this._process) {
@@ -151,7 +155,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             } else {
                 uri = ko.places.manager.lastLocalDirectoryChoice;
             }
-            dir = sv.file.pathFromURI(uri);
+            dir = FileUtils.pathFromURI(uri);
         }
         return dir;
     };
@@ -174,9 +178,6 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     };
 
     this.startR = function () {
-        var svfile = sv.file;
-        var svstr = sv.string;
-
         if (!sv.pref.getPref("svRCommand")) {
             if (ko.dialogs.okCancel(
                     sv.translate("R interpreter is not set in " +
@@ -186,9 +187,9 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             return;
         }
 
-        var rDir = svfile.path("ProfD", "extensions", "komodor@komodor", "R");
-        svfile.write(svfile.path(rDir, "_init.R"),
-            "setwd('" + svstr.addslashes(sv.command.getCwd(false)) +
+        var rDir = FileUtils.path("ProfD", "extensions", "komodor@komodor", "R");
+        FileUtils.write(FileUtils.path(rDir, "_init.R"),
+            "setwd('" + StringUtils.addslashes(sv.command.getCwd(false)) +
             "')\n" + "options(" +
             "ko.port=" + sv.pref.getPref("RInterface.koPort", sv.pref.defaults[
                 "RInterface.koPort"]) +
@@ -290,7 +291,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             try {
                 if (!isUri) {
                     if (isWin) uri = uri.replace(/\//g, "\\");
-                    uri = sv.file.toFileURI(uri);
+                    uri = FileUtils.toFileURI(uri);
                 }
             } catch (e) {
                 // fallback
@@ -413,12 +414,12 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
 
         var _test = (cmdName) => {
             var test = handlers[cmdName][1];
-            if (test == -1) return true;
+            if (test === -1) return true;
             if (typeof test === "function") return test();
             return (
-                (((test & XRRunning) != XRRunning) || _RIsRunning) && (((test &
-                    XRStopped) != XRStopped) || !_RIsRunning) && (((test & XisRDoc) !=
-                    XisRDoc) || _isRCurLanguage()) && (((test & XHasSelection) !=
+                (((test & XRRunning) !== XRRunning) || _RIsRunning) && (((test &
+                    XRStopped) !== XRStopped) || !_RIsRunning) && (((test & XisRDoc) !==
+                    XisRDoc) || _isRCurLanguage()) && (((test & XHasSelection) !==
                     XHasSelection) || _hasSelection())
             );
         };
@@ -429,13 +430,12 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         // used for commands that don't ever get disabled.
 
         function broadcasterController() {
-            if (typeof (ko.main) != "undefined") {
+            if (typeof ko.main !== "undefined") {
                 ko.main.addWillCloseHandler(this.destructor, this);
             } else {
                 // ko.main will not be defined in dialogs that load controller.js.
                 var self = this;
-                window.addEventListener("unload", function () self.destructor(),
-                    false);
+                window.addEventListener("unload", () => self.destructor(), false);
             }
         }
 
@@ -471,8 +471,8 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
     this.getRProc = function (property) {
         if (!property) property = "CommandLine";
 
-        var svUtils = Cc["@komodor/svUtils;1"].createInstance(Ci.svIUtils);
-        var procList = svUtils.getproc(property);
+        var korRConnector = Cc["@komodor/korRConnector;1"].createInstance(Ci.korIRConnector);
+        var procList = korRConnector.getproc(property);
 
         let proc = [];
         while (procList.hasMoreElements()) proc.push(_str(procList.getNext()));
@@ -484,12 +484,12 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
         get anyRFilesSelected()
         _RIsRunning &&
         ko.places.manager.getSelectedItems().some(
-            x => x.file.isLocal && x.file.ext.toLowerCase() == ".r"),
+            x => x.file.isLocal && x.file.ext.toLowerCase() === ".r"),
 
         get anyRDataFilesSelected()
         _RIsRunning &&
         ko.places.manager.getSelectedItems().some(
-            x => x.file.isLocal && (x.file.ext || x.file.leafName).toLowerCase() == ".rdata"),
+            x => x.file.isLocal && (x.file.ext || x.file.leafName).toLowerCase() === ".rdata"),
 
         sourceSelection() {
             if (!_RIsRunning) return;
@@ -497,7 +497,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                 .filter(x => (x.file.isLocal && x.file.ext.toLowerCase() == ".r"))
                 .map(x => x.file.path);
             if (!files.length) return;
-            let cmd = files.map(x => "source('" + sv.string.addslashes(x) + "')").join("\n");
+            let cmd = files.map(x => "base::source('" + StringUtils.addslashes(x) + "')").join("\n");
             sv.rconn.evalAsync(cmd, () => sv.rbrowser.refresh(true), false);
         },
 
@@ -509,7 +509,7 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
                     (x.file.ext || x.file.leafName).toLowerCase() == ".rdata"))
                 .map(x => x.file.path);
             if (!files.length) return;
-            let cmd = files.map(x => "load('" + sv.string.addslashes(x) + "')").join("\n");
+            let cmd = files.map(x => "load('" + StringUtils.addslashes(x) + "')").join("\n");
             sv.rconn.evalAsync(cmd, () => sv.rbrowser.refresh(true), false);
         },
 
@@ -519,13 +519,13 @@ if (typeof (sv.command) == 'undefined') sv.command = {};
             var path;
             if (ko.places.manager._clickedOnRoot()) {
                 if (!ko.places.manager.currentPlaceIsLocal) return;
-                path = sv.file.pathFromURI(ko.places.manager.currentPlace);
+                path = FileUtils.pathFromURI(ko.places.manager.currentPlace);
             } else {
                 let dir = ko.places.manager.getSelectedItem();
-                if (!dir.file.isLocal || dir.type != "folder") return;
+                if (!dir.file.isLocal || dir.type !== "folder") return;
                 path = dir.file.path;
             }
-            let cmd = "setwd('" + sv.string.addslashes(path) + "')";
+            let cmd = "base::setwd('" + StringUtils.addslashes(path) + "')";
             sv.rconn.evalAsync(cmd, () => sv.rbrowser.refresh(true), false);
         }
 

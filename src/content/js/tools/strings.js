@@ -8,7 +8,14 @@
 
 /* globals sv, navigator */
 
-if (typeof sv === 'undefined') sv = {};
+let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Components.interfaces.nsIWindowMediator);
+let w = wm.getMostRecentWindow("Komodo");
+if (typeof w.sv === 'undefined') w.sv = {};
+var sv = w.sv;
+
+
+
 if (typeof sv.string === 'undefined') sv.string = {};
 
 // Replace line feed and carriage return by 'code'
@@ -71,4 +78,17 @@ sv.string.trim = function (str, which = "both") {
 		break;
 	}
 	return str.replace(rx, "");
+};
+
+// source:
+// https://sites.google.com/site/getsnippet/javascript/string/expandtabs
+sv.string.expandTabs = function(str, tabSize) {
+  let spaces = " ".repeat((tabSize = tabSize || 8));
+  return str.replace(/([^\r\n\t]*)\t/g, (a, b) => b + spaces.slice(b.length % tabSize));
+};
+
+sv.string.unindent = function(str, tabSize) {
+    str = sv.string.expandTabs(str, tabSize);
+    var unindentBy = str.match(/^[\t ]+/mg).reduce((a, v) => Math.min(a, v.length), Infinity);
+    return str.replace(new RegExp("^ {" + unindentBy + "}", "mg"), "");
 };

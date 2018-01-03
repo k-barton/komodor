@@ -13,6 +13,13 @@
  * TODO: make this a sv.robjects.tree 
  */
 /* globals sv, ko, require, document, self */
+
+
+let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Components.interfaces.nsIWindowMediator);
+let w = wm.getMostRecentWindow("Komodo");
+if (typeof w.sv === 'undefined') w.sv = {};
+var sv = w.sv, ko = w.ko;
 sv.rbrowser = {};
 
 // Control characters + separators (make them sv-wide):
@@ -28,8 +35,12 @@ sv.rbrowser = {};
 (function () {
 
     var logger = require("ko/logging").getLogger("komodoR");
-    //logger.setLevel(logger.DEBUG);
+    logger.setLevel(logger.DEBUG);
     
+const ArrayUtils = sv.array;
+const StringUtils = sv.string;
+const FileUtils = sv.file;
+
     var _this = this;
 
     // FIXME: sep is also defined as sv.r.sep
@@ -43,7 +54,7 @@ sv.rbrowser = {};
     
     var makeObjListCommand = (env, obj) => {
         env = !env ? "\"\"" : (_this.evalEnv.name && env === _this.evalEnv.name ? "getEvalEnv()" :
-            dQuote(sv.string.addslashes(env)));
+            dQuote(StringUtils.addslashes(env)));
         
         var rval = "kor::write.objList(kor::objls(" +
             (obj ? obj + ", " : "") +
@@ -88,6 +99,11 @@ sv.rbrowser = {};
         enumerable: true
     });
 
+     Object.defineProperty(this, "toString", {
+        value: () => "[object RObjectBrowser]",
+        enumerable: false, writable: false, configurable: false
+    });
+    
     function VisibleItem(obj, index, level, first, last, parentIndex) {
         if ((this.isList = obj.isRecursive)) {
             this.isContainer = true;
@@ -962,7 +978,7 @@ sv.rbrowser = {};
                 filePath = data.getData("application/x-moz-file").path;
             } else if (data.types.contains("text/plain")) {
                 filePath = String(data.getData("text/plain")).trim();
-                if (!sv.file.exists(sv.file.path(filePath))) {
+                if (!FileUtils.exists(FileUtils.path(filePath))) {
                     text = filePath;
                     filePath = null;
                 }
@@ -1197,10 +1213,9 @@ sv.rbrowser = {};
 
         if (doRemove) {
             // Remove immediately
-            sv.r.evalAsync(cmd.join("\n"), (res) => {
-                sv.cmdout.append(res);
+            sv.rconn.evalAsync(cmd.join("\n"), (res) => {
                 if (cmdDetach.length) _this.refresh();
-            });
+            }, false);
         } else {
             // Insert commands to current document
             let view = ko.views.manager.currentView;
@@ -1364,7 +1379,7 @@ sv.rbrowser = {};
                 } else return true;
             });
 
-            let dup = sv.array.duplicates(items.map(x => x.name));
+            let dup = ArrayUtils.duplicates(items.map(x => x.name));
             if (dup.length &&
                 ko.dialogs.okCancel("Objects with the same names from different" +
                     "environments selected. Following object will be taken from the " +
@@ -1376,7 +1391,7 @@ sv.rbrowser = {};
 
             let dir;
             try {
-                dir = sv.file.path(sv.rconn.eval("base::cat(base::getwd())"));
+                dir = FileUtils.path(sv.rconn.eval("base::cat(base::getwd())"));
             } catch (e) {
                 logger.exception(e, "in sv.rbrowser.doCommand");
                 return;
@@ -1601,9 +1616,17 @@ sv.rbrowser = {};
         _this[name] = value;
     };
 
+    //this.onLoad = function ( /*event*/ ) {
     this.onLoad = function ( /*event*/ ) {
-        if (sv.r.isRunning) _this.refresh(true);
+        if (typeof sv.r === "undefined") {
+             setTimeout(_this.onLoad, 1000);
+             logger.debug("sv.rbrowser.onLoad: sv.r is undefined.");
+        } else if (sv.r.isRunning)
+          _this.refresh(true);
+        logger.debug("sv.rbrowser.onLoad");
     };
+    
+    //window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
     
     this.debug = {
         getSelProps(column = "r-name") {
@@ -1617,5 +1640,6 @@ sv.rbrowser = {};
         cleanupObjectLists: cleanupObjectLists,
         getWindow: () => ko.widgets.getWidget("rbrowser_tabpanel").contentWindow
     };
+    
 
 }).apply(sv.rbrowser);

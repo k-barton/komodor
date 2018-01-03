@@ -1,4 +1,6 @@
 
+/* globals self, Components, KeyEvent, internalSave, goUpdateCommand */
+
 var sv;
 var rHelpBrowser;
 var rHelpTopic;
@@ -21,7 +23,7 @@ function go(uri, loadFlags) {
 	rHelpTopic = document.getElementById("rhelp-topic");
 	// In case the window was not yet fully loaded.
 	if (!rHelpTopic) {
-		self.addEventListener("load", function(event) { go(uri); }, false);
+		self.addEventListener("load", (event) => { go(uri); }, false);
 		return;
 	}
 
@@ -44,8 +46,28 @@ function go(uri, loadFlags) {
 	}
 }
 
+// display formatted search results in a help window
+function rHelpSearch(topic) {
+	if (!topic)	return;
+    var queryObj = {pattern: topic, 
+        fieldsAlias: 1, fieldsTitle: 1, fieldsConcept: 1, 
+        ignoreCase: 1, typesHelp: 1, typesVignette: 1, typesDemo: 1};
+    
+    var queryArr = [];
+    for(let i in queryObj)
+		if(queryObj.hasOwnProperty(i))
+			queryArr.push(i.replace(/([A-Z])/g, (_, s) => "." +
+				s.toLowerCase()) + "=" + 
+				encodeURIComponent(queryObj[i]).trim());
+	  
+    rHelpBrowser.webNavigation.loadURI(
+        rHelpBrowser.homePage.replace(/index.html$/, "Search?" + queryArr.join("&")),
+		rHelpBrowser.webNavigation.LOAD_FLAGS_NONE, null, null, null
+        );
+}
+
 function txtInput(aEvent) {
-	if (aEvent.keyCode == KeyEvent.DOM_VK_RETURN) {
+	if (aEvent.keyCode === KeyEvent.DOM_VK_RETURN) {
 		if (aEvent.ctrlKey) {
 			rHelpSearch(rHelpTopic.value);
 		} else {
@@ -66,16 +88,6 @@ function search(topic) {
 	sv.r.search(topic);
 }
 
-function onFindCommand(event) {
-	var button = event.target;
-	if (!button.checked) {
-		find();
-	} else {
-		var findToolbar = document.getElementById("FindToolbar");
-		findToolbar.close();
-	}
-}
-
 function find(next, backwards) {
 	//rHelpTopic.select();
 	//findInDoc(rHelpTopic.value);
@@ -88,6 +100,16 @@ function find(next, backwards) {
 		findToolbar._findField.focus();
 	} else {
 		findToolbar._findAgain(backwards);
+	}
+}
+
+function onFindCommand(event) {
+	var button = event.target;
+	if (!button.checked) {
+		find();
+	} else {
+		var findToolbar = document.getElementById("FindToolbar");
+		findToolbar.close();
 	}
 }
 
@@ -122,7 +144,7 @@ var progressListener = {
 			document.getElementById("cmd_stop").hidden = true;
 			document.getElementById("cmd_reload").hidden = false;
 			document.getElementById("cmd_go_back")
-				.setAttribute("disabled", !rHelpBrowser.webNavigation.canGoBack)
+				.setAttribute("disabled", !rHelpBrowser.webNavigation.canGoBack);
 			document.getElementById("cmd_go_forward")
 				.setAttribute("disabled", !rHelpBrowser.webNavigation.canGoForward);
 		}
@@ -149,10 +171,10 @@ var progressListener = {
 	onStatusChange: function(aWebProgress, aRequest, aStatus,
 		aMessage) { },
 	onSecurityChange: function(aWebProgress, aRequest, aState) { }
-}
+};
 
 function rHelpBrowserContextOnShow(event) {
-	var selText = sv.string.trim(window.content.getSelection().toString());
+	var selText = window.content.getSelection().toString().trim();
 	var el = document.getElementById("cmd_rsearch_for");
 	var elLabel;
 	var nothingSelected = !selText;
@@ -172,16 +194,15 @@ function rHelpBrowserContextOnShow(event) {
 }
 
 function runSelAsRCode() {
-	var selText = sv.string.trim(window.content.getSelection()
-	    .getRangeAt(0).toString());
+	var selText = String(window.content.getSelection().getRangeAt(0)).trim();
 
 	// Looks like R help page, so require package first
-	win = window.content;
-	doc = window.content.document;
+	let win = window.content;
+	let doc = window.content.document;
 	if (win.document.title.indexOf("R: ") == 0) {
 		let docTables = doc.getElementsByTagName("table");
-		if (docTables.length > 0
-			&& docTables[0].summary.search(/page for (\S+) \{([\w\.]+)\}/) == 0) {
+		if (docTables.length > 0 &&
+			docTables[0].summary.search(/page for (\S+) \{([\w\.]+)\}/) == 0) {
 			selText = "require(" + RegExp.$2 + ")\n" + selText;
 			//TODO: for remote help files, ask to install package in not available
 		}
@@ -189,33 +210,13 @@ function runSelAsRCode() {
 	sv.r.eval(selText);
 }
 
-// display formatted search results in a help window
-function rHelpSearch(topic) {
-	if (!topic)	return;
-    var queryObj = {pattern: topic, 
-        fieldsAlias: 1, fieldsTitle: 1, fieldsConcept: 1, 
-        ignoreCase: 1, typesHelp: 1, typesVignette: 1, typesDemo: 1};
-    
-    var queryArr = [];
-    for(let i in queryObj)
-		if(queryObj.hasOwnProperty(i))
-			queryArr.push(i.replace(/([A-Z])/g, (_, s) => "." +
-				s.toLowerCase()) + "=" + 
-				encodeURIComponent(sv.string.trim(queryObj[i])));
-	  
-    rHelpBrowser.webNavigation.loadURI(
-        rHelpBrowser.homePage.replace(/index.html$/, "Search?" + queryArr.join("&")),
-		rHelpBrowser.webNavigation.LOAD_FLAGS_NONE, null, null, null
-        );
-}
-
 function _getHomePage(browser, goTo) {
-	var isWin = navigator.platform.search(/Win\d+$/) === 0;
+	//var isWin = navigator.platform.search(/Win\d+$/) === 0;
 	var res = false;
 	var cmd = "cat(kor::getHelpURL())";
 
 	res = sv.r.evalAsync(cmd, (path) => {
-		path = sv.string.removeLastCRLF(path);
+		path = path.replace(/[\n\r]{1,2}$/, ""); //remove trailing CRLF
 		// Get just the last line, get rid of the help.start's message
 		path = path.substring(path.lastIndexOf("\n") + 1);
 		browser.homePage = sv.helpStartURI = path;
@@ -231,13 +232,13 @@ this.purgeCache = function() {
 	var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
 		.getService(Components.interfaces.nsICacheService);
 	cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
-}
+};
 
 this.purgeHistory = function() {
 	if (rHelpBrowser.docShell.sessionHistory.count)
 		rHelpBrowser.docShell
 			.sessionHistory.PurgeHistory(rHelpBrowser.docShell.sessionHistory.count);
-}
+};
 
 }).apply(browserUtils);
 
@@ -251,25 +252,17 @@ this.purgeHistory = function() {
 
 function OnLoad (event) {
 	// DOMContentLoaded is fired also for HTML content
-	if (event.target != self.document) return;
+	if (event.target !== self.document) return;
 	var page;
 	if (window.arguments) {
 		let args = window.arguments;
 		sv = args[0];
-		if (typeof(args[1]) != "undefined") page = args[1];
+		if (typeof args[1] !== "undefined") page = args[1];
 	} else {
-		let p = parent;
-		while ((p = p.opener)) {
-			if (p.sv) {
-				sv = p.sv;
-				break;
-			}
-		}
 		if (!sv) {
 			let wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
 				.getService(Components.interfaces.nsIWindowMediator);
-			let win = wm.getMostRecentWindow("Komodo");
-			sv = win.sv;
+			sv = wm.getMostRecentWindow("Komodo").sv;
 		}
 	}
 
@@ -332,10 +325,10 @@ function printPreview() {
 
 // modified "prefbarSavePage" from prefbar extension for Firefox
 function savePage() {
-	var title = window.content.document.title;
+	//var title = window.content.document.title;
 	var uri = window.content.location;
 	var doc = window.content.document;
-	var rchar = "_";
+	//var rchar = "_";
 
 	// We want to use cached data because the document is currently visible.
 	var dispHeader = null;

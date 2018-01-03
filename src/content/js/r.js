@@ -8,7 +8,7 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 // require: rconnection,r,file,utils,command,rbrowser,string
-/* globals sv, ko, window, require, navigator, setTimeout */
+/* globals sv, ko, window, require, navigator, setTimeout, Cu */
 
 
 if (typeof sv.r == "undefined")
@@ -32,6 +32,10 @@ if (!Object.entries)
 
     var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
+    logger.setLevel(logger.DEBUG);
+
+    const StringUtils = sv.string;
+    const FileUtils = sv.file;
 
     // Evaluate R expression and call callback function in Komodo with the result as
     // first argument. All additional arguments will be passed to callback
@@ -68,7 +72,7 @@ if (!Object.entries)
         }
         let getDirFromR = "";
 
-        if (!dir || (sv.file.exists(dir) == 2)) { // Not there or unspecified
+        if (!dir || FileUtils.exists(dir) === FileUtils.TYPE_DIRECTORY) { // Not there or unspecified
             switch (type) {
             case "this":
                 break;
@@ -88,7 +92,7 @@ if (!Object.entries)
                     let file = ko.places.manager.getSelectedItem().file;
                     dir = file.isDirectory ? file.path : file.dirName;
                 } catch (e) {
-                    dir = sv.file.pathFromURI(ko.places.manager.currentPlace);
+                    dir = FileUtils.pathFromURI(ko.places.manager.currentPlace);
                 }
                 break;
             default:
@@ -110,7 +114,7 @@ if (!Object.entries)
         if (ask || !dir)
             dir = ko.filepicker.getFolder(dir, sv.translate("Choose working directory"));
 
-        if (dir != null) sv.r.eval(".odir <- base::setwd(\"" + sv.string.addslashes(dir) + "\")");
+        if (dir != null) sv.r.eval(".odir <- base::setwd(\"" + StringUtils.addslashes(dir) + "\")");
         return dir;
     };
 
@@ -154,8 +158,8 @@ if (!Object.entries)
             if (original) {
                 rval = doc.file.path;
             } else {
-                rval = sv.file.temp(doc.baseName);
-                sv.file.write(rval, scimoz.text, 'utf-8', false);
+                rval = FileUtils.temp(doc.baseName);
+                FileUtils.write(rval, scimoz.text, 'utf-8', false);
             }
             if (Object.isExtensible(isTempFile))
                 isTempFile.value = !original;
@@ -218,8 +222,8 @@ if (!Object.entries)
                 fileName = fileName.replace(/[\/\\:\^\&\%\@\?"'\[\]\{\}\|\*]/g, "").replace(/[\._]+/g,
                         "_") +
                     os.path.getExtension(doc.baseName);
-                path = sv.file.temp(fileName);
-                sv.file.write(path, content + "\n", 'utf-8', false);
+                path = FileUtils.temp(fileName);
+                FileUtils.write(path, content + "\n", 'utf-8', false);
                 comment = "## Source code: " + description + "\n";
             }
 
@@ -242,7 +246,7 @@ if (!Object.entries)
         if (!scimoz) return;
 
         try {
-            let cmd = sv.string.trim(sv.getTextRange(what, what.indexOf("sel") === -1), "right");
+            let cmd = sv.getTextRange(what, !what.contains("sel")).trimRight();
             if (cmd) sv.rconn.evalAsync(cmd);
 
             if (what == "line" || what == "linetoend") // || what == "para"
@@ -256,23 +260,24 @@ if (!Object.entries)
     this.rFn = name => "kor::" + name;
 
     // Get help in R (HTML format)
-    function _getHelpURL(topic, pkg) {
+    function askRForHelpURL(topic, pkg) {
         let res = "", cmd = "";
         if (pkg === true) {
-            pkg = 'NA';
-        } else if (pkg != undefined) {
+            pkg = 'NA'; // try.all.packages
+        } else if (pkg !== undefined) {
             pkg = sv.r.arg(pkg);
         } else pkg = sv.r.arg(null);
-        cmd += topic ? ' topic=' + sv.r.arg(topic) + ',' : "";
-        cmd += pkg ? ' package=' + pkg + '' : "";
-        cmd = 'cat(kor::getHelpURL(' + cmd + '), "\\f\\f")';
+        cmd = 'cat(kor::getHelpURL(' +
+            (topic ? ' topic=' + sv.r.arg(topic) + "," : "") + 
+            (pkg ? ' package=' + pkg + '' : "") +
+            '), "\\f\\f")';
         try {
-            res = sv.rconn.eval(cmd);
+            res = sv.rconn.eval(cmd, 1.5);
         } catch (e) {
             return null;
         }
-        res = res.substr(0, res.search(/\f+/) - 1);
-        if (res.indexOf("http") == 0) return res;
+        res = res.substr(0, res.indexOf("\f") - 1);
+        if (res.startsWith("http")) return res;
         return null;
     }
 
@@ -285,15 +290,15 @@ if (!Object.entries)
     //       - handle 'package::function' topic
     this.getHelp = function (topic) {
         let result, cmdPackage = null;
-        if (_lastHelpTopic.topic == topic) {
+        if (_lastHelpTopic.topic === topic)
             cmdPackage = _lastHelpTopic.found ? null : true;
-        } else _lastHelpTopic.topic = topic;
-        result = _getHelpURL(topic, cmdPackage);
+        else
+            _lastHelpTopic.topic = topic;
+        result = askRForHelpURL(topic, cmdPackage);
 
-        if (cmdPackage === true && result == null) {
+        if (cmdPackage === true && result === null)
             result = false;
-        }
-        _lastHelpTopic.found = result != null;
+        _lastHelpTopic.found = result !== null;
         return result;
     };
 
@@ -329,12 +334,12 @@ if (!Object.entries)
     
     // Display some text from a file
     this.pager = function (fileName, header, title, removeFile = true, encoding = null) {
-        let file = sv.file.getLocalFile(fileName);
+        let file = FileUtils.getLocalFile(fileName);
         if (!file.exists()) return;
 
         encoding = encoding ? encoding : "utf-8";
         let enc1 = encoding.replace(/^windows-/, "cp");
-        let content = sv.file.read(fileName, enc1);
+        let content = FileUtils.read(fileName, enc1);
         if(removeFile) file.remove(false);
 
         let stylesheet = "chrome://komodor/skin/rpager.css";
@@ -347,20 +352,20 @@ if (!Object.entries)
         
         //let os = Cc['@activestate.com/koOs;1'].getService(Ci.koIOs);
         //let htmlFileName =  os.path.withoutExtension(fileName) + ".html";
-        let htmlFileName = sv.file.temp("rpager.html");
-        sv.file.write(htmlFileName, html, enc1);
+        let htmlFileName = FileUtils.temp("rpager.html");
+        FileUtils.write(htmlFileName, html, enc1);
 
-        sv.command.openHelp(sv.file.toFileURI(htmlFileName));
+        sv.command.openHelp(FileUtils.toFileURI(htmlFileName));
         window.setTimeout(file => {
                 try {
-                    sv.file.getLocalFile(htmlFileName).remove(false);
+                    FileUtils.getLocalFile(htmlFileName).remove(false);
                 } catch (e) {}
             }, 10000, file);
     };
 
     // Search R help for topic
     this.search = function (topic) {
-        topic = sv.string.trim(topic);
+        topic = topic.toString().trim();
         if (topic === "") return;
         sv.rconn.evalAsync('utils::help.search(' + sv.r.arg(topic) + ')', null,
             true, false);
@@ -420,7 +425,7 @@ if (!Object.entries)
         }
 
         var cmd = 'write.table(' + name + ', file="' +
-            sv.string.addslashes(fileName) +
+            StringUtils.addslashes(fileName) +
             '", dec="' + dec + '", sep="' + sep + '", col.names=NA)';
         sv.r.eval(cmd);
         return cmd;
@@ -441,7 +446,7 @@ if (!Object.entries)
                     named = true;
                     rval = new Array(entries.length);
                     for (let [key, value] of entries) rval[i++] =
-                        `${sv.string.addslashes(key)}=${r_arg(value)}`;
+                        `${StringUtils.addslashes(key)}=${r_arg(value)}`;
                     a = Object.values(a);
                 }
                 let t1 = typeof a[0];
@@ -457,7 +462,7 @@ if (!Object.entries)
                 }
                 return a.toString();
             case "string":
-                return "\"" + sv.string.addslashes(a) + "\"";
+                return "\"" + StringUtils.addslashes(a) + "\"";
             default:
             }
         });
@@ -516,15 +521,15 @@ if (!Object.entries)
                 end: scimoz.getLineEndPosition(scimoz.lineFromPosition(scimoz.selectionEnd))
             };
             let content = scimoz.getTextRange(extent.start, extent.end); // scimoz.selText;
-            inFile = sv.file.temp("kor_tidyin");
-            sv.file.write(inFile, content, 'utf-8');
+            inFile = FileUtils.temp("kor_tidyin");
+            FileUtils.write(inFile, content, 'utf-8');
             firstLine = scimoz.lineFromPosition(extent.start);
             encoding = "UTF-8";
         }
 
         // baseIndentation is in character units
         var baseIndentation = scimoz.getLineIndentation(firstLine); /* var not let */
-        var outFile = sv.file.temp("kor_tidyout");
+        var outFile = FileUtils.temp("kor_tidyout");
 
         let formatOpt = {
             keepBlankLines: true,
@@ -554,11 +559,11 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
         
             let code;
             try {
-                code = sv.file.read(outFile, 'utf-8');
-                let fout = sv.file.getLocalFile(outFile);
+                code = FileUtils.read(outFile, 'utf-8');
+                let fout = FileUtils.getLocalFile(outFile);
                 if (fout.exists()) fout.remove(false);
                 if (isTmp) {
-                    let fin = sv.file.getLocalFile(inFile);
+                    let fin = FileUtils.getLocalFile(inFile);
                     if (fin.exists()) fin.remove(false);
                 }
             } catch (e) {

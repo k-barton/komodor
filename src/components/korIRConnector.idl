@@ -3,49 +3,39 @@
 
 #include "nsISupports.idl"
 #include "nsISimpleEnumerator.idl"
-#include "ISciMoz.idl"
 
 // This is implemented in sv.rconn's JavaScript code.
 [scriptable, uuid(CA1BCF00-394D-11E0-BD69-0002A5D5C51B)]
-interface svIStuffListener: nsISupports {
-    AUTF8String onStuff(in AUTF8String data);
+interface korIGenericListener: nsISupports {
+    AUTF8String onDone(in AUTF8String data);
 };
 
 [scriptable, uuid(22D0115A-0BC6-609F-194A-6F79EEA56633)]
-interface svICommandInfo: nsISupports {
+interface korICommandInfo: nsISupports {
     readonly attribute ACString commandId;
     readonly attribute AUTF8String command;
     readonly attribute ACString mode;
     readonly attribute boolean browserMode;
 	attribute AUTF8String message;
 	attribute AUTF8String result;
-	ACString styledResult();
+	//ACString styledResult();
 };
 
 [scriptable, uuid(a8495e7c-4a1a-4d44-a872-4b25abd2c417)]
-interface svIUtils : nsISupports {
-    nsISimpleEnumerator getproc(in string propertyName);
-	AUTF8String platform();
+interface korIRConnector : nsISupports {
+    //nsISimpleEnumerator getproc(in string propertyName);
+	//AUTF8String platform();
     AUTF8String evalInR(in AUTF8String command, in ACString mode, in double timeout);
 	void evalInRNotify(in AUTF8String command, in ACString mode, in ACString uid);
-	long startSocketServer(in svIStuffListener requestHandler);
+	long startSocketServer(in korIGenericListener requestHandler);
 	void stopSocketServer();
 	void setSocketInfo(in ACString host, in long port, in boolean outgoing);
 	readonly attribute AUTF8String lastCommand;
 	readonly attribute AUTF8String lastResult;
 	readonly attribute AUTF8String lastMessage;
-	readonly attribute svICommandInfo lastCommandInfo;
-	attribute ISciMoz outScimoz;
-	void printResult(in svICommandInfo cmdinfo);
+	readonly attribute korICommandInfo lastCommandInfo;
 	boolean serverIsUp();
-	wstring pushLeft(in AUTF8String text, in ACString eol, in long indent, in long tabwidth);
-	ACString uid();
-	//ACString makeStyledText(in AUTF8String text);
     void escape();
     //void calltip(in AUTF8String text);
     //void complete(in AUTF8String text);
-
-	//void x_talk(in AUTF8String rcode);
-	//void x_start(in long port);
-	//void x_cout(in AUTF8String s);
 };

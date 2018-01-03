@@ -9,14 +9,17 @@ sv.init = {};
 
     const {
         classes: Cc,
-        interfaces: Ci
+        interfaces: Ci,
+        utils: Cu
     } = Components;
 
-    //------------------------------------------------------------------------------------------------------------
+const FileUtils = sv.file;
+
+if (typeof Services === "undefined") Components.utils.import("resource://gre/modules/Services.jsm");
 
     var checkFileAssociation = function () {
-        var langRegistry = Components.classes["@activestate.com/koLanguageRegistryService;1"]
-            .getService(Components.interfaces.koILanguageRegistryService);
+        var langRegistry = Cc["@activestate.com/koLanguageRegistryService;1"]
+            .getService(Ci.koILanguageRegistryService);
 
         var rFileLang = langRegistry.suggestLanguageForFile("foo.R");
 
@@ -47,8 +50,8 @@ sv.init = {};
                     languageNames.length, languageNames);
                 ko.prefs.setStringPref("fileAssociationDiffs", assocPref);
             } catch (ex) {
-                let lastErrorSvc = Components.classes["@activestate.com/koLastErrorService;1"]
-                    .getService(Components.interfaces.koILastErrorService);
+                let lastErrorSvc = Cc["@activestate.com/koLastErrorService;1"]
+                    .getService(Ci.koILastErrorService);
                 ko.dialogs.alert("There was an error saving file association changes: " +
                     lastErrorSvc.getLastErrorMessage());
             }
@@ -77,7 +80,7 @@ sv.init = {};
         if (!sfx) sfx = "";
         var kkfContent;
         try {
-            kkfContent = sv.file.readURI("chrome://komodor/content/keybindings/keybindings" + sfx +
+            kkfContent = FileUtils.readURI("chrome://komodor/content/keybindings/keybindings" + sfx +
                 ".kkf");
         } catch (e) {
             return false;
@@ -161,8 +164,8 @@ sv.init = {};
                 _setKeybindings(false, ''); // fallback - use default
                
              // clean icon cache 
-             //let path = sv.file.path(sv.file.specDir("ProfD"), "icons", "chrome", "komodor");
-             //let file = sv.file.getLocalFile(path);
+             //let path = FileUtils.path(FileUtils.specDir("ProfD"), "icons", "chrome", "komodor");
+             //let file = FileUtils.getLocalFile(path);
              //try {
              //   file.remove(true);
              //} catch(e) {
@@ -237,8 +240,8 @@ sv.init = {};
         if (!sv.command.isRRunning) return true;
         //if (topic != "quit-application-requested") return;
 
-        let staged = sv.file.exists2(sv.file.path("ProfD", "extensions", "staged",
-            sv.extensionId)) == sv.file.TYPE_DIRECTORY;
+        let staged = FileUtils.exists2(FileUtils.path("ProfD", "extensions", "staged",
+            sv.extensionId)) == FileUtils.TYPE_DIRECTORY;
         if (staged) {
             let result = ko.dialogs.yesNoCancel(
                 "In order to complete the update of \"R Interface\" add-on, " +

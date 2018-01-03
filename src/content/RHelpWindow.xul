@@ -72,7 +72,7 @@
 		   disabled="true"  />
   <command id="cmd_run_r_code" oncommand="runSelAsRCode()"
 		   label="Run as R code" desc="Execute selected text in R" accesskey="r" />
-  <command id="cmd_rsearch_for" oncommand="rHelpSearch(sv.string.trim(window.content.getSelection().toString()));"
+  <command id="cmd_rsearch_for" oncommand="rHelpSearch(window.content.getSelection().toString().trim());"
 		   label="Search R for selection" desc="Search R for selected text" accesskey="S" />
 
   <command id="cmd_copy" oncommand="goDoCommand('cmd_copy')" disabled="true"/>

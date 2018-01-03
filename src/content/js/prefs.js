@@ -52,9 +52,10 @@ if (sv.pref === undefined) sv.pref = {};
     var logger = require("ko/logging").getLogger("komodoR");
 
     var renamePref = function (fromName, toName) {
+        if(fromName === toName) return false;
         if (_prefset.hasPref(fromName) && !_prefset.hasPref(toName)) {
             let type = ['long', 'double', 'boolean', 'string'].indexOf(_prefset.getPrefType(fromName));
-            if (type == -1) return false;
+            if (type === -1) return false;
             let typeName = ['Long', 'Double', 'Boolean', 'String'][type];
             let value = _prefset['get' + typeName + 'Pref'](fromName);
             _prefset.deletePref(fromName);
@@ -64,6 +65,8 @@ if (sv.pref === undefined) sv.pref = {};
         return false;
     };
     
+    
+    // backward compatibility - rename old properties
     var oldNames = ["sciviews.ko.port", "sciviews.r.port", "sciviews.r.host", "svRDefaultInterpreter",
         "svRApplication", "svRArgs", "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
         "rRemoteHelpURL", "sciviews.margin.click",
@@ -109,7 +112,7 @@ if (sv.pref === undefined) sv.pref = {};
                     _prefset.deletePref(prefName);
                      prefType = valueType;
                 }
-            } else if(exists == "fix") // correct type
+            } else if(exists === "fix") // correct type
                 return '';
         } else 
             prefType = valueType;

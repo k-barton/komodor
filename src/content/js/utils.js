@@ -10,6 +10,7 @@
 
 // requires: sv.file, sv.rconn
 
+
 sv._versionCompare = (v1, v2) => 
 	Components.classes["@mozilla.org/xpcom/version-comparator;1"]
 		.getService(Components.interfaces.nsIVersionComparator)
@@ -367,23 +368,31 @@ sv.cmdout = {};
     var _this = this;
 
     var logger = require("ko/logging").getLogger("komodoR");
+    logger.setLevel(logger.DEBUG);
+    
+    var getEOLChar = (scimoz) => ["\r\n", "\r", "\n"][scimoz.eOLMode];
 
-    Object.defineProperty(this, 'eolChar', {
-        get: () => sv.eOLChar(_this.scimoz)
+
+    Object.defineProperty(this, "eolChar", {
+        get: () => getEOLChar(_this.scimoz)
     });
-
-    Object.defineProperty(this, 'scimoz', {
+    
+    // TODO: move to somewhere else....
+    var Smutls = Components.classes["@komodor/korScimozUtils;1"]
+        .getService(Components.interfaces.korIScimozUtils);
+    
+    var _scimoz;
+    Object.defineProperty(this, "scimoz", {
         get: function () {
-            if (ko.widgets.getWidget) { // Komodo 9
-                return ko.widgets.getWidget("runoutput-desc-tabpanel")
+            try {
+                _scimoz.QueryInterface(Components.interfaces.ISciMoz);
+            } catch(e) {
+                _scimoz = ko.widgets.getWidget("runoutput-desc-tabpanel")
                     .contentDocument.getElementById("runoutput-scintilla").scimoz;
             }
-            if (window.frames["runoutput-desc-tabpanel"]) { // Komodo 7
-                return window.frames["runoutput-desc-tabpanel"]
-                    .document.getElementById("runoutput-scintilla").scimoz;
-            }
-            return undefined;
-        }
+            return _scimoz;
+        },
+        enumerable: true
     });
 
     var _rgb = (...args) => {
@@ -431,7 +440,6 @@ sv.cmdout = {};
         scimoz.styleSetFore(styleNumErr, colorForeErr);
         scimoz.styleSetFore(styleNumResult, colorForeResult);
     }
-
     
     //var observerSvc = Components.classes["@mozilla.org/observer-service;1"]
         //.getService(Components.interfaces.nsIObserverService);
@@ -458,40 +466,9 @@ sv.cmdout = {};
             //document.getElementById("workspace_bottom_area").collapsed = false;
         }
 
-        if (document.getElementById("runoutput_tab") == null)
+        if (document.getElementById("runoutput_tab") === null)
             ko.uilayout.ensureTabShown("runoutput-desc-tabpanel", false);
         else ko.uilayout.ensureTabShown("runoutput_tab", false);
-    };
-
-    this.print2 = function (command, prompt, done, commandInfo) {
-        var scimoz = _this.scimoz;
-        var eolChar = _this.eolChar;
-        _this.ensureShown();
-
-        prompt = fixEOL(prompt);
-        var readOnly = scimoz.readOnly;
-        scimoz.readOnly = false;
-        if (!done) {
-            _this.clear();
-            command = fixEOL(command.toString()).replace(/^ {3}(?= *\S)/gm, ":+ "); // + eolChar;
-            prompt += eolChar;
-            scimoz.appendText(ko.stringutils.bytelength(command), command);
-            this.styleLines(0, scimoz.lineCount, styleNumCode);
-        } else {
-            var lineNum = scimoz.lineCount - 2;
-            if (this.getLine(lineNum) == '...' + eolChar) {
-                scimoz.targetStart = scimoz.positionFromLine(lineNum);
-                scimoz.targetEnd = scimoz.positionAtChar(scimoz.textLength - 1, {});
-                scimoz.replaceTarget(0, '');
-                sv.rconn.printResult1(commandInfo);
-            }
-        }
-        scimoz.appendText(ko.stringutils.bytelength(prompt), prompt);
-        var lineCount = scimoz.lineCount;
-        this.styleLines(lineCount - 1, lineCount, styleNumCode);
-        var firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen - 1, 0);
-        scimoz.firstVisibleLine = firstVisibleLine;
-        scimoz.readOnly = readOnly;
     };
 
     this.replaceLine = function (lineNum, text, eol) {
@@ -507,6 +484,7 @@ sv.cmdout = {};
 
     this.append = function (str, newline = true, scrollToStart = false) {
         var scimoz = _this.scimoz;
+        Smutls.scimoz = scimoz;
         var eolChar = _this.eolChar;
         _this.ensureShown();
         str = fixEOL(str.toString());
@@ -515,7 +493,7 @@ sv.cmdout = {};
         var readOnly = scimoz.readOnly;
         try {
             scimoz.readOnly = false;
-            scimoz.appendText(ko.stringutils.bytelength(str), str);
+            Smutls.appendText(str);
         } catch (e) {
             logger.exception(e, "in sv.cmdout.append");
         } finally {
@@ -577,8 +555,7 @@ sv.cmdout = {};
     };
 
     // Display message on the status bar (default) or command output bar
-    this.message = function (msg, timeout, highlight) {
-		// DEPRECATED: replace with addNotification
+    this.message = function cmdout_message(msg, timeout, highlight) {
 		_this.ensureShown();
         var win = (window.frames["runoutput-desc-tabpanel"]) ?
             window.frames["runoutput-desc-tabpanel"] : window;
@@ -590,9 +567,82 @@ sv.cmdout = {};
         runoutputDesc.setAttribute("value", msg);
         window.clearTimeout(runoutputDesc.timeout);
         if (timeout > 0) runoutputDesc.timeout = window
-            .setTimeout(() => sv.cmdout.message('', 0), timeout);
+            .setTimeout(() => cmdout_message('', 0), timeout);
     };
 
+
+    this.printResult = function (command, finalPrompt, done, commandInfo) {
+        var scimoz = _this.scimoz;
+        Smutls.scimoz = scimoz;
+        var eolChar = _this.eolChar;
+        _this.ensureShown();
+
+        finalPrompt = fixEOL(finalPrompt);
+        var readOnly = scimoz.readOnly;
+        scimoz.readOnly = false;
+        if (!done) {
+            _this.clear();
+            //command = fixEOL(command.toString()).replace(/^ {3}(?= *\S)/gm, ":+ "); // + eolChar;
+            finalPrompt += eolChar;
+            Smutls.appendText(fixEOL(command));
+            this.styleLines(0, scimoz.lineCount, styleNumCode);
+        } else {
+            var lineNum = scimoz.lineCount - 2;
+            if (_this.getLine(lineNum) === '...' + eolChar) {
+                scimoz.targetStart = scimoz.positionFromLine(lineNum);
+                scimoz.targetEnd = scimoz.positionAtChar(scimoz.textLength - 1, {});
+                scimoz.replaceTarget(0, '');
+                Smutls.printResult(commandInfo);
+            }
+        }
+        Smutls.appendText(finalPrompt);
+        var lineCount = scimoz.lineCount;
+        this.styleLines(lineCount - 1, lineCount, styleNumCode);
+        var firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen - 1, 0);
+        scimoz.firstVisibleLine = firstVisibleLine;
+        scimoz.readOnly = readOnly;
+    };
+    
+    var promptStr = { normal: ":>", continued: ":+", browse: "~>" };
+    var _curPrompt = promptStr.normal, _command = [];
+    var _waitMessageTimeout;
+    this.displayResults = function (result, commandInfo, executed, wantMore) {
+
+        window.clearTimeout(_waitMessageTimeout);
+
+        let msg, print_command, finalPrompt = "";
+        if(!executed)
+            _command.push(commandInfo.command.trim().replace(/(\r?\n|\r)/g, "$1   "));
+            
+     
+ 
+        var prePrompt = commandInfo.browserMode ? promptStr.browse : promptStr.normal;
+        
+        print_command = prePrompt + " " +
+            _command.join(_this.eolChar + promptStr.continued + " ") +
+            _this.eolChar;
+
+        if (executed) {
+            let newPrompt = wantMore ? promptStr.continued :
+                commandInfo.browserMode ? promptStr.browse : promptStr.normal;
+            
+            finalPrompt = '\n' + newPrompt;
+            //_curCommand = wantMore ? command : '';
+            if(!wantMore) _command.splice(0);
+            _curPrompt = newPrompt;
+            _this.message(null);
+        } else {
+            result = '';
+            finalPrompt = '...';
+            msg = 'R is working...';
+            // display 'wait message' only for longer operations
+            _waitMessageTimeout = window.setTimeout(_this.message, 700, msg, 0, false);
+        }
+        _this.printResult(print_command, finalPrompt, executed, commandInfo);
+    };
+   
+    
+    
 }).apply(sv.cmdout);
 
 sv.addNotification = function(msg, category = "R-interface", highlight = false) {

@@ -70,8 +70,8 @@ except ImportError:
     from rconnect import RConn
    
 #from xpcom import components
-#R = components.classes["@komodor/svUtils;1"].\
-#    getService(components.interfaces.svIUtils)
+#R = components.classes["@komodor/korRConnector;1"].\
+#    getService(components.interfaces.korIRConnector)
 
 #---- Globals
 lang = "R_extended"

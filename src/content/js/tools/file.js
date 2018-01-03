@@ -8,6 +8,12 @@
 // requires sv.array
 /* globals sv, require, Components */
 
+
+let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Components.interfaces.nsIWindowMediator);
+let w = wm.getMostRecentWindow("Komodo");
+if (typeof w.sv === 'undefined') w.sv = {};
+var sv = w.sv;
 if (typeof (sv.file) == 'undefined') sv.file = {};
 
 (function () {

@@ -8,28 +8,59 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 
-/*globals parent, self, navigator, document,
-   Components, unescape, escape, xtk, prefset */
+/*globals parent: true, self, navigator, document,
+   Components, unescape, escape, xtk: true, prefset,
+   Services
+   */
+
+/* jshint unused: true */
 
 var sv, ko;
+if (typeof window.sv === "undefined") {
+     let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Components.interfaces.nsIWindowMediator);
+     let w = wm.getMostRecentWindow("Komodo");
+     sv = w.sv;
+     ko = w.ko;
+	 //w.require("ko/logging");
+
+} else {
+    sv = window.sv;
+    ko = window.ko;
+}
+
 
 var PrefR_CranMirrors = { http : [], https : [] };
 var PrefR_CMSecure;
 
 if (typeof self.xtk === "undefined")
 	xtk = parent.opener.xtk;
-
 xtk.include('domutils');
+
+const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
+
+if (typeof Services === "undefined") 
+Cu.import("resource://gre/modules/Services.jsm");
+
+
+//Services.scriptloader.loadSubScript("chrome://komodor/content/js/tools/array.js");
+//Services.scriptloader.loadSubScript("chrome://komodor/content/js/tools/string.js");
+//Services.scriptloader.loadSubScript("chrome://komodor/content/js/tools/file.js");
+
+const ArrayUtils = sv.array;
+const StringUtils = sv.string;
+const FileUtils = sv.file;
+
 
 // For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
 function editMenulist(el, value) {
 	var curValue, values = [], val;
-	curValue = !value ? sv.string.trim(el.value) : value;
+	curValue = !value ? el.value.trim() : value;
 	if (!curValue) return;
 	for (let j = 0; j < el.itemCount; ++j) {
 		val = el.getItemAtIndex(j).value;
-		if (val == curValue) {
+		if (val === curValue) {
 			el.selectedIndex = j;
 			return;
 		}
@@ -69,7 +100,7 @@ function menuListGetValues(attribute) {
 				values.push(escape(el.getItemAtIndex(k).value));
 			}
 
-			values = sv.array.unique(values);
+			values = ArrayUtils.unique(values);
 			var nMax = parseInt(el.getAttribute('maxValues'));
 			if(nMax > 0) values = values.slice(0, nMax);
 			el.setAttribute(attribute, values.join(' '));
@@ -79,13 +110,12 @@ function menuListGetValues(attribute) {
 
 function menulistSetValue(menuList, value, attrName, vdefault) {
 	var n = menuList.itemCount;
-	var item;
 	for (let i = 0; i <= n; ++i) {
-		item = menuList.getItemAtIndex(i);
+		let item = menuList.getItemAtIndex(i);
 		if (item) {
 			let attr1 = item.hasAttribute(attrName) ? item.getAttribute(attrName)
             	: vdefault;
-			if (attr1 == value) {
+			if (attr1 === value) {
 				menuList.selectedIndex = i;
 				break;
 			}
@@ -118,7 +148,7 @@ new RAppSpecs("r-tk", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "R",
 
 function getSelectedInterpreterPath() {
 	var path = document.getElementById("RInterface.pathToR").value;
-	if(path && sv.file.exists(path) == sv.file.TYPE_FILE) {
+	if(path && FileUtils.exists(path) === FileUtils.TYPE_FILE) {
 		return path;
 	} else return null;
 }
@@ -134,27 +164,7 @@ function getSelectedInterpreterPath() {
 
 var getDialogs = () => ko.dialogs;
 
-//var getKoObject = (name, item) => {
-//    var p = parent;
-//    var rval = ko[name];
-//    while (p.opener && (p = p.opener) && !rval[item])
-//        if (p.ko && p.ko[name] && p.ko[name][item])
-//            rval = p.ko[name];
-//    return rval;
-//};
-
 function PrefR_OnLoad(/*event*/) {
-
-    // Get the sv object:
-	var p = parent;
-	while (p.opener && (p = p.opener) && !sv) if (p.sv) {
-		sv = p.sv;
-		ko = p.ko;
-	}
-	
-	if (!ko.logging || !ko.logging.getLogger) 
-        ko.logging = parent.opener.require("ko/logging");
-
 
     // for Komodo != 9, show/hide elements related to "advanced" option
 	// sv._versionCompare(ko.version, "9.0.0") != 0 // but no 'ko' available here
@@ -181,7 +191,7 @@ function PrefR_OnLoad(/*event*/) {
 	var menu1 = document.getElementById("CRANMirror");
 	menu1.addEventListener("focus", function(event) {
 		var menu1 = event.target;
-		if(!menu1.updated && menu1.itemCount == 0) {
+		if(!menu1.updated && menu1.itemCount === 0) {
 			PrefR_UpdateCranMirrorsAsync(false);
 			menu1.updated = true;
 		}
@@ -190,7 +200,7 @@ function PrefR_OnLoad(/*event*/) {
 
     var menu = document.getElementById("RInterface.runRAs");
 	// Remove the 'Choose...' menu option on first showing
-	if(prefset.getStringPref("RInterface.runRAs") == '') {
+	if(prefset.getStringPref("RInterface.runRAs") === '') {
 		menu.addEventListener("popupshowing", (/*event*/) => {
 			if (menu.getItemAtIndex(0).value == '') menu.removeItemAt(0);
 		}, true);
@@ -199,9 +209,9 @@ function PrefR_OnLoad(/*event*/) {
 
     var platform = navigator.platform.substr(0, 1).toLowerCase();
 	apps = apps.filter(
-	    a => (a.platform.indexOf(platform) != -1) && 
+	    a => (a.platform.indexOf(platform) !== -1) && 
 	         (!a.required.length || 
-			 a.required.every(y => sv.file.whereIs(y).length != 0))
+			 a.required.every(y => FileUtils.whereIs(y).length !== 0))
 		);
 		
 	menu.removeAllItems();
@@ -255,15 +265,13 @@ function PrefR_PopulateRInterpreters() {
     var prefExecutable = prefset.getStringPref('RInterface.pathToR');
 
     var rs;
-    var os = Components.classes['@activestate.com/koOs;1']
-		.getService(Components.interfaces.koIOs);
+    const os = Services.koOs;
     var menu = document.getElementById("RInterface.pathToR");
 
-    ////////////////////////////////////
     switch (os.name) { //'posix', 'nt', 'mac', 'os2', 'ce', 'java', 'riscos'.
         case "nt":
 			// TODO: sort by version:
-			rs = sv.file.whereIs("Rgui").concat(sv.file.whereIs("R"));
+			rs = FileUtils.whereIs("Rgui").concat(FileUtils.whereIs("R"));
 			break;
         case "mac":
 			rs = ["/Applications/R.app"];
@@ -271,18 +279,18 @@ function PrefR_PopulateRInterpreters() {
         case "posix":
 			/* falls through */
         default:
-			rs = sv.file.whereIs("R");
+			rs = FileUtils.whereIs("R");
     }
 
 	//if(prefExecutable != "") rs.unshift(prefExecutable);
 
     for (let i = 0; i < rs.length; ++i) {
         rs[i] = os.path.normpath(rs[i]);
-        if (sv.file.exists(rs[i]) == sv.file.TYPE_NONE)
+        if (FileUtils.exists(rs[i]) === FileUtils.TYPE_NONE)
             rs.splice(i, 1);
         }
-    rs = sv.array.unique(rs); // Get rid of duplicates
-	if((prefExecutable == "") || (rs.indexOf(prefExecutable) == -1)) {
+    rs = ArrayUtils.unique(rs); // Get rid of duplicates
+	if((prefExecutable === "") || (rs.indexOf(prefExecutable) === -1)) {
 		prefset.setStringPref("RInterface.pathToR", "R");
 		prefExecutable = "R";
 	}
@@ -295,7 +303,7 @@ function PrefR_PopulateRInterpreters() {
 	for (let i = 0; i < rs.length; ++i) {
 		var r = rs[i].split(";");
         menu.appendItem(r[0], r[0], r.length < 2 ? null : r[1]);
-		if (curValue == r[0]) menu.selectedIndex = i;
+		if (curValue === r[0]) menu.selectedIndex = i;
     }
 
     document.getElementById("no-avail-interps-message").hidden = rFound;
@@ -323,7 +331,7 @@ function OnPreferencePageOK(prefset) {
     // "Preference widget" does not save newly added values for some reason:
 	prefset.setStringPref("RInterface.CSVSep", outSep);
 
-    if (outDec == outSep) {
+    if (outDec === outSep) {
         parent.switchToPanel("svPrefRItem");
         getDialogs().alert(
 			"Decimal separator cannot be the same as field separator.", null,
@@ -337,8 +345,8 @@ function OnPreferencePageOK(prefset) {
 	prefset.setStringPref("CRANMirror", PrefR_CranMirrors[mirrorType][cmIdx][3]);
 
 
-	if (outDec != prefset.getStringPref('RInterface.CSVDecimalSep') ||
-		outSep != prefset.getStringPref('RInterface.CSVSep')) {
+	if (outDec !== prefset.getStringPref('RInterface.CSVDecimalSep') ||
+		outSep !== prefset.getStringPref('RInterface.CSVSep')) {
 		sv.r.eval('options(OutDec="' + outDec + '", ' +
 		'OutSep="' + outSep + '")', true);
 	}
@@ -363,9 +371,8 @@ function OnPreferencePageOK(prefset) {
 	return true;
 }
 
-function svRDefaultInterpreterOnSelect(event) {
-	var os = Components.classes['@activestate.com/koOs;1']
-		.getService(Components.interfaces.koIOs);
+function svRDefaultInterpreterOnSelect(/*event*/) {
+	const os = Services.koOs;
 
 	var menuApplication = document.getElementById("RInterface.runRAs");
     var menuInterpreters = document.getElementById("RInterface.pathToR");
@@ -373,7 +380,7 @@ function svRDefaultInterpreterOnSelect(event) {
 	var value = menuInterpreters.value;
 
 	// Just in case
-	if((value != "R") && (sv.file.exists(value) == sv.file.TYPE_NONE)) {
+	if((value !== "R") && (FileUtils.exists(value) === FileUtils.TYPE_NONE)) {
 		getDialogs().alert("Cannot find file: " + value, null,
 			"R interface preferences");
 	}
@@ -402,8 +409,7 @@ function PrefR_svRApplicationOnSelect(event) {
     var app = apps[menuApplication.value].app;
 	//var sel = menuApplication.selectedItem;
 
-	var os = Components.classes['@activestate.com/koOs;1']
-		.getService(Components.interfaces.koIOs);
+	const os = Services.koOs;
 
     if (os.path.basename(menuInterpreters.value) != app) {
         //TODO: modify to use with:
@@ -431,18 +437,18 @@ function PrefR_updateCommandLine(update) {
     var cmdArgs = document.getElementById("RInterface.cmdArgs").value;
 	var args1 = "";
 
-   	var cwd = sv.file.path("ProfD", "extensions", "komodor@komodor", "R");
+   	var cwd = FileUtils.path("ProfD", "extensions", sv.extensionId, "R");
 
 	cmdArgs = cmdArgs.replace(/\s*--[sm]di\b/, "");
 
 	var argsPos = cmdArgs.indexOf("--args");
 	if (argsPos != -1) {
-		args1 += " " + sv.string.trim(cmdArgs.substring(argsPos + 6));
+		args1 += " " + cmdArgs.substring(argsPos + 6).trim();
 		cmdArgs = cmdArgs.substring(0, argsPos);
 	}
 	if(cmdArgs) cmdArgs = " " + cmdArgs.trim();
 
-	args1 = sv.string.trim(args1);
+	args1 = args1.trim();
 	if (args1) args1 = " --args " + args1;
 
     var cmd = apps[appId].path;
@@ -460,9 +466,8 @@ function PrefR_updateCommandLine(update) {
 function PrefR_setExecutable(path) {
     var menu = document.getElementById("RInterface.pathToR");
 	var os;
-    if (!path || !sv.file.exists(path)) {
-		os = Components.classes['@activestate.com/koOs;1']
-			.getService(Components.interfaces.koIOs);
+    if (!path || !FileUtils.exists(path)) {
+		os = Cc['@activestate.com/koOs;1'].getService(Ci.koIOs);
 		path = menu.value;
         path = ko.filepicker.browseForExeFile(os.path.dirname(path), os.path.basename(path),
 			"Select R executable");
@@ -548,14 +553,10 @@ addEventListener("r_cran_mirrors_updated", OnCranMirrorsListUpdated, false);
 // FIXME: if no connection it gets stuck
 // FIXME: doesn't update immediately if R interpreter changed and list is empty
 function PrefR_DoUpdateCranMirrors(fromCran) {
-	var svFile = sv.file;
-
 	// Get data in as CSV:
-	var csvName = "CRAN_mirrors.csv";
-	var path;
-	var encoding = "utf-8";
-	var jsonFile = svFile.path(svFile.path("PrefD", "extensions", 
-		"komodor@komodor"), "CRAN_mirrors.json");
+	var csvName = "CRAN_mirrors.csv", encoding = "utf-8";
+	var jsonFile = FileUtils.path(FileUtils.path("PrefD", "extensions", 
+		sv.extensionId), "CRAN_mirrors.json");
 	
 	var cranBaseUri = "http://cran.r-project.org/"; // https?
 
@@ -563,25 +564,25 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 		document.getElementById("CRANMirrorDescr").value =
 			"Fetching file: " + cranBaseUri + csvName + " ...";
 		
-		svFile.readURIAsync(cranBaseUri + csvName, encoding,
+		FileUtils.readURIAsync(cranBaseUri + csvName, encoding,
 			function callback(content) {
 				processCranMirrorsCSV(content, jsonFile);
-				svFile.write(jsonFile, JSON.stringify(PrefR_CranMirrors), encoding);
+				FileUtils.write(jsonFile, JSON.stringify(PrefR_CranMirrors), encoding);
 				// DEBUG
-				//var csvFile = svFile.path(svFile.path("PrefD", "extensions",
+				//var csvFile = FileUtils.path(FileUtils.path("PrefD", "extensions",
 					//"komodor@komodor"), "CRAN_mirrors_" + (new Date()).toLocaleFormat("%Y%m%d%H%M") + ".csv");
-				//svFile.write(csvFile, content, encoding);
+				//FileUtils.write(csvFile, content, encoding);
 				// END DEBUG
 				xtk.domutils.fireEvent(self, "r_cran_mirrors_updated");
-			}, function onError(err) {
+			}, function onError(/*err*/) {
 				PrefR_DoUpdateCranMirrors(false);
 			});
 		return;
 	}
 	
 	// First, check if there is serialized version:
-	if (svFile.exists(jsonFile)) {
-		PrefR_CranMirrors = JSON.parse(svFile.read(jsonFile, encoding));
+	if (FileUtils.exists(jsonFile)) {
+		PrefR_CranMirrors = JSON.parse(FileUtils.read(jsonFile, encoding));
 		xtk.domutils.fireEvent(self, "r_cran_mirrors_updated");
 	} else {
 		var localPaths = [];
@@ -595,23 +596,22 @@ function PrefR_DoUpdateCranMirrors(fromCran) {
 			}
 			var rx = /(bin\\((x64|i386)\\)?)?R(gui|term)\.exe$/i;
 			if(!rHome) {
-				var rHomeArr = sv.array.unique(sv.file.whereIs("R")
-					.map(function(x)
-						 x.replace(rx, "")));
-				localPaths = rHomeArr.map(function(x) sv.file.path(x, "doc"));
-			} else {
-				localPaths = [ sv.file.path(rHome.replace(rx, ""), "doc") ];
-			}
+				let rHomeArr = ArrayUtils.unique(FileUtils.whereIs("R")
+					.map(x => x.replace(rx, "")));
+				localPaths = rHomeArr.map(x => FileUtils.path(x, "doc"));
+			} else 
+				localPaths = [ FileUtils.path(rHome.replace(rx, ""), "doc") ];
+			
 		} else { // if (platform == "lin")
 			localPaths.push('/usr/share/R/doc'); 	// try other paths: // mac: ????
 			localPaths.push('/usr/local/share/R/doc');
 		}
 		var file;
 		for (let i = 0; i < localPaths.length; ++i) {
-			file = svFile.getLocalFile(localPaths[i], csvName);
+			file = FileUtils.getLocalFile(localPaths[i], csvName);
 			if (file.exists()) {
-				processCranMirrorsCSV(svFile.read(file.path, encoding));
-				svFile.write(jsonFile, JSON.stringify(PrefR_CranMirrors), encoding);
+				processCranMirrorsCSV(FileUtils.read(file.path, encoding));
+				FileUtils.write(jsonFile, JSON.stringify(PrefR_CranMirrors), encoding);
 				xtk.domutils.fireEvent(self, "r_cran_mirrors_updated");
 				return;
 			}
@@ -640,10 +640,10 @@ function PrefR_PopulateCranMirrors(secure) {
 		value.unshift(menuList.label);
     } else {
 		let url = prefset.getString("CRANMirror");
-		let mirrorType = (url.indexOf("https") === 0) ? "https" : "http";
+		let mirrorType = url.startsWith("https") ? "https" : "http";
 		//var data1 = PrefR_CranMirrors[mirrorType];
-		let valIdx1 = PrefR_CranMirrors[mirrorType].findIndex(function(elem) elem[3] == url);
-		if (valIdx1 == -1) valIdx1 = 0;
+		let valIdx1 = PrefR_CranMirrors[mirrorType].findIndex(elem => elem[3] === url);
+		if (valIdx1 === -1) valIdx1 = 0;
 		if(PrefR_CranMirrors[mirrorType].length > valIdx1)
 			value = PrefR_CranMirrors[mirrorType][valIdx1].slice(0, 3);
 	}

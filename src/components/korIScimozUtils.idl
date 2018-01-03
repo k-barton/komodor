@@ -1,0 +1,17 @@
+#include "nsISupports.idl"
+#include "ISciMoz.idl"
+#include "korIRConnector.idl" // korICommandInfo
+
+[scriptable, uuid(c0111de2-19d6-44ee-9ce9-a410796f3528)]
+interface korIScimozUtils : nsISupports {
+    attribute ISciMoz scimoz;
+	void printResult(in korICommandInfo cmdinfo);
+	long UTF8Length(in AUTF8String s);
+	void appendText(in AUTF8String s);
+	void printWithMarks(in AUTF8String s);
+    wstring encodeString(in AUTF8String s, in ACString encoding, in ACString errors);
+    //ACString uid();
+    wstring pushLeft(in AUTF8String text, in ACString eol, in long indent, in long tabwidth);
+};
+
+

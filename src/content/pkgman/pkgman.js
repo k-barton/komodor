@@ -3,7 +3,14 @@
 /* jslint undef: true, unused: false */
 /*globals document, */
 var sv, ko;
+let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+   .getService(Components.interfaces.nsIWindowMediator);
+let w = wm.getMostRecentWindow("Komodo");
+sv = w.sv;
+ko = w.ko;
+var require = w.require;
 var pmDeck;
+var logger = require("ko/logging").getLogger("komodoR");
 
 var require = parent.opener.require;
 
@@ -504,13 +511,6 @@ function init() {
 }
 
 function pkgMgrOnLoad(/*event*/) { 
-	var p = parent;
-	while ((p = p.opener)) {
-		if (p.ko) {
-			sv = p.sv;
-			ko = p.ko;
-			break;
-	}}
 	pmDeck = document.getElementById("pkgPanels");
 	document.getElementById("viewGroup").selectedIndex =
 		pmDeck.selectedIndex;

@@ -7,7 +7,13 @@
  */
 
 // Define the 'sv.array' namespace
-if (typeof(sv) == 'undefined') sv = {};
+let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+        .getService(Components.interfaces.nsIWindowMediator);
+let w = wm.getMostRecentWindow("Komodo");
+if (typeof w.sv === 'undefined') w.sv = {};
+var sv = w.sv;
+
+
 if (typeof(sv.array) == 'undefined') sv.array = {};
 
 

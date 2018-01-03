@@ -23,7 +23,7 @@ sv = {
     });
 
     try {
-        Components.utils.import("resource://gre/modules/AddonManager.jsm");
+        let AddonManager = Components.utils.import("resource://gre/modules/AddonManager.jsm").AddonManager;
         AddonManager.getAddonByID(_this.extensionId, (addon) => _version = addon.version);
     } catch (e) {
         logger.exception(e, "sv.version");
