@@ -39,12 +39,6 @@ Contributors:
 <script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
 
-<script type="application/x-javascript">
-<![CDATA[
-//window.addEventListener("DOMContentLoaded", () => { sv.rbrowser.onLoad(); }, false);
-// ]]>
-</script>
-
 <commandset id="cmdset_rbrowser" commandupdater="false">
 	<command id="cmd_rbrowserToggleListAttributes" key="key_cmd_rbrowserToggleListAttributes"
 		oncommand="sv.rbrowser.toggleValue(event, 'listAttributes');"

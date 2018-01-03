@@ -1608,15 +1608,11 @@ const FileUtils = sv.file;
         let control = event.target;
         let value = Boolean(control.getAttribute("checked"));
         let command = document.getElementById(control.observes);
-        //var label = command.getAttribute("label");
-        //command.setAttribute("label", command.getAttribute("label2"));
-        //command.setAttribute("label2", label);
         if (value) command.setAttribute("checked", "true");
         else command.removeAttribute("checked"); 
         _this[name] = value;
     };
 
-    //this.onLoad = function ( /*event*/ ) {
     this.onLoad = function ( /*event*/ ) {
         if (typeof sv.r === "undefined") {
              setTimeout(_this.onLoad, 1000);
@@ -1626,7 +1622,7 @@ const FileUtils = sv.file;
         logger.debug("sv.rbrowser.onLoad");
     };
     
-    //window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
+    window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
     
     this.debug = {
         getSelProps(column = "r-name") {
