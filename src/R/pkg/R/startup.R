@@ -66,19 +66,19 @@ function (verbose = FALSE) {
 		}
 
 		invisible(koCmd(paste(
-			"sv.cmdout.clear()",
-			sprintf("sv.cmdout.append('%s is started')", R.version.string),
-			"sv.command.setRStatus(true)",
-			# "sv.rbrowser.refresh(true)", # not before workspace is loaded
-			sprintf("sv.pref.setPref('sciviews.r.port', %s)", portstr),
+			"kor.cmdout.clear()",
+			sprintf("kor.cmdout.append('%s is started')", R.version.string),
+			"kor.command.setRStatus(true)",
+			# "kor.rbrowser.refresh(true)", # not before workspace is loaded
+			sprintf("kor.prefs.setPref('sciviews.r.port', %s)", portstr),
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
 				&& file.exists(".RData")) {
-				sprintf("sv.cmdout.append('%s')",
+				sprintf("kor.cmdout.append('%s')",
 					gettext("[Previously saved workspace restored]", domain = "R-base"))
 			},
 			sep = ";")))
 		
-		ver <- koCmd("sv.version + '\n' + ko.version")
+		ver <- koCmd("kor.version + '\n' + _W.ko.version")
 		if(length(ver) == 2L) {
 			msg("Using R interface ", ver[1L], " on Komodo ", ver[2L], sep = "")
 			#if(.Platform$GUI == "Rgui") {
@@ -87,7 +87,7 @@ function (verbose = FALSE) {
 			#}
 		} else {
 			warning(simpleWarning("invalid response received from Komodo", title))
-			vmsg("Expected \"sv.version\\nko.version\", got", deparse(ver, control = NULL))
+			vmsg("Expected \"kor.version\\nko.version\", got", deparse(ver, control = NULL))
 		}
 		
 		oldoptions <- options(browser = koBrowser, pager = koPager)
@@ -96,7 +96,7 @@ function (verbose = FALSE) {
 	
 	# if there is ".First" in the workspace to be loaded this one will be overwritten.
 	assign(".First", function() {
-			invisible(koCmd("sv.rbrowser.refresh(true)"))
+			invisible(koCmd("kor.rbrowser.refresh(true)"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct
 		}, .GlobalEnv)
 	

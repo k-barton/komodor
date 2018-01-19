@@ -17,7 +17,7 @@
     "     .createInstance(Components.interfaces.koIFindContext);", 
     "context.type = context.FCT_CURRENT_DOC;", 
     "", 
-    "var scimoz = ko.views.manager.currentView.scimoz;", 
+    "var scimoz = require(\"ko/views\").current().scimoz;", 
     "var text = scimoz.selText.replace(/^\\s+|\\s+$/g, \"\");", 
     "var word = ko.interpolate.getWordUnderCursor(scimoz);", 
     "if(text == \"\") text = word;", 

@@ -1,15 +1,15 @@
 {
   "keyboard_shortcut": "", 
-  "name": "Debugging R: koBrowseEnd()", 
+  "name": "Restart socket server", 
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "require(\"kor/connector\").evalAsync(\"koBrowseEnd()\");"
+    "require(\"kor/connector\").restartSocketServer();"
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 
   "version": "1.0.12", 
   "async": false, 
   "type": "macro", 
-  "icon": "koicon://ko-svg/chrome/icomoon/skin/bug2.svg"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/wrench2.svg"
 }

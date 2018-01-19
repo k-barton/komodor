@@ -11,7 +11,7 @@
     "*/", 
     "", 
     "try {", 
-    "  var view = ko.views.manager.currentView;", 
+    "  var view = require(\"ko/views\").current();", 
     "  var scimoz = view.scimoz;", 
     "  var uri = view.document.displayPath;", 
     "  var self = ko.macros.current;", 

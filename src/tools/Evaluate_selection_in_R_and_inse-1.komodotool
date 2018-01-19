@@ -4,10 +4,10 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "var view = ko.views.manager.currentView;", 
+    "var view = require(\"ko/views\").current();", 
     "var scimoz = view.scimoz;", 
     "if (view && scimoz) {", 
-    "    sv.rconn.evalAsync(\"cat(deparse(\" + sv.getTextRange(\"line/sel\").trim() + \", width.cutoff = 80))\",", 
+    "    require(\"kor/connector\").evalAsync(\"cat(deparse(\" + sv.getTextRange(\"lineorsel\").trim() + \", width.cutoff = 80))\",", 
     "        (str) => {", 
     "            scimoz.insertText(scimoz.currentPos, str);", 
     "        }, false);", 

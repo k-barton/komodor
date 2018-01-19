@@ -17,7 +17,7 @@
 ..onUnload  <- function(libpath) {
 	#message("Closing KomodoR ...")
 	fnull <- function(...) NULL
-	tryCatch(koCmd("sv.addNotification(\"R says bye.\"); sv.command.setRStatus(false);"), error = fnull)
+	tryCatch(koCmd("kor.ui.addNotification(\"R says bye.\"); kor.command.setRStatus(false);"), error = fnull)
 	tryCatch(stopAllServers(), error = fnull)
 	tryCatch(stopAllConnections(), error = fnull)
 	

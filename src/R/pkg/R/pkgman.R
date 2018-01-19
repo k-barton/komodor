@@ -6,11 +6,24 @@
 #' @rdname pkgMan
 #' @md
 #' @param print logical, if `TRUE` the result is printed in DCF format.
+#' @param fields a character vector giving the tags of fields to be omitted.
+#' @param revDep logical, should reverse dependencies (only within installed packages) be added to standard fields?
+#' @param \dots optional, additional arguments passed to `pkgReverseDependencies`. Possible arguments are:
+#      `revFields` (a character vector of fields to examine for reverse dependencies, must be one/some of
+#      `"Depends"`, `"Imports"`, `"Suggests"` and `"Enhances"`.
 #' @export
+
 pkgManGetDescription <-
-function(pkgName, print = TRUE) {
+function(pkgName, print = TRUE, omitFields = NULL, revDep = TRUE, ...) {
 	if (pkgName %in% rownames(installed.packages())) {
 		desc <- packageDescription(pkgName)
+		if(revDep) {
+			rddesc <- pkgReverseDependencies(pkgName, ...)
+			if(length(rddesc) != 0L) {
+				names(rddesc) <- paste0("[reverse]", names(rddesc))
+				desc <- c(desc, rddesc)				
+			}
+		}
 	} else {
 		con <- url(file.path(getOption("repos")['CRAN'], "web", "packages", pkgName,
 							 'DESCRIPTION', fsep = '/'))
@@ -18,20 +31,76 @@ function(pkgName, print = TRUE) {
         if (!inherits(m, "try-error")) {
 			dcf <- try(read.dcf(con))
 			close(con)
-			desc <- as.list(dcf[1, ])
+			desc <- as.list(dcf[1L, ])
 			class(desc) <- "packageDescription"
 		} else {
 			return(invisible(NULL))
 		}
 	}
+	
+	if(is.null(omitFields) || isTRUE(!is.na(omitFields))) {
+		if(is.null(omitFields)) omitFields <-
+		c("Package", "Version", "Priority", "Collate", "LazyData", "LazyLoad", "KeepSource", "ByteCompile",
+		  "ZipData", "Biarch",
+		  "BuildVignettes", "VignetteBuilder", "NeedsCompilation", "Classification/", "Packaged", "Built",
+		  "Additional_repositories", "RoxygenNote", "Encoding")
+		nm <- names(desc)
+		j <- match(nm, omitFields, nomatch = 0L)
+		i <- j == 0L
+		for(s in omitFields) {
+			i[i] <- !startsWith(nm[i], s)
+			if(all(!i)) break
+		}
+		desc <- desc[i]
+	}
+
+	if(any(j <- which(names(desc) == "Authors@R"))) {
+		tryCatch({
+			auth <- paste0(eval(parse(text = desc[[j[1L]]]), .GlobalEnv), collapse = ", ")
+			desc[[j]] <- auth
+			names(desc)[j] <- "Authors"
+			desc$Author <- desc$Maintainer <- NULL
+		}, error = function(...) {})
+	}
+	
+	fieldOrder <- 
+c("Package", "Version", "Title", "Description", "Date", "Date/", "Author", "Authors", "Maintainer", 
+"License", "URL", "Copyright", "Depends", "Imports", "Suggests", "Enhances", "LinkingTo", "Repository",
+"BugReports", "Additional_repositories", "SystemRequirements", "OS_type", "Type", "Encoding", "Priority",
+"Collate", "LazyData", "LazyLoad", "KeepSource", "ByteCompile", "ZipData", "Biarch", "BuildVignettes",
+"VignetteBuilder", "NeedsCompilation", "Classification/", "Repository/", "Packaged", "Built")
+	
+	desc <- desc[order(match(sub("/.+$", "/", names(desc)), fieldOrder, nomatch = length(fieldOrder) + 1L))]
+	desc[] <- gsub(" *[\r\n]+ *", " ", desc)
+	
+	
 	if (print) {
 		write.dcf(as.data.frame.list(desc[!sapply(desc, is.na)],
 			optional = TRUE), width = Inf)
 		invisible(desc)
-	} else {
-		desc
-	}
+	} else desc
 }
+
+pkgReverseDependencies <-
+function(pkgName, revFields = c("Depends", "Imports", "Suggests", "Enhances")) {
+    z <- installed.packages()[, revFields]
+    z <- lapply(seq_along(revFields), function(k)
+        names(Filter(function(x) pkgName %in% x, strsplit(z[, k], " *, *"))))
+    names(z) <- revFields
+    z <- z[vapply(z, length, 1L) > 0L]
+	if(length(z) == 0L) return(list())
+    z <- lapply(z, paste0, collapse = ", ")
+    renamemap <- c("Depends"="Dependants", "Imports"="Imported by",
+				   "Suggests"="Suggested by", "Enhances"="Enhanced by",
+				   "LinkingTo"="Linked to by")
+    j <- match(names(z), names(renamemap), nomatch = 0L)
+    names(z)[j != 0L] <- renamemap[j]
+    names(z)[j == 0L] <- paste0("Reverse ", names(z)[j == 0L])
+    z
+}
+
+
+
 
 #' @rdname pkgMan
 #' @export

@@ -4,7 +4,7 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "if(sv) sv.cmdout.clear();"
+    "require(\"kor/cmdout\").clear();"
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 

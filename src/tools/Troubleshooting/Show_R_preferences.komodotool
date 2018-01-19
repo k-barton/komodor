@@ -1,0 +1,19 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Show R preferences", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "/* globals sv, ko */", 
+    "", 
+    "let pref = require(\"kor/prefs\");", 
+    "let str = Object.keys(pref.defaults).map((i) => `${i} = ${pref.getPref(i)} (${pref.prefset.getPrefType(i)})`);", 
+    "ko.dialogs.alert(\"R preferences:\", str.join(\"\\r\\n\"), \"Komodo-R interface\");"
+  ], 
+  "trigger": "trigger_postopen", 
+  "rank": 100, 
+  "version": "1.0.12", 
+  "async": false, 
+  "type": "macro", 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/equalizer3.svg"
+}

@@ -100,7 +100,7 @@ proc DoServe {sock} {
 #		Replace different newlines with \n
 		set line [string map [list "\r\n" "\n" "\r" "\n"] $line]
 
-		catch {
+		if [catch {
 			regexp  {(?s)\A\x01(.)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
 			
 			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
@@ -115,7 +115,9 @@ proc DoServe {sock} {
 				unset Connection(addr,$sock)
 			}
 			# XXX Here Reval $r_sid -> start connection with ko-server -> sink output thereinto
-		} err2
+		} err2] {
+			Rprint "Error: in 'Rserver::DoServe': $err2" 1
+		}
 	}
 }
 

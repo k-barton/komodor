@@ -18,7 +18,7 @@ function(FUN, refresh = TRUE) {
         setEvalEnv(sys.frame(nframe))
 		env <- getEvalEnv()
 		attr(env, "name") <- envName <- format(sys.call(nframe))[1L]
-		koCmd("setTimeout(() => sv.rbrowser.refresh(), 100)")
+		koCmd("_W.setTimeout(() => kor.rbrowser.refresh(), 100)")
 		stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
 			envName,
 			"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",

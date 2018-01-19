@@ -16,10 +16,25 @@ override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser10.less 
 override chrome://komodor/skin/komodor.css less://komodor/skin/komodor9.less appversion<10.00
 override chrome://komodor/skin/komodor.css less://komodor/skin/komodor10.less appversion>=10.00
 
+override chrome://komodor/skin/pref-R.css less://komodor/skin/pref-R9.less appversion<10.00
+override chrome://komodor/skin/pref-R.css less://komodor/skin/pref-R10.less appversion>=10.00
+
+override chrome://komodor/skin/pkgman/pkgman.css less://komodor/skin/pkgman/pkgman9.less appversion<10.00
+override chrome://komodor/skin/pkgman/pkgman.css less://komodor/skin/pkgman/pkgman10.less appversion>=10.00
+
 override chrome://komodor/content/js/r-help.js chrome://komodor/content/js/r-help9.js appversion<10.00
 override chrome://komodor/content/js/r-help.js chrome://komodor/content/js/r-help10.js appversion>=10.00
 
 category toolbox komodor@komodor 1
 
+resource kor modules/
+category require-path kor resource://kor/
+
 manifest components/component.manifest
+
+override chrome://komodor/content/keybindings.kkf chrome://komodor/content/keybindings/keybindings-win.kkf os=winnt
+override chrome://komodor/content/keybindings.kkf chrome://komodor/content/keybindings/keybindings-linux.kkf os=linux
+override chrome://komodor/content/keybindings.kkf chrome://komodor/content/keybindings/keybindings-mac.kkf os=darwin
+
+
 

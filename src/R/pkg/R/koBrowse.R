@@ -22,7 +22,7 @@ function(refresh = TRUE) {
 			env <- getEvalEnv()
 			attr(env, "name") <- envName <- format(expr)[1L]
             
-			if(refresh) koCmd("setTimeout(() => sv.rbrowser.refresh(), 100)");
+			if(refresh) koCmd("_W.setTimeout(() => kor.rbrowser.refresh(), 100)");
 
 			stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
 				envName,
@@ -40,7 +40,7 @@ function(refresh = TRUE) {
 	if(!identical(getEvalEnv(), .GlobalEnv)) {
 		setEvalEnv(.GlobalEnv)
 		message("Evaluating in '.GlobalEnv'")
-        if(refresh) koCmd("setTimeout(() => sv.rbrowser.refresh(), 100)");
+        if(refresh) koCmd("_W.setTimeout(() => kor.rbrowser.refresh(), 100)");
 	} else message("Already in '.GlobalEnv'")
 	invisible()
 }

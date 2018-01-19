@@ -1,19 +1,29 @@
 
 
 local({
-if(file.exists(".komodor_version"))
-    Sys.setenv("KOMODOR_VER"=scan(".komodor_version", "", quiet = TRUE)[1L])
 
-if(!identical(Sys.getenv("KOMODOR_VER"), "") && (
+komodor_version <- Sys.getenv("KOMODOR_VER")
+
+if(file.exists(".komodor_version"))
+    komodor_version <- scan(".komodor_version", "", quiet = TRUE)[1L]
+
+komodor_version <- sub("^\\D*((\\d+\\.){2}\\d+)\\D*$", "\\1", komodor_version)
+	
+if(!identical(komodor_version, "") && (
         length(find.package("kor", quiet=TRUE)) == 0L ||
-        Sys.getenv("KOMODOR_VER") != utils::packageVersion("kor")
+        komodor_version != utils::packageVersion("kor")
     )) {
-    fi <- paste0("kor_", Sys.getenv("KOMODOR_VER"), ".tar.gz")
-    if(!file.exists(fi)) stop("KomodoR installation is corrupt. Please reinstall Komodo add-on.")
+    fi <- paste0("kor_", komodor_version, ".tar.gz")
+    if(!file.exists(fi))
+		if(dir.exists("pkg") && file.exists(file.path("pkg", "DESCRIPTION"))) {
+		  message("*This is development version*")
+		  fi <- "pkg"
+		} else 
+			stop("KomodoR installation appears to be corrupt. Please reinstall Komodo add-on.")
     tmppath <- tempdir()
     odir <- setwd(tmppath)
     cat("installing KomodoR ...\n")
-    utils::install.packages(file.path(odir, fi), repos = NULL)
+    utils::install.packages(file.path(odir, fi), repos=NULL, type="src")
     setwd(odir)
 }
 

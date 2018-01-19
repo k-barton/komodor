@@ -19,7 +19,7 @@ koPager <- function(files, header, title, delete.file) {
 			if(!is.null(enc$codepage)) sprintf("windows-%d", enc$codepage) else ""
 	} else enc
 		
-    tryCatch(koCmd(sprintf("sv.r.pager(\"%s\", \"%s\", \"%s\", %s, \"%s\")",
+    tryCatch(koCmd(sprintf("kor.r.pager(\"%s\", \"%s\", \"%s\", %s, \"%s\")",
         file, header, title, if (delete.file) "true" else "false", charset)
 	),  error = function(e) {
 		if(!is.null(origpager <- getTemp("oldoptions", item = "pager")))
@@ -37,7 +37,7 @@ koBrowser <- function(url) {
     ## on Unix or Mac and prepend 'file://'
     escapedUrl <- sub("^/", "file:///", url)
 	escapedUrl <-gsub("\\", "\\\\", escapedUrl, fixed = TRUE)
-    res <- tryCatch(koCmd(sprintf("sv.command.openHelp(\"%s\")", escapedUrl)),
+    res <- tryCatch(koCmd(sprintf("kor.command.openHelp(\"%s\")", escapedUrl)),
         warning = function(e) e, error = function(e) e)
 	if(inherits(res, "condition"))
 		browseURL(url, NULL)

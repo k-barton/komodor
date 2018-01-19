@@ -122,9 +122,16 @@ class korRConnector:
 
     def connect(self, command, mode, notify, timeout, uid):
         # pretty_command = self.pushLeft(command, indent=3L, eol='\n', tabwidth=4)[3:]
-        self.lastCommand = unicode(command)
-        ssLastCmd = self._asSString(command)
-        log.debug("connect: %s... (%d)" % (command[0:10], notify))
+        
+        if command.startswith("\x05"):
+            rcommand = command[command.find(";") + 1:]
+        else:
+            rcommand = command
+ 
+        
+        self.lastCommand = unicode(rcommand)
+        ssLastCmd = self._asSString(rcommand)
+        log.debug("connect: command was \n%s ... \n(notify=%d)" % (rcommand[0:36], notify))
 
         modeArr = mode.split(' ')
         useJSON = modeArr.count('json')
@@ -138,7 +145,7 @@ class korRConnector:
             # e.message or e.strerror
             return unicode('\x15' + (e.args[0] if (e.errno == None) else e.strerror))
 
-        cmdInfo = self.CommandInfo(uid, command, mode, False, 'Not ready')
+        cmdInfo = self.CommandInfo(uid, rcommand, mode, False, 'Not ready')
 
         #wrappedCmdInfo = WrapObject(cmdInfo, components.interfaces.korICommandInfo)
         if notify:
@@ -201,20 +208,20 @@ class korRConnector:
                    lambda x: "\\u%04x" % ord(x.group(0)), result)
             try:
                 resultObj = json.loads(result)
-                if(isinstance(resultObj, dict)):
-                    result = resultObj.get('result')
-                    if isinstance(result, list):
-                        result = os.linesep.join(result)
-                    #else: # isinstance(x, unicode)
-                    #    result = resultObj.get('result')
-                    #log.debug(type(result)) # <-- should be: <type 'unicode'>
-                    result = result.replace('\x02\x03', '') # XXX: temporary fix
-                    cmdInfo.message = unicode(resultObj.get('message'))
-                    cmdInfo.result = unicode(result)
-                    cmdInfo.browserMode = resultObj.get('browserMode') == "TRUE"
-
-            except Exception, e:
-                log.debug(e)
+            except ValueError, e:
+                resultObj = {'message': u"empty", 'result': u"", 'browserMode': "FALSE"}
+                log.info("%s. Result was:\n%s" % (e, result))
+            if(isinstance(resultObj, dict)):
+                result = resultObj.get('result')
+                if isinstance(result, list):
+                    result = os.linesep.join(result)
+                #else: # isinstance(x, unicode)
+                #    result = resultObj.get('result')
+                #log.debug(type(result)) # <-- should be: <type 'unicode'>
+                result = result.replace('\x02\x03', '') # XXX: temporary fix
+                cmdInfo.message = unicode(resultObj.get('message'))
+                cmdInfo.result = unicode(result)
+                cmdInfo.browserMode = resultObj.get('browserMode') == "TRUE"
 
         self.lastMessage = message
         self.lastResult = result
@@ -347,8 +354,7 @@ class korRConnector:
         pass
         
 # //JS:
-# var svu = sv.rconn.svuSvc
-# var sm = sv.cmdout.scimoz
+# var sm = kor.cmdout.scimoz
 # function sty2num(sty) sty.split('').map(function(x) x.charCodeAt(0))
 # sty = svu.makeStyledText(res.replace(/\r\n/g, '; '))
 # res = svu.evalInR('message("abc>");message("123>"); message("456>")', 'json h', true)

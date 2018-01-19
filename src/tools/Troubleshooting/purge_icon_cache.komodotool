@@ -1,0 +1,19 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Purge icon cache", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "", 
+    "let fu = require(\"kor/fileutils\");", 
+    "let path = fu.path(\"ProfD\", \"icons\", \"chrome\", \"komodor\", \"skin\");", 
+    "let file = fu.getLocalFile(path);", 
+    "if (file.exists()) file.remove(true);"
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/wrench.svg", 
+  "type": "macro", 
+  "trigger": "trigger_postopen"
+}

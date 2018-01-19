@@ -34,6 +34,7 @@ function(x, id, mode) {
 	evalShown <- mode != "h"
 	markStdErr <- TRUE  # XXX FALSE in hidden mode ?
 	
+	optWidth <- 0L
 	if (evalShown) {
 	    prevcodeVarName <- paste0("part.", id)
 	    prevcode <- getTemp(prevcodeVarName)
@@ -43,7 +44,16 @@ function(x, id, mode) {
 	        cat("<interrupted>\n")
 	        x <- substr(x, 2L, nchar(x))
 	        prevcode <- NULL
-	    }
+	    } else if(substr(x, 1L, 1L) == "\005" &&
+			(pos <- regexpr(";", x, fixed = TRUE)) > 0L
+			) {
+			opt <- substr(x, 2L, pos - 1L)
+			optWidth <- as.integer(opt)[1L]
+			if(!is.finite(optWidth)) optWidth <- 0L
+			x <- substr(x, pos + 1L, nchar(x))
+			#x <- "\005width=80\002print(1:1000)\n"
+			#x <- "\00580;print(1:1000)\n"
+		}
 		# prints in R console:
 	    cat(":> ", c(prevcode, x), "\n")  # if mode in [e,u]
 	    expr <- parseText(c(prevcode, x))
@@ -62,10 +72,13 @@ function(x, id, mode) {
 	    } else {
 			# XXX currently hidden eval mode implies: no traceback, evaluation in .GlobalEnv.
 			#     These should become separate options.
-	
+			
+			oop <- if(optWidth > 0)
+				options(width = optWidth) else NULL
 	        ret <- captureAll(expr, markStdErr = markStdErr,
 					envir = if(evalShown) getEvalEnv() else .GlobalEnv,
 					doTraceback = evalShown)
+			if(!is.null(oop)) options(oop)
 	        msg <- "done"
 	    }
 	}

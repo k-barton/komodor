@@ -4,7 +4,7 @@
 #include "nsISupports.idl"
 #include "nsISimpleEnumerator.idl"
 
-// This is implemented in sv.rconn's JavaScript code.
+// This is implemented in JavaScript module 'connector'.
 [scriptable, uuid(CA1BCF00-394D-11E0-BD69-0002A5D5C51B)]
 interface korIGenericListener: nsISupports {
     AUTF8String onDone(in AUTF8String data);
