@@ -1,0 +1,68 @@
+.menulist-buttons {
+	min-height: 25px;
+	margin-right: 0;
+}
+
+button.menulist-buttons {
+	min-width: 24px;
+	margin-left: 0; 
+}
+
+button.menulist-buttons:last-of-type {
+	margin-right: 4px;
+}
+
+
+button.refresh-icon[label] .button-text {
+	padding-left: 4px;
+}
+
+menulist.short {
+    max-width: 4em;
+}
+
+#RInterface\.RCommand {
+	background: none; 
+	padding-top: 1px !important; 
+	margin-left: 10px !important;
+}
+
+
+#RInterface\.RCommand[edited] {
+	color: #800000;
+}
+
+.description {
+	margin-top: 3px;
+	margin-bottom: 3px;
+	font-style: italic;
+}
+
+textbox, menulist {
+    min-height: 2.0em !important;
+    max-height: 2.0em !important;
+    line-height: 16px !important;
+    margin-top: 1px;
+}
+
+textbox.numeric-input {
+	text-align: right;
+}
+
+html|*.menulist-editable-input {
+ line-height: 1em !important; 
+}
+
+.menulist-editable-box {
+padding-bottom: 1px;
+padding-top: 1px;
+}
+
+button {
+    line-height: 16px !important;
+}
+
+label + textbox {
+    margin-left: 5px;
+}
+

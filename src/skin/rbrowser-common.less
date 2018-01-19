@@ -3,13 +3,14 @@
 @svg-images: "koicon://ko-svg/chrome/komodor/skin/images";
 
 
-#rbrowserSubpanelToggle[state="open"] {
-  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg?preset=widgets");
+#rbrowserSubpanelToggle {
+    &[state="open"] {
+        list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg?preset=widgets");
+    }
+    &[state="collapsed"] {
+        list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-up2.svg?preset=widgets");
+    }
 }
-#rbrowserSubpanelToggle[state="collapsed"] {
-  list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-up2.svg?preset=widgets");
-}
-
 
 #rbrowserViewbox_rbrowserWrapper toolbarbutton image.toolbarbutton-icon {
   width: 14px;
@@ -18,9 +19,19 @@
 
 /* No default grippy image. Splitter-like cursor as appropriate. */
 #rbrowserSubpanelSplitter {
-  background: transparent !important;
-  border: none;
-  border-top: solid 1px ThreeDShadow;
+    background: transparent !important;
+    border: none;
+    border-top: solid 1px ThreeDShadow;
+    >grippy {
+        background-image: none !important;
+    }
+    &,
+    label {
+        cursor: ns-resize;
+    }
+    toolbarbutton {
+        cursor: default;
+    }
 }
 
 #rbrowserSubpanelSplitterHboxBorder {
@@ -28,168 +39,142 @@
   height: 1px;
   margin: 0 0;
 }
-#rbrowserSubpanelSplitter > grippy {
-  background-image: none !important;
-}
-#rbrowserSubpanelSplitter,
-#rbrowserSubpanelSplitter label {
-  cursor: ns-resize;
-}
-#rbrowserSubpanelSplitter toolbarbutton  {
-  cursor: default;
-}
 
 #rbrowser_objects_tree {
-
-  treecol#r-dims {
-	  text-align: right;
-  }
-  
-  treechildren::-moz-tree-indentation {
-	  width: 15px !important;
-  }
-  
-  treechildren::-moz-tree-line {
-	  border: 1px red dotted;
-  }
-
-  treechildren::-moz-tree-image(icon) {
-	  list-style-image: url("@{images}/empty.png");
-	  padding-right: 8px;
-  }
-  
-  treechildren::-moz-tree-indentation(type-sub-object) {
-	  width: 15px;
-  }
-  
-  treechildren::-moz-tree-cell-text(type-environment) {
-	  font-weight: bold;
-  }
-  
-  treechildren::-moz-tree-cell-text(type-environment, empty) {
-	  opacity: 0.7;
-	  font-style: italic;
-  }
-  
-  treechildren::-moz-tree-cell-text(hidden) {
-      opacity: 0.4;
-  }
-  
-  treechildren::-moz-tree-cell-text(type-args),
-  treechildren::-moz-tree-cell-text(type-sub-object) {
-	  font-size: 95%;
-  }
-
-  treechildren::-moz-tree-cell-text(attr, col-r-name),
-  treechildren::-moz-tree-cell-text(type-args, col-r-name) {
-	  font-style: italic;
-  }
-	
-  treechildren::-moz-tree-cell-text(group-language, col-r-name) {
-	  font-family: Consolas, Source Code Pro, monospace;
-  }
-  
+    treecol#r-dims {
+        text-align: right;
+    }
+    treechildren {
+        &::-moz-tree-indentation {
+            width: 15px !important;
+        }
+        &::-moz-tree-image(icon) {
+            list-style-image: url("@{images}/empty.png");
+            padding-right: 8px;
+        }
+        &::-moz-tree-indentation(type-sub-object) {
+            width: 15px;
+        }
+        &::-moz-tree-cell-text(type-environment) {
+            font-weight: bold;
+        }
+        &::-moz-tree-cell-text(type-environment,empty) {
+            opacity: 0.7;
+            font-style: italic;
+        }
+        &::-moz-tree-cell-text(hidden) {
+            opacity: 0.4;
+        }
+        &::-moz-tree-cell-text(type-args),
+        &::-moz-tree-cell-text(type-sub-object) {
+            font-size: 95%;
+        }
+        &::-moz-tree-cell-text(attr,col-r-name),
+        &::-moz-tree-cell-text(type-args,col-r-name) {
+            font-style: italic;
+        }
+        &::-moz-tree-cell-text(group-language,
+        col-r-name) {
+            font-family: Consolas, Source Code Pro, monospace;
+        }
+    }
 }
+
+
+
 // #rbrowser_objects_tree
-
 #rbrowser_filterbox {
-	margin: 4px 4px 2px 2px;
-	/*min-width: 40px;
+    margin: 4px 4px 2px 2px;
+    /*min-width: 40px;
 	max-width: 200px;*/
+    
+   &.badRegEx {
+    color: #ea0000;
+}
 }
 
-#rbrowser_filterbox.badRegEx {
-	color: #ea0000;
+*[type=icons]>toolbarbutton .toolbarbutton-text {
+    display: none;
 }
 
-*[type=icons] > toolbarbutton .toolbarbutton-text {
-	display: none;
+.filterbuttonchecked() {
+    visibility: collapse;
 }
-
 
 #rbrowser_filterByName_button {
-	list-style-image: url("@{svg-images}/filter-name.svg?size=@{icon-size}&preset=widgets");
-
+    list-style-image: url("@{svg-images}/filter-name.svg?size=@{icon-size}&preset=widgets");
+    &[checked="true"] {
+        .filterbuttonchecked;
+    }
 }
 
 #rbrowser_filterByClass_button {
-	list-style-image: url("@{svg-images}/filter-class.svg?size=@{icon-size}&preset=widgets");
+    list-style-image: url("@{svg-images}/filter-class.svg?size=@{icon-size}&preset=widgets");
+    &[checked="true"] {
+        .filterbuttonchecked;
+    }
 }
 
 
-#rbrowser_filterByName_button[checked="true"],
-#rbrowser_filterByClass_button[checked="true"] {
-	visibility: collapse;
-}
 
 #rbrowser_showAll_button {
-	list-style-image: url("@{svg-images}/eye-closed.svg?size=@{icon-size}&preset=widgets");
+    list-style-image: url("@{svg-images}/eye-closed.svg?size=@{icon-size}&preset=widgets");
+    &[checked="true"] {
+    list-style-image: url("@{svg-images}/eye-red.svg?size=@{icon-size}&preset=widgets");
 }
-
-#rbrowser_showAll_button[checked="true"] {
-	list-style-image: url("@{svg-images}/eye-red.svg?size=@{icon-size}&preset=widgets");
 }
 
 #rbrowser_showAttributes_button {
-	list-style-image: url("@{images}/objects-hide-attributes.png");
+    list-style-image: url("@{images}/objects-hide-attributes.png");
+    &[checked="true"] {
+    list-style-image: url("@{images}/objects-show-attributes.png");
 }
-
-#rbrowser_showAttributes_button[checked="true"] {
-	list-style-image: url("@{images}/objects-show-attributes.png");
 }
-
 
 .save-buffer-icon {
-	list-style-image: url("@{svg-images}/save.svg");
+    list-style-image: url("@{svg-images}/save.svg");
 }
 
 .robjects-fold-all-icon {
-	list-style-image: url("@{svg-images}/minus-circle.svg?size=@{icon-size}&preset=widgets");
+    list-style-image: url("@{svg-images}/minus-circle.svg?size=@{icon-size}&preset=widgets");
 }
 
 .robjects-expand-all-icon {
     list-style-image: url("@{svg-images}/plus-circle.svg?size=@{icon-size}&preset=widgets");
 }
 
-#rbrowserToolbar{
- 
-.refresh-icon {
-    list-style-image: url("@{svg-images}/refresh.svg?size=@{icon-size}&preset=widgets");
-}
-
-.tools-icon {
-    list-style-image: url("@{svg-images}/cog.svg?size=@{icon-size}&preset=widgets");
-}
- 
-  
-  
+#rbrowserToolbar {
+    .refresh-icon {
+        list-style-image: url("@{svg-images}/refresh.svg?size=@{icon-size}&preset=widgets");
+    }
+    .tools-icon {
+        list-style-image: url("@{svg-images}/cog.svg?size=@{icon-size}&preset=widgets");
+    }
 }
 
 
-
-
-#rbrowserToolbar > toolbarbutton {
-  border-width: 1px;
-  border-style: solid;
-  border-color: transparent;
+#rbrowserToolbar {
+    &>toolbarbutton {
+        & {
+            border-width: 1px;
+            border-style: solid;
+            border-color: transparent;
+        }
+        &[checked] {
+            box-shadow: inset 0px 1px 5px rgba(0, 0, 0, 0.15);
+            background-color: transparent;
+            background-image: none;
+            border-color: rgba(0, 0, 0, 0.4);
+        }
+    }
 }
 
-#rbrowserToolbar > toolbarbutton[checked] {
-  box-shadow: inset 0px 1px 5px rgba(0, 0, 0, 0.15);
-  background-color: transparent;
-  background-image: none;
-  border-color: rgba(0, 0, 0, 0.4);
-}
 
 #rbrowser_searchpath_listbox {
-  
-  .eval-env {
-	font-style: italic;
-  }
-  
-  .non-detachable {
-	opacity: 0.6;
-  }
-  
+    .eval-env {
+        font-style: italic;
+    }
+    .non-detachable:not([selected]) {
+        opacity: 0.6;
+    }
 }
- 

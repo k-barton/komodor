@@ -4,38 +4,27 @@
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pkgman/pkgman.css" type="text/css"?>
 
-<window id="svRRepositories" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<window id="korRepositories" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	title="Set R repositories" persist="screenX screenY width height">
 <script type="application/x-javascript">
 <![CDATA[
 
-/* globals window, document, parent */
+/* globals Components, window, document */
 
-var require = parent.opener.require;
+var _w = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+	.getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("Komodo");
+
+if (typeof require === "undefined") var require = _w.require;
 var logger = require("ko/logging").getLogger("komodoR");
+if (typeof ko === "undefined") var ko = _w.ko;
 
-var sv, ko;
-if (window.parent && window.parent.sv) {
-	sv = window.parent.sv;
-	ko = window.parent.ko;
-}
-if(!sv) {
-	let p = parent;
-	while ((p = p.opener)) {
-		if (p.ko) {
-			sv = p.sv;
-			ko = p.ko;
-			break;
-	}}
-}
-
-sv.repositories = {};
+//var repositories = {};
 
 function pkgManGetRepositories() {
 	try {
 		let cmd = "kor::pkgManGetRepositories()";
 		logger.debug(cmd);
-		let res = JSON.parse(sv.rconn.eval(cmd));
+		let res = JSON.parse(require("kor/connector").eval(cmd));
 		let ret = {};
 		for(let i in res)
 			if(res.hasOwnProperty(i))
@@ -47,11 +36,9 @@ function pkgManGetRepositories() {
 }
 
 
-function object2DOMElement(tagName, obj) {
-	let item = document.createElement("richlistitem");
-	for(let i in obj)
-		if(obj.hasOwnProperty(i))
-			item.setAttribute(i, obj[i]);
+function createDOMElement(tagName, obj) {
+	let item = document.createElement(tagName), keys = Object.keys(obj);
+	for(let i = 0; i < keys.length; ++i) item.setAttribute(keys[i], obj[keys[i]]);
 	return item;
 }
 
@@ -59,71 +46,53 @@ function onLoad() {
 	try {
 		let cmd = "kor::pkgManGetRepositories()";
 		logger.debug(cmd);
-		let res = JSON.parse(sv.rconn.eval(cmd));
+		let res = JSON.parse(require("kor/connector").eval(cmd, 2));
 		let list = document.getElementById("rRepositoryList");
 		list.parentNode.selectedIndex = 1;
-		let item, reposObj, selected;
-		for(let i in res)
-			if(res.hasOwnProperty(i)) {
-				reposObj = res[i];
-				item = document.createElement("richlistitem");
-				item.id = i;
-				selected = reposObj.default.indexOf("TRUE") != -1;
-				item.setAttribute("checked", selected);
-				item.setAttribute("label", reposObj.menu_name);
-				item.setAttribute("url", reposObj.URL);
-				item.setAttribute("contribUrl", reposObj['Contrib.URL']);
-				list.appendChild(item);
-				sv.repositories[i] = reposObj['Contrib.URL'];
-				//item.reposUrl = reposObj.URL;
+		let keys = Object.keys(res), reposObj;
+		for(let i = 0; i < keys.length; ++i) {
+				reposObj = res[keys[i]];
+				//item = document.createElement("richlistitem");
+				//item.id = keys[i];
+				list.appendChild(createDOMElement("richlistitem", {
+					id: keys[i],
+					checked: reposObj.default.indexOf("TRUE") != -1,
+				    label: reposObj.menu_name,
+					url: reposObj.URL,
+					contribUrl: reposObj['Contrib.URL']
+					
+				}));
+				//repositories[i] = reposObj['Contrib.URL'];
 			}
 	} catch(e) {
 		logger.exception(e, "repositories::onLoad");
 		return;
 	}
-		//var item = item0.cloneNode(true);
-		//
-		//
-		//var iname =  res[i]["menu_name"];
-		//item.setAttribute("control", iname + "-default");
-		//item.id = iname;
-		//for(var j in res[i]) {
-		//	elements = item.getElementsByAttribute("anonid", j);
-		//	if(elements.length) {
-		//		el = elements[0];
-		//		if(el.tagName == "checkbox") {
-		//			el.setAttribute("checked", res[i][j].trim() == "TRUE");
-		//			el.id = iname + "-" + j;
-		//		} else {
-		//			el.setAttribute("value", res[i][j]);
-		//		}
-		//	}
-		//}
-	//}
-	//list.addEventListener("select", onListSelect, false);
 }
 
 function applyRepositories() {
 	var list = document.getElementById("rRepositoryList");
-	sv.cmdout.clear();
-	var res = [];
-	for(var i = 0, l = list.itemCount; i < l; i++) {
-		var item = list.getItemAtIndex(i);
-		if(item.checked)
-			res.push('"' + item.id  + '"="' + 	item.reposUrl + '"');
+	require("kor/cmdout").clear();
+	var res = {}, count = 0, item, n = list.itemCount;
+	for(let i = 0, l = n; i < l; ++i) {
+		item = list.getItemAtIndex(i);
+		if(item.checked) {
+			res[item.id] = item.reposUrl;
+			++count;
+		}
 	}
-	if(!res.length)
+	if(count === 0)
 		ko.dialogs.alert("At least one repository must be selected.", null, "R package manager");
 	else
-		sv.r.eval('options(repos=c(' + res.join(',\n\t')  + '))');
+		require("kor/connector").evalAsync('base::options(repos=' + require("kor/r").arg(res) + ')', null, false);
 }
 
 //function onListSelect(el) {
 //	//alert(el.target.id);
 //	var list = document.getElementById("rRepositoryList");
 //	document.getElementById(list.selectedItem.getAttribute("control")).focus();
-//	sv.cmdout.append(list.selectedItem.id);
-//	sv.cmdout.append(list.selectedItem.getAttribute("control"));
+//	require("kor/cmdout").append(list.selectedItem.id);
+//	require("kor/cmdout").append(list.selectedItem.getAttribute("control"));
 //
 //}
 
@@ -131,18 +100,6 @@ window.addEventListener("load", onLoad, false);
 
 // ]]>
 </script>
-	<!--<richlistitem id="dummy000" onselect="alert(this.id)">-->
-	<!--	<hbox pack="start" align="left">-->
-	<!--	<checkbox anonid="default" />-->
-	<!--	<label anonid="menu_name" id="menuName"-->
-	<!--		style="font-weight: bold;"/>-->
-	<!--	<vbox>-->
-	<!--	<label anonid="URL" />-->
-	<!--	<label anonid="Contrib.URL" />-->
-	<!--	</vbox>-->
-	<!--	</hbox>-->
-	<!---->
-	<!--</richlistitem>-->
 
 <hbox>
 <button label="Apply changes" oncommand="applyRepositories()" />
@@ -151,10 +108,9 @@ window.addEventListener("load", onLoad, false);
 <box flex="1" pack="center">
 <vbox pack="center">
 	<label value="Not loaded" />
-	<button label="Refresh" oncommand="onLoad();" />
+	<button label="Refresh" oncommand="onLoad()" />
 </vbox>
 </box>
-<richlistbox id="rRepositoryList" class="rRepositoryList"
-		flex="1" />
+<richlistbox id="rRepositoryList" class="rRepositoryList" flex="1" />
 </deck>
 </window>

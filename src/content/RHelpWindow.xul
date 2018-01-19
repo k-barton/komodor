@@ -16,14 +16,11 @@
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
-<!--<?xml-stylesheet href="chrome://komodo/skin/bindings/buttons.css" type="text/css"?>-->
-<!--<?xml-stylesheet href="chrome://komodo/skin/bindings/views.css" type="text/css"?>-->
-<!--<?xml-stylesheet href="chrome://komodo/skin/bindings/widgets.css" type="text/css"?>-->
 <?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/rhelpwin.css" type="text/css"?>
 
 <window
-    id="RHelpWindow" title="R Help"
+    id="rHelpWindow" title="R Help"
     xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     width="700" height="500" screenX="20" screenY="20"
     persist="screenX screenY width height"
@@ -31,7 +28,7 @@
 <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
 <script type="application/x-javascript" src="chrome://global/content/printUtils.js" />
 <script type="application/x-javascript" src="chrome://global/content/contentAreaUtils.js" />
-<script type="application/x-javascript" src="chrome://komodor/content/RHelpWindow.js" />
+<script type="application/x-javascript" src="chrome://komodor/content/rHelpWindow.js" />
 
 <keyset id="keyset_main">
     <key id="key_find" key="F" observes="cmd_find" modifiers="accel" />
@@ -132,7 +129,7 @@ orient="horizontal">
 					oncommand="go('@CRAN@');"/>
 				<menuitem id="rhelp-menu-vignettes" label="Browse vignettes"
 					accesskey="v"
-					oncommand="sv.rconn.evalAsync('browseVignettes()');"/>
+					oncommand="require('kor/connector').evalAsync('browseVignettes()');"/>
 				<menuitem id="rhelp-menu-bioconductor" label="Bioconductor"
 					accesskey="b"
 					oncommand="go('http://www.bioconductor.org/');"/>

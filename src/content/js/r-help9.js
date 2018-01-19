@@ -56,7 +56,8 @@ ko.help.language = function () {
 	command = command.trim();
 	if (command.startsWith("javascript:")) { // jshint ignore: line
 		command = command.substring(11).trim();
-		eval(ko.interpolate.interpolateString(command)); // jshint ignore: line
+		let geval = eval;
+		geval(ko.interpolate.interpolateString(command)); // jshint ignore: line
 	} else { 
 		ko.run.runCommand(window, command, null, null, false, false, true,
 			"no-console", 0, "", 0, name);

@@ -10,19 +10,12 @@
  * TODO: context menu for search-paths list
  * TODO: add context menu item for environments: remove all objects
  * TODO: automatic refresh of the browser from R
- * TODO: make this a sv.robjects.tree 
  */
-/* globals sv, ko, require, document, self */
+/* globals require, document, self */
 
+var rob = {};
 
-let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-        .getService(Components.interfaces.nsIWindowMediator);
-let w = wm.getMostRecentWindow("Komodo");
-if (typeof w.sv === 'undefined') w.sv = {};
-var sv = w.sv, ko = w.ko;
-sv.rbrowser = {};
-
-// Control characters + separators (make them sv-wide):
+// Control characters + separators
 //     \x15 - connection error
 //     \x03 - stderr
 //     \x02 - stdout
@@ -30,25 +23,26 @@ sv.rbrowser = {};
 //     \x1e - record separator
 //     \x1f - unit separator
 //     \x1d - group separator
-// sv.rbrowser constructor
 
 (function () {
 
-    var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
+    var logger = require("ko/logging").getLogger("komodoR-browser");
     
-const ArrayUtils = sv.array;
-const StringUtils = sv.string;
-const FileUtils = sv.file;
+    const { arr: ArrayUtils, str: StringUtils } = require("kor/utils");
+    const fileUtils = require("kor/fileutils");
+    const RConn = require("kor/connector");
+    const R = require("kor/r");
+    const UI = require("kor/ui");
 
     var _this = this;
 
-    // FIXME: sep is also defined as sv.r.sep
+    // FIXME: sep is also defined as R.sep
     const sep = "\x1f", recordSep = "\x1e";
     var _listAllNames = false, _listAttributes = false;
     var dQuote = s => "\"" + s + "\"";
-    var svgParams = "?size=16&color=" + encodeURIComponent("#0060bf");
+    var svgParams = "?size=16&color=" + encodeURIComponent("#004fd2");
 
+    this.searchPath = [];
     // XXX make internal
     this.evalEnv = { name: undefined, searchPathItem: undefined, isNew: false };
     
@@ -73,8 +67,8 @@ const FileUtils = sv.file;
 		"standardGeneric", "environment", "GlobalEnv", "package", "character",
 		"integer", "numeric", "logical", "list", "factor", "NULL", "DateTime",
 		"array", "matrix", "data.frame", "Matrix4", "expression", "language",
-		"name", "srcfilecopy", "srcref", "dist", "_lm", "_lme", "_lmm_", "lm",
-		"lme", "gam", "glm", "gls", "merMod", "formula", "family", "terms",
+		"name", "srcfilecopy", "srcref", "dist", "_lm", "_lme", "_glmm",
+		"lm", "lme", "gam", "glm", "gls", "merMod", "formula", "family", "terms",
 		"logLik", "connection", 'htest', 'ts', 'nls'
 		];
 
@@ -181,7 +175,7 @@ const FileUtils = sv.file;
             else if (noicon) {
                 if (name.contains("glmm"))
                     name = "_glmm";
-				if (name.endsWith("lme"))
+				else if (name.endsWith("lme"))
                     name = "_lme";
                 else if (name.endsWith("lm"))
                     name = "_lm";
@@ -415,7 +409,6 @@ const FileUtils = sv.file;
         _this.sort(null, null);
         //createVisibleData();
     };
-    
    
     var getTreeLeafByName = (name, env) => {
         let p = _this.treeData, res;
@@ -629,7 +622,7 @@ const FileUtils = sv.file;
             thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
         }
 
-        sv.rconn.evalAsync(cmd, parseObjListResult, true);
+        RConn.evalAsync(cmd, parseObjListResult, true);
         isInitialized = true;
     };
     
@@ -651,7 +644,7 @@ const FileUtils = sv.file;
         
         cleanupObjectLists();
         
-        sv.r.evalAsync(makeObjListCommand(env, objName), parseObjListResult,
+        RConn.evalAsync(makeObjListCommand(env, objName), parseObjListResult, true, true,
             /*args for parseObjListResult = */ false, !objName  /* = scrollToRoot*/ );
     };
 
@@ -978,7 +971,7 @@ const FileUtils = sv.file;
                 filePath = data.getData("application/x-moz-file").path;
             } else if (data.types.contains("text/plain")) {
                 filePath = String(data.getData("text/plain")).trim();
-                if (!FileUtils.exists(FileUtils.path(filePath))) {
+                if (!fileUtils.exists(fileUtils.path(filePath))) {
                     text = filePath;
                     filePath = null;
                 }
@@ -986,9 +979,9 @@ const FileUtils = sv.file;
 
             // Attach the file if it is an R workspace
             if (filePath && filePath.search(/\.RData$/i) > 0) {
-                sv.r.loadWorkspace(filePath, true, function (message) {
+                R.loadWorkspace(filePath, true, function (message) {
                     _this.getPackageList();
-                    sv.addNotification("Upon attaching the workspace \"" + filePath +
+                    UI.addNotification("Upon attaching the workspace \"" + filePath +
                         "\", R said: " + message);
                 });
             } else if (text) {
@@ -997,7 +990,7 @@ const FileUtils = sv.file;
                 if (text.startsWith("package:"))
                     text = text.substring(8);
 
-                sv.r.evalAsync("tryCatch(library(\"" + text +
+                RConn.evalAsync("tryCatch(library(\"" + text +
                     "\"), error = function(e) {cat(\"<error>\"); message(e)})",
                     (message) => {
                         let pos;
@@ -1006,10 +999,9 @@ const FileUtils = sv.file;
                         } else 
                             _this.getPackageList();
                         if (message)
-                            sv.addNotification("Upon loading the library \"" + text +
+                            UI.addNotification("Upon loading the library \"" + text +
                                 "\", R said: " + message);
-                    }
-                );
+                    }, true);
             }
         },
         onSearchPathDragStart(event) {
@@ -1043,7 +1035,7 @@ const FileUtils = sv.file;
     this.getPackageList = function () {
         var data;
         try {
-            data = sv.rconn.eval('base::cat(kor::objSearch("' + sep + '"))');
+            data = RConn.eval('base::cat(kor::objSearch("' + sep + '"))');
         } catch (e) {
             return;
         }
@@ -1187,7 +1179,7 @@ const FileUtils = sv.file;
                 if (k !== -1) _this.treeData.splice(k, 1);
                 cmdDetach.push(
                     item.isCurrentEvalEnv ? "kor::koBrowseEnd()" :
-                        `base::detach(${sv.r.arg(item.name)}, unload=TRUE)`
+                        `base::detach(${R.arg(item.name)}, unload=TRUE)`
                                );
             } else {
                 if (item.type === "object") {
@@ -1195,7 +1187,7 @@ const FileUtils = sv.file;
                         else objToRm[item.env] = [item.name];
                 } else if (item.type === "sub-object" || item.type === "args")
                     cmdRmElement.push(
-                        `kor::rmElement(${item.getFullName}, ${sv.r.arg(item.env)})`);
+                        `kor::rmElement(${item.getFullName}, ${R.arg(item.env)})`);
 
                 let siblings = item.parentObject.children;
                 siblings.splice(findIndex(item, siblings), 1);
@@ -1203,7 +1195,7 @@ const FileUtils = sv.file;
         }
 
         cmdRm = Object.keys(objToRm).map(i =>
-            `base::rm(list=${sv.r.arg(objToRm[i])}, pos=${i === _this.evalEnv.name ? "getEvalEnv()" : sv.r.arg(i)})`);
+            `base::rm(list=${R.arg(objToRm[i])}, pos=${i === _this.evalEnv.name ? "getEvalEnv()" : R.arg(i)})`);
         
         let cmd = Array.concat(cmdDetach, cmdRm, cmdRmElement);
         
@@ -1213,15 +1205,15 @@ const FileUtils = sv.file;
 
         if (doRemove) {
             // Remove immediately
-            sv.rconn.evalAsync(cmd.join("\n"), (res) => {
+            RConn.evalAsync(cmd.join("\n"), (res) => {
                 if (cmdDetach.length) _this.refresh();
-            }, false);
+            }, null, false);
         } else {
             // Insert commands to current document
-            let view = ko.views.manager.currentView;
+            let view = require("ko/views").current();
             if (!view) return false;
             let scimoz = view.scimoz;
-            let nl = ";" + sv.eOLChar(scimoz);
+            let nl = ";" + UI.eOLChar(scimoz);
             scimoz.scrollCaret();
             scimoz.insertText(scimoz.currentPos, cmd.join(nl) + nl);
         }
@@ -1261,7 +1253,7 @@ const FileUtils = sv.file;
     this.insertName = function (fullNames, extended) {
         // TODO: `quote` non-syntactic names of 1st level (.type = 'object')
         // extended mode: object[c('sub1', 'sub2', 'sub3')]
-        var view = ko.views.manager.currentView;
+        var view = require("ko/views").current();
         if (!view) return;
         var text = _this.getSelectedNames(fullNames, extended).join(', ');
         var scimoz = view.scimoz;
@@ -1301,10 +1293,6 @@ const FileUtils = sv.file;
         filterBox.emptyText = menuItem.getAttribute("label") + "...";
         filterBox.focus();
 
-        //document.getElementById("rbrowser_filterbox")
-        //    .setAttribute("emptytext", menuItem.getAttribute("label"));
-        //sv.alert(document.getElementById("rbrowser_filterbox")
-        //    .getAttribute("emptytext"));
         return;
     };
 
@@ -1381,33 +1369,33 @@ const FileUtils = sv.file;
 
             let dup = ArrayUtils.duplicates(items.map(x => x.name));
             if (dup.length &&
-                ko.dialogs.okCancel("Objects with the same names from different" +
+                !require("ko/dialogs").confirm("Objects with the same names from different" +
                     "environments selected. Following object will be taken from the " +
                     "foremost location in the search path: " + dup.join(', '),
-                    "Cancel") == "Cancel") return;
+                    {response: "Cancel", title: "bla", icon: "warning"})) return;
 
             let fileName = items.length == 1 ? items[0].name
                 .replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
 
             let dir;
             try {
-                dir = FileUtils.path(sv.rconn.eval("base::cat(base::getwd())"));
+                dir = fileUtils.path(RConn.eval("base::cat(base::getwd())"));
             } catch (e) {
-                logger.exception(e, "in sv.rbrowser.doCommand");
+                logger.exception(e, "in 'doCommand'");
                 return;
             }
 
             if (!dir) return;
 
             let oFilterIdx = {};
-            fileName = sv.fileOpen(dir, fileName + '.RData', '', ["R data (*.RData)|*.RData"], false,
+            fileName = UI.browseForFile(dir, fileName + '.RData', '', ["R data (*.RData)|*.RData"], false,
                 true, oFilterIdx);
 
             if (!fileName) return;
 
-            sv.r.eval(`base::save(list=${sv.r.arg(items.map(x => x.name))}, file=${sv.r.arg(fileName)})`);
+            RConn.evalAsync(`base::save(list=${R.arg(items.map(x => x.name))}, file=${R.arg(fileName)})`,
+                            null, false);
             
-            //sv.r.eval(sv.r.rCall("base::save", { list: items.map(x => x.name), file: fileName }));
             break;
             // Special handling for help
         case 'help':
@@ -1416,13 +1404,13 @@ const FileUtils = sv.file;
             let item = items[0];         
         
             // Help only for packages and objects inside a package
-            // TODO: help for packages, package argument for sv.r.help
+            // TODO: help for packages, package argument for R.help
             if (item.isPackage) {
-                sv.r.help(item.name.replace(/^package:/, '') + "-package");
+                R.help(item.name.replace(/^package:/, '') + "-package");
             } else if (item.isInPackage) {
-                sv.r.help(item.name, item.env.replace(/^package:/, ''));
+                R.help(item.name, item.env.replace(/^package:/, ''));
             } else {
-                sv.r.help(item.name);
+                R.help(item.name);
             }
             //}
             break;
@@ -1433,7 +1421,7 @@ const FileUtils = sv.file;
             for (let i in items)
                 if (item.hasOwnProperty(i)) {
                     let expr = items[i].getFullName;
-                    sv.r.saveDataFrame(expr, '', items[i].name);
+                    R.saveDataFrame(expr, '', items[i].name);
                 }
             break;
 
@@ -1452,7 +1440,7 @@ const FileUtils = sv.file;
                     obj[i].env. !!!addslashes() + "\")))");*/
                     commandArr.push(action + "(" + items[i].getFullName + ")");
                 }
-            sv.r.eval(commandArr.join("\n"));
+            R.evalUserCmd(commandArr.join("\n"));
         }
     };
 
@@ -1539,7 +1527,7 @@ const FileUtils = sv.file;
     this.packageListKeyEvent = function (event) {
         var keyCode = event.keyCode;
     
-        //sv.cmdout.append(`keyCode=${event.keyCode}, charCode=${event.charCode}`);
+        //require("kor/cmdout").append(`keyCode=${event.keyCode}, charCode=${event.charCode}`);
         let listbox = event.target;
     
         switch (keyCode) {
@@ -1553,18 +1541,18 @@ const FileUtils = sv.file;
                 cmd = "kor::koBrowseEnd()";
             else
                 cmd =
-                `base::tryCatch(base::detach(${sv.r.arg(pkg)}, unload=TRUE), error=function(e) base::cat("<error>"))`;
+                `base::tryCatch(base::detach(${R.arg(pkg)}, unload=TRUE), error=function(e) base::cat("<error>"))`;
     
-            sv.r.evalAsync(cmd, function /*_packageListKeyEvent_callback*/ (data) {
+            RConn.evalAsync(cmd, (data) => {
                 logger.debug("packageListKeyEvent with data=" + data);
                 if (data.trim() != "<error>") {
                     removeObjectList(pkg);
                     listbox.removeChild(listItem);
-                    sv.addNotification(sv.translate("R: \"%S\" detached.", pkg));
+                    UI.addNotification(UI.translate("R: \"%S\" detached.", pkg));
                 } else
-                    sv.addNotification(sv.translate("R: \"%S\" could not be detached.",
+                    UI.addNotification(UI.translate("R: \"%S\" could not be detached.",
                         pkg), true);
-            });
+            }, true);
             return;
             // for some reason arrow keys/home/end do not work by default, pgup/pgdown do.
         case 35: // end key
@@ -1612,14 +1600,31 @@ const FileUtils = sv.file;
         else command.removeAttribute("checked"); 
         _this[name] = value;
     };
+    
+    this.onRStatusChange = function(event) {
+		logger.debug("Rbrowser.onRStatusChange");
+        if(!event.detail.running) {
+            logger.debug("clearing R browser");
+            _this.clearAll();
+        } else {
+            _this.refresh(true);
+            logger.debug("refreshing R browser");
+        }
+    };
 
     this.onLoad = function ( /*event*/ ) {
-        if (typeof sv.r === "undefined") {
-             setTimeout(_this.onLoad, 1000);
-             logger.debug("sv.rbrowser.onLoad: sv.r is undefined.");
-        } else if (sv.r.isRunning)
-          _this.refresh(true);
-        logger.debug("sv.rbrowser.onLoad");
+        //TODO: remove timeout, call require("kor/command") directly
+        //let korCmd = require("kor/command");
+        //if (!korCmd) {
+        //     setTimeout(_this.onLoad, 1000);
+        //     logger.debug("Rbrowser.onLoad: 'command' is undefined.");
+        //} else if (korCommand.isRRunning)
+        //if (require("kor/command").isRRunning)
+            //_this.refresh(true);
+        logger.debug("Rbrowser.onLoad");
+        
+        require("kor/main").mainWin.addEventListener('r-status-change',
+            _this.onRStatusChange, false);
     };
     
     window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
@@ -1634,8 +1639,9 @@ const FileUtils = sv.file;
         },
         createVisibleData: createVisibleData,
         cleanupObjectLists: cleanupObjectLists,
-        getWindow: () => ko.widgets.getWidget("rbrowser_tabpanel").contentWindow
+        //getWindow: () => ko.widgets.getWidget("rbrowser_tabpanel").contentWindow
+        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "rbrowser_tabpanel")
     };
     
 
-}).apply(sv.rbrowser);
+}).apply(rob);

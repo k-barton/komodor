@@ -59,7 +59,7 @@
 <!--	//if(event.keyCode == 32){-->
 <!--	//	event.target.selectedItem.check();-->
 <!--	//}-->
-<!--	//sv.cmdout.append(selectedItem.id + "->"  + event.keyCode);-->
+<!--	//....cmdout.append(selectedItem.id + "->"  + event.keyCode);-->
 <!--]]>-->
 <!--   </body>-->
 <!--</method>-->
@@ -166,7 +166,8 @@
 					<xul:label anonid="title" class="title addonName"
 							   xbl:inherits="value=label" />
 						<xul:label anonid="version" class="version addonVersion"
-							xbl:inherits="value=version" align="right" />
+							xbl:inherits="value=version,tooltip=versionTooltip"
+							align="right" />
 						<xul:label anonid="installedVersion"
 							xbl:inherits="value=installedVersion" />
 					<xul:label anonid="reposName" class="reposName"
@@ -175,7 +176,7 @@
 
 			<xul:description class="description" crop="end" xbl:inherits="value=desc" />
 			<xul:vbox class="description-full"
-				style="margin-bottom: 3px; border: 0px red solid; overflow-y: auto;"
+				style="margin-bottom: 3px; overflow-y: auto;"
 				maxheight="120"
 				onoverflow="this.height=Math.min(this.maxHeight, this.firstChild.getBoundingClientRect().height + 3)">
 				<xul:vbox>
@@ -184,7 +185,7 @@
 									anonid="getDescriptionPkgButton"
 									onclick="getDescriptionFor(document.getBindingParent(this))" />
 					</xul:hbox>
-					<xul:description anonid="fullDescription" class="description-full"
+					<xul:description anonid="fullDescription" class="description-full2"
 								xbl:inherits="xbl:text=desc" />
 				</xul:vbox>
 			</xul:vbox>
@@ -244,8 +245,6 @@
 		<property name="desc">
 			<setter>
 			  <![CDATA[
-					//sv.cmdout.append(val);
-					//this.setAttribute("desc", val);
 					var fullDescription = document
 						.getAnonymousElementByAttribute(this, "anonid",
 							"fullDescription");
@@ -282,37 +281,37 @@
             <body>
 		<![CDATA[
 					const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-					const skipFields = ['Package', 'Version', 'Type', 'LazyLoad', 'LazyData',
-					'Encoding', 'Built', 'Packaged', 'Collate'];
-
-					//alert(text);
-					var lines = text.split(/[\r\n]+/);
-					var grid = document.createElementNS(XUL_NS, 'grid');
+					let lines = text.split(/[\r\n]+/);
+					let grid = document.createElementNS(XUL_NS, 'grid');
 					grid.className = "description-full";
 
 					var cols = grid.appendChild(document.createElementNS(XUL_NS, 'columns'));
-					for (var i = 0; i < 2; i++) {
-						var c = cols.appendChild(document.createElementNS(XUL_NS, 'column'));
+					for (let i = 0; i < 2; ++i) {
+						let c = cols.appendChild(document.createElementNS(XUL_NS, 'column'));
 						c.setAttribute("flex", i);
 					}
 					var rows = grid.appendChild(document.createElementNS(XUL_NS, 'rows'));
-					for (var i in lines) {
-						var strs = lines[i].match(/^(\w+): (.*)$/);
-						if (strs == null || skipFields.indexOf(strs[1]) != -1) continue;
-						var fieldName = strs[1];
-						var fieldVal = strs[2];
-						if (fieldName == 'Depends')
-						fieldVal = fieldVal.replace(/\s*,?R\s*\([^\)]+\),?\s*/, '');
+					for (let i = 0; i < lines.length; ++i) {
+						let strs = lines[i].match(/^([^:]+): *(.*)$/);
+						let fieldName = strs[1].trim().replace(/_/g, " ");
+						let rowClassName;
+						let fieldVal = strs[2].trim();
+						if (fieldName === "Depends")
+							fieldVal = fieldVal.replace(/\s*,?R\s*\([^\)]+\),?\s*/, ""); // remove R
+						else if (fieldName.startsWith("[reverse]")) {
+							fieldName = fieldName.substr(9);
+							rowClassName = "reverseDep";
+						}
 						if (!fieldVal) continue;
 
-
-						var row = rows.appendChild(document.createElementNS(XUL_NS, 'row'));
-						var label = row.appendChild(document.createElementNS(XUL_NS, 'label'));
+						let row = rows.appendChild(document.createElementNS(XUL_NS, 'row'));
+						let label = row.appendChild(document.createElementNS(XUL_NS, 'label'));
 						label.setAttribute("value", fieldName);
-						desc = row.appendChild(document.createElementNS(XUL_NS, 'description'));
+						let desc = row.appendChild(document.createElementNS(XUL_NS, 'description'));
 						desc.textContent = fieldVal;
-						label.className = "DescriptionField";
-						desc.className = "DescriptionText";
+						if(rowClassName) row.className = rowClassName;
+						label.className = "DescriptionField"; // + className;
+						desc.className = "DescriptionText"; // + className;
 					}
 					return grid;
 		]]>

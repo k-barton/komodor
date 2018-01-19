@@ -1,20 +1,19 @@
 
-/* jshint undef: true, unused: false */
-/* jslint undef: true, unused: false */
-/*globals document, */
-var sv, ko;
+/* jslint unused: false */
+/*globals document, Components, self */
 let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
    .getService(Components.interfaces.nsIWindowMediator);
 let w = wm.getMostRecentWindow("Komodo");
-sv = w.sv;
-ko = w.ko;
-var require = w.require;
+var require = w.require, ko = w.ko;
+var logger = require("ko/logging").getLogger("komodoR");
 var pmDeck;
-var logger = require("ko/logging").getLogger("komodoR");
+var rconn = require("kor/connector");
 
-var require = parent.opener.require;
+const UI = require("kor/ui");
+const R = require("kor/r");
+const Prefs = require("kor/prefs");
 
-var logger = require("ko/logging").getLogger("komodoR");
+
 
 function _notify(message, msgid, type, buttons) {
 	var image, priority;
@@ -60,7 +59,7 @@ function pkgManInstall(pkg, ask) {
 	var cmd = "cat(kor::stringize(kor::pkgManInstallPackages" +
 		'("' + pkg + '"' + ask + ')))';
 	logger.debug(cmd);
-	sv.rconn.evalPredefined(cmd, "pkgman-install", true, pkg);
+	rconn.evalPredefined(cmd, "pkgman-install", true, pkg);
 }
 
 function _installHandler(res, pkg) {
@@ -77,11 +76,11 @@ function _installHandler(res, pkg) {
 				let cmd = 'cat(kor::stringize(kor::pkgManInstallPackages("' + pkg +
 					'", ask=FALSE, installDeps=TRUE)))';
 				logger.debug(cmd);
-				sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
+				rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
 				_notify('R is now busy installing the requested packages. ' +
 						'No output will be shown in Komodo before the operation finishes.',
 						'r-is-busy', 'info');
-				//sv.r.evalAsync(cmd, updateInfo, "installed");
+				//rconn.evalAsync(cmd, updateInfo, true, true, "installed");
 				n.close();
 			}
 		}, {
@@ -96,45 +95,42 @@ function _installHandler(res, pkg) {
 
 function pkgManRemove(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManRemovePackage("' + pkg + '")))';
-	//sv.r.evalAsync(cmd, updateInfo, "removed");
+	//rconn.evalAsync(cmd, updateInfo, true, true, "removed");
 	logger.debug(cmd);
-	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "removed");
+	rconn.evalPredefined(cmd, "pkgman-update-info", true, "removed");
 }
 
 function pkgManDetach(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManDetachPackage("' + pkg + '")))';
-	//sv.r.evalAsync(cmd, updateInfo, "detached");
+	//rconn.evalAsync(cmd, updateInfo, true, true, "detached");
 	logger.debug(cmd);
-	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "detached");
+	rconn.evalPredefined(cmd, "pkgman-update-info", true, "detached");
 
 }
 
 function pkgManUpgrade(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManInstallPackages("' + pkg + '", ask=FALSE)))';
 	logger.debug(cmd);
-	sv.rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
+	rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
 	_notify('R is now busy installing the requested packages. ' +
 		'No output will be shown in Komodo before the operation finishes.',
 		'r-is-busy', 'info');
 }
 
 function getDescriptionFor(el) {
-	var pkg = el.label;
-	var cmd = 'kor::pkgManGetDescription("' + pkg + '")';
+	var cmd = 'kor::pkgManGetDescription(' + R.arg(el.label) + ')';
 	logger.debug(cmd);
-	sv.r.evalAsync(cmd, function(desc, el) {
-		el.desc = desc;
-	}, el);
+	rconn.evalAsync(cmd, (desc, el) => { el.desc = desc; }, true, true, el);
 }
 
 function setCranMirror(url) {
-	if(!url) url = sv.pref.getPref("CRANMirror").trim();
+	if(!url) url = Prefs.getPref("CRANMirror").trim();
 	try {
 		let cmd = "kor::pkgManSetCRANMirror(\"" + url + "\")";
 		logger.debug(cmd);
-		sv.rconn.evalAsync(cmd, null, true);
-		sv.pref.setPref("CRANMirror", url);
-		sv.pref.setPref("CRANMirrorSecure", url);
+		rconn.evalAsync(cmd, null, true);
+		Prefs.setPref("CRANMirror", url);
+		Prefs.setPref("CRANMirrorSecure", url.substr(0, 6).toLowerCase().startsWith("https:"));
 	} catch(e) {
 		return;
 	}
@@ -144,10 +140,10 @@ function setCranMirror(url) {
 
 function populateCranMirrorsList(rOutput) {
 	//var lines = rOutput.split(/[\r\n]+/);
-	var mirror = sv.pref.getPref("CRANMirror").trim();
+	var mirror = Prefs.getPref("CRANMirror").trim();
 	var rl = document.getElementById("rCRANMirrorsList");
 
-	var res = sv.io.csvToObj(rOutput, ';', 0, false, ['name', 'url', 'countryCode' ]);
+	var res = require("kor/CSV").parse(rOutput, ';', 0, false, ['name', 'url', 'countryCode' ]);
 
 	while(rl.itemCount) rl.removeItemAt(0);
 	var item, sel = -1;
@@ -180,7 +176,7 @@ function populateCranMirrorsList(rOutput) {
 function getCranMirrors() {
 	var cmd = "kor::pkgManGetMirrors()";
 	logger.debug(cmd);
-	sv.rconn.evalAsync(cmd, populateCranMirrorsList, true, true);
+	rconn.evalAsync(cmd, populateCranMirrorsList, true, true);
 }
 
 function makePkgItem(name, version, repositoryName, installedVersion, status, installed, old,
@@ -192,7 +188,10 @@ function makePkgItem(name, version, repositoryName, installedVersion, status, in
 	if(installedVersion) item.setAttribute("installedVersion", installedVersion);
 	if(status) item.setAttribute("status", status);
 	if(installed) item.setAttribute("installed", installed);
-	if(old) item.setAttribute("old", old);
+	if(old) {
+		item.setAttribute("old", old);
+		item.setAttribute("versionTooltip", "Newer version is available.");
+	}
 	if(loaded) item.setAttribute("loaded", loaded);
 	return item;
 }
@@ -201,7 +200,7 @@ function populateUpdateablePkgs(rOutput) {
 	if (!rOutput || rOutput == 'NULL') return;
 	document.getElementById("rUpdateableLoadBox").loaded = true;
 	var rl = document.getElementById("rUpdateableList");
-	var res = sv.io.csvToObj(rOutput, ';;', 0, true,
+	var res = require("kor/CSV").parse(rOutput, ';;', 0, true,
 		['package', 'libPath', 'version', 'rVersion', 'reposVersion', 'repos' ]);
 
 	while(rl.itemCount) rl.removeItemAt(0);
@@ -216,7 +215,7 @@ function populateUpdateablePkgs(rOutput) {
 function getUpdateable() {
 	var cmd = "kor::pkgManGetUpdateable()";
 	logger.debug(cmd);
-	sv.rconn.evalAsync(cmd, populateUpdateablePkgs, true, true);
+	rconn.evalAsync(cmd, populateUpdateablePkgs, true, true);
 }
 
 
@@ -226,7 +225,7 @@ function populateInstalledPkgs(rOutput) {
 	document.getElementById("rPackageLoadBox").loaded = true;
 	var rl = document.getElementById("rPackageList");
 
-	var res = sv.io.csvToObj(rOutput, '\x1e', 0, false, ['name', 'version',
+	var res = require("kor/CSV").parse(rOutput, '\x1e', 0, false, ['name', 'version',
 		'description', 'loaded' ]);
 
 	var selectedIndex, selectedItem, selectedLabel;
@@ -264,7 +263,7 @@ function populateInstalledPkgs(rOutput) {
 function getInstalledPkgs() {
 	var cmd = "kor::pkgManGetInstalled(sep='\\x1e')";
 	logger.debug(cmd);
-	sv.rconn.evalAsync(cmd, populateInstalledPkgs, true, true);
+	rconn.evalAsync(cmd, populateInstalledPkgs, true, true);
 }
 
 
@@ -281,7 +280,7 @@ function updateInfo(res, what) {
 
 	switch(what) {
 	case "installed":
-		response = JSON.parse(res);
+		let response = JSON.parse(res);
 		if(response == null) {
 			_notify(res, what, "warning");
 			return;
@@ -295,7 +294,7 @@ function updateInfo(res, what) {
 		_notify("Installation of " + pkgs.join(', ') + " finished." +
 				(msg? " See output in console for details." : ""),
 				what, "info");
-		if(msg) sv.cmdout.print(msg);
+		if(msg) require("kor/cmdout").print(msg);
 
 		let packageName, items;
 
@@ -304,7 +303,7 @@ function updateInfo(res, what) {
 
 			items = avpList.getElementsByAttribute("label", packageName);
 			if(items.length == 0) continue;
-			for(let j = 0; j < items.length; j++) {
+			for(let j = 0; j < items.length; ++j) {
 				items[j].setAttribute("installedVersion", items[j].getAttribute("version"));
 				items[j].setAttribute("installed", true);
 			}
@@ -338,17 +337,17 @@ function updateInfo(res, what) {
 		response = JSON.parse(res);
 		notification = '';
 		if(response === null) {
-			notification = sv.translate("See output in console for additional information.");
-			sv.cmdout.print(res);
+			notification = UI.translate("See output in console for additional information.");
+			require("kor/cmdout").print(res);
 		} else {
 			let status = response.status;
 			for(let i in status)
 			    if(status.hasOwnProperty(i) && status[i] != 'TRUE')
 					notification += 
-				        sv.translate("Package %S was not loaded.", i) + " ";
+				        UI.translate("Package %S was not loaded.", i) + " ";
 			if(response.message) {
-				sv.cmdout.print(response.message);
-				notification += sv.translate("See output in console for additional information.");
+				require("kor/cmdout").print(response.message);
+				notification += UI.translate("See output in console for additional information.");
 			}
 		}
 		if(notification)
@@ -358,8 +357,8 @@ function updateInfo(res, what) {
 		response = JSON.parse(res);
 		notification = '';
 		if(response === null) {
-			notification = sv.translate("See output in console for additional information.");
-			sv.cmdout.print(res);
+			notification = UI.translate("See output in console for additional information.");
+			require("kor/cmdout").print(res);
 		} else {
 			let status = response.status;
 			let items, changedCount = 0, errors = [];
@@ -375,10 +374,10 @@ function updateInfo(res, what) {
 				}
 			if(changedCount > 0) getInstalledPkgs();
 			if (errors.length > 0)
-				notification += sv.translate("These packages were not detached: %S.", errors.join(", ")) + " ";
+				notification += UI.translate("These packages were not detached: %S.", errors.join(", ")) + " ";
 			if(response.message) {
-				sv.cmdout.print(response.message);
-				notification += sv.translate("See output in console for additional information.") + " ";
+				require("kor/cmdout").print(response.message);
+				notification += UI.translate("See output in console for additional information.") + " ";
 			}
 			if(notification)
 				_notify(notification, "detach", errors.length? "warning" : "info");
@@ -391,9 +390,9 @@ function updateInfo(res, what) {
 }
 
 function pkgManLoad(pkg) {
-	var cmd = 'cat(kor::stringize(kor::pkgManLoadPackage("' + pkg + '")))';
+	var cmd = 'cat(kor::stringize(kor::pkgManLoadPackage(' + R.arg(pkg) + ')))';
 	logger.debug(cmd);
-	sv.r.evalAsync(cmd, updateInfo, "loaded");
+	rconn.evalAsync(cmd, updateInfo, true, true, "loaded");
 }
 
 function populateAvailablePkgs(rOutput) {
@@ -413,10 +412,10 @@ function populateAvailablePkgs(rOutput) {
 	var rl = document.getElementById("rAvailablePackageList");
 	document.getElementById("rAvailablePackagesLoadBox").loaded = true;
 
-	var res = sv.io.csvToObj(rOutput, '\x1e', 1, false, ['name', 'version',
+	var res = require("kor/CSV").parse(rOutput, '\x1e', 1, false, ['name', 'version',
 		'installedVersion', 'status', 'reposName' ]);
 	while(rl.itemCount) rl.removeItemAt(0);
-	idx = String(res[0]).trim().split(" ").map(x => parseInt(x));
+	let idx = String(res[0]).trim().split(" ").map(x => parseInt(x));
 	res = res[1];
 
 	var prevButton = document.getElementById('availablePackagesPrevButton');
@@ -458,17 +457,17 @@ function getAvailablePkgs(page, reload) {
 	var rl = document.getElementById("rAvailablePackageList");
 
 	if (!page) page = '';
-	else if (page == "next")
+	else if (page === "next")
 		rl.scrollToIndex(0);
-	else if (page == "prev")
+	else if (page === "prev")
 		rl.scrollToIndex(rl.getRowCount() - 1);
 
 	var searchPattern = document.getElementById('searchfield').value.trim();
-	searchPattern = sv.string.toRegex(searchPattern);
-	var cmd = 'kor::pkgManGetAvailable("' + page + '", sep="\\x1e", pattern="' +
-		searchPattern + '", reload=' + (reload ? 'TRUE': 'FALSE') + ')';
+	searchPattern = require("kor/utils").str.toRegex(searchPattern);
+	var cmd = 'kor::pkgManGetAvailable("' + page + '", sep="\\x1e", pattern=' +
+		R.arg(searchPattern) + ', reload=' + R.arg(Boolean(reload)) + ')';
 	logger.debug(cmd);
-	sv.rconn.evalAsync(cmd, populateAvailablePkgs, true, true);
+	rconn.evalAsync(cmd, populateAvailablePkgs, true, true);
 }
 
 function pmLoadPanel(/*event*/) { 
@@ -499,8 +498,8 @@ function openRepositoriesWindow() {
 }
 
 function init() {
-	sv.rconn.defineResultHandler("pkgman-install", _installHandler, false);
-	sv.rconn.defineResultHandler("pkgman-update-info", updateInfo, false);
+	rconn.defineResultHandler("pkgman-install", _installHandler, false);
+	rconn.defineResultHandler("pkgman-update-info", updateInfo, false);
 
 	setCranMirror();
 	//getCranMirrors();
@@ -515,8 +514,8 @@ function pkgMgrOnLoad(/*event*/) {
 	document.getElementById("viewGroup").selectedIndex =
 		pmDeck.selectedIndex;
 
-	//if(sv.r.isRunning) window.setTimeout(init, 1);
-	if(sv.r.isRunning) init();
+	//if(kor.command.isRRunning) window.setTimeout(init, 1);
+	if(require("kor/command").isRRunning) init();
 	else {
 		ko.dialogs.alert("R must be started to manage its packages.",
 						 null, "R package manager");

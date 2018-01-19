@@ -12,8 +12,6 @@
 	License for the specific language governing rights and limitations
 	under the License.
 
-	The Original Code is SciViews-K by Philippe Grosjean et al.
-
 	Contributor(s):
 	Kamil Barton
 	Philippe Grosjean
@@ -31,39 +29,31 @@
 	the terms of any one of the MPL, the GPL or the LGPL.
 
 	***** END LICENSE BLOCK ***** -->
-
-<!-- SciViews-K preference page -->
-
+	
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodo/skin/bindings/buttons.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/bindings/widgets.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodo/skin/bindings/listbox.css" type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/menulist.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/tree.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/prefs/prefs.css" type="text/css"?>
-
 <?xml-stylesheet href="chrome://komodor/skin/menulist-iconic.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pref-R.css" type="text/css"?>
 
-<window xmlns:html="http://www.w3.org/1999/xhtml"
-    xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-    class="kodialog pref-window"
-    orient="vertical"
-    onload="PrefR_OnLoad(event);">
-
-<script src="chrome://komodo/content/library/trace.js" type="application/x-javascript"/>
-<script src="chrome://komodo/content/library/dialogs.js" type="application/x-javascript"/>
-<script src="chrome://komodo/content/library/uriparse.js" type="application/x-javascript"/>
-<script src="chrome://komodo/content/library/filepickers.js" type="application/x-javascript"/>
-<script src="chrome://komodo/content/library/windowManager.js" type="application/x-javascript"/>
-<script src="chrome://komodor/content/js/pref-R.js" type="application/x-javascript"/>
-
-<box class="kobox-smallheader" title="R interpreter configuration"/>
-<vbox flex="1" class="autoscroll">
-
-	<groupbox orient="vertical">
-		<caption label="Default R Interpreter"/>
+<window
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	class="kodialog pref-window" orient="vertical" onload="PrefR_OnLoad(event);">
+	<script src="chrome://komodo/content/library/trace.js" type="application/x-javascript" />
+	<script src="chrome://komodo/content/library/dialogs.js" type="application/x-javascript" />
+	<script src="chrome://komodo/content/library/uriparse.js" type="application/x-javascript" />
+	<script src="chrome://komodo/content/library/filepickers.js" type="application/x-javascript" />
+	<script src="chrome://komodo/content/library/windowManager.js" type="application/x-javascript" />
+	<script src="chrome://komodor/content/js/pref-R.js" type="application/x-javascript" />
+	
+	<box class="kobox-smallheader" title="R interpreter configuration" />
+	<vbox flex="1" class="autoscroll">
+		<groupbox orient="vertical">
+			<caption label="Default R Interpreter" />
 		<vbox id="no-avail-interps-message" flex="1" align="center">
 			<description style="font-weight: bold;">
 				No R installation was found on your system. If you would like to debug
@@ -75,162 +65,178 @@
 						oncommand="parent.opener.ko.browse.openUrlInDefaultBrowser(this.label)"/>
 			<separator />
 		</vbox>
-		<hbox align="center">
-			<label class="label equalheight" control="RInterface.runRAs" value="Preferred way to run R:"/>
-				<menulist
-				id="RInterface.runRAs" oncommand="PrefR_svRApplicationOnSelect(event)"
-				pref="true" editable="false" />
-
-		</hbox>
-		<label value="Use this application:" control="RInterface.pathToR" />
-		<hbox>
-			<vbox flex="2">
-				<hbox align="center">
-					<menulist id="RInterface.pathToR" sizetopopup="none" width="200"
-							  editable="false" flex="1" pref="true"
-							  class="menulist-buttons"
-							  oncommand="svRDefaultInterpreterOnSelect(event)"
-							  />
-				</hbox>
-				<hbox align="center">
-					<label value="Command line arguments:"
-								control="RInterface.cmdArgs" pref="false" />
-					<textbox id="RInterface.cmdArgs" pref="true" editable="true" flex="1"
-						oninput="PrefR_updateCommandLine(event);"
-					/>
-					<toolbarbutton
-						oncommand="sv.r.help('Startup')"
-						buttonstyle="pictures" class="help-icon"
-						tooltiptext="Show R Help about the command line" />
-				</hbox>
-			</vbox>
-			<vbox>
-				<hbox align="center">
-					<button tooltiptext="Refresh" oncommand="PrefR_PopulateRInterpreters();"
-						buttonstyle="pictures" class="refresh-icon menulist-buttons"
-						/>
-					<button class="menulist-buttons" label="Browse..."
-						oncommand="PrefR_setExecutable()"/>
-				</hbox>
-			</vbox>
-		</hbox>
-		<separator class="thin"/>
-		<vbox>
-				<label class="label" control="R_command" crop="end"
-					value="This command will be used to start R (R->Start R):"/>
-				<textbox id="R_command" value="" class="plain"
-					/>
-		</vbox>
-	</groupbox>
-
-	<groupbox orient="vertical">
-		<caption label="Data input and output"/>
-		<grid>
-			<columns>
-				<column flex="3"/> <column flex="3"/> <column flex="3"/>
-			</columns>
-			<rows>
-				<row align="center">
-					<label value="Decimal separator" control="RInterface.CSVDecimalSep"/>
-					<menulist pref="true" id="RInterface.CSVDecimalSep"
-						values=", ." persist="values" maxValues="3"
-						class="short">
-						<menupopup />
-					</menulist>
-					<label value="CSV field separator" control="RInterface.CSVSep" />
+			<hbox align="center">
+				<label class="label equalheight" control="RInterface.runRAs" value="Preferred way to run R:" />
+				<menulist id="RInterface.runRAs" oncommand="rRunAsOnSelect(event)" pref="true" editable="false" />
+			</hbox>
+			<label value="Use this application:" control="RInterface.pathToR" />
+			<grid>
+				<columns>
+					<column flex="1" />
+					<column flex="0" />
+				</columns>
+				<rows>
+					<row align="center">
+						<hbox align="center">
+							<menulist id="RInterface.pathToR" sizetopopup="none" width="200" editable="false"
+									  flex="1" pref="true" class="menulist-buttons"
+									  oncommand="rInterpreterOnSelect(event)" />
+						</hbox>
+						<hbox align="center">
+							<button tooltiptext="Refresh" oncommand="populatePathToR();"
+									buttonstyle="pictures" class="refresh-icon menulist-buttons" />
+							<button class="menulist-buttons" label="Browse..."
+									oncommand="addCustomPathToR()" />
+						</hbox>
+					</row>
+					<hbox align="center" style="margin-left: 2px;">
+						<label id="RVersionLabel" class="description" value="" />
+					</hbox>
+					<row align="center">
+						<hbox align="center">
+							<label value="Command line arguments:" control="RInterface.cmdArgs" pref="false" />
+							<textbox id="RInterface.cmdArgs" pref="true" editable="true" flex="1"
+									 oninput="updateRCommand(event);" style="margin-right: 0" />
+						</hbox>
+						<hbox align="center">
+							<toolbarbutton oncommand="require('kor/r').help('Startup')"
+										   buttonstyle="pictures" class="help-icon"
+										   tooltiptext="Show R Help about the command line" />
+						</hbox>
+					</row>
+					<hbox align="center" style="margin-top: 4px;">
+						<label class="label" control="R_command" crop="end"
+							   value="This command will be used to start R (R-&gt;Start R):" />
+					</hbox>
+					<row align="center">
+						<hbox align="center">
+							<textbox pref="true" id="RInterface.RCommand" value="" flex="1" defaultValue=""
+									 oninput="onUserEditCommandLine(this)" style="margin-right: 0" />
+							<!--class="plain"-->
+						</hbox>
+						<hbox align="center">
+							<button id="RCommand_reset" tooltiptext="Reset"
+									oncommand="resetUserEditCommandLine()" class="menulist-buttons"
+									label="Reset" disabled="true" flex="0" />
+						</hbox>
+					</row>
+				</rows>
+			</grid>
+		</groupbox>
+		<separator class="thin" />
+		<groupbox orient="vertical">
+			<caption label="Data input and output" />
+			<grid>
+				<columns>
+					<column flex="1" />
+					<column flex="0" />
+					<column flex="1" />
+					<column flex="1" />
+				</columns>
+				<rows>
+					<row align="center">
+						<hbox align="right">
+							<label value="Decimal separator" control="RInterface.CSVDecimalSep" />
+						</hbox>
+						<menulist pref="true" id="RInterface.CSVDecimalSep" values=", ." persist="values"
+								  maxValues="3" sizetopopup="pref" class="short">
+							<menupopup />
+						</menulist>
+						<hbox align="right">
+							<label value="CSV field separator" control="RInterface.CSVSep" />
+						</hbox>
 						<menulist pref="true" id="RInterface.CSVSep" editable="true"
-							onkeyup="if (event.keyCode == 13) editMenulist(this);"
-							onblur="editMenulist(this);"
-							values=", ; \t" persist="values" maxValues="5"
-							class="short">
-						<menupopup />
-					</menulist>
-				</row>
-			</rows>
-		</grid>
-	</groupbox>
-
-	<groupbox orient="vertical">
-		<caption label="R configuration"/>
-		<vbox>
-			<hbox align="center">
-				<label value="Default CRAN mirror:" control="CRANMirror" />
-					<menulist id="CRANMirror" sizetopopup="none" width="200"
-					        class="menulist-buttons"
-							oncommand="OnCranMirrorChange()"
-							>
-						<!-- /set manually/ pref="true" prefattribute="value"-->
-					<menupopup maxheight="200" />
-				</menulist>
-				<button id="RefreshCRANMirrors"
-						label="Refresh list"
-						tooltip="Refresh list"
-						buttonstyle="pictures" class="refresh-icon menulist-buttons"
-						oncommand="PrefR_UpdateCranMirrorsAsync(true)" />
-				<vbox align="right" flex="1">
-					<checkbox id="CRANMirrorSecure" label="Secure mirrors (HTTPS)"
-							   pref="true" prefattribute="checked"
-							   oncommand="setCranMirrorsSecure(this.checked)"
-							   />
-				</vbox>
-			</hbox>
-			<hbox align="center" flex="1">
-				<label id="CRANMirrorDescr" value="" />
-			</hbox>
-		</vbox>
-		<vbox>
-			<hbox align="center">
-				<label value="Remote help url:" control="RInterface.rRemoteHelpURL" />
-				<textbox id="RInterface.rRemoteHelpURL" pref="true" width="222" />
-			</hbox>
-		</vbox>
-	</groupbox>
-
-	<hbox hiddenPre9="false" hidden="true">
-		<button label="Show advanced settings (rarely need to be changed)"
-				oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;"
-                hidden="true" hiddenPre9="false"
-                />
-	</hbox>
-	<groupbox id="pref-R-advanced" orient="vertical"
-        class="advanced" hiddenPre9="true">
-		<caption label="Connection with R"/>
-		<grid>
-		  <columns>
-				<column flex="1"/> <column flex="2"/> <column flex="1"/> <column
-					flex="2"/>
-			</columns>
-		  <rows>
-				<row align="center">
-					<label value="Server port #:" control="RInterface.RPort" />
-					<textbox id="RInterface.RPort" pref="true" width="50" />
-					<label value="Host to connect to:" control="RInterface.RHost" />
+								  onkeyup="if (event.keyCode == 13) editMenulist(this);" 
+								  onblur="editMenulist(this);" values=", ; \t" persist="values"
+								  maxValues="5" sizetopopup="pref" class="short">
+							<menupopup />
+						</menulist>
+					</row>
+				</rows>
+			</grid>
+		</groupbox>
+		<groupbox orient="vertical">
+			<caption label="R configuration" />
+			<grid>
+				<columns>
+					<column flex="0" />
+					<column flex="0" />
+					<column flex="1" />
+				</columns>
+				<rows>
+					<row align="center">
+						<label value="Default CRAN mirror:" control="CRANMirror" />
+						<hbox align="right">
+							<menulist id="CRANMirror" sizetopopup="none" width="200" class="menulist-buttons"
+									  oncommand="OnCranMirrorChange()" flex="1">
+								<!-- /set manually/ pref="true" prefattribute="value"-->
+								<menupopup maxheight="200" />
+							</menulist>
+							<button id="RefreshCRANMirrors" label="Refresh list" tooltip="Refresh list"
+									buttonstyle="pictures" class="refresh-icon menulist-buttons"
+									oncommand="updateCranMirrorListAsync(true)" />
+						</hbox>
+						<hbox align="right">
+							<checkbox id="CRANMirrorSecure" label="Secure mirrors (HTTPS)" pref="true"
+									  prefattribute="checked" oncommand="setCranMirrorsSecure(this.checked)" />
+						</hbox>
+					</row>
+					<hbox align="center" flex="1">
+						<label id="CRANMirrorDescr" class="description" value="" />
+					</hbox>
+					<row align="center">
+						<label value="Remote help url:" control="RInterface.rRemoteHelpURL" />
+						<textbox id="RInterface.rRemoteHelpURL" pref="true" width="222"
+								 style="margin-left: 4px; margin-right: 0px;" />
+					</row>
+				</rows>
+			</grid>
+		</groupbox>
+		<hbox hiddenPre9="false" hidden="true">
+			<button label="Show advanced settings (rarely need to be changed)"
+					oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;"
+					hidden="true" hiddenPre9="false" />
+		</hbox>
+		<groupbox id="pref-R-advanced" orient="vertical" class="advanced" hiddenPre9="true">
+			<caption label="Connection with R" />
+			<grid>
+				<columns>
+					<column flex="1" />
+					<column flex="2" />
+					<column flex="1" />
+					<column flex="2" />
+				</columns>
+				<rows>
+					<row align="center">
+						<label value="Server port #:" control="RInterface.RPort" />
+						<textbox id="RInterface.RPort" pref="true" width="50" class="numeric-input" />
+						<label value="Host to connect to:" control="RInterface.RHost" />
 						<textbox id="RInterface.RHost" pref="true" width="150"
-								tooltip="Currently only local connection is allowed"
-								disabled="true"/>
-				</row>
-				<row align="center">
-					<label value="Client port #:" control="RInterface.koPort" />
-					<textbox id="RInterface.koPort" pref="true" width="50" />
-				</row>
-		  </rows>
-		</grid>
-	</groupbox>
-	
-	<groupbox orient="vertical">
-			<caption label="Code formatting"/>
+								 tooltip="Currently only local connection is allowed" disabled="true" />
+					</row>
+					<row align="center">
+						<label value="Client port #:" control="RInterface.koPort" />
+						<textbox id="RInterface.koPort" pref="true" width="50" class="numeric-input" />
+					</row>
+				</rows>
+			</grid>
+		</groupbox>
+		<groupbox orient="vertical">
+			<caption label="Code formatting" />
 			<vbox id="no-avail-formatR-message" flex="1" align="center">
-			<description style="font-weight: bold;">
-				Code formatting requires R package &quot;formatR&quot; to be installed.
-				<label id="formatR-install-offer" style="visibility: collapse;">
-					Click <button class="button-link-a" oncommand="installFormatR();" style="border-width: 0;">here</button>
-					to install it from CRAN.</label>
-			</description>
-		</vbox>
-		
+				<description style="font-weight: bold;">
+			Code formatting requires R package "formatR" to be installed.
+			
+					<label id="formatR-install-offer" style="visibility: collapse;">
+				Click 
+						<button class="button-link-a" oncommand="formatR_install();"
+								style="border-width: 0; display: inline-block; -moz-appearance: none;">here</button>
+				to install it from CRAN.
+					</label>
+				</description>
+			</vbox>
 			<vbox>
-				<checkbox id="RInterface.format.keepBlankLines"
-						  label="Keep blank lines"
+				<checkbox id="RInterface.format.keepBlankLines" label="Keep blank lines"
 						  pref="true" prefattribute="checked" />
 				<checkbox id="RInterface.format.replaceAssign"
 						  label="Replace assignment operator '=' for '&lt;-'"
@@ -239,26 +245,6 @@
 						  label="Insert new line before curly braces"
 						  pref="true" prefattribute="checked" />
 			</vbox>
-	</groupbox>
-	
-
-<!--<groupbox orient="vertical">
-	<caption label="Komodo interface"/>
-	<grid>
-		<columns>
-			<column flex="3"/> <column flex="3"/> <column flex="3"/>
-		</columns>
-		<rows>
-			<row align="left" orient="">
-				<hbox>
-					<label value="Fix margin click" control="RInterface.marginClick" />
-					<checkbox pref="true" id="RInterface.marginClick" />
-				</hbox>
-				<description>Allows toggling bookmarks by clicking the third
-				margin with primary mouse button. </description>
-			</row>
-		</rows>
-	</grid>
-</groupbox>-->
-</vbox>
+		</groupbox>
+	</vbox>
 </window>

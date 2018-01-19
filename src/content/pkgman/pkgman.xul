@@ -32,7 +32,6 @@
  * ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pkgman/loadbox.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pkgman/pkgman.css" type="text/css"?>
 
@@ -62,9 +61,7 @@
 		<toolbarbutton id="rPkgMan"
 			buttonstyle="pictures" type="menu"
 			label="Tools"
-			image="chrome://fugue/skin/icons/gear.png"
-			style="-list-style-image: url('chrome://fugue/skin/icons/gear.png');"
-			orient="horizontal" class="project-tools-icon">
+			orient="horizontal" class="tools-icon">
 		<menupopup>
 			<menuitem label="Install package from local file" />
 			<menuitem label="Set repositories" oncommand="openRepositoriesWindow()" />
@@ -96,8 +93,7 @@
 				<toolbarbutton id="rPkgManButton-RefreshAvailable"
 							buttonstyle="pictures" type="image"
 							label="Reload list"
-							image="chrome://fugue/skin/icons/arrow-circle-double-135.png"
-							orient="horizontal" class="project-tools-icon"
+							orient="horizontal" class="tools-icon"
 							oncommand="getAvailablePkgs('first', true)" />
 				<spacer flex="1"/>
 				<button label="Prev" id="availablePackagesPrevButton"

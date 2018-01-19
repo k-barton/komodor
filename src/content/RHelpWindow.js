@@ -1,12 +1,28 @@
 
-/* globals self, Components, KeyEvent, internalSave, goUpdateCommand */
+/* globals require, self, Components, KeyEvent, internalSave, goUpdateCommand */
 
-var sv;
-var rHelpBrowser;
-var rHelpTopic;
+var rHelpBrowser, rHelpTopic;
+
+var isUrl = (s) => s.search(/^((f|ht)tps?|chrome|resource|koicon|about|file):\/{0,3}/) === 0;
+
+
+var _w = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+	.getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("Komodo");
+
+const require = _w.require;
+
+const R = require("kor/r");
+const UI = require("kor/ui");
+
+var logger = require("ko/logging").getLogger("komodoR");
+
+
 
 function go(uri, loadFlags) {
-	// These are still undefined when calling .go on load event,
+	logger.debug("RHelpWindow:go " + uri);
+
+	
+	// These are still undefined when calling 'go' on load event,
 	// so define them here
 	rHelpBrowser = document.getElementById("rhelp-browser");
 	switch (uri) {
@@ -15,7 +31,7 @@ function go(uri, loadFlags) {
 		rHelpBrowser.goHome();
 		return;
 	 case "@CRAN@":
-		uri = sv.pref.getPref("CRANMirror");
+		uri = require("kor/prefs").getPref("CRANMirror");
 		if (!uri || uri.indexOf("ftp:/") === 0)
 			uri = "http://cran.r-project.org/";
 	}
@@ -34,15 +50,12 @@ function go(uri, loadFlags) {
 	}
 	rHelpTopic.select();
 
-	// Try to differentiate an URL from a help topic
-	var isUri = uri.search(/^((f|ht)tps?|chrome|about|file):\/{0,3}/) === 0;
-
-	if (isUri) {
+	if (isUrl(uri)) {
 		// This looks like a URL
 		rHelpBrowser.webNavigation.loadURI(uri, loadFlags, null, null, null);
 	} else {
 		// Look for this 'topic' web page
-		sv.r.help(uri);
+		R.help(uri);
 	}
 }
 
@@ -75,17 +88,17 @@ function txtInput(aEvent) {
 		}
 	} else {
 		let value = rHelpTopic.value;
-		let isUri = value.search(/^((f|ht)tps?|chrome|about|file):\/{1,3}/) === 0;
-		let isTopic = value.search(/[^\w\.\-]/) === -1; 
-		rHelpTopic.style.color = isUri? "#000000" : "#8080ff";
-		document.getElementById("rhelp-go").disabled = !isUri || !isTopic;
+		let isTopic = value.search(/[^\w\.\-]/) === -1;
+		let valueIsUrl = isUrl(value);
+		rHelpTopic.style.color = valueIsUrl ? "#000000" : "#8080ff";
+		document.getElementById("rhelp-go").disabled = !valueIsUrl || !isTopic;
 	}
 }
 
 function search(topic) {
 	if (!topic) return;
 	rHelpTopic.select();
-	sv.r.search(topic);
+	R.search(topic);
 }
 
 function find(next, backwards) {
@@ -180,9 +193,9 @@ function rHelpBrowserContextOnShow(event) {
 	var nothingSelected = !selText;
 
 	if (nothingSelected) {
-		elLabel = sv.translate("No selection");
+		elLabel = UI.translate("No selection");
 	} else {
-		elLabel = sv.translate("Search R for \"%S\"",
+		elLabel = UI.translate("Search R for \"%S\"",
 			selText.substr(0, 10) + (selText.length > 10? "..." : ""));
 	}
 	el.setAttribute("label", elLabel);
@@ -203,25 +216,22 @@ function runSelAsRCode() {
 		let docTables = doc.getElementsByTagName("table");
 		if (docTables.length > 0 &&
 			docTables[0].summary.search(/page for (\S+) \{([\w\.]+)\}/) == 0) {
-			selText = "require(" + RegExp.$2 + ")\n" + selText;
+			selText = "base::require(" + RegExp.$2 + ")\n" + selText;
 			//TODO: for remote help files, ask to install package in not available
 		}
 	}
-	sv.r.eval(selText);
+	R.evalUserCmd(selText);
 }
 
 function _getHomePage(browser, goTo) {
-	//var isWin = navigator.platform.search(/Win\d+$/) === 0;
-	var res = false;
-	var cmd = "cat(kor::getHelpURL())";
-
-	res = sv.r.evalAsync(cmd, (path) => {
+	var cmd = "base::cat(kor::getHelpURL())";
+	require("kor/connector").evalAsync(cmd, (path) => {
 		path = path.replace(/[\n\r]{1,2}$/, ""); //remove trailing CRLF
 		// Get just the last line, get rid of the help.start's message
 		path = path.substring(path.lastIndexOf("\n") + 1);
-		browser.homePage = sv.helpStartURI = path;
+		browser.homePage = path;
 		if (goTo) go(path);
-		});
+	});
 }
 
 var browserUtils = {};
@@ -251,20 +261,17 @@ this.purgeHistory = function() {
 //}
 
 function OnLoad (event) {
+	try {
+    logger.debug("RHelpWindow:onLoad");
+
+	
 	// DOMContentLoaded is fired also for HTML content
 	if (event.target !== self.document) return;
 	var page;
 	if (window.arguments) {
 		let args = window.arguments;
-		sv = args[0];
 		if (typeof args[1] !== "undefined") page = args[1];
-	} else {
-		if (!sv) {
-			let wm = Components.classes['@mozilla.org/appshell/window-mediator;1']
-				.getService(Components.interfaces.nsIWindowMediator);
-			sv = wm.getMostRecentWindow("Komodo").sv;
-		}
-	}
+	} 
 
 	rHelpTopic = document.getElementById("rhelp-topic");
 	rHelpTopic.clickSelectsAll = true;
@@ -293,6 +300,11 @@ function OnLoad (event) {
 	document.getElementById("cmd_print_preview")
 		.setAttribute("disabled", isMac);
 	document.getElementById("rhelp-print-preview").hidden = isMac;
+	
+	} catch(ex) {
+		logger.exception(ex, "RHelpWindow:onLoad");
+	}
+	
 }
 
 // this is fired earlier than load event, so all required variables

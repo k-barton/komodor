@@ -1,0 +1,43 @@
+@import url("chrome://komodo/skin/_config/window.less");
+
+@item-separator-color: @list-listbox-border;
+
+@item-repository-checked-bg: ButtonHighlight;
+
+@topbuttons-hover-bg: @button-background-hover;
+@topbuttons-hover-fg: @button-color-hover;
+
+
+@topbuttons-selected-bg: @button-background-active;
+@topbuttons-selected-fg: @button-color-active;
+
+@navButton-fg: @window-color;
+@navButton-selected-fg: @button-color-active;
+@navButton-bg: @window-background;
+@navButton-selected-bg: @button-background-active;
+
+@item-highlight-fg: @list-listbox-item-color-selected;
+
+@text-link-fg: white;
+@version-old-bg: rgba(255,128,0, .3);
+@version-old-fg: black;
+
+@version-old-selected-bg: @version-old-bg;
+@version-old-selected-fg: @version-old-fg;
+
+@available-installed-bg: rgba(0, 128, 255, 0.3);
+@available-old-bg: rgba(128, 64, 64, 0.3);
+
+@svg-icon-suffix: "size=16&color=@{list-listbox-item-color}";
+@selected-svg-icon-suffix: "size=16&color=@{list-listbox-item-color-selected}";
+
+@import url("chrome://komodor/skin/pkgman/common.less");
+
+
+/*
+var colorToRGBString = (color) => {
+    var el = document.createElement("box");
+    el.style.color = color;
+    return document.defaultView.getComputedStyle(el).color;
+}
+*/

@@ -8,35 +8,37 @@
 
 <?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
 
-<overlay id="sciviewskOverlay"
+<overlay id="korPlacesOverlay"
 	xmlns:html="http://www.w3.org/1999/xhtml"
 	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+<script type="application/x-javascript" src="chrome://komodor/content/js/komodor.js"/>
+
 <menupopup id="places-files-popup">
 	<menuseparator id="placesContextMenu_separatorR"
-		testEval_HideIf="!parent.sv.command.places.anyRFilesSelected &amp;&amp; !parent.sv.command.places.anyRDataFilesSelected"
+		testEval_HideIf="!kor.command.places.anyRFilesSelected &amp;&amp; !kor.command.places.anyRDataFilesSelected"
 	/>
-<menuitem oncommand="parent.sv.command.places.sourceSelection()"
+<menuitem oncommand="kor.command.places.sourceSelection()"
 		  hideIf="folder project"
 		  class="menuitem-iconic"
 		  id="placesContextMenu_Rsource"
 		  label="Source into R"
-		  testEval_HideIf="!parent.sv.command.places.anyRFilesSelected"
+		  testEval_HideIf="!kor.command.places.anyRFilesSelected"
 />
 
-<menuitem oncommand="parent.sv.command.places.loadSelection()"
+<menuitem oncommand="kor.command.places.loadSelection()"
 		  hideIf="folder project"
 		  class="menuitem-iconic"
 		  id="placesContextMenu_Rload"
 		  label="Load into R"
-		  testEval_HideIf="!parent.sv.command.places.anyRDataFilesSelected"
+		  testEval_HideIf="!kor.command.places.anyRDataFilesSelected"
 />
 
-<menuitem oncommand="parent.sv.command.places.setWorkingDir()"
+<menuitem oncommand="kor.command.places.setWorkingDir()"
 		  hideIf="file"
 		  testDisableIf="t:multipleSelection t:isRemote"
-		  testEval_DisableIf="!parent.sv.r.isRunning"
+		  testEval_DisableIf="!kor.command.isRRunning"
 		  class="menuitem-iconic"
 		  id="placesContextMenu_Rsetwd"
 		  label="Set as R working directory"

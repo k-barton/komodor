@@ -1,0 +1,38 @@
+@import url("chrome://komodo/skin/global/colors.less");
+@import url("resource://profile/colors.less");
+
+@item-separator-color: @border;
+
+@item-repository-checked-bg:  mix(@secondary-special, @textbox, 25%);
+
+@topbuttons-hover-bg: mix(@contrast-special, @background, 50%);
+@topbuttons-hover-fg: @foreground-special;
+
+@topbuttons-selected-bg: @contrast-special;
+@topbuttons-selected-fg: @foreground-special;
+
+@navButton-fg: @foreground;
+@navButton-selected-fg: #ffffff;
+@navButton-bg: @contrast;
+@navButton-selected-bg: mix(@selected, @contrast);
+
+@item-highlight-fg: @selected-foreground;
+
+@text-link-fg: @special-foreground-widget;
+@version-old-bg: mix(@state-warning, @textbox);
+@version-old-fg: @textbox-foreground;
+
+@version-old-selected-bg: @version-old-bg;
+@version-old-selected-fg: @version-old-fg;
+
+@available-installed: @textbox-foreground;
+@available-installed-bg: mix(@scc-new, @textbox, 33%);
+@available-old-bg: mix(@scc-sync, @textbox, 33%);
+
+//@svg-icon-suffix: "size=16&color=@{foreground}";
+//@selected-svg-icon-suffix: "size=16&color=@{selected-foreground}";
+
+@svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=foreground";
+@selected-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=selected-foreground";
+
+@import url("chrome://komodor/skin/pkgman/common.less");

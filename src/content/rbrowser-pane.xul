@@ -26,26 +26,24 @@ Contributors:
 ]>
 
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodo/skin/platform.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
+<!--<?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>-->
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/rbrowser.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/tools/strings.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
 
 <commandset id="cmdset_rbrowser" commandupdater="false">
 	<command id="cmd_rbrowserToggleListAttributes" key="key_cmd_rbrowserToggleListAttributes"
-		oncommand="sv.rbrowser.toggleValue(event, 'listAttributes');"
+		oncommand="rob.toggleValue(event, 'listAttributes');"
 		label="&sv.listAttributes;" desc="&sv.listAttributes.desc;"
 		accesskey="&sv.listAttributes.acc;"/>
 	<command id="cmd_rbrowserToggleListAll" key="key_cmd_rbrowserToggleListAll"
-		oncommand="sv.rbrowser.toggleValue(event, 'listAllNames');"
+		oncommand="rob.toggleValue(event, 'listAllNames');"
         label="&sv.listAllNames;" 
 		desc="&sv.listAllNames.desc;"
 		tooltiptext="&sv.listAllNames.tip;"
@@ -53,20 +51,20 @@ Contributors:
 </commandset>
 
 <popupset id="extensionPopupSet">
-	<menupopup id="rObjectsContext" onpopupshowing="sv.rbrowser.contextOnShow(event)">
+	<menupopup id="rObjectsContext" onpopupshowing="rob.contextOnShow(event)">
 		<menuitem id="menu_rbrowser_insertname"
 			label="&sv.insName;"
-			oncommand="sv.rbrowser.insertName(false)"
+			oncommand="rob.insertName(false)"
 			accesskey="I"
 			acceltext="Ins" />
 		<menuitem id="menu_rbrowser_insertquoted"
 			label="&sv.insertQuoted;"
-			oncommand="sv.rbrowser.insertName(false, true)"
+			oncommand="rob.insertName(false, true)"
 			accesskey="&sv.insertQuoted.acc;"
 			acceltext="Shift+Ins" />
 		<menuitem id="menu_rbrowser_insertfullname"
 			class="primary_menu_item"
-			oncommand="sv.rbrowser.insertName(true)"
+			oncommand="rob.insertName(true)"
 			accesskey="F"
 			label="&sv.insFullName;"
 			acceltext="Ctrl+Ins" />
@@ -74,14 +72,14 @@ Contributors:
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="cmd_rbrowser_removeobj"
 			label="&sv.rmObj;"
-			oncommand="sv.rbrowser.removeSelected(event.shiftKey)"
+			oncommand="rob.removeSelected(event.shiftKey)"
 			accesskey="R"
 			acceltext="Del"
 			testDisableIf="t:noDelete"
 			key="key_cmd_delete" />
 		<menuitem id="menu_rbrowser_deletenow"
 			label="&sv.deleteNow;"
-			oncommand="sv.rbrowser.removeSelected(true)"
+			oncommand="rob.removeSelected(true)"
 			class="menuitem-iconic list-item-remove-icon"
 			acceltext="Shift+Del"
 			testDisableIf="t:noDelete"
@@ -90,34 +88,34 @@ Contributors:
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="cmd_rbrowser_summary"
 			label="&sv.summary;"
-			oncommand="sv.rbrowser.doCommand('summary')"
+			oncommand="rob.doCommand('summary')"
 			testDisableIf="t:isFunction t:isEnvironment"
 			accesskey="S" />
 		<menuitem id="cmd_rbrowser_print"
 			label="&sv.print;"
-			oncommand="sv.rbrowser.doCommand('print')"
+			oncommand="rob.doCommand('print')"
 			testDisableIf="t:isPackage"
 			accesskey="P" />
 		<menuitem id="cmd_rbrowser_plot"
 			label="&sv.plot;"
-			oncommand="sv.rbrowser.doCommand('plot')"
+			oncommand="rob.doCommand('plot')"
 			testDisableIf="t:noPlot"
 			accesskey="O"/>
 		<menuitem id="cmd_rbrowser_str"
 			label="&sv.str;"
-			oncommand="sv.rbrowser.doCommand('str')"
+			oncommand="rob.doCommand('str')"
 			testDisableIf="t:isPackage"
 			accesskey="T"/>
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_selectall"
 			label="&sv.selectAll;"
-			oncommand="sv.rbrowser.selection.selectAll()"
+			oncommand="rob.selection.selectAll()"
 			accesskey="&sv.selectAll.acc;"
 			acceltext="Ctrl+A" />
 		<menuitem id="menu_rbrowser_selectsiblings"
 			label="&sv.selectSiblings;"
-			oncommand="sv.rbrowser.selectAllSiblings(sv.rbrowser.selection.currentIndex)"
+			oncommand="rob.selectAllSiblings(rob.selection.currentIndex)"
 			accesskey="&sv.selectSiblings.acc;"
 			acceltext="Ctrl+Shift+A" />
 
@@ -125,14 +123,14 @@ Contributors:
 		<menuitem id="menu_rbrowser_write_table"
 			class="menuitem-iconic write-table-icon"
 			label="&sv.write_table;"
-			oncommand="sv.rbrowser.doCommand('write.table')"
+			oncommand="rob.doCommand('write.table')"
 			testDisableIf="t:noSaveToFile"
 			accesskey="T"/>
 
 		<menuitem id="menu_rbrowser_save"
 			class="menuitem-iconic save-buffer-icon"
 			label="&sv.save;"
-			oncommand="sv.rbrowser.doCommand('save')"
+			oncommand="rob.doCommand('save')"
 			testDisableIf="t:noSave"
 			accesskey="S" />
 
@@ -140,7 +138,7 @@ Contributors:
 		<menuitem id="menu_rbrowser_help"
 			label="&sv.help;"
 			class="menuitem-iconic help-icon"
-			oncommand="sv.rbrowser.doCommand('help')"
+			oncommand="rob.doCommand('help')"
 			testDisableIf="t:multipleSelection t:noHelp"
 			accesskey="H" />
 	</menupopup>
@@ -154,17 +152,17 @@ Contributors:
 				tooltiptext="&sv.refresh.tip;"
 				buttonstyle="pictures"
 				class="refresh-icon"
-				oncommand="sv.rbrowser.refresh()"/>
+				oncommand="rob.refresh()"/>
 
 				<toolbarbutton id="rbrowser_foldAll_button"
 					buttonstyle="pictures"
 					class="robjects-fold-all-icon"
-					oncommand="sv.rbrowser.foldAll(true)"
+					oncommand="rob.foldAll(true)"
 					tooltiptext="&sv.foldAll;"/>
 				<toolbarbutton id="rbrowser_ExpandAll_button"
 					buttonstyle="pictures"
 					class="robjects-expand-all-icon"
-					oncommand="sv.rbrowser.foldAll(false)"
+					oncommand="rob.foldAll(false)"
 					tooltiptext="&sv.unfoldAll;"/>
 
 				<toolbarseparator style="min-width:10px;" flex="1"/>
@@ -174,7 +172,7 @@ Contributors:
 					tooltiptext="&sv.filter.tip;"
 					style="min-width: 40px; max-width: 200px; margin-right: 0px;"
 					class="search-box"
-					oncommand="sv.rbrowser.applyFilter()"
+					oncommand="rob.applyFilter()"
 					emptytext="&sv.filterEmptyText;"
 					/>
 
@@ -182,13 +180,13 @@ Contributors:
 							   id="rbrowser_filterByName_button"
 							   checked="true"
 							   class="toolbarbutton-iconic"
-							   oncommand="sv.rbrowser.setFilterBy(this, 'name')"
+							   oncommand="rob.setFilterBy(this, 'name')"
 							   label="&sv.filterByName;"
 							   tooltiptext="&sv.filterByName;"
 							   />
 				<toolbarbutton id="rbrowser_filterByClass_button"
 							   type="radio" group="filter"
-							   oncommand="sv.rbrowser.setFilterBy(this, 'class')"
+							   oncommand="rob.setFilterBy(this, 'class')"
 							   label="&sv.filterByClass;"
 							   tooltiptext="&sv.filterByClass;"
 							   />
@@ -218,32 +216,35 @@ Contributors:
 					persist="sortDirection sortResource"
 					sortDirection="ascending" sortResource="r-name"
 					enableColumnDrag="true"
-					onselect="sv.rbrowser.onEvent(event)"
-					onkeypress="sv.rbrowser.onEvent(event)">
+					onselect="rob.onEvent(event)"
+					onkeypress="rob.onEvent(event)"
+					treelines="true"
+					hidehscroll="true"
+					>
 					<treecols>
 						<treecol id="r-name" label="&sv.Name;"
 							primary="true" sortActive="true"
 							persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this)" ordinal="1" flex="4"/>
+							onclick="rob.sort(this)" ordinal="1" flex="4"/>
 						<splitter class="tree-splitter" ordinal="2"/>
 						<treecol id="r-dims" label="&sv.Dims;"
 							persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this)" flex="1" ordinal="3"/>
+							onclick="rob.sort(this)" flex="1" ordinal="3"/>
 						<splitter class="tree-splitter" ordinal="4"/>
 						<treecol id="r-class" label="&sv.Class;"
 							flex="2" hidden="true" persist="width ordinal hidden"
-							onclick="sv.rbrowser.sort(this)" ordinal="5"/>
+							onclick="rob.sort(this)" ordinal="5"/>
 						<splitter class="tree-splitter" ordinal="6"/>
 						<treecol id="r-fullName" label="&sv.FullName;"
 							persist="width ordinal hidden" flex="1" hidden="true" ordinal="7"/>
 					</treecols>
 					<treechildren id="rbrowser_objects_tree_main"
-						ondragstart="sv.rbrowser.draghandlers.onDragStart(event);"
-						ondragend="sv.rbrowser.draghandlers.onDragEnd(event);"
-						ondragover="sv.rbrowser.draghandlers.onDragOver(event);"
-						ondrop="sv.rbrowser.draghandlers.onDrop(event);"
-						onclick="sv.rbrowser.onEvent(event);"
-						ondblclick="sv.rbrowser.onEvent(event);"
+						ondragstart="rob.draghandlers.onDragStart(event);"
+						ondragend="rob.draghandlers.onDragEnd(event);"
+						ondragover="rob.draghandlers.onDragOver(event);"
+						ondrop="rob.draghandlers.onDrop(event);"
+						onclick="rob.onEvent(event);"
+						ondblclick="rob.onEvent(event);"
 						context="rObjectsContext">
 					</treechildren>
 				</tree>
@@ -251,7 +252,7 @@ Contributors:
 			<splitter id="rbrowserSubpanelSplitter"
 					  orient="vertical"
 					  resizeafter="farthest"
-					  ondblclick="sv.rbrowser.toggleViewSearchPath()"
+					  ondblclick="rob.toggleViewSearchPath()"
 					  collapse="after">
 				<vbox flex="1" height="32">
 					<hbox id="rbrowserSubpanelSplitterHboxBorder" flex="1">
@@ -263,7 +264,7 @@ Contributors:
 							<spacer flex="1" />
 							<toolbarbutton id="rbrowserSubpanelToggle"
 										   buttonstyle="pictures"
-										   oncommand="sv.rbrowser.toggleViewSearchPath();"
+										   oncommand="rob.toggleViewSearchPath();"
 										   persist="state"
 										   state="collapsed"
 										   tooltiptext="&sv.RSearchPathButton.tip;"
@@ -279,11 +280,11 @@ Contributors:
 				 orient="vertical" height="250" minheight="50"
 				  persist="height collapsed" flex="1">
 				<listbox flex="1" id="rbrowser_searchpath_listbox"
-					ondrop="sv.rbrowser.draghandlers.onSearchPathDrop(event);"
-					ondragover="sv.rbrowser.draghandlers.onSearchPathDragOver(event);"
-					ondragstart="sv.rbrowser.draghandlers.onSearchPathDragStart(event);"
-					onkeypress="sv.rbrowser.packageListKeyEvent(event);"
-					oncommand="sv.rbrowser.packageSelectedEvent(event);"/>
+					ondrop="rob.draghandlers.onSearchPathDrop(event);"
+					ondragover="rob.draghandlers.onSearchPathDragOver(event);"
+					ondragstart="rob.draghandlers.onSearchPathDragStart(event);"
+					onkeypress="rob.packageListKeyEvent(event);"
+					oncommand="rob.packageSelectedEvent(event);"/>
 			</vbox>
 		</vbox>
 	</vbox>

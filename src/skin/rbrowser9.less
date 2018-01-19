@@ -1,6 +1,7 @@
 @toolbar-svg-icon-suffix: "scheme-name=interface&amp;scheme-color=icons-special";
 @icon-size: "14";
 
+@import url("chrome://komodo/skin/_config/window.less");
 @import url("chrome://komodor/skin/rbrowser-common.less");
 
 
@@ -11,19 +12,19 @@
     treechildren::-moz-tree-indentation {
         width: 15px !important;
     }
-    treechildren::-moz-tree-line {
-        border: 1px red dotted;
-    }
-    treechildren::-moz-tree-row(selected) {
-        background-color: Highlight;
-    }
+//    treechildren::-moz-tree-row(selected) {
+//        background-color: Highlight;
+//		  color: @foreground-selected !important;
+//        background: @background-selected !important;
+//    }
     treechildren::-moz-tree-line {
         visibility: visible;
-        border: 1px dotted Highlight;
+//        border: 1px dotted Highlight;
     }
     treechildren::-moz-tree-line(selected) {
-        border-color: HighlightText;
+//        border-color: @foreground-selected;
     }
+
     treechildren::-moz-tree-cell-text(type-args),
     treechildren::-moz-tree-cell-text(type-sub-object) {
         font-size: 1em;

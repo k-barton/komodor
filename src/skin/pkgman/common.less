@@ -1,0 +1,235 @@
+
+richlistitem {
+   border-color: @item-separator-color;
+   border-style: none;
+   border-bottom-width: 1px;
+   border-bottom-style: dotted;
+   padding-top: 6px;
+   padding-bottom: 6px;
+   -moz-padding-start: 7px;
+   -moz-padding-end: 7px;
+}
+
+.rPackageList {
+    richlistitem {
+        -moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#pkg-item");
+    }
+    richlistitem.navButton {
+        -moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#pkg-nav-button");
+    }
+    richlistitem:not([repos=CRAN]):not([installed]) label.addonLearnMore {
+        visibility: collapse;
+    }
+    richlistitem:not([selected]) label.reposName {
+        visibility: collapse;
+    }
+}
+
+.rRepositoryList {
+    richlistitem {
+        -moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#pkg-repository-item");
+    }
+    >richlistitem {
+        width: 100%;
+        overflow-x: hidden;
+    }
+    richlistitem:not([selected])[checked=true] {
+        background-color: @item-repository-checked-bg;
+    }
+    richlistitem:not([selected]) label.contribUrl {
+        visibility: collapse;
+    }
+}
+
+
+#viewGroup {
+    radio {
+        -moz-binding: url("chrome://komodor/content/pkgman/pkgman.xbl#viewbutton");
+        -moz-box-orient: vertical;
+        -moz-box-align: center;
+        -moz-appearance: none;
+        margin: 0px 1px 0px 1px;
+        padding: 5px 3px 1px;
+        min-width: 4.5em;
+        list-style-image: url("chrome://komodor/skin/images/viewButtonsg.png");
+    }
+    radio:not([selected]):hover {
+        background-color: @topbuttons-hover-bg;
+        color: @topbuttons-hover-fg;
+    }
+    radio[selected] {
+        background-color: @topbuttons-selected-bg;
+        color: @topbuttons-selected-fg;
+    }
+}
+
+//rect(<top>, <right>, <bottom>, <left>) 
+.radiobutton(@n) {
+  @yoff: 32px; @w: 32px; @h: 32px; @top: 0px; @left: @w * @n;
+    -moz-image-region: rect(@top, @left + @w, @top + @h, @left);
+    &:hover, &[selected]  {
+    -moz-image-region: rect(@top + @yoff, @left + @w, @top + @h + @yoff, @left);
+  }
+}
+
+radio#extensions-view {
+    .radiobutton(0);
+}
+radio#mirrors-view {
+    .radiobutton(2);
+}
+radio#updates-view {
+    .radiobutton(4);
+}
+radio#installs-view {
+    .radiobutton(5);
+}
+radio#search-view {
+    .radiobutton(6);
+}
+
+radio#updates-view[disabled="true"] image {
+  opacity: 0.2;
+}
+
+#pkgPanels richlistbox[empty] {
+	visibility: hidden;
+}
+
+richlistbox {
+	richlistitem {
+        
+        &[required] button[anonid],
+        &[installed] button[anonid="installPkgButton"],
+        &:not([old]) button[anonid="upgradePkgButton"],
+        &:not([installed]) button[anonid="removePkgButton"],
+        &:not([loaded]) button[anonid="detachPkgButton"],
+        &:not([installed]) button[anonid="loadPkgButton"],
+        &[loaded] button[anonid="loadPkgButton"] {
+            visibility: collapse;
+        }
+        
+        description.title {
+            font-weight: bold;
+        } 
+     
+        &.navButton {
+            color: @navButton-fg;
+            background-color: @navButton-bg;
+            
+            &[selected] {
+                color: @navButton-selected-fg;
+                background-attachment: scroll;
+                background-color: @navButton-selected-bg;
+                background-image: none;
+            }
+        }
+
+        label.title {
+            font-weight: bold;
+        }
+        
+        .description-full {
+            white-space: pre-wrap;
+            overflow: auto;
+        }
+        
+        grid.description-full {
+            overflow: visible !important;
+            max-height: none;
+        }
+        
+        .description-full,
+        hbox.buttons {
+            visibility: collapse;
+        }
+        
+        .DescriptionField {
+            font-weight: bold;
+        }
+		
+        .reverseDep > * {
+            color: @item-highlight-fg;
+        }
+        
+        .text-link {
+            color: @text-link-fg;
+        }
+  
+        //&[old]:not([selected]) .addon-name-version > label:nth-child(2) {
+        
+        & .addon-name-version >* {
+          min-height: 18px;
+          padding: 1px 2px 1px 2px;
+          vertical-align: top;
+        }
+ 
+		&[selected] {
+      
+            .description {
+                visibility: collapse;
+            }
+            .description-full, hbox.buttons {
+                visibility: visible;
+            }
+        }
+	}
+}
+
+
+richlistbox:not(#rUpdateableList) {
+	richlistitem {
+        
+        & .addon-name-version > label[anonid="version"] {
+            padding-right: 20px;
+        }
+        
+        //&[old]:not([selected]) .addon-name-version > label:nth-child(2) {
+        &[old] .addon-name-version > label[anonid="version"] {
+            background-image: url("koicon://ko-svg/chrome/komodor/skin/images/update.svg?@{svg-icon-suffix}");
+            background-size: 16px 16px;
+            background-repeat: no-repeat;
+            background-attachment: scroll;
+            background-position: right 1px center;
+        }
+        
+        &[old][selected] .addon-name-version > label[anonid="version"] {
+           background-image: url("koicon://ko-svg/chrome/komodor/skin/images/update.svg?@{selected-svg-icon-suffix}");
+        }
+    }
+}
+
+
+#rPackageList >
+richlistitem:not([selected]):not([loaded]) {
+	opacity: 0.3;
+	/*
+	background-color: red;
+	background-color: #8981f5;
+	*/
+}
+
+#rAvailablePackageList > richlistitem[installed]:not([selected]) {
+  background-color: @available-installed-bg;
+  /*opacity: 0.3;*/
+}
+
+#rAvailablePackageList > richlistitem[old]:not([selected]) {
+  background-color: @available-old-bg;
+}
+
+.tools-icon {
+	list-style-image: url("chrome://fugue/skin/icons/gear.png");
+}
+
+#rCRANMirrorsList listitem {
+   padding-top: 2px;
+   padding-bottom: 2px;
+}
+
+#rPkgManButton-RefreshAvailable {
+	list-style-image: url("chrome://fugue/skin/icons/arrow-circle-double-135.png");
+}
+
+
+
