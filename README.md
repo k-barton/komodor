@@ -10,13 +10,12 @@ R environment and Komodo.
 This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, and since then has been largely rewritten. 
 
-"R" language provided by this add-on is named __“R\_extended”__ to 
-avoid conflict with Komodo's own R syntax highlighter. Code completion 
-and syntax checking works only with “R\_extended” not “R“.
+This add-on provides a file type named __“R\_extended”__ to avoid conflict with Komodo's 
+built-in R syntax highlighter. Code completion and syntax checking works only with “R\_extended” not “R“.
 
 **Features:**
 
-* Start/close “R” session from Komodo
+* Connect to “R” session from Komodo
 * Execution of R code from within editor:
    + output from R is shown in the _Command Output_ pane
    + execute (or `source`) the current line or selection, bookmark-delimited 
@@ -28,14 +27,13 @@ and syntax checking works only with “R\_extended” not “R“.
      (*.Rmd* files, partially implemented.)
 * Syntax checking
 * Code completion (objects, argument names, list items)
-* R object browser (sidebar)
+* R object browser pane
 * Toolbar with commonly used commands
 * R help window
 * R package manager
 * R working directory can be changed from _Places_ pane (in the context menu)
 
-A socket connection is used to communicate with R. No additional R packages 
-are required, however your R installation needs to have Tcl capability 
+No additional R packages are required, however your R installation needs to have Tcl capability 
 (R: `capabilities("tcltk")`). See also _Known issues_ below.
 
 
@@ -69,7 +67,7 @@ are required, however your R installation needs to have Tcl capability
 * R language help (Shift+F1 while in an *R_extended* document):
     * the selected keyword is searched for in the loaded packages. If nothing is 
 	  found, press Shift+F1 again to search in all packages.
-* The *R tools* toolbox has some more of less useful commands:
+* The *R tools* toolbox has some more or less useful commands:
     * R markdown preview;
     * Insert result of the selected text evaluated in R;
 	* Color picker (inserts hex code to the text);
@@ -87,24 +85,23 @@ The extension provides some code debugging capabilities, see
 **Known issues:**
 
 * Output from R is displayed in the command output pane only at the end of 
-  operation (dynamic command output will be introduced in version 0.3)
+  operation (real-time command output will be introduced in version 0.4)
 * Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape 
   key in RGui)
 * Executing Rgui's command “Stop all computations” will also stop R's socket 
   server and hence break the connection with Komodo. It may also cause R crash 
   (it happens sometimes on Windows).
-* On Linux, Tk-Gui sometimes does not close properly. It is recommended not to 
-  use it with Komodo.
+* On Linux, Tk-Gui sometimes does not close properly. It is not recommended to 
+  use it with this add-on.
 * Problems with connection with Komodo server in R may cause R not exit 
-  properly and need to kill the R process (it happens very rarely though - 
-  perhaps a Windows-specific problem).
+  properly and need to kill the R process (it happens rarely - perhaps a 
+  Windows-specific problem).
 * If something went wrong and Komodo shows R is running when it is not, 
   run “R: check connection” macro in “R Tools” toolbox.
 * Connection timeout on longer operations: a prompt is shown as if the calculation
-  in R has finished and no output is shown. There does not seem to be a way
-  to set socket timeout in Tcl. (no longer in version 0.3)
+  in R has finished and no output is shown. (version < 0.4)
 * R object browser is refreshed manually (click sidebar's refresh button)
-  Automatic refreshing may become an option in future version.
+  Automatic refreshing may become an option in future.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. There is also some flickering inside
   Roxygen comments. This seems to be related to brace counting in UDL 
