@@ -89,9 +89,48 @@
 	max-width: 200px;*/
     
    &.badRegEx {
-    color: #ea0000;
+        color: #ea0000;
+    }
 }
+
+#rbrowser_objects_tree_placeholder {
+    
+    button:first-of-type {
+        -moz-appearance: none;
+        padding: 5px 1em;
+        border-style: none;
+		background-color: transparent;
+
+        label:first-of-type {
+			background-color: transparent;
+			background-image: url("koicon://ko-svg/chrome/komodor/skin/images/R-connect.svg?size=64");
+            background-position: center top;
+            background-repeat: no-repeat;
+            padding-top: 68px;
+            padding-bottom: 0.5em;        
+        }
+    }
 }
+    
+#treeBox:not([active]) {
+    >#rbrowser_objects_tree {
+        visibility: collapse;
+    }
+    >#rbrowser_objects_tree_placeholder {
+        visibility: visible;
+    }
+}
+
+#treeBox[active] {
+    >#rbrowser_objects_tree {
+        visibility: visible;
+    }
+    >#rbrowser_objects_tree_placeholder {
+        visibility: collapse;
+    }
+}
+
+
 
 *[type=icons]>toolbarbutton .toolbarbutton-text {
     display: none;
@@ -115,20 +154,18 @@
     }
 }
 
-
-
 #rbrowser_showAll_button {
     list-style-image: url("@{svg-images}/eye-closed.svg?size=@{icon-size}&preset=widgets");
     &[checked="true"] {
-    list-style-image: url("@{svg-images}/eye-red.svg?size=@{icon-size}&preset=widgets");
-}
+        list-style-image: url("@{svg-images}/eye-red.svg?size=@{icon-size}&preset=widgets");
+    }
 }
 
 #rbrowser_showAttributes_button {
     list-style-image: url("@{images}/objects-hide-attributes.png");
     &[checked="true"] {
-    list-style-image: url("@{images}/objects-show-attributes.png");
-}
+        list-style-image: url("@{images}/objects-show-attributes.png");
+    }
 }
 
 .save-buffer-icon {

@@ -13,8 +13,6 @@ const UI = require("kor/ui");
 const R = require("kor/r");
 const Prefs = require("kor/prefs");
 
-
-
 function _notify(message, msgid, type, buttons) {
 	var image, priority;
 	var nb = document.getElementById("rPkgManNotificationBox");
@@ -276,18 +274,18 @@ function updateInfo(res, what) {
 	let avpList = document.getElementById("rAvailablePackageList");
 	//let instList = document.getElementById("rPackageList");
 	
-	let notification;
+	let notification, response;
 
 	switch(what) {
 	case "installed":
-		let response = JSON.parse(res);
-		if(response == null) {
+		response = JSON.parse(res);
+		if(response === null) {
 			_notify(res, what, "warning");
 			return;
 		}
 
 		let pkgs = response.packages;
-		if (typeof pkgs == "string") pkgs = [pkgs];
+		if (typeof pkgs === "string") pkgs = [pkgs];
 
 		let msg = response.message.join("\n").trim();
 
@@ -298,9 +296,7 @@ function updateInfo(res, what) {
 
 		let packageName, items;
 
-		for(let i in pkgs) {
-			packageName = pkgs[i];
-
+		for(let packageName of pkgs) {
 			items = avpList.getElementsByAttribute("label", packageName);
 			if(items.length == 0) continue;
 			for(let j = 0; j < items.length; ++j) {
@@ -387,6 +383,7 @@ function updateInfo(res, what) {
 		break;
 
 	}
+	require("kor/main").fireEvent("r-environment-change");
 }
 
 function pkgManLoad(pkg) {
@@ -498,8 +495,8 @@ function openRepositoriesWindow() {
 }
 
 function init() {
-	rconn.defineResultHandler("pkgman-install", _installHandler, false);
-	rconn.defineResultHandler("pkgman-update-info", updateInfo, false);
+	rconn.defineResultHandler("pkgman-install", _installHandler, false, false);
+	rconn.defineResultHandler("pkgman-update-info", updateInfo, false, false);
 
 	setCranMirror();
 	//getCranMirrors();

@@ -52,7 +52,7 @@ function (verbose = FALSE) {
     } else portstr <- NULL
 	
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
-		ok <- tryCatch(koCmd("'ok'"), error = function(e) {
+		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
 				"cannot connect to Komodo. This may be caused by a previous R",
 				"session that was improperly closed. Quit R, kill any running",
@@ -60,9 +60,9 @@ function (verbose = FALSE) {
 				prefix = "  ", initial = ""), 
 				collapse = "\n"), title))
 		})
-		if(!identical(ok, "ok")) {
+		if(!identical(hello, "hello")) {
 			warning(simpleWarning("invalid response received from Komodo", title))
-			vmsg("Expected \"ok\", got", deparse(ok, control = NULL))
+			vmsg("Expected \"hello\", got", deparse(hello, control = NULL))
 		}
 
 		invisible(koCmd(paste(
@@ -96,7 +96,7 @@ function (verbose = FALSE) {
 	
 	# if there is ".First" in the workspace to be loaded this one will be overwritten.
 	assign(".First", function() {
-			invisible(koCmd("kor.rbrowser.refresh(true)"))
+			invisible(koCmd("kor.fireEvent(\"r-environment-change\")"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct
 		}, .GlobalEnv)
 	

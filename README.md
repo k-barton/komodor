@@ -1,5 +1,4 @@
 
-<img align="left" src="https://raw.githubusercontent.com/k-barton/komodor/master/img/logo1.png"
 alt="KomodoR logo" style="float: left" />
 
 Provides [R language](https://www.r-project.org/) support and interface between 
@@ -10,13 +9,14 @@ R environment and Komodo.
 This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, and since then has been largely rewritten. 
 
-This add-on provides a file type named __“R\_extended”__ to avoid conflict with Komodo's 
-built-in R syntax highlighter. Code completion and syntax checking works only with “R\_extended” not “R“.
+Code completion and syntax checking works only with “R\_extended” not “R“. 
+"R" language provided by this add-on is named __“R\_extended”__ to 
+avoid conflict with Komodo's built-in R syntax highlighter. 
 
 **Features:**
 
 * Connect to “R” session from Komodo
-* Execution of R code from within editor:
+* Execution of R code directly from within editor:
    + output from R is shown in the _Command Output_ pane
    + execute (or `source`) the current line or selection, bookmark-delimited 
      block, function at cursor, or a whole file.
@@ -25,8 +25,8 @@ built-in R syntax highlighter. Code completion and syntax checking works only wi
    + R documentation (*.Rd* files, partially implemented.)
    + [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
      (*.Rmd* files, partially implemented.)
-* Syntax checking
 * Code completion (objects, argument names, list items)
+* Syntax checking
 * R object browser pane
 * Toolbar with commonly used commands
 * R help window
@@ -67,7 +67,6 @@ No additional R packages are required, however your R installation needs to have
 * R language help (Shift+F1 while in an *R_extended* document):
     * the selected keyword is searched for in the loaded packages. If nothing is 
 	  found, press Shift+F1 again to search in all packages.
-* The *R tools* toolbox has some more or less useful commands:
     * R markdown preview;
     * Insert result of the selected text evaluated in R;
 	* Color picker (inserts hex code to the text);
@@ -100,8 +99,6 @@ The extension provides some code debugging capabilities, see
   run “R: check connection” macro in “R Tools” toolbox.
 * Connection timeout on longer operations: a prompt is shown as if the calculation
   in R has finished and no output is shown. (version < 0.4)
-* R object browser is refreshed manually (click sidebar's refresh button)
-  Automatic refreshing may become an option in future.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the 
   colouring dissappears occassionally. There is also some flickering inside
   Roxygen comments. This seems to be related to brace counting in UDL 

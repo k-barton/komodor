@@ -20,7 +20,9 @@ let w = wm.getMostRecentWindow("Komodo");
 var ko = w.ko;
 var require = w.require;
 var logger = require("ko/logging").getLogger("komodoR");
-    
+
+if(!w.log) w.log = require("ko/logging").getLogger("wtf");
+
 
 var PrefR_CranMirrors = { http : [], https : [] }/*, PrefR_CMSecure*/;
 
@@ -62,8 +64,28 @@ new RAppSpecs("r-tkgui", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "
 var getDialogs = () => ko.dialogs;
 
 function PrefR_OnLoad(/*event*/) {
-    logger.info("PrefR_OnLoad");
+    logger.debug("PrefR_OnLoad: " + parent.hPrefWindow.contentFrame.contentDocument.location.href);
+	let myurl = "chrome://komodor/content/pref-R.xul";
+	
+    // workaround for Komodo bug: languages tree is empty while parent item is
+    // open. switchToPanel does not work in that case.
+    try {
+        if(parent.hPrefWindow.contentFrame.contentDocument.location.href !== myurl) {
+            logger.warn("PrefR_OnLoad: problem with switching to PrefR panel. Trying to work it around.");
+            parent.hPrefWindow.onpageload();
+            parent.hPrefWindow.contentFrame = parent.hPrefWindow.contentFrames[myurl];
+            let ftv = parent.hPrefWindow.filteredTreeView;
+            ftv.removeFilter();
+            let langTreeItemIdx = ftv.getIndexById("languagesItem");
+            let n = 1 + ftv.isContainerOpen(langTreeItemIdx);
+            for(let i = 0; i < n; ++i) ftv.toggleOpenState(langTreeItemIdx, true);
+            parent.switchToPanel("svPrefRItem");
+        }
+    } catch(e) {
+        logger.exception(e, "PrefR_OnLoad");
+    }
 	parent.hPrefWindow.onpageload();
+
 }
 
 function getSelectedInterpreterPath() {
@@ -74,6 +96,9 @@ function getSelectedInterpreterPath() {
 }
 
 function populateRunRAs() {
+	logger.debug("running populateRunRAs. apps is " + (Array.isArray(apps) ? "array" : (typeof apps)));
+	if(!Array.isArray(apps)) return;
+	
     var menu = document.getElementById("RInterface.runRAs");
 	// Remove the 'Choose...' menu option on first showing
 	if(currentPrefset.getStringPref("RInterface.runRAs") === '') {
@@ -117,7 +142,6 @@ function menuListSetValues(attribute = "values") {
 		}
 	}
 }
-
 
 function processCranMirrorsCSV(content) {
     logger.debug(`processCranMirrorsCSV(content=${Boolean(content)})`);
@@ -461,7 +485,6 @@ function updateRCommand(update) {
     return cmd;
 }
 
-
 function onUserEditCommandLine(cmdLabel) {
 	//let cmdLabel = document.getElementById('RInterface.RCommand');
 	let edited = cmdLabel.value !== cmdLabel.getAttribute("defaultValue");
@@ -531,7 +554,8 @@ function OnPreferencePageOK(prefset) {
             return false;
         }
 
-        prefset.setStringPref("CRANMirror", getSelectedCranMirror()[3]);
+		let CRANMirror = getSelectedCranMirror();
+		if (CRANMirror) prefset.setStringPref("CRANMirror", CRANMirror[3]);
     
         const rConn = require("kor/connector"), r = require("kor/r");
     
@@ -719,4 +743,7 @@ function onCranMirrorListUpdated() {
     }
 }
 
+addEventListener("load", PrefR_OnLoad, false);
 addEventListener("r_cran_mirrors_updated", onCranMirrorListUpdated, false);
+
+

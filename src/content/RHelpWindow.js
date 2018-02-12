@@ -2,21 +2,18 @@
 /* globals require, self, Components, KeyEvent, internalSave, goUpdateCommand */
 
 var rHelpBrowser, rHelpTopic;
-
 var isUrl = (s) => s.search(/^((f|ht)tps?|chrome|resource|koicon|about|file):\/{0,3}/) === 0;
-
 
 var _w = Components.classes["@mozilla.org/appshell/window-mediator;1"]
 	.getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("Komodo");
 
-const require = _w.require;
+if(typeof require === "undefined")
+	var require = _w.require;
 
 const R = require("kor/r");
 const UI = require("kor/ui");
 
 var logger = require("ko/logging").getLogger("komodoR");
-
-
 
 function go(uri, loadFlags) {
 	logger.debug("RHelpWindow:go " + uri);
@@ -231,7 +228,7 @@ function _getHomePage(browser, goTo) {
 		path = path.substring(path.lastIndexOf("\n") + 1);
 		browser.homePage = path;
 		if (goTo) go(path);
-	});
+	}, true);
 }
 
 var browserUtils = {};
@@ -264,7 +261,7 @@ function OnLoad (event) {
 	try {
     logger.debug("RHelpWindow:onLoad");
 
-	
+
 	// DOMContentLoaded is fired also for HTML content
 	if (event.target !== self.document) return;
 	var page;

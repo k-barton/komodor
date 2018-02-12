@@ -115,7 +115,6 @@
 			</getter>
 			<setter>
 			  <![CDATA[
-			  //alert(val)
 					this._checkbox.checked = val;
 					this.setAttribute("checked", val);
 					return val;

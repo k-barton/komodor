@@ -26,7 +26,7 @@ var rob = {};
 
 (function () {
 
-    var logger = require("ko/logging").getLogger("komodoR-browser");
+    var logger = require("ko/logging").getLogger("komodoR");
     
     const { arr: ArrayUtils, str: StringUtils } = require("kor/utils");
     const fileUtils = require("kor/fileutils");
@@ -42,9 +42,123 @@ var rob = {};
     var dQuote = s => "\"" + s + "\"";
     var svgParams = "?size=16&color=" + encodeURIComponent("#004fd2");
 
-    this.searchPath = [];
     // XXX make internal
-    this.evalEnv = { name: undefined, searchPathItem: undefined, isNew: false };
+    this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
+   
+    var nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", "package:base",
+                                 "Autoloads"]);    
+    
+    this.searchPath = {
+        _data: [],
+        getListBox() document.getElementById("rbrowser_searchpath_listbox"),
+        display() {
+            logger.debug("searchPath.display()");
+
+            let list = this.getListBox();
+            let selectedLabel = list.selectedItem ? list.selectedItem.label : null;
+            let selectedIndex = list.selectedIndex;
+            while (list.firstChild) list.removeItemAt(0);
+            let checkedItems = _this.treeData.map(x => x.name);
+            if (checkedItems.length === 0) checkedItems.push(".GlobalEnv");
+            if (this._data.length === 0) return;
+        
+            let item, n = this._data.length, dataitem;
+            
+            logger.debug("searchPath.display: adding " + n + " items");
+            
+            for (let i = 0; i < n; ++i) {
+                try {
+                    item = document.createElement("richlistitem");
+                    dataitem = this._data[i];
+                    item.setAttribute("label", dataitem.name);
+                    item.setAttribute("id", "rob-searchpath-" + dataitem.name);
+                    if (dataitem.depends) item.setAttribute("depends", dataitem.depends);
+                    if (dataitem.reverseDepends) item.setAttribute("reverseDepends", dataitem.reverseDepends);
+                    item.setAttribute("checked", checkedItems.indexOf(dataitem.name) !== -1);
+                    if (nonDetachable.has(dataitem.name)) item.setAttribute("nondetachable", "true");
+                    list.appendChild(item);
+                } catch (e) {
+                    logger.exception(e, "in searchPath.display");
+                }
+            }
+            
+            if (_this.evalEnv.name && this._data[0].name === _this.evalEnv.name) {
+                let firstItem = list.getItemAtIndex(0);
+				firstItem.isEvalEnv = true;
+                firstItem.className = "eval-env";
+                if (_this.evalEnv.isNew) {
+                    firstItem.setAttribute("checked", true);
+                    addObjectList(_this.evalEnv.name);
+                }
+            }
+
+            if (selectedLabel !== null) {
+                let idx = this._data.findIndex(x => x.name === selectedLabel);
+                if (idx !== -1) selectedIndex = idx;
+            }
+            list.selectedIndex = Math.min(selectedIndex, n - 1);
+
+            logger.debug("searchPath.display() done");
+
+        },
+        parseString(str) {
+            let result = str.replace(/[\n\r\f]/g, "").split(recordSep).map(x => {
+                x = x.split(sep);
+                return {
+                    name: x[0], 
+                    depends: (x.length > 1 && x[1]) ? x[1] : null,
+                    reverseDepends: (x.length > 2 && x[2]) ? x[2] : null
+                };
+            });
+            //<richlistitem label="package:aumtutumtu" depends="stats dupa *aumtutumtu" nondetachable="true" />
+            let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
+            if (m) {
+                _this.evalEnv.isNew = m[1] !== _this.evalEnv.name; 
+                //this.evalEnv.name = "<" + searchPath[0].substring(9, searchPath[0].length - 2) + ">";
+                _this.evalEnv.name = m[1] ? m[1] : "EvalEnv";
+                result[0].name = _this.evalEnv.name;
+            } else
+                _this.evalEnv.name = undefined;
+       
+            this._data.splice(0);
+            Array.prototype.push.apply(this._data, result);
+        },
+        refresh(focus = false) {
+            let data;
+            try {
+                data = RConn.eval('base::cat(kor::objSearch("' + sep + '", "' + recordSep  + '"))', 2);
+            } catch (e) {
+                logger.exception(e, "in searchPath.refresh.");
+                return;
+            }
+            if (!data) {
+                this.clear();
+                return;
+            }
+            this.parseString(data);
+            this.display();
+            if (focus) this.getListBox().focus();
+        },
+        refreshAsync() {
+             return new Promise((resolve, reject) => {
+                RConn.evalAsync('base::cat(kor::objSearch("' + sep + '", "' + recordSep  + '"))',
+                    (result) => {
+                        if (!result) this.clear();
+                        else {
+                            this.parseString(result);
+                            this.display();
+                        }
+                        resolve();
+                        }, true, false);
+             });
+        },
+        clear() {
+            this._data.splice(0);
+            this.display();
+        },
+        indexOf(name) this._data.findIndex(x => x.name === name),
+        getItemAtIndex(index) this._data[index]
+    };
     
     var makeObjListCommand = (env, obj) => {
         env = !env ? "\"\"" : (_this.evalEnv.name && env === _this.evalEnv.name ? "getEvalEnv()" :
@@ -72,11 +186,7 @@ var rob = {};
 		"logLik", "connection", 'htest', 'ts', 'nls'
 		];
 
-    
     var hasIcon = (name) => iconTypes.indexOf(name) !== -1;
-
-    var nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils",
-        "package:base"]);
 
     // Reference to parent object for private functions
     var filterBy = 0; // Filter by name by default
@@ -93,10 +203,8 @@ var rob = {};
         enumerable: true
     });
 
-     Object.defineProperty(this, "toString", {
-        value: () => "[object RObjectBrowser]",
-        enumerable: false, writable: false, configurable: false
-    });
+     Object.defineProperty(this, "toString", 
+		{ value: () => "[object RObjectBrowser]" });
     
     function VisibleItem(obj, index, level, first, last, parentIndex) {
         if ((this.isList = obj.isRecursive)) {
@@ -593,37 +701,40 @@ var rob = {};
     });
 
     this.refresh = function (force = false) {
-        var cmd, init;
-        init = !isInitialized || force || !_this.treeData.length || !_this.treeBox;
-        _this.getPackageList();
-        if (init) {
-            let globalEnvIdx = _this.searchPath.indexOf(".GlobalEnv");
-            if (globalEnvIdx < 1)
-                cmd = makeObjListCommand(".GlobalEnv", "");
-            else {
-                cmd = "";
-                for (let i = 0; i <= globalEnvIdx; ++i)
-                    cmd += makeObjListCommand(_this.searchPath[i], "") + "\n"; 
-            }
-            
-        } else {
-            let openItems = _this.getOpenItems(); // [[env, fullName], ...]
-            let topItems = _this.treeData.map(x => [x.fullName, ""]);
-            let allItems = openItems.concat(topItems);
-            let map = new Map(allItems.map(x => [x.join("::"), x])); // unique values
-            let cmdArr = [];
-            for (let v of map.values()) cmdArr.push(makeObjListCommand(v[0], v[1]));
-            cmd = cmdArr.join("\n");
-        }
-        if (init) {
-            let thisWindow = self;
-            if (thisWindow.location.pathname.indexOf("komodo.xul") != -1)  // in main window
-                thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
-            thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
-        }
+		logger.debug("Rbrowser.refresh");
+		if(!require("kor/command").isRRunning) return;
 
-        RConn.evalAsync(cmd, parseObjListResult, true);
-        isInitialized = true;
+        _this.searchPath.refreshAsync().then(() => {
+            var cmd, init;
+            init = !isInitialized || force || !_this.treeData.length || !_this.treeBox;
+            if (init) {
+                let globalEnvIdx = _this.searchPath.indexOf(".GlobalEnv");
+                if (globalEnvIdx < 1)
+                    cmd = makeObjListCommand(".GlobalEnv", "");
+                else {
+                    cmd = "";
+                    for (let i = 0; i <= globalEnvIdx; ++i)
+                        cmd += makeObjListCommand(_this.searchPath.getItemAtIndex(i).name, "") + "\n"; 
+                }     
+            } else {
+                let openItems = _this.getOpenItems(); // [[env, fullName], ...]
+                let topItems = _this.treeData.map(x => [x.fullName, ""]);
+                let allItems = openItems.concat(topItems);
+                let map = new Map(allItems.map(x => [x.join("::"), x])); // unique values
+                let cmdArr = [];
+                for (let v of map.values()) cmdArr.push(makeObjListCommand(v[0], v[1]));
+                cmd = cmdArr.join("\n");
+                
+            }
+            if (init) {
+                let thisWindow = self;
+                if (thisWindow.location.pathname.indexOf("komodo.xul") !== -1)  // in main window
+                    thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
+                thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
+            }
+            RConn.evalAsync(cmd, parseObjListResult, true);
+            isInitialized = true;            
+        }).catch((e) => logger.exception(e));
     };
     
     var removeObjectList = (pack) => {
@@ -980,7 +1091,7 @@ var rob = {};
             // Attach the file if it is an R workspace
             if (filePath && filePath.search(/\.RData$/i) > 0) {
                 R.loadWorkspace(filePath, true, function (message) {
-                    _this.getPackageList();
+                    _this.searchPath.refresh();
                     UI.addNotification("Upon attaching the workspace \"" + filePath +
                         "\", R said: " + message);
                 });
@@ -990,27 +1101,24 @@ var rob = {};
                 if (text.startsWith("package:"))
                     text = text.substring(8);
 
-                RConn.evalAsync("tryCatch(library(\"" + text +
-                    "\"), error = function(e) {cat(\"<error>\"); message(e)})",
+                RConn.evalAsync("kor::doCommand(\"library\", " + R.arg(text) + ")",
                     (message) => {
                         let pos;
                         if ((pos = message.indexOf('<error>')) > -1) {
                             message = message.substring(pos + 7);
                         } else 
-                            _this.getPackageList();
+                            _this.searchPath.refresh();
                         if (message)
                             UI.addNotification("Upon loading the library \"" + text +
                                 "\", R said: " + message);
-                    }, true);
+                    }, RConn.AUTOUPDATE | RConn.HIDDEN);
             }
         },
         onSearchPathDragStart(event) {
             if (event.target.tagName != 'listitem')
                 return;
 
-            let text = _this.searchPath[document
-                .getElementById("rbrowser_searchpath_listbox")
-                .selectedIndex];
+            let text = _this.searchPath.getItemAtIndex(document.getElementById("rbrowser_searchpath_listbox").selectedIndex).name;
             event.dataTransfer.setData("text/plain", text);
             event.dataTransfer.effectAllowed = "copy";
             return;
@@ -1029,81 +1137,13 @@ var rob = {};
     
     this.canDrop = function () false;
     this.drop = function ( /*idx, orientation*/ ) {};
-    
-    
-    // Get the list of packages on the search path from R
-    this.getPackageList = function () {
-        var data;
-        try {
-            data = RConn.eval('base::cat(kor::objSearch("' + sep + '"))');
-        } catch (e) {
-            return;
-        }
-        if (!data) return;
-        let searchPath = _this.searchPath = data.replace(/[\n\r\f]/g, "").split(sep);
-        
-        // current EvalEnv, always first position
-        let m = searchPath[0].match(/^<EvalEnv(?:\[(.+)\]|)>/);
-        if (m) {
-            _this.evalEnv.isNew = m[1] !== _this.evalEnv.name; 
-            //this.evalEnv.name = "<" + searchPath[0].substring(9, searchPath[0].length - 2) + ">";
-            _this.evalEnv.name = m[1] ? m[1] : "EvalEnv";
-            _this.evalEnv.searchPathItem = searchPath[0];
-            searchPath[0] = _this.evalEnv.name;
-        } else
-            _this.evalEnv.name = _this.evalEnv.searchPathItem = undefined;
-       
-        _this.displayPackageList();
-    };
-
-    // Display the list of packages in the search path
-    this.displayPackageList = function () {
-        var node = document.getElementById("rbrowser_searchpath_listbox");
-        var selectedLabel = node.selectedItem ? node.selectedItem.label : null;
-
-        while (node.firstChild) node.removeChild(node.firstChild);
-        var selectedPackages = _this.treeData.map(x => x.name);
-        if (!selectedPackages.length) selectedPackages.push(".GlobalEnv");
-        if (_this.searchPath.length === 0) return;
-
-        
-        for (let i = 0; i < _this.searchPath.length; ++i) {
-            let name =  _this.searchPath[i];
-            let item = document.createElement("listitem");
-            item.setAttribute("type", "checkbox");
-            item.setAttribute("label", name);
-            item.setAttribute("checked", selectedPackages.indexOf(name) !== -1);
-            if (nonDetachable.has(name)) item.className = "non-detachable";
-            node.appendChild(item);
-        }
-        
-        
-        let item0 = node.getItemAtIndex(0);
-        if (this.evalEnv.name && item0.label === this.evalEnv.name) {
-            item0.className = "eval-env";
-            item0.setAttribute("evalEnv", true);
-            if (this.evalEnv.isNew) {
-                item0.setAttribute("checked", true);
-                addObjectList(this.evalEnv.name);
-            }
-        }
-
-        if (selectedLabel !== null) {
-            for (let i = 0; i < node.itemCount; ++i)
-                if (node.getItemAtIndex(i).label === selectedLabel) {
-                    node.selectedIndex = i;
-                    break;
-                }
-        } else
-            node.selectedIndex = 0;
-
-    };
+   
     
     this.clearAll = function () {
         if (!isInitialized) return;
         
-        _this.searchPath.splice(0);
-        _this.displayPackageList();      
+        _this.searchPath.clear();
+        //_this.displayPackageList();      
         
         let rowCount = _this.visibleData.length;
         _this.visibleData.splice(0);
@@ -1138,9 +1178,9 @@ var rob = {};
 
     // Change the display status of a package by clicking an item in the list
     this.packageSelectedEvent = function (event) {
+        logger.debug("packageSelectedEvent: target.id=" + event.target.id + " [" + event.target.tagName + "]");
         var el = event.target;
-        //var pack =  el.hasAttribute("evalEnv") ? evalEnvName : el.getAttribute("label");
-        var pack = el.getAttribute("label");
+        var pack = el.label;
         if (!pack) return;
         if (el.checked) addObjectList(pack);
         else removeObjectList(pack);
@@ -1207,7 +1247,7 @@ var rob = {};
             // Remove immediately
             RConn.evalAsync(cmd.join("\n"), (res) => {
                 if (cmdDetach.length) _this.refresh();
-            }, null, false);
+            }, false, false); // XXX RConn.AUTOUPDATE
         } else {
             // Insert commands to current document
             let view = require("ko/views").current();
@@ -1352,6 +1392,37 @@ var rob = {};
             menuItems[i].setAttribute('disabled', disable);
         }
 
+    };
+    
+    this._doCommand = function (action, ...args) {
+        switch (action) {
+        case "browse-end":
+             RConn.evalAsync("kor::koBrowseEnd()", (data) => {
+                UI.addNotification("R: " + data.trim());
+             });
+             break;
+        case "detach":
+            if (!args) return;
+            let cmd, names = args[0];
+            if (!Array.isArray(names)) names = [names];
+            names = names.filter(x => !nonDetachable.has(x));
+            cmd = "kor::doCommand(\"detach\", " + R.arg(names) + ")";
+            
+            RConn.evalAsync(cmd, (data) => {
+                let re = /^<(error|success):(.*)>\s*$/gm, result, res = { error: [], success: [] }, msg = "R: ";
+                while ((result = re.exec(data))) res[result[1]].push(result[2]);
+                if (res.error.length !== 0)
+                    msg += res.error.map(x => '"' + x + '"').join(", ") + " could not be detached.\n";
+                if (res.success.length !== 0) {
+                    msg += res.success.map(x => '"' + x + '"').join(", ") + " successfully detached.\n";
+                    _this.refresh(); // XXX RConn.AUTOUPDATE
+                    UI.addNotification(msg);
+                }
+            }, true);
+            break;
+        default:
+            break;
+        }
     };
 
     this.doCommand = function (action) {
@@ -1524,56 +1595,63 @@ var rob = {};
         return false;
     };
 
-    this.packageListKeyEvent = function (event) {
-        var keyCode = event.keyCode;
-    
-        //require("kor/cmdout").append(`keyCode=${event.keyCode}, charCode=${event.charCode}`);
-        let listbox = event.target;
-    
-        switch (keyCode) {
-        case 46: // Delete key
+    this.onSearchPathKeyEvent = function (event) {
+        let listbox = _this.searchPath.getListBox();
+        let target = event.originalTarget;
+        
+        //require("kor/cmdout").append(`key=${event.key} (${event.key.charCodeAt(0)}) keyCode=${event.keyCode}, charCode=${event.charCode}, 
+		//target=${target.id}/${target.tagName}`);
+		
+		
+		let onItemSelect = (listbox, event, idx) => {
+			listbox.selectedIndex = idx;
+			listbox.selectedItem._checkbox.focus();
+			listbox.ensureIndexIsVisible(listbox.selectedIndex);
+			event.preventDefault();
+		};
+		
+		    
+        switch (event.key) {
+        case " ":
+            if (target.getAttribute("anonid") !== "checkbox") { // only handle this event when checkbox not in
+                                                                // focus
+                let item = listbox.selectedItem;
+                item.check();
+                if (!item.label) return;
+                if (item.checked) addObjectList(item.label);
+                else removeObjectList(item.label);
+                return;
+            }
+            break;
+        case "Clear": /* falls through */
+        case "Delete": /* falls through */
+        case "Del":
             let listItem = listbox.selectedItem;
-            let pkg = listItem.getAttribute("label");
-            if (nonDetachable.has(pkg)) return;
-    
-            let cmd;
-            if (listItem.hasAttribute("evalEnv"))
-                cmd = "kor::koBrowseEnd()";
-            else
-                cmd =
-                `base::tryCatch(base::detach(${R.arg(pkg)}, unload=TRUE), error=function(e) base::cat("<error>"))`;
-    
-            RConn.evalAsync(cmd, (data) => {
-                logger.debug("packageListKeyEvent with data=" + data);
-                if (data.trim() != "<error>") {
-                    removeObjectList(pkg);
-                    listbox.removeChild(listItem);
-                    UI.addNotification(UI.translate("R: \"%S\" detached.", pkg));
-                } else
-                    UI.addNotification(UI.translate("R: \"%S\" could not be detached.",
-                        pkg), true);
-            }, true);
+            if(listItem.hasAttribute("evalEnv"))
+                _this._doCommand("browse-end");
+            else {
+                if (listItem._detachableItems && listItem._detachableItems.length !== 0)
+                    _this._doCommand("detach", event.shiftKey ?
+                        listItem._detachableItems : listItem._detachableItems[0]);
+            }
             return;
             // for some reason arrow keys/home/end do not work by default, pgup/pgdown do.
-        case 35: // end key
-            listbox.selectedIndex = listbox.itemCount - 1;
-            listbox.ensureIndexIsVisible(listbox.selectedIndex);
-            event.preventDefault();
+        case "End":
+            onItemSelect(listbox, event, listbox.itemCount - 1);
+			return;
+        case "Home":
+			onItemSelect(listbox, event, 0);
             return;
-        case 36: // home key
-            listbox.selectedIndex = 0;
-            listbox.ensureIndexIsVisible(listbox.selectedIndex);
-            event.preventDefault();
+        case "Up": /* falls through */
+        case "ArrowUp":
+			onItemSelect(listbox, event, (listbox.selectedIndex > 0)? 
+				listbox.selectedIndex - 1 : 0);
             return;
-        case 38: // up-arrow key
-            if (listbox.selectedIndex > 0) --listbox.selectedIndex;
-            listbox.ensureIndexIsVisible(listbox.selectedIndex);
-            event.preventDefault();
-            return;
-        case 40: // down-arrow key
-            if (listbox.selectedIndex < listbox.itemCount - 1) ++listbox.selectedIndex;
-            listbox.ensureIndexIsVisible(listbox.selectedIndex);
-            event.preventDefault();
+        case "Down":  /* falls through */
+        case "ArrowDown":
+			onItemSelect(listbox, event, 
+				(listbox.selectedIndex < listbox.itemCount - 1)? 
+					listbox.selectedIndex + 1 : listbox.selectedIndex);
             return;
         default:
             return;
@@ -1601,34 +1679,135 @@ var rob = {};
         _this[name] = value;
     };
     
-    this.onRStatusChange = function(event) {
-		logger.debug("Rbrowser.onRStatusChange");
-        if(!event.detail.running) {
-            logger.debug("clearing R browser");
-            _this.clearAll();
+
+    this.activate = function(state) {
+        var box = document.getElementById("treeBox");
+        if (state == box.hasAttribute("active")) return; // keep "=="
+        var controls = document.getElementById("rbrowserToolbar").childNodes;
+        if(state) {
+            //_this.refresh(true);
+            logger.debug("Rbrowser.activate: refreshing R browser");
+            box.setAttribute("active", "true");
+            for(let el of controls) el.removeAttribute("disabled");
+            setTimeout(() => {
+			   logger.debug("Rbrowser.activate->on timeout (delayed refresh)");
+			   _this.refresh(true); 
+			   }, 1000);
+			
+			
         } else {
-            _this.refresh(true);
-            logger.debug("refreshing R browser");
+            logger.debug("Rbrowser.activate: clearing R browser");
+            _this.clearAll();
+            box.removeAttribute("active");
+            for(let el of controls) el.setAttribute("disabled", "true");
+        }       
+    };
+    
+    this.onRStatusChange = function(event) {
+        try {
+			logger.debug("Rbrowser.onRStatusChange: " + event.detail.running);
+            _this.activate(event.detail.running);
+         } catch(e) {
+            logger.exception(e);
+        }
+    };
+        
+    this.onRCommandRequestEvent = function(event) {
+        let commandType = event.detail.type;
+        if (!commandType) throw(new Error("incomplete 'r-command-request' event"));
+        logger.debug("received R command request event of type " + commandType);
+        // XXX: move to doCommand(commandType, ...)
+
+        switch (commandType) {
+            case "detach":
+//              alert("request detach: " + event.detail.name + "");
+                
+                let cmd;
+                if (event.detail.isEvalEnv) {
+                    cmd = "kor::koBrowseEnd()";
+                } else {
+                    let names = event.detail.name;
+                    if (!Array.isArray(names)) names = [names];
+                    names = names.filter(x => !nonDetachable.has(x));
+                    cmd = "kor::doCommand(\"detach\", " + R.arg(names) + ")";
+                }
+                RConn.evalAsync(cmd, (data) => {
+                        logger.debug("r-command-request detach callback: returned with data=" + data);
+                        let re = /^<(error|success):(.*)>\s*$/gm, result, res = {error: [], success: []},
+                            msg = "R: ";
+                        while((result = re.exec(data))) res[result[1]].push(result[2]);
+                        if (res.error.length !== 0)
+                            msg += res.error.map(x => '"' + x + '"').join(", ") + " could not be detached.\n";
+                        if (res.success.length !== 0) {
+                            msg += res.success.map(x => '"' + x + '"').join(", ") + " successfully detached.\n";
+                            _this.refresh(); // XXX RConn.AUTOUPDATE
+                            UI.addNotification(msg);
+                        }
+                    }, true);
+                break;
+            default:
+        }
+    };
+    
+    this.onREnvironmentChange = function(/*event*/) {
+        logger.debug("onREnvironmentChange");
+        _this.refresh();
+    };
+
+    var autoUpdateObserver = {
+        observe(prefset, prefName, data) {
+            logger.debug("setting R browser autoupdate");
+            try {
+                require("kor/main").mainWin[
+                    prefset.getBooleanPref(prefName) ?
+                    'addEventListener' : 'removeEventListener'](
+                        'r-command-executed', _this.onREnvironmentChange, false);
+                
+            //if(prefset.getBooleanPref(prefName))
+            //    _w.addEventListener('r-autoupdate-needed', _this.onREnvironmentChange, false);
+            //else 
+            //    _w.removeEventListener('r-autoupdate-needed', _this.onREnvironmentChange, false);
+            } catch(e) {
+                logger.exception(e, "in autoUpdateObserver");
+            }
         }
     };
 
     this.onLoad = function ( /*event*/ ) {
-        //TODO: remove timeout, call require("kor/command") directly
-        //let korCmd = require("kor/command");
-        //if (!korCmd) {
-        //     setTimeout(_this.onLoad, 1000);
-        //     logger.debug("Rbrowser.onLoad: 'command' is undefined.");
-        //} else if (korCommand.isRRunning)
-        //if (require("kor/command").isRRunning)
-            //_this.refresh(true);
         logger.debug("Rbrowser.onLoad");
         
-        require("kor/main").mainWin.addEventListener('r-status-change',
-            _this.onRStatusChange, false);
+        // check again
+        setTimeout(() => {
+			logger.debug("Rbrowser.onLoad->on timeout 1");
+           _this.refresh();
+        }, 500);
+		
+		let _w = require("kor/main").mainWin;
+		
+		_w.addEventListener('r-status-change', _this.onRStatusChange, false);
+		_w.addEventListener('r-evalenv-change', _this.onREnvironmentChange, false);
+		_w.addEventListener('r-environment-change', _this.onREnvironmentChange, false);
+        window.addEventListener("r-command-request", this.onRCommandRequestEvent, false);   
+        
+        const prefs = require("kor/prefs");
+        let auPrefName = "RInterface.rBrowserAutoUpdate";
+		
+		if(!prefs.prefset.hasBooleanPref(auPrefName))
+			prefs.prefset.setBooleanPref(auPrefName, true);
+        
+        if(prefs.prefset.getBooleanPref(auPrefName)) {
+                logger.debug("Rbrowser.onLoad: setting R browser autoupdate");
+                require("kor/main").mainWin
+                    .addEventListener('r-command-executed',
+                        _this.onREnvironmentChange, false);
+        }
+        
+        prefs.prefObserverService.addObserver(autoUpdateObserver,
+            "RInterface.rBrowserAutoUpdate", true); 
     };
     
     window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
-    
+   
     this.debug = {
         getSelProps(column = "r-name") {
             return _this.getCellProperties(_this.selection.currentIndex, _this.treeBox.columns[column]);
@@ -1639,7 +1818,6 @@ var rob = {};
         },
         createVisibleData: createVisibleData,
         cleanupObjectLists: cleanupObjectLists,
-        //getWindow: () => ko.widgets.getWidget("rbrowser_tabpanel").contentWindow
         getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "rbrowser_tabpanel")
     };
     

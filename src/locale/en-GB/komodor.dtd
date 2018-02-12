@@ -31,10 +31,7 @@
 <!ENTITY QuitR "Quit R">
 <!ENTITY QuitR.key "Q">
 
-<!ENTITY svBrowseWD "Working directory">
-<!ENTITY svBrowseWD.key "D">
-
-<!ENTITY helpStart "R Help window">
+<!ENTITY helpStart "R Help window...">
 <!ENTITY helpStart.key "H">
 
 <!ENTITY openRPrefs "R preferences...">

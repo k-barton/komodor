@@ -17,8 +17,8 @@
 
     var logger = require("ko/logging").getLogger("komodoR");
     
-    const { /*arr: ArrayUtils,*/ str: StringUtils } = require("kor/utils");
-    const fileUtils = require("kor/fileutils"), UI = require("kor/ui"), Prefs = require("kor/prefs"),
+    const { /*arr: ArrayUtils,*/ str: su } = require("kor/utils");
+    const fu = require("kor/fileutils"), UI = require("kor/ui"), Prefs = require("kor/prefs"),
           RConn = require("kor/connector");
     
     var _W = require("kor/main").mainWin;
@@ -29,7 +29,7 @@
     // set via command.setRStatus - TODO merge?
     Object.defineProperties(this, {
         isRRunning: { get() _RIsRunning, enumerable: true },
-        toString : { value: () => "[object KorCommand]", enumerable: false}
+        toString : { value: () => "[object KorCommand]"}
     });
     
     this.ProcessObserver = function ProcObs(command, process, callback) {
@@ -57,7 +57,6 @@
             //	TODO: cleanUp - observer status_message
             //	....*/
             //}
-
         },
         cleanUp() {
             if (this._command) {
@@ -83,8 +82,6 @@
         }
     };
 
-    //this.ProcessObserver = /*_ProcessObserv/ser*/;
-
     this.getCwd = function (selected) {
         var dir = "";
         if (selected) {
@@ -99,17 +96,30 @@
             } else {
                 uri = ko.places.manager.lastLocalDirectoryChoice;
             }
-            dir = fileUtils.pathFromURI(uri);
+            dir = fu.pathFromURI(uri);
         }
         return dir;
     };
 
-    this.openRPreferences = function (item) {
-        if (!item) item = "svPrefRItem";
-        _W.prefs_doGlobalPrefs(item, true);
-        // workaround K9 bug with switching to the right panel:
-        var prefWin = UI.getWindowByURI("chrome://komodo/content/pref/pref.xul");
-        if (prefWin) prefWin.switchToPanel(item);
+    this.openRPreferences = function () {
+		logger.debug("openRPreferences: start");
+        let item = "svPrefRItem";
+        require("sdk/timers").setImmediate(() => _W.prefs_doGlobalPrefs(item, true /*=modal*/));
+
+         // // workaround the bug with switching to the right panel:
+         // var prefFrameLoadEvent = function _prefFrameLoadEvent(event) {
+         	// try {
+         		// let prefWin = event.detail.parent;
+         		// //prefWin.hPrefWindow.contentFrame.contentDocument.location !== "chrome://komodor/content/pref-R.xul";
+         		// if (prefWin.hPrefWindow.filteredTreeView.getCurrentSelectedId() !== item)
+         			// prefWin.switchToPanel(item);
+         	// } catch (e) {
+         		// logger.exception(e, "while switching to 'svPrefRItem' in openRPreferences->on interval");
+         	// } finally {
+         		// _W.removeEventListener("pref-frame-load", _prefFrameLoadEvent, true);
+         	// }
+         // };
+         // _W.addEventListener("pref-frame-load", prefFrameLoadEvent, true);
     };
 
     var _RTerminationCallback = (exitCode) => {
@@ -131,9 +141,9 @@
             return;
         }
 
-        var rDir = fileUtils.path("ProfD", "extensions", "komodor@komodor", "R");
-        fileUtils.write(fileUtils.path(rDir, "_init.R"),
-            "setwd('" + StringUtils.addslashes(_this.getCwd(false)) +
+        var rDir = fu.path("ProfD", "extensions", "komodor@komodor", "R");
+        fu.write(fu.path(rDir, "_init.R"),
+            "setwd('" + su.addslashes(_this.getCwd(false)) +
             "')\n" + "options(" +
             "ko.port=" + Prefs.getPref("RInterface.koPort", Prefs.defaults[
                 "RInterface.koPort"]) +
@@ -171,15 +181,11 @@
         if (isWin && id == "r-terminal") {
             var runSvc = Cc['@activestate.com/koRunService;1'].getService(Ci.koIRunService);
             runSvc.Run(cmd, rDir, envStr, true, '');
-            // Observe = 'run_command'
-            // subject = 'status_message'
-            // data = command
+            // Observe = 'run_command'; subject = 'status_message'; data = command
             RProcessObserver = new _this.ProcessObserver(cmd, false, _RTerminationCallback);
         } else {
             //var process = runSvc.RunAndNotify(cmd, rDir, env, null);
-            // Observe = 'run_terminated'
-            // subject = child
-            // data = command
+            // Observe = 'run_terminated'; subject = child; data = command
             //RProcessObserver = new _ProcessObserver(cmd, process, _RTerminationCallback);
             RProcessObserver = _this.runSystemCommand(cmd, rDir, envStr, _RTerminationCallback);
             RProcess = RProcessObserver._process;
@@ -194,9 +200,8 @@
         return new _this.ProcessObserver(cmd, process, terminationCallback);
     };
     
-    
-    this.fireEvent = function(target, eventName, detail = null) {
-        var event = new _W.CustomEvent(eventName, { detail: detail });
+    this.fireEvent = function(target, eventName, detail = null, bubbles = false, cancelable = false) {
+        var event = new _W.CustomEvent(eventName, { detail: detail, bubbles: bubbles, cancelable: cancelable });
         target.dispatchEvent(event);
     };
 
@@ -223,25 +228,39 @@
     // TODO define in module
     var isUrl = (s) => s.search(/^((f|ht)tps?|chrome|resource|koicon|about|file):\/{0,3}/) === 0;
 
+    // Close r-help tab
+    this.closeHelp = function () {
+        var tabPanel = document.getElementById("rhelpviewbox");
+        var tab = document.getElementById("rhelp_tab");
+        var tabBox = tabPanel.parentNode.parentNode;
+
+        tabPanel.hidden = tab.hidden = true;
+        tabBox.selectedIndex = ((tabBox.tabs.getIndexOfItem(tab) + 2) %
+            tabBox.tabs.itemCount) - 1;
+        document.getElementById("rhelpview-frame")
+            .setAttribute("src", "about:blank");
+    };
 
     // returns reference to the rHelpWindow
     this.openHelp = function (location) {
         if (location) {
             try {
-                if (!isUrl(location)) location = fileUtils.toFileURI(location);
-            } catch (e) {
-                // fallback
+				if (location.search(/[a-z\-\.]/i)) { // supposedly a keyword
+					//location = RConn.evalAsync("base::cat(kor::getHelpURL(" + TODO + "))",);
+				}
+                if (!isUrl(location)) location = fu.toFileURI(location);
+            } catch (e) { // fallback
                 if (!isUrl(location)) location = "file://" + location.replace(/\\/g, "/");
             }
         } else {
             try {
-                location = RConn.eval("base::cat(kor::getHelpURL())"); // ifXX: make async
+                location = RConn.eval("base::cat(kor::getHelpURL())"); // XXX: make async
             } catch (e) {
                 location = Prefs.getPref('RInterface.rRemoteHelpURL') + 'doc/index.html';
             }
         }
 
-        var rHelpHref = "chrome://komodor/content/rHelpWindow.xul";
+        var rHelpHref = "chrome://komodor/content/RHelpWindow.xul";
 
         rHelpWin = UI.getWindowByURI(rHelpHref);
         if (!rHelpWin || rHelpWin.closed) {
@@ -258,21 +277,6 @@
         rHelpWin.focus();
         rHelpWin.close = _this.closeHelp;
         return rHelpWin;
-    };
-
-    // Close r-help tab
-    this.closeHelp = function () {
-        var tabPanel = document.getElementById("rhelpviewbox");
-        var tab = document.getElementById("rhelp_tab");
-        var tabBox = tabPanel.parentNode.parentNode;
-
-        tabPanel.hidden = true;
-        tab.hidden = true;
-        tabBox.selectedIndex = ((tabBox.tabs.getIndexOfItem(tab) + 2) %
-            tabBox.tabs.itemCount) - 1;
-        document.getElementById("rhelpview-frame")
-            .setAttribute("src", "about:blank");
-        //_this.rHelpWin.closed = true;
     };
 
     //var  _isRRunning = () => _RIsRunning;
@@ -396,8 +400,6 @@
         logger.debug("Controllers has been set.");
     };
 
-    //var _str = sString => sString.QueryInterface(Ci.nsISupportsString).data;
-
     this.places = {
 
         get anyRFilesSelected()
@@ -416,7 +418,7 @@
                 .filter(x => (x.file.isLocal && x.file.ext.toLowerCase() == ".r"))
                 .map(x => x.file.path);
             if (!files.length) return;
-            let cmd = files.map(x => "base::source('" + StringUtils.addslashes(x) + "')").join("\n");
+            let cmd = files.map(x => "base::source('" + su.addslashes(x) + "')").join("\n");
             RConn.evalAsync(cmd, () => require("kor/main").rbrowser.refresh(true), false);
         },
 
@@ -428,7 +430,7 @@
                     (x.file.ext || x.file.leafName).toLowerCase() == ".rdata"))
                 .map(x => x.file.path);
             if (!files.length) return;
-            let cmd = files.map(x => "load('" + StringUtils.addslashes(x) + "')").join("\n");
+            let cmd = files.map(x => "load('" + su.addslashes(x) + "')").join("\n");
             RConn.evalAsync(cmd, () => require("kor/main").rbrowser.refresh(true), false);
         },
 
@@ -438,13 +440,13 @@
             var path;
             if (ko.places.manager._clickedOnRoot()) {
                 if (!ko.places.manager.currentPlaceIsLocal) return;
-                path = fileUtils.pathFromURI(ko.places.manager.currentPlace);
+                path = fu.pathFromURI(ko.places.manager.currentPlace);
             } else {
                 let dir = ko.places.manager.getSelectedItem();
                 if (!dir.file.isLocal || dir.type !== "folder") return;
                 path = dir.file.path;
             }
-            let cmd = "base::setwd('" + StringUtils.addslashes(path) + "')";
+            let cmd = "base::setwd('" + su.addslashes(path) + "')";
             RConn.evalAsync(cmd, () => require("kor/main").rbrowser.refresh(true), false);
         }
 

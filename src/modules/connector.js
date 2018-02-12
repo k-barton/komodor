@@ -31,7 +31,8 @@ var kor = {
     get cmdout() require("kor/cmdout"),
     get version() require("kor/main").version,
     get command() require("kor/main").command,
-    get rbrowser() require("kor/main").rbrowser
+    get rbrowser() require("kor/main").rbrowser,
+    get fireEvent() require("kor/main").fireEvent
 };
 
 
@@ -72,9 +73,10 @@ var kor = {
     this.userCommandId = "usr_cmd";
 
     // if stdOut, stderr is removed, else stream delimiters #002/#003 are removed   
-    var REvalListener = function (callback, keep, stdOut, args) {
+    var REvalListener = function (callback, keep, autoUpdate, stdOut, args) {
         if (typeof callback === "function") this.callback = callback;
         this.keep = keep;
+        this.autoUpdate = autoUpdate;
         this.stdOut = stdOut;
         if (!Array.isArray(args)) throw new TypeError("in 'REvalListener': 'args' must be an Array");
         this.args = args;
@@ -84,6 +86,7 @@ var kor = {
         callback: null,
         keep: false,
         stdOut: false,
+        autoUpdate: false,
         args: [],
         thisArg: null,
         onDone(result, command, mode) {
@@ -101,21 +104,35 @@ var kor = {
                     logger.exception(e, "in 'REvalListener.onDone': while invoking callback");
                 }
             }
+            logger.debug("onDone: autoUpdate=" + this.autoUpdate);
+            if(this.autoUpdate) require("kor/main").fireEvent('r-command-executed');
             return this.keep;
         }
     };
     
     this.handlers = new Map();
     
+    this.AUTOUPDATE = 1;
+    this.HIDDEN = 2;
+    
     // Evaluate in R
     this.evalAsync = function (command, callback, hidden, stdOut, ...args) { //, ...
         if(command === undefined || command == null) 
 			throw new Error("in 'evalAsync': 'command' is null or undefined");
+        
+        let autoUpdate = false;
+        if(typeof hidden === "number") {
+            autoUpdate = (hidden & _this.AUTOUPDATE) === _this.AUTOUPDATE;
+            hidden = (hidden & _this.HIDDEN) === _this.HIDDEN;
+        } else hidden = Boolean(hidden);
+        
+        logger.debug("evalAsync: autoUpdate=" + autoUpdate);
 		
         // XXX: background calls (e.g. object browser) need to have unique id.
         // ID for user commands should be one and fixed (to allow for multiline)
         var id = callback ? getUid() : this.userCommandId;
-         _this.handlers.set(id, new REvalListener(callback, /*keep:*/ false, stdOut, args));
+         _this.handlers.set(id, new REvalListener(callback, /*keep:*/ false,
+            /*autoUpdate*/ autoUpdate, stdOut, args));
 
         svc.RConnector.evalInRNotify(command, /*mode:*/ "json " + (hidden ? "h " : ""), id);
         return id;
@@ -128,8 +145,10 @@ var kor = {
 			throw new Error("in 'eval': 'command' is null or undefined");
 		
         var res = svc.RConnector.evalInR(command, 'json h', timeout);
-        if (res.startsWith('\x15')) 
+        if (res.startsWith('\x15')) {
+			logger.debug("in connector.eval: R returned " + res);
 			throw new Error("in 'eval': 'command' was \"" + command + "\"");
+		}
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
     };
 
@@ -147,8 +166,8 @@ var kor = {
         svc.RConnector.evalInRNotify(command, "json " + (hidden ? "h " : ""), handlerId);
     };
 
-    this.defineResultHandler = function (id, callback, stdOut, ...args) {
-        _this.handlers.set(id, new REvalListener(callback, true, stdOut, args));
+    this.defineResultHandler = function (id, callback, autoUpdate, stdOut, ...args) {
+        _this.handlers.set(id, new REvalListener(callback, true, autoUpdate, stdOut, args));
         return id;
     };
 

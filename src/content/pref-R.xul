@@ -42,7 +42,8 @@
 <window
 	xmlns:html="http://www.w3.org/1999/xhtml"
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	class="kodialog pref-window" orient="vertical" onload="PrefR_OnLoad(event);">
+	class="kodialog pref-window" orient="vertical">
+	<!-- class="kodialog pref-window" orient="vertical" onload="PrefR_OnLoad(event);"> -->
 	<script src="chrome://komodo/content/library/trace.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/dialogs.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/uriparse.js" type="application/x-javascript" />
@@ -123,6 +124,18 @@
 				</rows>
 			</grid>
 		</groupbox>
+		
+		<separator class="thin" />
+		<groupbox orient="vertical">
+			<caption label="R Object Browser" />
+			<hbox align="left">
+				<checkbox id="RInterface.rBrowserAutoUpdate"
+						  label="Automatically update R object browser upon every calculation"
+						  pref="true" prefattribute="checked" />
+			</hbox>
+		</groupbox>
+		
+		
 		<separator class="thin" />
 		<groupbox orient="vertical">
 			<caption label="Data input and output" />

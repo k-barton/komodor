@@ -1,0 +1,95 @@
+
+.rsearchpath {
+	-moz-binding: url("chrome://komodor/content/rbrowser.xbl#r-search-path-list");
+
+	richlistitem {
+		-moz-binding: url("chrome://komodor/content/rbrowser.xbl#r-search-path-item");
+		&:not(:last-child) {
+			border-bottom: 1px @item-border dotted;
+		}
+
+		.searchpath-item-name {
+			padding-left: 20px;
+			min-height: 16px;
+			background-image: url('koicon://ko-svg/chrome/komodor/skin/images/environment.svg?size=16');
+			background-size: 16px 16px;
+			background-position: left center;
+			background-repeat: no-repeat;
+
+			&[value^="package:"] {
+				background-image: url("koicon://ko-svg/chrome/komodor/skin/images/package.svg?size=16");
+			}
+			&[value=".GlobalEnv"] {
+				background-image: url("koicon://ko-svg/chrome/komodor/skin/images/GlobalEnv.svg?size=16");
+			}
+		}
+
+		&[selected] .searchpath-item-name {
+			font-weight: bold;
+		}
+        
+		&[nondetachable]:not([selected]) .searchpath-item-name {
+            //opacity: 0.5;
+            color: @label-color-nondetachable;
+		}
+
+		description[anonid$="deps-box"] {
+			>toolbarbutton {
+				border: 1px transparent solid;
+				border-radius: 2px;
+				padding: 0 3px;
+				margin: 1px 2px 1px 2px;
+				color: white;
+			}
+			
+			.jump-buttons() {
+				&:focus {
+					border-color: @button-color-focus;
+					color: @button-color-focus;
+				}
+
+				&:hover {
+					border-color: @button-color-hover;
+					color: @button-color-hover;
+				}
+			}
+			
+
+			.dependency {
+				background-color: @button-color-dependency;
+				.jump-buttons();
+			}
+            
+			.required {
+				background-color:  @button-color-required;
+				.jump-buttons();
+			}
+		}
+        
+        description[anonid="revdeps-box"] .dependency {
+            background-color: rgba(50, 146, 81, 0.25);
+        }
+        
+
+		*[anonid="detach-button-box"] {
+			toolbarbutton {
+				padding: 1px 3px 1px 1px;
+				border: 1px @button-detach-border-color solid;
+				border-radius: 2px;
+				
+				&:not(:active) {
+					color: @button-detach-color;
+					background-color: @button-detach-background-color;
+				}
+
+				&:active {
+					padding: 2px 2px 0px 2px; /*TRBL*/
+					border: 1px @button-detach-active-border-color inset;
+					background-color: @button-detach-active-background-color;
+					//color: @button-detach-active-color !important;
+					color: black;
+				}
+			}
+		}
+	}
+}

@@ -18,13 +18,14 @@ function(FUN, refresh = TRUE) {
         setEvalEnv(sys.frame(nframe))
 		env <- getEvalEnv()
 		attr(env, "name") <- envName <- format(sys.call(nframe))[1L]
-		koCmd("_W.setTimeout(() => kor.rbrowser.refresh(), 100)")
+		koCmd(paste0("kor.fireEvent(\"r-evalenv-change\", {evalEnvName:",
+                deparse(envName, control = NULL), "})"))
 		stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
 			envName,
 			"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
 			"\n(Note this will not resume execution of the function)")))
 	}))
-	if(!refresh) expr[[1]]$error[[3]][[8]] <- NULL
+	if(!refresh) expr[[1L]]$error[[3L]][[8L]] <- NULL
 	
 	debugFun <- function() {} 
 	formals(debugFun) <- formals(FUN)

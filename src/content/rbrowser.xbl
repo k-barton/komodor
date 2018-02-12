@@ -1,0 +1,227 @@
+<?xml version="1.0"?>
+<!DOCTYPE bindings [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+%brandDTD;
+]>
+
+<bindings id="RBrowserBindings"
+	xmlns="http://www.mozilla.org/xbl"
+	xmlns:xbl="http://www.mozilla.org/xbl"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<binding id="r-search-path-list"
+		 extends="chrome://global/content/bindings/richlistbox.xml#richlistbox">
+    <resources>
+		<!--<stylesheet src="file:///D:/Users/kb/+/komodor/src/skin/rsearchpath.css"/>-->
+		<stylesheet src="chrome://komodor/skin/rsearchpath.css"/>
+    </resources>
+	<implementation>
+		<method name="indexOf">
+			<parameter name="label" />
+		   <body><![CDATA[
+		   for(let i = 0; i < this.itemCount; ++i)
+				if(this.getItemAtIndex(i).label === label) return i;
+			return -1;
+			]]></body>
+		</method>
+	</implementation>
+	<handlers>
+		<handler event="dblclick">
+			if (typeof event.target.check === "function") {
+				event.target.check();
+				event.target._checkbox.focus();
+				event.stopPropagation();
+				event.target.dispatchEvent(new Event("command", {"bubbles":true, "cancelable":false}));
+			}
+		</handler>
+	</handlers>
+</binding>
+
+<binding id="r-search-path-item"
+		 extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <resources>
+    <!--<stylesheet src="file:///D:/Users/kb/+/komodor/src/skin/rsearchpath.css"/>-->
+	<stylesheet src="chrome://komodor/skin/rsearchpath.css"/>
+
+    </resources>
+	<content orient="vertical">
+		<xul:hbox>
+			<xul:label xbl:inherits="value=label" class="searchpath-item-name" />
+			<xul:hbox align="right" flex="1">
+				<xul:hbox class="item-details" anonid="detach-button-box">
+					<xul:toolbarbutton label="detach" anonid="detach-button"
+						tooltiptext="detach package %s"
+						/>
+					<xul:toolbarbutton label="detach all" anonid="detach-all-button"
+						tooltiptext="detach package %s with its dependencies"
+						/>
+				</xul:hbox>
+				<xul:checkbox anonid="checkbox" align="right" xbl:inherits="checked"
+					oncommand="document.getBindingParent(this).checked = this.checked;"
+					tooltiptext="show in object browser" />
+			</xul:hbox>
+		</xul:hbox>
+		<xul:description class="item-details" anonid="deps-box" />
+		<xul:description class="item-details" anonid="revdeps-box" />
+	</content>
+	<implementation>
+	   	<constructor><![CDATA[
+			const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+			var jumpto = (itemName) => {
+				let parent = this.parentNode;
+				for(let i = 0; i < parent.itemCount; ++i) {
+					let item = parent.getItemAtIndex(i);
+					if(item.packageName === itemName) {
+						parent.selectedIndex = i;
+						return;
+					}
+				}
+			};
+			
+			var onClick = (event) => {
+				let el = event.target;
+				if(!el._jumptotarget) return;
+				jumpto(el._jumptotarget);
+				event.stopPropagation();
+                return true;
+			};
+	
+			var buildElement = (str, box, title, itemClassName = "dependency",
+					starredItemClassName = "required") => {
+				if (!str) return;
+				let names = str.split(/ +/);
+				let el, text, n = names.length;
+				if (n === 0) return;
+				el = document.createElementNS(XUL_NS, "label");
+				el.setAttribute("value", title + ": ");
+				box.appendChild(el);
+				for(let i = 0; i < n; ++i) {
+					el = document.createElementNS(XUL_NS, "toolbarbutton");
+					el.className = itemClassName;
+					if (names[i].startsWith("*")) {
+						el.className += " " + starredItemClassName;
+						text = names[i].substr(1);
+					} else text = names[i];
+					el._jumptotarget = text;
+					el.addEventListener("command", onClick, false);
+					el.setAttribute("label",  text);
+					box.appendChild(el);
+				}
+			};
+
+			let deps = this.getAttribute("depends").trim();
+			let revdeps = this.getAttribute("reverseDepends").trim();
+			buildElement(deps, document.getAnonymousElementByAttribute(this, "anonid", "deps-box"),
+						 "Depends on");
+			buildElement(revdeps, document.getAnonymousElementByAttribute(this, "anonid", "revdeps-box"),
+						 "Required by");
+			let buttonBox = document.getAnonymousElementByAttribute(this, "anonid", "detach-button-box");
+			
+			if (/\w/.test(revdeps))
+				buttonBox.className += (buttonBox.className ? " " : "") + "no-detach";
+			else if (!/(^| )[^* ]/.test(deps))
+				buttonBox.className += (buttonBox.className ? " " : "") + "no-detach-all";
+
+			let onDetachButtonCommand = function(event) {
+			    let withDeps = event.target.getAttribute("anonid") === "detach-all-button";
+				let listitem = document.getBindingParent(event.target);
+				listitem.detachCommand(withDeps);
+				event.stopImmediatePropagation();
+			};
+			
+			let button;
+			for(let id of ["detach-all-button", "detach-button"]) {
+				button = document.getAnonymousElementByAttribute(this, "anonid", id);
+				button.setAttribute("tooltiptext", button.getAttribute("tooltiptext").replace(/%s/g, this.packageName));
+				button.addEventListener("command", onDetachButtonCommand);
+			}
+			
+			this._isEvalEnv = false;
+	
+// ]]></constructor>
+		<field name="_checkbox"><![CDATA[
+			document.getAnonymousElementByAttribute(this, "anonid", "checkbox")
+// ]]></field>
+		<field name="packageName"><![CDATA[
+			this.getAttribute('label').replace(/^package:/, "")
+// ]]></field>
+		<property name="_packages">
+			<getter><![CDATA[
+			let rval = [ this.getAttribute('label') ];
+			let deps = this.getAttribute("depends").trim().split(/ +/).filter(x => x && !x.startsWith("*"));
+			if (deps.length) rval = rval.concat(deps.map(x => "package:" + x));
+			return rval;
+// ]]></getter>
+		</property>
+		<property name="_detachableItems">
+			<getter><![CDATA[
+			let selfName = this.getAttribute('label');
+			if (selfName.startsWith("package:")) {
+				let rval = [];
+				if(!this.getAttribute("reverseDepends").trim()) {
+					rval.push(selfName);
+					let deps = this.getAttribute("depends").trim().split(/ +/).filter(x => x && !x.startsWith("*"));
+					if (deps.length !== 0) Array.prototype.push.apply(rval, deps.map(x => "package:" + x));
+				}
+				return rval;
+			} else 
+				return [selfName];
+			]]></getter>
+		</property>
+		<property name="label"
+			onget="return this.getAttribute('label')">
+			<setter><![CDATA[
+			    this.setAttribute('label', val);
+				return val;
+			  ]]></setter>
+		</property>
+		<property name="isEvalEnv">
+			<getter><![CDATA[
+				return this._isEvalEnv;
+			  ]]></getter>
+			<setter><![CDATA[
+				val = Boolean(val);
+				button = document.getAnonymousElementByAttribute(this, "anonid", "detach-button");
+				button.setAttribute("label", val ? "stop browsing this frame" : "detach package " + packageName);
+				if(val) this.setAttribute("evalEnv", true);
+				else if (this.hasAttribute("evalEnv"))
+					this.removeAttribute("evalEnv");
+				return val;
+			  ]]></setter>
+		</property>
+		<property name="checked">
+			<getter><![CDATA[
+				return this._checkbox.checked;
+			  ]]></getter>
+			<setter><![CDATA[
+				this._checkbox.checked = val;
+				this.setAttribute("checked", val);
+				return val;
+			  ]]></setter>
+		</property>
+        <method name="detachCommand">
+			<parameter name="all" />
+		    <body><![CDATA[
+			this.parentNode.dispatchEvent(new CustomEvent("r-command-request", {
+				bubbles: true, cancellable: true, detail: {
+					type: "detach",
+					name: all ? this._detachableItems : this._detachableItems[0],
+					isEvalEnv: this.hasAttribute("evalEnv")
+				}}));
+			]]></body>
+		</method>
+		<method name="check">
+		   <body><![CDATA[
+				this.checked = !this.checked;
+			]]></body>
+		</method>
+		<method name="_select">
+		   <body><![CDATA[
+				this.parentNode.selectItem(this);
+			]]></body>
+		</method>
+	</implementation>
+</binding>
+
+</bindings>

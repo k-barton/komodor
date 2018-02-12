@@ -40,103 +40,103 @@ Contributors:
 <commandset id="cmdset_rbrowser" commandupdater="false">
 	<command id="cmd_rbrowserToggleListAttributes" key="key_cmd_rbrowserToggleListAttributes"
 		oncommand="rob.toggleValue(event, 'listAttributes');"
-		label="&sv.listAttributes;" desc="&sv.listAttributes.desc;"
-		accesskey="&sv.listAttributes.acc;"/>
+		label="&rob.listAttributes;" desc="&rob.listAttributes.desc;"
+		accesskey="&rob.listAttributes.acc;"/>
 	<command id="cmd_rbrowserToggleListAll" key="key_cmd_rbrowserToggleListAll"
 		oncommand="rob.toggleValue(event, 'listAllNames');"
-        label="&sv.listAllNames;" 
-		desc="&sv.listAllNames.desc;"
-		tooltiptext="&sv.listAllNames.tip;"
-		accesskey="&sv.listAllNames.acc;" />
+        label="&rob.listAllNames;" 
+		desc="&rob.listAllNames.desc;"
+		tooltiptext="&rob.listAllNames.tip;"
+		accesskey="&rob.listAllNames.acc;" />
 </commandset>
 
 <popupset id="extensionPopupSet">
 	<menupopup id="rObjectsContext" onpopupshowing="rob.contextOnShow(event)">
 		<menuitem id="menu_rbrowser_insertname"
-			label="&sv.insName;"
+			label="&rob.insName;"
 			oncommand="rob.insertName(false)"
 			accesskey="I"
 			acceltext="Ins" />
 		<menuitem id="menu_rbrowser_insertquoted"
-			label="&sv.insertQuoted;"
+			label="&rob.insertQuoted;"
 			oncommand="rob.insertName(false, true)"
-			accesskey="&sv.insertQuoted.acc;"
+			accesskey="&rob.insertQuoted.acc;"
 			acceltext="Shift+Ins" />
 		<menuitem id="menu_rbrowser_insertfullname"
 			class="primary_menu_item"
 			oncommand="rob.insertName(true)"
 			accesskey="F"
-			label="&sv.insFullName;"
+			label="&rob.insFullName;"
 			acceltext="Ctrl+Ins" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="cmd_rbrowser_removeobj"
-			label="&sv.rmObj;"
+			label="&rob.rmObj;"
 			oncommand="rob.removeSelected(event.shiftKey)"
 			accesskey="R"
 			acceltext="Del"
 			testDisableIf="t:noDelete"
 			key="key_cmd_delete" />
 		<menuitem id="menu_rbrowser_deletenow"
-			label="&sv.deleteNow;"
+			label="&rob.deleteNow;"
 			oncommand="rob.removeSelected(true)"
 			class="menuitem-iconic list-item-remove-icon"
 			acceltext="Shift+Del"
 			testDisableIf="t:noDelete"
-			accesskey="&sv.deleteNow.acc;" />
+			accesskey="&rob.deleteNow.acc;" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="cmd_rbrowser_summary"
-			label="&sv.summary;"
+			label="&rob.summary;"
 			oncommand="rob.doCommand('summary')"
 			testDisableIf="t:isFunction t:isEnvironment"
 			accesskey="S" />
 		<menuitem id="cmd_rbrowser_print"
-			label="&sv.print;"
+			label="&rob.print;"
 			oncommand="rob.doCommand('print')"
 			testDisableIf="t:isPackage"
 			accesskey="P" />
 		<menuitem id="cmd_rbrowser_plot"
-			label="&sv.plot;"
+			label="&rob.plot;"
 			oncommand="rob.doCommand('plot')"
 			testDisableIf="t:noPlot"
 			accesskey="O"/>
 		<menuitem id="cmd_rbrowser_str"
-			label="&sv.str;"
+			label="&rob.str;"
 			oncommand="rob.doCommand('str')"
 			testDisableIf="t:isPackage"
 			accesskey="T"/>
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_selectall"
-			label="&sv.selectAll;"
+			label="&rob.selectAll;"
 			oncommand="rob.selection.selectAll()"
-			accesskey="&sv.selectAll.acc;"
+			accesskey="&rob.selectAll.acc;"
 			acceltext="Ctrl+A" />
 		<menuitem id="menu_rbrowser_selectsiblings"
-			label="&sv.selectSiblings;"
+			label="&rob.selectSiblings;"
 			oncommand="rob.selectAllSiblings(rob.selection.currentIndex)"
-			accesskey="&sv.selectSiblings.acc;"
+			accesskey="&rob.selectSiblings.acc;"
 			acceltext="Ctrl+Shift+A" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_write_table"
 			class="menuitem-iconic write-table-icon"
-			label="&sv.write_table;"
+			label="&rob.write_table;"
 			oncommand="rob.doCommand('write.table')"
 			testDisableIf="t:noSaveToFile"
 			accesskey="T"/>
 
 		<menuitem id="menu_rbrowser_save"
 			class="menuitem-iconic save-buffer-icon"
-			label="&sv.save;"
+			label="&rob.save;"
 			oncommand="rob.doCommand('save')"
 			testDisableIf="t:noSave"
 			accesskey="S" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_help"
-			label="&sv.help;"
+			label="&rob.help;"
 			class="menuitem-iconic help-icon"
 			oncommand="rob.doCommand('help')"
 			testDisableIf="t:multipleSelection t:noHelp"
@@ -149,7 +149,7 @@ Contributors:
 		<hbox align="center" id="rbrowserToolbar" class="toolbar-box status-toolbar"
 			type="icons">
 			<toolbarbutton id="rbrowser_refresh_button"
-				tooltiptext="&sv.refresh.tip;"
+				tooltiptext="&rob.refresh.tip;"
 				buttonstyle="pictures"
 				class="refresh-icon"
 				oncommand="rob.refresh()"/>
@@ -158,22 +158,22 @@ Contributors:
 					buttonstyle="pictures"
 					class="robjects-fold-all-icon"
 					oncommand="rob.foldAll(true)"
-					tooltiptext="&sv.foldAll;"/>
+					tooltiptext="&rob.foldAll;"/>
 				<toolbarbutton id="rbrowser_ExpandAll_button"
 					buttonstyle="pictures"
 					class="robjects-expand-all-icon"
 					oncommand="rob.foldAll(false)"
-					tooltiptext="&sv.unfoldAll;"/>
+					tooltiptext="&rob.unfoldAll;"/>
 
 				<toolbarseparator style="min-width:10px;" flex="1"/>
 
 				<textbox id="rbrowser_filterbox" flex="1"
 					type="search" timeout="500"
-					tooltiptext="&sv.filter.tip;"
+					tooltiptext="&rob.filter.tip;"
 					style="min-width: 40px; max-width: 200px; margin-right: 0px;"
 					class="search-box"
 					oncommand="rob.applyFilter()"
-					emptytext="&sv.filterEmptyText;"
+					emptytext="&rob.filterEmptyText;"
 					/>
 
 				<toolbarbutton type="radio" group="filter"
@@ -181,14 +181,14 @@ Contributors:
 							   checked="true"
 							   class="toolbarbutton-iconic"
 							   oncommand="rob.setFilterBy(this, 'name')"
-							   label="&sv.filterByName;"
-							   tooltiptext="&sv.filterByName;"
+							   label="&rob.filterByName;"
+							   tooltiptext="&rob.filterByName;"
 							   />
 				<toolbarbutton id="rbrowser_filterByClass_button"
 							   type="radio" group="filter"
 							   oncommand="rob.setFilterBy(this, 'class')"
-							   label="&sv.filterByClass;"
-							   tooltiptext="&sv.filterByClass;"
+							   label="&rob.filterByClass;"
+							   tooltiptext="&rob.filterByClass;"
 							   />
 							   
 				<toolbarbutton id="rbrowser_showAll_button"
@@ -211,7 +211,7 @@ Contributors:
 				
 		   </hbox>
 
-			<vbox flex="5">
+			<vbox flex="5" id="treeBox">
 				<tree flex="1" id="rbrowser_objects_tree"
 					persist="sortDirection sortResource"
 					sortDirection="ascending" sortResource="r-name"
@@ -222,20 +222,20 @@ Contributors:
 					hidehscroll="true"
 					>
 					<treecols>
-						<treecol id="r-name" label="&sv.Name;"
+						<treecol id="r-name" label="&rob.Name;"
 							primary="true" sortActive="true"
 							persist="width ordinal hidden"
 							onclick="rob.sort(this)" ordinal="1" flex="4"/>
 						<splitter class="tree-splitter" ordinal="2"/>
-						<treecol id="r-dims" label="&sv.Dims;"
+						<treecol id="r-dims" label="&rob.Dims;"
 							persist="width ordinal hidden"
 							onclick="rob.sort(this)" flex="1" ordinal="3"/>
 						<splitter class="tree-splitter" ordinal="4"/>
-						<treecol id="r-class" label="&sv.Class;"
+						<treecol id="r-class" label="&rob.Class;"
 							flex="2" hidden="true" persist="width ordinal hidden"
 							onclick="rob.sort(this)" ordinal="5"/>
 						<splitter class="tree-splitter" ordinal="6"/>
-						<treecol id="r-fullName" label="&sv.FullName;"
+						<treecol id="r-fullName" label="&rob.FullName;"
 							persist="width ordinal hidden" flex="1" hidden="true" ordinal="7"/>
 					</treecols>
 					<treechildren id="rbrowser_objects_tree_main"
@@ -248,7 +248,17 @@ Contributors:
 						context="rObjectsContext">
 					</treechildren>
 				</tree>
+				<hbox align="center" flex="1" id="rbrowser_objects_tree_placeholder">
+					<vbox align="center" flex="1">
+						<button orient="vertical"
+								oncommand="require('kor/command').startR()">
+							<label value="R session is not connected." />
+							<label value="Click to start."/>
+						</button>						
+					</vbox>
+				</hbox>
 			</vbox>
+		
 			<splitter id="rbrowserSubpanelSplitter"
 					  orient="vertical"
 					  resizeafter="farthest"
@@ -260,14 +270,14 @@ Contributors:
 							  align="center" class="status-toolbar">
 							<label
 								   id="rbrowserSubpanelSplitterProjectLabel"
-								   class="panel-label">&sv.RSearchPath;</label>
+								   class="panel-label">&rob.RSearchPath;</label>
 							<spacer flex="1" />
 							<toolbarbutton id="rbrowserSubpanelToggle"
 										   buttonstyle="pictures"
 										   oncommand="rob.toggleViewSearchPath();"
 										   persist="state"
 										   state="collapsed"
-										   tooltiptext="&sv.RSearchPathButton.tip;"
+										   tooltiptext="&rob.RSearchPathButton.tip;"
 										   />
 							<spacer flex="1" />
 						</hbox>
@@ -279,12 +289,21 @@ Contributors:
 			<vbox id="rbrowserSubpanelBox"
 				 orient="vertical" height="250" minheight="50"
 				  persist="height collapsed" flex="1">
-				<listbox flex="1" id="rbrowser_searchpath_listbox"
+<!--				<listbox flex="1" id="rbrowser_searchpath_listbox"
 					ondrop="rob.draghandlers.onSearchPathDrop(event);"
 					ondragover="rob.draghandlers.onSearchPathDragOver(event);"
 					ondragstart="rob.draghandlers.onSearchPathDragStart(event);"
-					onkeypress="rob.packageListKeyEvent(event);"
+					onkeypress="rob.onSearchPathKeyEvent(event);"
 					oncommand="rob.packageSelectedEvent(event);"/>
+				-->
+				<richlistbox class="rsearchpath" flex="1" id="rbrowser_searchpath_listbox"
+					ondrop="rob.draghandlers.onSearchPathDrop(event);"
+					ondragover="rob.draghandlers.onSearchPathDragOver(event);"
+					ondragstart="rob.draghandlers.onSearchPathDragStart(event);"
+					onkeypress="rob.onSearchPathKeyEvent(event);"
+					oncommand="rob.packageSelectedEvent(event);"
+					/>
+				
 			</vbox>
 		</vbox>
 	</vbox>

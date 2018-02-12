@@ -243,6 +243,13 @@
     
     let _curPrompt = promptStr.normal, _command = [];
     let _waitMessageTimeout;
+	
+	
+	_W.addEventListener('r-evalenv-change', (event) => {
+		if(!event.detail.evalEnvName) return;
+		_curPrompt = (event.detail.evalEnvName === ".GlobalEnv") ? 
+			promptStr.normal : promptStr.browse;
+	}, false);
     
     this.displayResults = function (result, commandInfo, executed, wantMore) {
         timers.clearTimeout(_waitMessageTimeout);

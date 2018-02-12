@@ -9,7 +9,16 @@
 
 @import url("chrome://komodor/skin/rbrowser-common.less");
 
-#rbrowserSubpanelBox,
+
+// Workaround for a bug (komodo>=10), in which richlistbox scrollbar does not
+// appear to respond to any combination of CSS selectors.
+// Komodo developers' brilliant idea to put scrollbars on top of the content
+// cause the vertical scrollbar cover the checkboxes.
+.rsearchpath > scrollbox > box {
+	padding-right: 19px;
+}
+
+#rbrowser_searchpath_listbox,
 #rbrowser_objects_tree {
     scrollbar {
         -moz-appearance: scrollbartrack-horizontal;
@@ -34,28 +43,8 @@
     }
 }
 
+
 #rbrowser_objects_tree {
-    scrollbar {
-        -moz-appearance: scrollbartrack-horizontal;
-        cursor: default;
-        background: transparent;
-        pointer-events: auto;
-        margin: 1px;
-    }
-    @media all and (-moz-overlay-scrollbars) {
-        scrollbar[root="true"] {
-            position: relative;
-            z-index: 2147483647;
-            /* largest positive value of a signed 32-bit integer */
-        }
-        scrollbar:not([active="true"]),
-        scrollbar[disabled="true"] {
-            visibility: hidden;
-        }
-    }
-    scrollbar[orient="vertical"] {
-        -moz-appearance: scrollbartrack-vertical;
-    }
     treecolpicker,
     treecol {
         background-color: @contrast-widget;
@@ -113,3 +102,22 @@
 #rbrowserSubpanelSplitterHbox {
     margin: 0 0;
 }
+
+
+// .rsearchpath colors
+@item-border: @border;
+@button-color-hover: @foreground;
+@label-color-nondetachable: @secondary-special;
+@button-color-dependency: rgba(255, 255, 255, 0.25);
+@button-color-required: rgba(249, 31, 6, 0.25);
+@button-color-focus: @foreground-special;
+@button-reverse-dependency-background-color: rgba(50, 146, 81, 0.25);
+@button-detach-border-color: mix(@special-widget, @contrast, 50%);
+// setting button foreground color is not effective 
+@button-detach-color: @special-foreground-widget; 
+@button-detach-background-color: mix(@secondary-special, @special-widget, 25%);
+@button-detach-active-border-color: @button-detach-background-color;
+@button-detach-active-color: @button-detach-background-color;
+@button-detach-active-background-color: @secondary-special;
+
+@import url("chrome://komodor/skin/searchpath.less");

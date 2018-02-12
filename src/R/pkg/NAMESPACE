@@ -19,7 +19,7 @@ qParse, formatCode,
 setEvalEnv, getEvalEnv,
 isInstalledPkg,
 
-rmElement
+rmElement, doCommand
  
 # TclReval, TclReval2, tclfun,
 

@@ -46,7 +46,7 @@ if (!Object.entries)
     this.widthPrefix = widthPrefix;
     
     this.evalUserCmd = function (cmd) {
-        rConn.evalAsync.call(rConn, widthPrefix() + cmd, null, false);
+        rConn.evalAsync.call(rConn, widthPrefix() + cmd, null, rConn.AUTOUPDATE);
     };
 
     this.escape = function (cmd) rConn.escape(cmd);
@@ -226,8 +226,6 @@ if (!Object.entries)
         return;
     };
 
-    this.rFn = name => "kor::" + name;
-
     // Get help in R (HTML format)
     function askRForHelpURL(topic, pkg) {
         let res = "", cmd = "";
@@ -236,18 +234,17 @@ if (!Object.entries)
         } else if (pkg !== undefined) {
             pkg = _this.arg(pkg);
         } else pkg = _this.arg(null);
-        cmd = 'cat(kor::getHelpURL(' +
-            (topic ? ' topic=' + _this.arg(topic) + "," : "") + 
-            (pkg ? ' package=' + pkg + '' : "") +
-            '), "\\f\\f")';
-        try {
-            res = rConn.eval(cmd, 1.5);
-        } catch (e) {
-            return null;
-        }
-        res = res.substr(0, res.indexOf("\f") - 1);
-        if (res.startsWith("http")) return res;
-        return null;
+        cmd = 'base::cat(kor::getHelpURL(' +
+            (topic ? 'topic=' + _this.arg(topic) + "," : "") + 
+            (pkg ? 'package=' + pkg + '' : "") +
+            '), "<[end-of-result]>")';
+            
+        return new Promise((resolve, reject) => {
+                rConn.evalAsync(cmd, (result) => {
+                    result = result.substr(0, result.indexOf("<[end-of-result]>") - 1);
+                    if (!result.startsWith("http")) result = null;
+                    resolve(result);
+                }, true, false)});
     }
 
     var _lastHelpTopic = {
@@ -255,32 +252,25 @@ if (!Object.entries)
         found: null
     };
 
-    // TODO: - open main page if second time topic is ""
-    //       - handle 'package::function' topic
-    this.getHelp = function (topic) {
-        let result, cmdPackage = null;
-        if (_lastHelpTopic.topic === topic)
-            cmdPackage = _lastHelpTopic.found ? null : true;
-        else
-            _lastHelpTopic.topic = topic;
-        result = askRForHelpURL(topic, cmdPackage);
-
-        if (cmdPackage === true && result === null)
-            result = false;
-        _lastHelpTopic.found = result !== null;
-        return result;
-    };
-
     this.help = function (topic = ui.getTextRange("word")) {
         topic = topic.toString().trim();
         if (topic === "") {
             ui.addNotification(ui.translate("Selection is empty"));
-            return null;
+            return;
         }
-        var helpURI = this.getHelp(topic);
-        if (helpURI == null) return false;
-        korCommand.openHelp(helpURI);
-        return true;
+        let cmdPackage = null;
+        if (_lastHelpTopic.topic === topic)
+            cmdPackage = _lastHelpTopic.found ? null : true;
+        else _lastHelpTopic.topic = topic;
+            
+        askRForHelpURL(topic, cmdPackage).then((helpURI) => {
+            if (cmdPackage === true && helpURI === null)
+                helpURI = false;
+            _lastHelpTopic.found = helpURI !== null;
+            if (helpURI === null) return;
+            logger.debug("r.help: helpURI=" + helpURI);
+            korCommand.openHelp(helpURI);
+        }).catch((e) => logger.exception(e));
     };
 
     // Run the example for selected item
@@ -291,8 +281,8 @@ if (!Object.entries)
         if (topic == "") {
             ui.addNotification(ui.translate("Selection is empty"));
         } else {
-            res = _this.eval("utils::example(" + topic + ")");
-            ui.addNotification(ui.translate("R example run for \"%S\"", topic));
+            res = _this.evalUserCmd("utils::example(" + topic + ")");
+            //ui.addNotification(ui.translate("R example run for \"%S\"", topic));
         }
         return res;
     };
@@ -359,11 +349,9 @@ if (!Object.entries)
             1000);
     };
     
-    
-
     this.saveDataFrame = function _saveDataFrame(name, fileName, objName,
-        dec = require("kor/prefs").getPref("RInterface.CSVDecimalSep"),
-        sep = require("kor/prefs").getPref("RInterface.CSVSep")) {
+        dec = require("ko/prefs").getStringPref("RInterface.CSVDecimalSep"),
+        sep = require("ko/prefs").getStringPref("RInterface.CSVSep")) {
 
         if (!fileName) {
             let filterIndex;
@@ -572,7 +560,6 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
         }, true, true);
     }; // end doFormatCode
 
-
     this.isPackageInstalled = function (pkgName, callback) {
         // TODO use system command R CMD --slave --vanilla -e "find.package(...)"
         if (!require("kor/command").isRRunning) {
@@ -590,8 +577,7 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
             return;
         }
         rConn.evalAsync(`utils::install.packages("${pkgName}")`,
-            () => _this.isPackageInstalled(pkgName, callback), false);
+            () => _this.isPackageInstalled(pkgName, callback), rConn.AUTOUPDATE);
     };
-
 
 }).apply(module.exports);

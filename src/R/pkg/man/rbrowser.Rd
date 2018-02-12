@@ -6,7 +6,7 @@
 \alias{write.objList}
 \title{Functions used by R object browser}
 \usage{
-objSearch(sep = "\\t")
+objSearch(fsep = ";", rsep = "\\t")
 
 objls(expr = NULL, envir = getEvalEnv(), all.names = FALSE,
   attrib = FALSE, ...)
@@ -15,6 +15,8 @@ write.objList(x, file = "", sep = " ", eol = "\\n", fileEncoding = "",
   ...)
 }
 \arguments{
+\item{fsep, rsep}{character strings for field and record separator, respectively.}
+
 \item{expr}{optional, the object of which elements should be listed.}
 
 \item{envir}{which environment to use in listing the objects. Defaults to the current evaluation environment.}

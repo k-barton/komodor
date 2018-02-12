@@ -123,6 +123,7 @@ PrefsetExt.prototype = {
         'RInterface.runRAs': '',
         'RInterface.cmdArgs': '--quiet',
         'RInterface.RCommand': '',
+        'RInterface.rBrowserAutoUpdate': true,
         'RInterface.CSVDecimalSep': '.',
         'RInterface.CSVSep': ',',
         'CRANMirror': 'https://cran.r-project.org/',
@@ -134,22 +135,24 @@ PrefsetExt.prototype = {
         'RInterface.format.newlineBeforeBrace': false
     };
 
-    
-    this.defaults[require("kor/main").langName + "HelpCommand"] = 'javascript:kor.r.help(\"%W\")'; // jshint ignore: line
+    this.defaults[require("kor/main").langName + "HelpCommand"] =
+        'javascript:kor.r.help(\"%W\")'; // jshint ignore: line
   
     this.renamePrefs = function() {
         // Update preference names:
         // backward compatibility - rename old properties
         // IMPORTANT: update order to match 'defaults'!
         let oldNames = ["sciviews.ko.port", "sciviews.r.port", "sciviews.r.host", "svRDefaultInterpreter",
-            "svRApplication", "svRArgs", "svRCommand", "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
+            "svRApplication", "svRArgs", "svRCommand", null,
+            "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
             "rRemoteHelpURL", "sciviews.margin.click",
-            "RInterface.tidy.keepBlankLines", "RInterface.tidy.replaceAssign", "RInterface.tidy.newlineBeforeBrace",
+            "RInterface.tidy.keepBlankLines", "RInterface.tidy.replaceAssign",
+            "RInterface.tidy.newlineBeforeBrace",
             "R_extendedHelpCommand"
         ];
         let newNames = Object.keys(_this.defaults);
         for (let i = 0; i < newNames.length; ++i) {
-            if (_pref.renamePref(oldNames[i], newNames[i]))
+            if (oldNames[i] && _pref.renamePref(oldNames[i], newNames[i]))
                 logger.info("Updated preference name from " + oldNames[i] + " to " + newNames[i]);
         }
     };

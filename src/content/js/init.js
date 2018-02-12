@@ -59,18 +59,18 @@
         }
     };
 
-    var ensureRFileAssociation = function ensureRFileAssoc() {
+    var ensureRFileAssociation = function ensureRFileAssociation() {
         var view = require("ko/views").current();
         if (view && view.koDoc && view.koDoc.file.ext === ".R") {
             checkFileAssociation();
-            window.removeEventListener('view_opened', ensureRFileAssoc, false);
+            window.removeEventListener('view_opened', ensureRFileAssociation, false);
             if (view.koDoc.language !== kor.langName) view.koDoc.language = kor.langName;
         }
     };
 
     window.addEventListener('view_opened', ensureRFileAssociation, false);
 
-    //--------------------------------------------------------------------------------------------------------  
+    //--------------------------------------------------------------------------  
 
     // Set default keybindings from file
     // chrome://komodor/content/default-keybindings.kkf
@@ -171,10 +171,12 @@
             prefs.deletePref("rInterface.firstRunDone");
             
             let langHelpCommandName = require("kor/main").langName + "HelpCommand";
-            let langHelpCommand = prefs.getStringPref(langHelpCommandName);
-            if (langHelpCommand.contains('sv'))
-                prefs.setStringPref(langHelpCommandName, langHelpCommand.replace(/\bsv\b/g, "kor"));
-        
+            if(prefs.hasStringPref(langHelpCommandName)) {
+				let langHelpCommand = prefs.getStringPref(langHelpCommandName);
+				if (langHelpCommand.contains('sv'))
+					prefs.setStringPref(langHelpCommandName, langHelpCommand.replace(/\bsv\b/g, "kor"));
+			}
+			
             // Open NEWS:
             let doc = Services.koDocSvc.createDocumentFromURI("chrome://komodor/content/doc/NEWS.html");
             require("ko/views").manager.topView.createViewFromDocument(doc, 'browser', -1);

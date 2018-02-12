@@ -1,56 +1,53 @@
-<!ENTITY sv.tab "R Objects">
-<!ENTITY sv.tip "R objects explorer">
-<!ENTITY sv.refresh "Reload">
-<!ENTITY sv.refresh.tip "Reload R object list">
-<!ENTITY sv.showHide "Search path">
-<!ENTITY sv.showHide.tip "Show/hide search path">
-<!ENTITY sv.filter.tip "Filter by regular expression">
-<!ENTITY sv.Name "Name">
-<!ENTITY sv.Dims "Dims">
-<!ENTITY sv.Group "Group">
-<!ENTITY sv.Class "Class">
-<!ENTITY sv.FullName "Full name">
-<!ENTITY sv.foldAll "Fold all items of current branch">
-<!ENTITY sv.unfoldAll "Unfold all items of current branch">
+<!ENTITY rob.tab "R Objects">
+<!ENTITY rob.tip "R environment explorer">
+<!ENTITY rob.refresh "Reload">
+<!ENTITY rob.refresh.tip "Reload R object list">
+<!ENTITY rob.showHide "Search path">
+<!ENTITY rob.showHide.tip "Show/hide search path">
+<!ENTITY rob.filter.tip "Filter by regular expression">
+<!ENTITY rob.Name "Name">
+<!ENTITY rob.Dims "Dims">
+<!ENTITY rob.Group "Group">
+<!ENTITY rob.Class "Class">
+<!ENTITY rob.FullName "Full name">
+<!ENTITY rob.foldAll "Fold all items of current branch">
+<!ENTITY rob.unfoldAll "Unfold all items of current branch">
 
-<!ENTITY sv.insName "Insert name into text">
-<!ENTITY sv.insFullName "Insert full name">
-<!ENTITY sv.rmObj "Remove objects (insert R code)">
-<!ENTITY sv.loadPkg "Load R package">
-<!ENTITY sv.detach "Detach R package">
-<!ENTITY sv.clrFilter "Clear filter text">
-<!ENTITY sv.filterByDims "Filter dimensions">
-<!ENTITY sv.filterByGroup "Filter group">
-<!ENTITY sv.filterByClass "Filter class">
-<!ENTITY sv.filterByName "Filter name">
-<!ENTITY sv.filterEmptyText "Filter name...">
-<!ENTITY sv.listAttributes "List attributes">
-<!ENTITY sv.listAttributes.acc "A">
-<!ENTITY sv.listAttributes.desc "R Object Browser: List attributes">
-<!ENTITY sv.listAllNames "List hidden objects">
-<!ENTITY sv.listAllNames.acc "H">
-<!ENTITY sv.listAllNames.tip "List hidden objects">
-<!ENTITY sv.listAllNames.desc "R Object Browser: List hidden objects">
-<!ENTITY sv.help "R help on object">
-<!ENTITY sv.names "Names">
-<!ENTITY sv.str "Structure">
-<!ENTITY sv.plot "Plot">
-<!ENTITY sv.print "Print">
-<!ENTITY sv.summary "Summary">
-<!ENTITY sv.write_table "Write to textfile...">
-<!ENTITY sv.save "Save selected...">
+<!ENTITY rob.insName "Insert name into text">
+<!ENTITY rob.insFullName "Insert full name">
+<!ENTITY rob.rmObj "Remove objects (insert R code to editor)">
+<!ENTITY rob.loadPkg "Load R package">
+<!ENTITY rob.detach "Detach R package">
+<!ENTITY rob.clrFilter "Clear filter text">
+<!ENTITY rob.filterByDims "Filter dimensions">
+<!ENTITY rob.filterByGroup "Filter group">
+<!ENTITY rob.filterByClass "Filter class">
+<!ENTITY rob.filterByName "Filter name">
+<!ENTITY rob.filterEmptyText "Filter name...">
+<!ENTITY rob.listAttributes "List attributes">
+<!ENTITY rob.listAttributes.acc "A">
+<!ENTITY rob.listAttributes.desc "R Object Browser: List attributes">
+<!ENTITY rob.listAllNames "List hidden objects">
+<!ENTITY rob.listAllNames.acc "H">
+<!ENTITY rob.listAllNames.tip "List hidden objects">
+<!ENTITY rob.listAllNames.desc "R Object Browser: List hidden objects">
+<!ENTITY rob.help "R help on selected name">
+<!ENTITY rob.names "Names">
+<!ENTITY rob.str "Structure">
+<!ENTITY rob.plot "Plot">
+<!ENTITY rob.print "Print">
+<!ENTITY rob.summary "Summary">
+<!ENTITY rob.write_table "Write to textfile...">
+<!ENTITY rob.save "Save selected...">
 
-<!ENTITY sv.deleteNow "Remove R objects">
-<!ENTITY sv.deleteNow.acc "R">
-<!ENTITY sv.insertQuoted "Insert quoted">
-<!ENTITY sv.insertQuoted.acc "Q">
-<!ENTITY sv.selectAll "Select all">
-<!ENTITY sv.selectAll.acc "A">
-<!ENTITY sv.selectSiblings "Select current level">
-<!ENTITY sv.selectSiblings.acc "L">
+<!ENTITY rob.deleteNow "Remove objects">
+<!ENTITY rob.deleteNow.acc "R">
+<!ENTITY rob.insertQuoted "Insert quoted names">
+<!ENTITY rob.insertQuoted.acc "Q">
+<!ENTITY rob.selectAll "Select all">
+<!ENTITY rob.selectAll.acc "A">
+<!ENTITY rob.selectSiblings "Select current level">
+<!ENTITY rob.selectSiblings.acc "L">
 
-
-<!ENTITY sv.RSearchPath "R search path">
-<!ENTITY sv.RSearchPathButton.tip "Open the R Search Path Subpanel">
-
-
+<!ENTITY rob.RSearchPath "R search path">
+<!ENTITY rob.RSearchPathButton.tip "Open the R Search Path Subpanel">

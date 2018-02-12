@@ -15,7 +15,8 @@
 \alias{pkgManDetachPackage}
 \title{Package manager supporting routines}
 \usage{
-pkgManGetDescription(pkgName, print = TRUE)
+pkgManGetDescription(pkgName, print = TRUE, omitFields = NULL,
+  revDep = TRUE, ...)
 
 pkgManGetMirrors()
 
@@ -44,6 +45,10 @@ pkgManDetachPackage(pkgName)
 
 \item{print}{logical, if \code{TRUE} the result is printed in DCF format.}
 
+\item{revDep}{logical, should reverse dependencies (only within installed packages) be added to standard fields?}
+
+\item{\dots}{optional, additional arguments passed to \code{pkgReverseDependencies}. Possible arguments are:}
+
 \item{page}{character string. Either "prev", "next" (default), "first", "last" or "current".}
 
 \item{pattern}{an optional regular expression. Only names matching pattern are returned.}
@@ -63,6 +68,8 @@ pkgManDetachPackage(pkgName)
 \item{ask}{if \code{TRUE}, asks for confirmation first.}
 
 \item{json}{logical. Should the result be stringized in JSON format?}
+
+\item{fields}{a character vector giving the tags of fields to be omitted.}
 }
 \description{
 These functions are used by the R package manager.

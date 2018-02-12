@@ -45,7 +45,6 @@ var kor = {};
     }
     
     var _rOB;
-    
     Object.defineProperties(_this, {
         command: { get() require("kor/command"), enumerable: true},
         rbrowser: { get() {
@@ -101,6 +100,12 @@ var kor = {};
     this.checkRVersion = (fileName) => _this.rCliExec(fileName, "cat(R.version.string)");
 //     var r = require("kor/fileutils").whereIs("R")   
 //     for(let i = 0; i < r.length; ++i) kor.checkRVersion(r[i]).then((function(j, val) this[j] = val).bind(res, i));
+
+
+    this.fireEvent = (eventName, detail) => {
+        require("sdk/timers").setImmediate(() => _this.command.fireEvent(_w, eventName, detail, false, false));
+    };
+   
    
 }).apply(kor);
 
@@ -111,5 +116,3 @@ if (typeof module === "object") {
 } else {
     this.EXPORTED_SYMBOLS = ["kor"]; // jshint ignore: line
 }
-
-
