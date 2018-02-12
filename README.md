@@ -1,4 +1,5 @@
 
+<img align="left" src="https://raw.githubusercontent.com/k-barton/komodor/master/img/logo1.png"
 alt="KomodoR logo" style="float: left" />
 
 Provides [R language](https://www.r-project.org/) support and interface between 
@@ -9,7 +10,8 @@ R environment and Komodo.
 This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, and since then has been largely rewritten. 
 
-Code completion and syntax checking works only with “R\_extended” not “R“. 
+This add-on provides a file type named __“R\_extended”__ to avoid conflict with Komodo's 
+built-in R syntax highlighter. Code completion and syntax checking works only with “R\_extended” not “R“.
 "R" language provided by this add-on is named __“R\_extended”__ to 
 avoid conflict with Komodo's built-in R syntax highlighter. 
 
@@ -67,6 +69,7 @@ No additional R packages are required, however your R installation needs to have
 * R language help (Shift+F1 while in an *R_extended* document):
     * the selected keyword is searched for in the loaded packages. If nothing is 
 	  found, press Shift+F1 again to search in all packages.
+* The *R tools* toolbox has some more or less useful commands:
     * R markdown preview;
     * Insert result of the selected text evaluated in R;
 	* Color picker (inserts hex code to the text);
