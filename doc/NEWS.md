@@ -45,11 +45,11 @@ css: chrome://komodor/skin/doc.css
   The global `sv` object is replaced by `kor`. For example:
 
 	```r    
-		kor.r.evalUserCmd("runif(10)")
+kor.r.evalUserCmd("runif(10)")
 	```
     or (outside the main window)
 	```r 
-		require("kor/r").evalUserCmd("runif(10)")
+require("kor/r").evalUserCmd("runif(10)")
 	```
 
 * Most internal R commands is executed asynchronously.
