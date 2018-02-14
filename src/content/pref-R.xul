@@ -222,14 +222,16 @@
 				<rows>
 					<row align="center">
 						<label value="Server port #:" control="RInterface.RPort" />
-						<textbox id="RInterface.RPort" pref="true" width="50" class="numeric-input" />
+						<textbox id="RInterface.RPort" pref="true" width="50" class="numeric-input"
+								 type="number" min="1025" max="65535" wraparound="true" />
 						<label value="Host to connect to:" control="RInterface.RHost" />
 						<textbox id="RInterface.RHost" pref="true" width="150"
 								 tooltip="Currently only local connection is allowed" disabled="true" />
 					</row>
 					<row align="center">
 						<label value="Client port #:" control="RInterface.koPort" />
-						<textbox id="RInterface.koPort" pref="true" width="50" class="numeric-input" />
+						<textbox id="RInterface.koPort" pref="true" width="50" class="numeric-input"
+								 type="number" min="1025" max="65535" wraparound="true" />
 					</row>
 				</rows>
 			</grid>

@@ -537,9 +537,7 @@ function OnPreferencePageOK(prefset) {
     //var prefs = new (require("kor/prefs")).PrefsetExt(prefset);
     //let str = Object.keys(require("kor/prefs").defaults).map((i) => `${i} = ${prefs.getPref(i)} (${prefset.getPrefType(i)})`);
     //ko.dialogs.alert("R preferences:", str.join("\r\n"), "Komodo-R interface");
- 
-        
-    
+	
         var outDec = document.getElementById('RInterface.CSVDecimalSep').value;
         var outSep = document.getElementById('RInterface.CSVSep').value;
     
@@ -548,6 +546,7 @@ function OnPreferencePageOK(prefset) {
     
         if (outDec === outSep) {
             parent.switchToPanel("svPrefRItem");
+			document.getElementById("RInterface.CSVSep").focus();
             getDialogs().alert(
                 "Decimal separator cannot be the same as field separator.", null,
                 "R interface preferences");
@@ -565,12 +564,24 @@ function OnPreferencePageOK(prefset) {
             'OutSep=' + r.arg(outSep) + ')', null, true);
         }
     
-        var newClientPort = parseInt(document.getElementById('RInterface.koPort').value);
+        var newServerPort = parseInt(document.getElementById('RInterface.RPort').value);
+		var newClientPort = parseInt(document.getElementById('RInterface.koPort').value);
+		
+		
+		if(newClientPort === newServerPort) {
+			parent.switchToPanel("svPrefRItem");
+			document.getElementById("RInterface.RPort").focus();
+            getDialogs().alert(
+                "Server and client port numbers cannot be equal.", null,
+                "R interface preferences");
+            return false;
+		}
+		
         var currentClientPort = rConn.getSocketPref("RInterface.koPort");
         
         if (rConn.serverIsUp &&
             newClientPort != currentClientPort) {
-            var connected = rConn.isRConnectionUp(true);
+            let connected = rConn.isRConnectionUp(true);
     
             if(getDialogs().yesNo("Server port changed (from " + currentClientPort +
                                 " to " + newClientPort + "), would you like to " +

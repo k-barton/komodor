@@ -20,8 +20,9 @@ function (verbose = FALSE) {
 	} else vmsg(initFileName, "not found.")
 	msg("cwd is now ", sQuote(getwd()))
 
-	port <- as.integer(getOption("ko.R.port", 6666L))
+	port <- as.integer(getOption("ko.R.port", 1025L))
 	port.last <- 65535L
+	if(port >= port.last) port <- 1025L
 	while((port < port.last) && (as.character(startServer(port)) == "0"))
 		port <- port + 1L
 	vmsg("Socket server started at port", port)
@@ -44,7 +45,7 @@ function (verbose = FALSE) {
 	}
 
 	Rservers <- enumServers()
-	vmsg("R servers running: ", enumServers())
+	vmsg("R servers running: ", Rservers)
     if(length(Rservers) > 0L) {
         portstr <- tail(Rservers, 1L)
         options(ko.R.port = as.integer(portstr))
