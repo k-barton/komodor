@@ -173,10 +173,11 @@ var kor = {
 
     this.escape = function ( /*command*/ ) _this.evalAsync("\x1b");
 
+    // TODO: make async
     this.isRConnectionUp = function (quiet) {
         var connected;
         try {
-            let test = _this.eval("base::cat(\"nuqneH 'u'\")");
+            let test = _this.eval("base::cat(\"nuqneH 'u'\")", 1.0);
             connected = test.contains("nuqneH 'u'");
         } catch (e) {
             connected = false;
@@ -215,42 +216,49 @@ var kor = {
     this.startSocketServer = function (requestHandler) {
         if (!requestHandler) requestHandler = defaultRequestHandler;
         var port = svc.RConnector.startSocketServer({onDone: requestHandler});
-
-        if (!port) {
+        if (!port)
             addNotification('Server could not be started');
-        } else if (port > 0) {
-            addNotification('Server started at port ' + port);
-            prefs.setPref("RInterface.koPort", port, true, true);
-            _this.evalAsync("base::options(ko.port=" + port + ")", null, true);
-        }
         return port;
     };
 
     this.stopSocketServer = () => svc.RConnector.stopSocketServer();
 
-    let _sServerDoRestart = false;
-    
-    this.restartSocketServer = function (requestHandler) {
-        if (_this.serverIsUp) {
-            _sServerDoRestart = true;
-            _this.stopSocketServer();
-        } else {
-            _this.startSocketServer(requestHandler);
-        }
-    };
+	this.restartSocketServer = function (requestHandler, callback) {
+		if (callback) {
+			svc.Obs.addObserver(function _serverStartupCallback(subject, topic) {
+				if (topic !== 'r-server-started') return;
+				svc.Obs.removeObserver(_serverStartupCallback, "r-server-started", false);
+				callback.call(null, subject.QueryInterface(Ci.nsISupportsPRInt32));
+			}, "r-server-started", false);
+		}
+		if (_this.serverIsUp) {
+			svc.Obs.addObserver(function _serverRestarter(subject, topic) {
+				if (topic !== 'r-server-stopped') return;
+				svc.Obs.removeObserver(_serverRestarter, "r-server-stopped", false);
+				_this.startSocketServer(requestHandler);
+			}, "r-server-stopped", false);
+			_this.stopSocketServer();
+		} else
+			_this.startSocketServer(requestHandler);
+	};
 
     var serverObserver = {
         observe: function (subject, topic, data) {
             if (topic === 'r-server-stopped') {
-                if (_sServerDoRestart) {
-                    _this.startSocketServer(); // TODO: use requestHandler
-                    _sServerDoRestart = false;
-                }
-                addNotification("Server stopped");
+                 addNotification("Server stopped");
+            } else if (topic === 'r-server-started') {
+                let port = subject.QueryInterface(Ci.nsISupportsPRInt32).data;
+                if (port > 1000) {
+                    addNotification("Server started at port " + port);
+                    prefs.setPref("RInterface.koPort", port, true, true);
+                    _this.evalAsync("base::options(ko.port=" + port + ")", null, true);
+                } else
+                    logger.warn("serverObserver: on socket start received port #" + port);
+                
             }
         }
     };
-
+	
     var _socketPrefs = {
         "RInterface.RPort": null,
         "RInterface.RHost": null,
@@ -325,6 +333,7 @@ var kor = {
     svc.Obs.addObserver(rEvalObserver, "r-command-sent", false);
     svc.Obs.addObserver(rEvalObserver, "r-command-executed", false);
     svc.Obs.addObserver(serverObserver, 'r-server-stopped', false);
+    svc.Obs.addObserver(serverObserver, 'r-server-started', false);
 
     for (let i in _socketPrefs)
         if (_socketPrefs.hasOwnProperty(i)) {

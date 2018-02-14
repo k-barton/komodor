@@ -10,14 +10,14 @@ locale  komodor     en-GB     jar:komodor.jar!/locale/en-GB/
 
 skin    komodor  classic/1.0  jar:komodor.jar!/skin/
 
-override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser9.less appversion<10.00
-override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser10.less appversion>=10.00
+override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser/rbrowser9.less appversion<10.00
+override chrome://komodor/skin/rbrowser.css less://komodor/skin/rbrowser/rbrowser10.less appversion>=10.00
 
 override chrome://komodor/skin/komodor.css less://komodor/skin/komodor9.less appversion<10.00
 override chrome://komodor/skin/komodor.css less://komodor/skin/komodor10.less appversion>=10.00
 
-override chrome://komodor/skin/pref-R.css less://komodor/skin/pref-R9.less appversion<10.00
-override chrome://komodor/skin/pref-R.css less://komodor/skin/pref-R10.less appversion>=10.00
+override chrome://komodor/skin/pref-R.css less://komodor/skin/pref/pref9.less appversion<10.00
+override chrome://komodor/skin/pref-R.css less://komodor/skin/pref/pref10.less appversion>=10.00
 
 override chrome://komodor/skin/pkgman/pkgman.css less://komodor/skin/pkgman/pkgman9.less appversion<10.00
 override chrome://komodor/skin/pkgman/pkgman.css less://komodor/skin/pkgman/pkgman10.less appversion>=10.00

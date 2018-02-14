@@ -131,7 +131,7 @@
         _this.setRStatus(connected);
     };
 
-    this.startR = function () {
+    this.startR = function startR() {
         if (!Prefs.getPref("RInterface.RCommand")) {
             if (ko.dialogs.okCancel(
                     UI.translate("R interpreter is not set in " +
@@ -140,10 +140,16 @@
                 _this.openRPreferences();
             return;
         }
+		
+		if(!RConn.serverIsUp) {
+			logger.debug("startR: starting socket server.");
+			RConn.restartSocketServer(null, startR);
+			return;
+		}
 
         var rDir = fu.path("ProfD", "extensions", "komodor@komodor", "R");
         fu.write(fu.path(rDir, "_init.R"),
-            "setwd('" + su.addslashes(_this.getCwd(false)) +
+            "base::setwd('" + su.addslashes(_this.getCwd(false)) +
             "')\n" + "options(" +
             "ko.port=" + Prefs.getPref("RInterface.koPort", Prefs.defaults[
                 "RInterface.koPort"]) +
@@ -152,9 +158,9 @@
                 "RInterface.RPort"]) +
             ", " +
             "ko.host=\"localhost\")\n" +
-            "..ko.repos.. <- getOption(\"repos\"); ..ko.repos..[[\"CRAN\"]] <- \"" +
+            "..ko.repos.. <- base::getOption(\"repos\"); ..ko.repos..[[\"CRAN\"]] <- \"" +
             Prefs.getPref("CRANMirror") + "\"; " +
-            "options(repos = ..ko.repos..); rm(..ko.repos..); \n"
+            "base::options(repos = ..ko.repos..); base::rm(..ko.repos..); \n"
         );
         // TODO: use RInterface.RHost
 
