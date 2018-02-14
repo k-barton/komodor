@@ -1,13 +1,11 @@
-version 100
+version 104
 
-binding cmd_svRRunAll F5
-binding cmd_svRSourceAll Shift+F5
-binding cmd_svRRunLineOrSelection F6
-binding cmd_svRSourceLineOrSelection Shift+F6
-binding cmd_svRRunBlock F7
-binding cmd_svRSourceBlock Shift+F7
-binding cmd_svRRunLineOrSelection F11
-binding cmd_svRRunPara F12
-binding cmd_svRSourcePara Shift+F12
-binding cmd_svRRunFunction Ctrl+F12
-binding cmd_svRSourceFunction Ctrl+Shift+F12
+binding cmd_svRSourceLineOrSelection Ctrl+Shift+<
+binding cmd_svRSourceBlock Ctrl+Shift+!
+binding cmd_svRRunFunction Ctrl+Shift+"
+binding cmd_svRSourceFunction Ctrl+Shift+|
+binding cmd_svRRunLineOrSelection Ctrl+Shift+R
+binding cmd_svRRunBlock Ctrl+Shift+B
+binding cmd_svRRunPara Ctrl+Shift+A
+binding cmd_svRSourceAll Ctrl+Shift+@
+binding cmd_svRSourcePara Ctrl+Shift+>
