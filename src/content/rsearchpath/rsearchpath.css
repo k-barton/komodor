@@ -1,0 +1,40 @@
+
+richlistitem[selected] {
+	min-height: 4em;
+}
+
+richlistitem:not([selected]) .item-details {
+	visibility: collapse;
+}
+
+.item-details > * {
+  display: inline-block;
+}
+
+toolbarbutton {
+  -moz-appearance: none;
+  display: inline-block;
+  -moz-user-focus: normal !important;
+}
+
+checkbox .checkbox-label-box,
+toolbarbutton .toolbarbutton-icon {
+	display: none;
+}
+
+toolbarbutton .toolbarbutton-text {
+	visibility:  visible;
+}
+
+richlistitem[nondetachable] *[anonid="detach-button-box"] {
+	visibility: collapse;
+}
+
+.no-detach > [anonid="detach-button"],
+.no-detach > [anonid="detach-all-button"] {
+	visibility: collapse;
+}
+
+.no-detach-all > [anonid="detach-all-button"]  {
+	visibility: collapse;
+}

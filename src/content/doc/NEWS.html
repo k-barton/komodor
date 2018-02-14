@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>What's new in R Interface?</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="chrome://komodor/skin/doc.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">What's new in R Interface?</h1>
+</div>
+<p>(Version 0.3.1)</p>
+<ul>
+<li><p>The code has been reorganized. Most JS code is now included in CommonJS modules. The global <code>sv</code> object is replaced by <code>kor</code>. For example:</p>
+<p>kor.r.evalUserCmd(&quot;runif(10)&quot;)</p></li>
+</ul>
+<p>or (outside the main window)</p>
+<pre><code>require(&quot;kor/r&quot;).evalUserCmd(&quot;runif(10)&quot;)</code></pre>
+<ul>
+<li><p>Improvements to R preference page:</p>
+<ul>
+<li>User can edit the command to start R.</li>
+<li>R version string is shown upon selection of R path.</li>
+<li>Package <code>formatR</code> is detected (and installed) via command line, so also when no R session is connected.</li>
+<li>On Linux, some additional terminal emulators to run R within have been added.</li>
+<li>On Mac, added option to use <code>xterm</code> (this has not been tested and is likely not to work).</li>
+</ul></li>
+<li><p>&quot;R Tools&quot; toolbox has a new folder &quot;Troubleshooting&quot; with some tools that may come in handy when things when something breaks.</p></li>
+<li><p>Large outputs from R no longer cause Komodo freeze.</p></li>
+<li><p>R Package Manager has new style.</p></li>
+<li><p>A number of bug fixes and stability improvements.</p></li>
+<li><p>R output's printing width is set to match the width of the Command Output panel.</p></li>
+<li><p>R object browser is being automatically updated after a command is executed by R. To go back to manual refresh uncheck the option in &quot;R Preferences&quot;.</p></li>
+<li><p>R object browser has got a refurbished &quot;R Search Path&quot; panel, displaying dependences for each item, and packages which depend on the item. Items (with dependencies) can be detached via command buttons or by pressing Delete (or Shift+Delete).</p></li>
+<li><p>Most internal R commands is executed asynchronously.</p></li>
+</ul>
+<p>(previous Version)</p>
+<ul>
+<li><p>Much improved &quot;R object browser&quot; widget:</p>
+<ul>
+<li>browsing within R expression tree (e.g. <code>parse</code>d code, function <code>body</code>, or <code>formula</code>)</li>
+<li>listing of objects' attributes (menu under <img src="chrome://komodor/skin/images/cog.svg" width="16" style="vertical-align: middle;" alt="cog" /> button on the widget's toolbar)</li>
+<li>removal of formal function arguments (only non-package functions) and objects' attributes (Shift+Del)</li>
+<li>listing of the current evaluation environment in the <a href="chrome://komodor/content/doc/koDebug.html">debugging mode</a></li>
+<li>new SVG icons, simplified style</li>
+<li>&quot;Group&quot; column is removed (which has been present only for historical reasons)</li>
+<li>&quot;R search path&quot; panel: restored keyboard navigation</li>
+</ul></li>
+<li><p>Large number of bug fixes and stability improvements.</p></li>
+</ul>
+</body>
+</html>

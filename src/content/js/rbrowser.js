@@ -1778,9 +1778,9 @@ var rob = {};
         
         // check again
         setTimeout(() => {
-			logger.debug("Rbrowser.onLoad->on timeout 1");
+			logger.debug("Rbrowser.onLoad: delayed refresh");
            _this.refresh();
-        }, 500);
+        }, 1500);
 		
 		let _w = require("kor/main").mainWin;
 		
@@ -1789,13 +1789,13 @@ var rob = {};
 		_w.addEventListener('r-environment-change', _this.onREnvironmentChange, false);
         window.addEventListener("r-command-request", this.onRCommandRequestEvent, false);   
         
-        const prefs = require("kor/prefs");
+        const prefs = require("ko/prefs");
         let auPrefName = "RInterface.rBrowserAutoUpdate";
 		
-		if(!prefs.prefset.hasBooleanPref(auPrefName))
-			prefs.prefset.setBooleanPref(auPrefName, true);
+		if(!prefs.hasBooleanPref(auPrefName))
+			prefs.setBooleanPref(auPrefName, true);
         
-        if(prefs.prefset.getBooleanPref(auPrefName)) {
+        if(prefs.getBooleanPref(auPrefName)) {
                 logger.debug("Rbrowser.onLoad: setting R browser autoupdate");
                 require("kor/main").mainWin
                     .addEventListener('r-command-executed',
