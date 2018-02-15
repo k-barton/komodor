@@ -10,11 +10,6 @@ R environment and Komodo.
 This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, and since then has been largely rewritten. 
 
-This add-on provides a file type named __“R\_extended”__ to avoid conflict with Komodo's 
-built-in R syntax highlighter. Code completion and syntax checking works only with “R\_extended” not “R“.
-"R" language provided by this add-on is named __“R\_extended”__ to 
-avoid conflict with Komodo's built-in R syntax highlighter. 
-
 **Features:**
 
 * Connect to “R” session from Komodo
@@ -35,17 +30,18 @@ avoid conflict with Komodo's built-in R syntax highlighter.
 * R package manager
 * R working directory can be changed from _Places_ pane (in the context menu)
 
+This add-on provides a file type named __“R\_extended”__ to avoid conflict with Komodo's 
+built-in R syntax highlighter. Code completion and syntax checking works only with “R\_extended” not “R“.
+
 No additional R packages are required, however your R installation needs to have Tcl capability 
 (R: `capabilities("tcltk")`). See also _Known issues_ below.
 
-
 **Main API functions**
 
-*  in Komodo: `sv.r.eval` and `sv.r.evalAsync` JavaScript functions execute a 
-   command in R and return the output.
+*  in Komodo: `kor.r.evalUserCmd` JavaScript function sends a command to R.
 *  in R: `koCmd` executes a JavaScript command in Komodo and returns the result 
    if any.
-   
+*  For more advances uses, CommonJS module `"kor/r"` (or `kor.r` object in the main `window`) has functions to perform various tasks _via_ R, and the `"kor/connector"` module has more low level functions for communication between R and Komodo, of which `require("kor/connector").evalAsync(command, callback)` is the most useful.
    
 **Some other, obscure features:**
 
