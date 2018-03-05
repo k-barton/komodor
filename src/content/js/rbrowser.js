@@ -1714,9 +1714,7 @@ var rob = {};
     };
     
     this.activate = function(state) {
-        var box = document.getElementById("treeBox");
         var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
-		
         if (state == viewbox.hasAttribute("active")) return; // keep "=="
         var controls = document.getElementById("rbrowserToolbar").childNodes;
         if(state) {
@@ -1815,7 +1813,11 @@ var rob = {};
 		_w.addEventListener('r-evalenv-change', _this.onREnvironmentChange, false);
 		_w.addEventListener('r-environment-change', _this.onREnvironmentChange, false);
         window.addEventListener("r-command-request", this.onRCommandRequestEvent, false);   
-        
+
+		// needed if rob widget is loaded after initial "r-status-change" event.
+		if(require("kor/command").isRRunning) 
+			_this.activate(true);
+		
         const prefs = require("ko/prefs");
         let auPrefName = "RInterface.rBrowserAutoUpdate";
 		
