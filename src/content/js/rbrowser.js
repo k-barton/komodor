@@ -1073,8 +1073,22 @@ var rob = {};
                 dataTypes.effectAllowed = "none";
         },
 
+		onSearchPathDragEnter(event) {
+			if(!event.relatedTarget || document.getBindingParent(event.relatedTarget) === event.target)
+				return;
+			event.target.classList.add("dragTarget");
+		},
+		onSearchPathDragLeave(event) {
+			if(!event.relatedTarget || document.getBindingParent(event.relatedTarget) === event.target)
+				return;
+			event.target.classList.remove("dragTarget");
+		},		
+		
         onSearchPathDrop(event) {
-            let data = event.dataTransfer;
+            
+			event.target.classList.remove("dragTarget");
+			
+			let data = event.dataTransfer;
             let filePath, text;
             if (data.types.contains("application/x-moz-file")) {
                 filePath = data.getData("application/x-moz-file").path;
@@ -1088,6 +1102,7 @@ var rob = {};
 				
 			//let el = .getElementsByAttribute("id", event.target.id)[0];
 			
+			
 			let el = event.target;
 			try {
 				if(el._isEvalEnv) el = el.nextElementSibling;
@@ -1096,9 +1111,6 @@ var rob = {};
 				el = null;
 			}
 			pos = el && el.label ? el.label : 2;
-			
-			
-			logger.log("searchPath: dropping onto list at pos=" + pos);
 
             // Attach the file if it is an R workspace
             if (filePath && filePath.search(/\.RData$/i) > 0) {
@@ -1117,7 +1129,7 @@ var rob = {};
                     text = text.substring(8);
 				
 				event.preventDefault();
-
+				
                 RConn.evalAsync("kor::doCommand(\"library\", " + R.arg(text) + ", " + 
 				    R.arg(pos) + ")",
                     (message) => {
@@ -1154,17 +1166,7 @@ var rob = {};
                 !dataTypes.contains("text/x-r-package-name")
             )
                 event.dataTransfer.effectAllowed = "none";
-        },
-		onSearchPathDragEnter(event) {
-			if(document.getBindingParent(event.relatedTarget) === event.target)
-				return;
-			event.target.classList.add("dragTarget");
-		},
-		onSearchPathDragLeave(event) {
-			if(document.getBindingParent(event.relatedTarget) === event.target)
-				return;
-			event.target.classList.remove("dragTarget");
-		},
+        }
     };
     
     this.canDrop = function () false;

@@ -244,11 +244,12 @@ var kor = {
 
     var serverObserver = {
         observe: function (subject, topic, data) {
+            logger.info("serverObserver: " + topic);
             if (topic === 'r-server-stopped') {
                  addNotification("Server stopped");
             } else if (topic === 'r-server-started') {
                 let port = subject.QueryInterface(Ci.nsISupportsPRInt32).data;
-                if (port > 1000) {
+                if (port > 1024) {
                     addNotification("Server started at port " + port);
                     prefs.setPref("RInterface.koPort", port, true, true);
                     _this.evalAsync("base::options(ko.port=" + port + ")", null, true);

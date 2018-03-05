@@ -579,5 +579,17 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
         rConn.evalAsync(`utils::install.packages("${pkgName}")`,
             () => _this.isPackageInstalled(pkgName, callback), rConn.AUTOUPDATE);
     };
+	
+	this.loadWorkspace = function(filePath, callback = null, pos = 2) {
+        if (!require("kor/command").isRRunning) {
+            callback(undefined);
+            return;
+        }
+        rConn.evalAsync(`kor::doCommand("attach", ${_this.arg(filePath)}, ${_this.arg(pos)})`,
+            callback.bind(null), rConn.AUTOUPDATE);
+    };
+	
+	
+	
 
 }).apply(module.exports);
