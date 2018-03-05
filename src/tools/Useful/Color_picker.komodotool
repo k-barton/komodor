@@ -6,9 +6,9 @@
   "rank": 100, 
   "trigger": "trigger_postopen", 
   "value": [
-    "sv.misc.colorPicker.pickColor();"
+    "require(\"kor/ui\").colorPicker.pickColor();"
   ], 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": 0, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/eyedropper.svg"

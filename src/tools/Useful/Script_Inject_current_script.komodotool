@@ -6,7 +6,7 @@
   "rank": 100, 
   "trigger": "trigger_postopen", 
   "value": [
-    "/*globals ko, Services, Components, sv, window, alert */", 
+    "/*globals ko, Services, Components, window, alert */", 
     "", 
     "try {", 
     "    var sl, ios;", 
@@ -40,7 +40,7 @@
     "    ko.dialogs.alert(e);", 
     "}"
   ], 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": 0, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/inject2.svg"

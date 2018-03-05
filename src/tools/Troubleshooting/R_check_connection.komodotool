@@ -6,9 +6,9 @@
   "rank": 100, 
   "trigger": "trigger_postopen", 
   "value": [
-    "sv.command.setRStatus(require(\"kor/connector\").isRConnectionUp());"
+    "require(\"kor/command\").setRStatus(require(\"kor/connector\").isRConnectionUp());"
   ], 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": 1, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/komodor/skin/images/R-connect.svg"

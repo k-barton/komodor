@@ -25,6 +25,7 @@ function (verbose = FALSE) {
 	if(port >= port.last) port <- 1025L
 	while((port < port.last) && (as.character(startServer(port)) == "0"))
 		port <- port + 1L
+	# TODO: wrap port numbers around
 	vmsg("Socket server started at port", port)
 
 	## Do we have a .Rprofile file to source?
@@ -94,6 +95,7 @@ function (verbose = FALSE) {
 		oldoptions <- options(browser = koBrowser, pager = koPager)
 		assignTemp("oldoptions", oldoptions)
 	}
+	#TODO: handle case when no server is started
 	
 	# if there is ".First" in the workspace to be loaded this one will be overwritten.
 	assign(".First", function() {

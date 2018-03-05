@@ -10,7 +10,7 @@
     "let file = fu.getLocalFile(path);", 
     "if (file.exists()) file.remove(true);"
   ], 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "rank": 100, 
   "async": false, 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/wrench.svg", 

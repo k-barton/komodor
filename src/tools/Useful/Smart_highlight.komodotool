@@ -28,7 +28,7 @@
     "\t//ko.uilayout.ensureTabShown(\"findresults2_tab\", false);", 
     "}"
   ], 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": 1, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/marker2.svg"

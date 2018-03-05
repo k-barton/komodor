@@ -7,7 +7,7 @@
     "var view = require(\"ko/views\").current();", 
     "var scimoz = view.scimoz;", 
     "if (view && scimoz) {", 
-    "    require(\"kor/connector\").evalAsync(\"cat(deparse(\" + sv.getTextRange(\"lineorsel\").trim() + \", width.cutoff = 80))\",", 
+    "    require(\"kor/connector\").evalAsync(\"cat(deparse(\" + require(\"kor/ui\").getTextRange(\"lineorsel\").trim() + \", width.cutoff = 80))\",", 
     "        (str) => {", 
     "            scimoz.insertText(scimoz.currentPos, str);", 
     "        }, false);", 
@@ -15,7 +15,7 @@
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": false, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/cogs.svg"

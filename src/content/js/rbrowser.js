@@ -6,10 +6,8 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 /*
- * TODO: identify packages by pos rather than name (allow for non-unique names)
  * TODO: context menu for search-paths list
  * TODO: add context menu item for environments: remove all objects
- * TODO: automatic refresh of the browser from R
  */
 /* globals require, document, self */
 
@@ -590,9 +588,9 @@ var rob = {};
         let treeBranch, envName, objName;
         for (let i = 0; i < lines.length; ++i) {
             let itemConsumed = false;
-            logger.debug(
-                `parseObjListResult: \nline ${i}, looking for ${['env', 'obj', 'data'][lookFor]} in: \n` +
-                prettyLine(lines[i]));
+            //logger.debug(
+            //    `parseObjListResult: \nline ${i}, looking for ${['env', 'obj', 'data'][lookFor]} in: \n` +
+            //    prettyLine(lines[i]));
 
             switch (lookFor) {
             case LF.Env:
@@ -1087,27 +1085,46 @@ var rob = {};
                     filePath = null;
                 }
             } /// else  if (data.contains("Files")) {
+				
+			//let el = .getElementsByAttribute("id", event.target.id)[0];
+			
+			let el = event.target;
+			try {
+				if(el._isEvalEnv) el = el.nextElementSibling;
+				if(el.label === ".GlobalEnv") el = el.nextElementSibling;
+			} catch(e) {
+				el = null;
+			}
+			pos = el && el.label ? el.label : 2;
+			
+			
+			logger.log("searchPath: dropping onto list at pos=" + pos);
 
             // Attach the file if it is an R workspace
             if (filePath && filePath.search(/\.RData$/i) > 0) {
-                R.loadWorkspace(filePath, true, function (message) {
-                    _this.searchPath.refresh();
+                R.loadWorkspace(filePath, (message) => {
+                    //_this.searchPath.refresh(); // uses AUTOUPDATE
                     UI.addNotification("Upon attaching the workspace \"" + filePath +
                         "\", R said: " + message);
-                });
+                }, pos);
+				
+				event.preventDefault();
+				
             } else if (text) {
                 if (!/^(package:)?[a-zA-Z0-9\._]+$/.test(text))
                     return;
                 if (text.startsWith("package:"))
                     text = text.substring(8);
+				
+				event.preventDefault();
 
-                RConn.evalAsync("kor::doCommand(\"library\", " + R.arg(text) + ")",
+                RConn.evalAsync("kor::doCommand(\"library\", " + R.arg(text) + ", " + 
+				    R.arg(pos) + ")",
                     (message) => {
                         let pos;
                         if ((pos = message.indexOf('<error>')) > -1) {
                             message = message.substring(pos + 7);
-                        } else 
-                            _this.searchPath.refresh();
+                        } //else  _this.searchPath.refresh();
                         if (message)
                             UI.addNotification("Upon loading the library \"" + text +
                                 "\", R said: " + message);
@@ -1115,15 +1132,20 @@ var rob = {};
             }
         },
         onSearchPathDragStart(event) {
-            if (event.target.tagName != 'listitem')
+            if (event.target.tagName !== 'richlistitem') {
+				logger.debug("searchPath dragstart: item=" + event.target.tagName);
                 return;
+			}
 
-            let text = _this.searchPath.getItemAtIndex(document.getElementById("rbrowser_searchpath_listbox").selectedIndex).name;
+            let text = _this.searchPath.getItemAtIndex(
+				//document.getElementById("rbrowser_searchpath_listbox").selectedIndex
+				event.target.parentElement.getIndexOfItem(event.target)
+				).name;
             event.dataTransfer.setData("text/plain", text);
             event.dataTransfer.effectAllowed = "copy";
             return;
         },
-
+		
         onSearchPathDragOver(event) {
             // TODO
             let dataTypes = event.dataTransfer.types;
@@ -1132,7 +1154,17 @@ var rob = {};
                 !dataTypes.contains("text/x-r-package-name")
             )
                 event.dataTransfer.effectAllowed = "none";
-        }
+        },
+		onSearchPathDragEnter(event) {
+			if(document.getBindingParent(event.relatedTarget) === event.target)
+				return;
+			event.target.classList.add("dragTarget");
+		},
+		onSearchPathDragLeave(event) {
+			if(document.getBindingParent(event.relatedTarget) === event.target)
+				return;
+			event.target.classList.remove("dragTarget");
+		},
     };
     
     this.canDrop = function () false;
@@ -1394,7 +1426,7 @@ var rob = {};
 
     };
     
-    this._doCommand = function (action, ...args) {
+    this.doRCommand = function (action, ...args) {
         switch (action) {
         case "browse-end":
              RConn.evalAsync("kor::koBrowseEnd()", (data) => {
@@ -1425,7 +1457,7 @@ var rob = {};
         }
     };
 
-    this.doCommand = function (action) {
+    this.treeItemCommand = function (action) {
         let items = Array.from(_this.selectedItemsOrd);
         //let command;
         switch (action) {
@@ -1452,7 +1484,7 @@ var rob = {};
             try {
                 dir = fileUtils.path(RConn.eval("base::cat(base::getwd())"));
             } catch (e) {
-                logger.exception(e, "in 'doCommand'");
+                logger.exception(e, "in 'treeItemCommand'");
                 return;
             }
 
@@ -1515,7 +1547,7 @@ var rob = {};
         }
     };
 
-    this.onEvent = function on_Event(event) {
+    this.onEvent = function onEvent(event) {
         switch (event.type) {
         case "select":
             let selectedRows = _this.getSelectedRows();
@@ -1628,10 +1660,10 @@ var rob = {};
         case "Del":
             let listItem = listbox.selectedItem;
             if(listItem.hasAttribute("evalEnv"))
-                _this._doCommand("browse-end");
+                _this.doRCommand("browse-end");
             else {
                 if (listItem._detachableItems && listItem._detachableItems.length !== 0)
-                    _this._doCommand("detach", event.shiftKey ?
+                    _this.doRCommand("detach", event.shiftKey ?
                         listItem._detachableItems : listItem._detachableItems[0]);
             }
             return;
@@ -1679,26 +1711,26 @@ var rob = {};
         _this[name] = value;
     };
     
-
     this.activate = function(state) {
         var box = document.getElementById("treeBox");
-        if (state == box.hasAttribute("active")) return; // keep "=="
+        var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
+		
+        if (state == viewbox.hasAttribute("active")) return; // keep "=="
         var controls = document.getElementById("rbrowserToolbar").childNodes;
         if(state) {
             //_this.refresh(true);
             logger.debug("Rbrowser.activate: refreshing R browser");
-            box.setAttribute("active", "true");
+            viewbox.setAttribute("active", "true");
             for(let el of controls) el.removeAttribute("disabled");
             setTimeout(() => {
 			   logger.debug("Rbrowser.activate->on timeout (delayed refresh)");
 			   _this.refresh(true); 
-			   }, 1000);
-			
-			
+			   }, 250);
+
         } else {
             logger.debug("Rbrowser.activate: clearing R browser");
             _this.clearAll();
-            box.removeAttribute("active");
+            viewbox.removeAttribute("active");
             for(let el of controls) el.setAttribute("disabled", "true");
         }       
     };
@@ -1716,7 +1748,6 @@ var rob = {};
         let commandType = event.detail.type;
         if (!commandType) throw(new Error("incomplete 'r-command-request' event"));
         logger.debug("received R command request event of type " + commandType);
-        // XXX: move to doCommand(commandType, ...)
 
         switch (commandType) {
             case "detach":
@@ -1773,15 +1804,9 @@ var rob = {};
         }
     };
 
-    this.onLoad = function ( /*event*/ ) {
+    this.onLoad = function(/*event*/) {
         logger.debug("Rbrowser.onLoad");
         
-        // check again
-        setTimeout(() => {
-			logger.debug("Rbrowser.onLoad: delayed refresh");
-           _this.refresh();
-        }, 1500);
-		
 		let _w = require("kor/main").mainWin;
 		
 		_w.addEventListener('r-status-change', _this.onRStatusChange, false);
@@ -1805,9 +1830,8 @@ var rob = {};
         prefs.prefObserverService.addObserver(autoUpdateObserver,
             "RInterface.rBrowserAutoUpdate", true); 
     };
-    
     window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
-   
+	
     this.debug = {
         getSelProps(column = "r-name") {
             return _this.getCellProperties(_this.selection.currentIndex, _this.treeBox.columns[column]);

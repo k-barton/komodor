@@ -8,9 +8,11 @@
 doCommand <-
 function(command, ...) {
     if(!is.character(command) && length(command) != 1L) return(invisible())
+	
+	dots <- list(...)
     switch(command[1L],
            detach = {
-            names <- list(...)[[1L]]
+            names <- dots[[1L]]
             if(is.null(names) || length(names) == 0L) return()
             for(x in names) tryCatch({
                     detach(x, unload = TRUE, character.only = TRUE)
@@ -19,8 +21,21 @@ function(command, ...) {
                     cat("<error:", x, ">\n", sep = "")
                 })  
         },
+		attach = {
+		    filename <- dots[[1L]]
+			pos <- if(length(dots) >= 2L) dots[[2L]][1L] else 2L
+			if(is.character(pos)) pos <- match(pos, search(), 2L)
+			tryCatch(attach(filename, pos = pos, name = basename(filename)),
+                     error = function(e) {
+                        cat("<error>")
+                        message(e)
+                        })
+			
+		},
         library = {
-            tryCatch(library(list(...)[[1L]], character.only = "true"),
+			package <- dots[[1L]]
+            pos <- if(length(dots) >= 2L) dots[[2L]] else 2L
+			tryCatch(library(package, pos = pos, character.only = TRUE),
                      error = function(e) {
                         cat("<error>")
                         message(e)

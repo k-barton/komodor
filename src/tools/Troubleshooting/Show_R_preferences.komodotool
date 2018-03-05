@@ -4,7 +4,7 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "/* globals sv, ko */", 
+    "/* globals ko */", 
     "", 
     "let pref = require(\"kor/prefs\");", 
     "let str = Object.keys(pref.defaults).map((i) => `${i} = ${pref.getPref(i)} (${pref.prefset.getPrefType(i)})`);", 
@@ -12,7 +12,7 @@
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": false, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/equalizer3.svg"

@@ -88,22 +88,22 @@ Contributors:
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="cmd_rbrowser_summary"
 			label="&rob.summary;"
-			oncommand="rob.doCommand('summary')"
+			oncommand="rob.treeItemCommand('summary')"
 			testDisableIf="t:isFunction t:isEnvironment"
 			accesskey="S" />
 		<menuitem id="cmd_rbrowser_print"
 			label="&rob.print;"
-			oncommand="rob.doCommand('print')"
+			oncommand="rob.treeItemCommand('print')"
 			testDisableIf="t:isPackage"
 			accesskey="P" />
 		<menuitem id="cmd_rbrowser_plot"
 			label="&rob.plot;"
-			oncommand="rob.doCommand('plot')"
+			oncommand="rob.treeItemCommand('plot')"
 			testDisableIf="t:noPlot"
 			accesskey="O"/>
 		<menuitem id="cmd_rbrowser_str"
 			label="&rob.str;"
-			oncommand="rob.doCommand('str')"
+			oncommand="rob.treeItemCommand('str')"
 			testDisableIf="t:isPackage"
 			accesskey="T"/>
 
@@ -123,14 +123,14 @@ Contributors:
 		<menuitem id="menu_rbrowser_write_table"
 			class="menuitem-iconic write-table-icon"
 			label="&rob.write_table;"
-			oncommand="rob.doCommand('write.table')"
+			oncommand="rob.treeItemCommand('write.table')"
 			testDisableIf="t:noSaveToFile"
 			accesskey="T"/>
 
 		<menuitem id="menu_rbrowser_save"
 			class="menuitem-iconic save-buffer-icon"
 			label="&rob.save;"
-			oncommand="rob.doCommand('save')"
+			oncommand="rob.treeItemCommand('save')"
 			testDisableIf="t:noSave"
 			accesskey="S" />
 
@@ -138,7 +138,7 @@ Contributors:
 		<menuitem id="menu_rbrowser_help"
 			label="&rob.help;"
 			class="menuitem-iconic help-icon"
-			oncommand="rob.doCommand('help')"
+			oncommand="rob.treeItemCommand('help')"
 			testDisableIf="t:multipleSelection t:noHelp"
 			accesskey="H" />
 	</menupopup>
@@ -252,8 +252,8 @@ Contributors:
 					<vbox align="center" flex="1">
 						<button orient="vertical"
 								oncommand="require('kor/command').startR()">
-							<label value="R session is not connected." />
-							<label value="Click to start."/>
+							<label value="&rob.rSessNotConnected;" />
+							<label value="&rob.clickToStart;"/>
 						</button>						
 					</vbox>
 				</hbox>
@@ -302,6 +302,8 @@ Contributors:
 					ondragstart="rob.draghandlers.onSearchPathDragStart(event);"
 					onkeypress="rob.onSearchPathKeyEvent(event);"
 					oncommand="rob.packageSelectedEvent(event);"
+					ondragenter="rob.draghandlers.onSearchPathDragEnter(event);"
+					ondragleave="rob.draghandlers.onSearchPathDragLeave(event);"
 					/>
 				
 			</vbox>

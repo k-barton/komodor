@@ -130,7 +130,7 @@
 			<caption label="R Object Browser" />
 			<hbox align="left">
 				<checkbox id="RInterface.rBrowserAutoUpdate"
-						  label="Automatically update R object browser upon every calculation"
+						  label="Automatically update object tree upon every calculation"
 						  pref="true" prefattribute="checked" />
 			</hbox>
 		</groupbox>

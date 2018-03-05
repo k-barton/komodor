@@ -68,7 +68,7 @@
     "", 
     "lineOrSelectionDuplicate(require(\"ko/views\").current().scimoz);"
   ], 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "rank": 100, 
   "async": false, 
   "type": "macro", 

@@ -49,5 +49,8 @@
 <!ENTITY rob.selectSiblings "Select current level">
 <!ENTITY rob.selectSiblings.acc "L">
 
+<!ENTITY rob.rSessNotConnected "R session is not connected.">
+<!ENTITY rob.clickToStart "Click to start.">
+
 <!ENTITY rob.RSearchPath "R search path">
 <!ENTITY rob.RSearchPathButton.tip "Open the R Search Path Subpanel">

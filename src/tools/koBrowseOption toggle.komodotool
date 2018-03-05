@@ -4,13 +4,15 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "sv.r.eval(\"options(koBrowse = !isTRUE(getOption(\\\"koBrowse\\\"))); cat(\\\"koBrowse is\\\", getOption(\\\"koBrowse\\\"), \\\"\\\\n\\\")\");", 
-    ""
+    "require(\"kor/connector\").evalAsync(", 
+    "    \"options(koBrowse = !isTRUE(getOption(\\\"koBrowse\\\"))); \" +", 
+    "    \"cat(\\\"koBrowse is\\\", getOption(\\\"koBrowse\\\"), \\\"\\\\n\\\")\",", 
+    "    null, true);"
   ], 
-  "version": "1.0.12", 
+  "trigger": "trigger_postopen", 
   "rank": 100, 
+  "version": "0.3.12", 
   "async": false, 
-  "icon": "koicon://ko-svg/chrome/icomoon/skin/cord.svg", 
   "type": "macro", 
-  "trigger": "trigger_postopen"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/cord.svg"
 }

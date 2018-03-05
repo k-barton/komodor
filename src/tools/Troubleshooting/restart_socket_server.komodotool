@@ -8,7 +8,7 @@
   ], 
   "trigger": "trigger_postopen", 
   "rank": 100, 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "async": false, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/wrench2.svg"

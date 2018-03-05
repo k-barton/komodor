@@ -10,7 +10,7 @@
     "pandoc --standalone -f markdown -t html -s -o %b.html %f"
   ], 
   "cwd": "%D", 
-  "version": "1.0.12", 
+  "version": "0.3.12", 
   "env": "", 
   "showParsedOutputList": 0, 
   "type": "command", 
