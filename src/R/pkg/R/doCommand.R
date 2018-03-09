@@ -34,11 +34,18 @@ function(command, ...) {
 		},
         library = {
 			package <- dots[[1L]]
-            pos <- if(length(dots) >= 2L) dots[[2L]] else 2L
+            posAfter <- if(length(dots) >= 2L) dots[[2L]] else 2L
+			sp <- search()
+			if(is.character(posAfter)) {
+				pos <- match(posAfter[1L], sp, nomatch = 2L)
+			} else pos <- posAfter[1L]
+			if(pos == 1) pos <- 2L
+			if(pos > length(sp)) pos <- length(sp) - 1L
+
 			tryCatch(library(package, pos = pos, character.only = TRUE),
                      error = function(e) {
                         cat("<error>")
-                        message(e)
+                        message(conditionMessage(e))
                         })
         },
         message("unknown command: ", command[1L])) # switch

@@ -1035,9 +1035,20 @@ var rob = {};
                     rows.push(v);
             }
             return rows;
-        },
+    };
+    
+    //var searchPathDropTarget = null;
+    var setSearchPathDropTarget = (element, remove) => {
+        if(element.label === "package:base") element = element.previousElementSibling;
+        //if (searchPathDropTarget && searchPathDropTarget !== element)
+        if (remove) {
+           element.classList.remove("dragTarget");
+        } else {
+           element.classList.add("dragTarget"); 
+        }
+    };
 
-        // Drag'n'drop support
+    // Drag'n'drop support
     this.draghandlers = {
         onDragStart(event) {
             if (_this.rowCount === 0) return;
@@ -1076,17 +1087,17 @@ var rob = {};
 		onSearchPathDragEnter(event) {
 			if(!event.relatedTarget || document.getBindingParent(event.relatedTarget) === event.target)
 				return;
-			event.target.classList.add("dragTarget");
+            setSearchPathDropTarget(event.target);
 		},
 		onSearchPathDragLeave(event) {
 			if(!event.relatedTarget || document.getBindingParent(event.relatedTarget) === event.target)
 				return;
-			event.target.classList.remove("dragTarget");
+			setSearchPathDropTarget(event.target, true);
 		},		
 		
         onSearchPathDrop(event) {
-            
-			event.target.classList.remove("dragTarget");
+			let el = event.target;
+            setSearchPathDropTarget(el, true);
 			
 			let data = event.dataTransfer;
             let filePath, text;
@@ -1102,8 +1113,7 @@ var rob = {};
 				
 			//let el = .getElementsByAttribute("id", event.target.id)[0];
 			
-			
-			let el = event.target;
+			//let el = event.target;
 			try {
 				if(el._isEvalEnv) el = el.nextElementSibling;
 				if(el.label === ".GlobalEnv") el = el.nextElementSibling;
