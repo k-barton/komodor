@@ -38,13 +38,14 @@ var currentPrefset = null;
 
 // List of R applications
 // Constructor
-function RAppSpecs(id, name, path, app, required, platform) {
+function RAppSpecs(id, name, path, app, required, platform, isGui = false) {
 	this.id = id;
 	this.name = name;
 	this.path = path;
 	this.app = app;
 	this.required = required? required.split(/\s*,\s*/) : [];
 	this.platform = platform? platform : "";
+	this.isGui = Boolean(isGui);
 }
 
 var apps = [
@@ -56,9 +57,9 @@ new RAppSpecs("r-gnome-terminal", "in Gnome terminal", "gnome-terminal --hide-me
 new RAppSpecs("r-konsole", "in Konsole", "konsole --workdir '%cwd%' --title '%title%' -e \"%Path%\" %args%", "R", "konsole,R", "l"),
 new RAppSpecs("r-lxterminal", "in LXTerminal", "lxterminal --title='%title%' -e \"%Path%\" %args%", "R", "lxterminal,R", "l"),
 new RAppSpecs("r-xfce4-terminal", "in XFCE terminal", "xfce4-terminal --title \"%title%\" -x \"%Path%\" %args%", "R",  "xfce4-terminal,R", "l"),
-new RAppSpecs("r-app", "R.app", "open -a \"%Path%\" \"%cwd%\"", "R.app", "/Applications/R.app", "m"),
-new RAppSpecs("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "w"),
-new RAppSpecs("r-tkgui", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "R", "R", "lm")
+new RAppSpecs("r-app", "R.app", "open -a \"%Path%\" \"%cwd%\"", "R.app", "/Applications/R.app", "m", true),
+new RAppSpecs("r-gui", "R GUI","\"%Path%\" --sdi %args%", "Rgui.exe", "Rgui", "w", true),
+new RAppSpecs("r-tkgui", "R Tk GUI", "'%Path%' --interactive --gui:Tk %args%", "R", "R", "lm", true)
 ];
 
 var getDialogs = () => ko.dialogs;
@@ -120,7 +121,9 @@ function populateRunRAs() {
 	var tmp = {};
 	for (let i = 0; i < apps.length; ++i) {
 		tmp[apps[i].id] = apps[i];
-		menu.appendItem(apps[i].name, apps[i].id, null);
+		let item = menu.appendItem(apps[i].name, apps[i].id, null);
+        item.setAttribute("image", "koicon://ko-svg/chrome/komodor/skin/images/" + (apps[i].isGui ? "rgui" : "rterm") + ".svg");
+        item.className = "menuitem-iconic";
 	}
 	apps = tmp;
 	tmp = null;
@@ -342,9 +345,12 @@ function populatePathToR() {
 	var curValue = menu.value || "R";
     menu.removeAllItems();
 	for (let i = 0; i < rs.length; ++i) {
-		var r = rs[i].split(";");
-        menu.appendItem(r[0], r[0], r.length < 2 ? null : r[1]);
+		let r = rs[i].split(";");
+        let item = menu.appendItem(r[0], r[0], r.length < 2 ? null : r[1]);
 		if (curValue === r[0]) menu.selectedIndex = i;
+		let isGui = r[0].endsWith("Rgui.exe") || r[0].endsWith("R.app");
+		item.setAttribute("image", "koicon://ko-svg/chrome/komodor/skin/images/" + (isGui ? "rgui" : "rterm") + ".svg");
+        item.className = "menuitem-iconic";
     }
     
 	document.getElementById("no-avail-interps-message").hidden = rFound;
