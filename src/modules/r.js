@@ -26,7 +26,6 @@ if (!Object.entries)
 
     var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
 
     const su = require("kor/utils").str, fu = require("kor/fileutils"),
 		rConn = require("kor/connector"), ui = require("kor/ui"),

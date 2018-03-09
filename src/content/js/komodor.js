@@ -8,3 +8,15 @@
 /* globals self */
 
 self.kor = require("kor/main");
+
+(function() {
+	let logging = require("ko/logging");
+	//LOG_NOTSET, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_CRITICAL
+	logging.getLogger("komodoR").setLevel(logging.LOG_WARN);
+	logging.getLogger("korRConnector").setLevel(logging.LOG_WARN);
+	logging.getLogger("cile.rx").setLevel(logging.LOG_WARN);
+	logging.getLogger("koRLanguage").setLevel(logging.LOG_WARN);
+	logging.getLogger("RLinter").setLevel(logging.LOG_WARN);
+	logging.getLogger("koRmarkdownLanguage").setLevel(logging.LOG_WARN);
+	logging.getLogger("korScimozUtils").setLevel(logging.LOG_WARN);
+}).call(null);

@@ -6,7 +6,6 @@ import string
 
 import logging
 log = logging.getLogger('korScimozUtils')
-log.setLevel(logging.DEBUG)
 
 class korScimozUtils:
     _com_interfaces_ = [components.interfaces.korIScimozUtils]

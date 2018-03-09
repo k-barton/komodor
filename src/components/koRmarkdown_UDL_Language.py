@@ -38,7 +38,6 @@ from koUDLLanguageBase import KoUDLLanguage
 from xpcom import components #, nsError, COMException, ServerException
 
 log = logging.getLogger("koRmarkdownLanguage")
-# log.setLevel(logging.DEBUG)
 
 def registerLanguage(registry):
     log.debug("Registering language Rmarkdown")

@@ -18,8 +18,6 @@ var kor = {};
 
 (function () {
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
-    
     
     var _this = this;
     var _version, _w;

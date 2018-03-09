@@ -49,7 +49,6 @@ var kor = {
 	
     var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
 	
 	var addNotification = kor.ui.addNotification, prefs = kor.prefs;
 

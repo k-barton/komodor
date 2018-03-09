@@ -44,7 +44,6 @@ from uuid import uuid1
 
 import logging
 log = logging.getLogger('korRConnector')
-log.setLevel(logging.DEBUG)
 
 class korRConnector:
     _com_interfaces_ = [components.interfaces.korIRConnector]

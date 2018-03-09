@@ -38,10 +38,7 @@ import logging
 from koUDLLanguageBase import KoUDLLanguage
 from xpcom import components #, nsError, COMException, ServerException
 
-
 log = logging.getLogger("koRLanguage")
-# log.setLevel(logging.DEBUG)
-
 
 def registerLanguage(registry):
     log.debug("Registering language R_extended")

@@ -73,8 +73,6 @@ class RxCILEError(CILEError):
 
 #---- global data
 log = logging.getLogger("cile.rx")
-#log.setLevel(logging.DEBUG)
-
 
 #---- public module interface
 def scan_buf(buf, mtime=None, lang="R_extended"):

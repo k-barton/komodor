@@ -43,7 +43,6 @@ import string
 import logging
 
 log = logging.getLogger('RLinter')
-# log.setLevel(logging.ERROR)
 
 class KoRLinter:
     _com_interfaces_ = [components.interfaces.koILinter]

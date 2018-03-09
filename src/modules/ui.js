@@ -16,8 +16,6 @@
 (function () { // jshint validthis: true
     
 var logger = require("ko/logging").getLogger("komodoR");
-logger.setLevel(logger.DEBUG);
-
     
 var langName = require("kor/main").langName; 
 var _this = this;
