@@ -12,7 +12,7 @@ rmElement <- function(expr, envir) {
     expr <- substitute(expr)
     envir <- as.environment(envir)
     if(!.rmFuncArg(expr, envir))
-        eval(call("<-", envir, NULL), envir)
+        eval(call("<-", expr, NULL), envir)
 }
 
 # Note: modifying formal arguments has a side-effect of removing source reference.
