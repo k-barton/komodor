@@ -5,7 +5,7 @@ Using Komodo Edit as R GUI
 It uses an add-on (also called *extensions*) system similar to that of Firefox.
 The extension **"R Interface"** provides Komodo with R GUI.
 
-See [here](README.md) to learn about Komodo's "R Interface" features.
+See [here](../README.md) to learn about Komodo's "R Interface" features.
 
 __Step 1: Install Komodo Edit from:__
 
