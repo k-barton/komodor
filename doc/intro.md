@@ -35,3 +35,5 @@ text) is `<Ctrl+Shift+R>`. However, if you are used to e.g. RStudio's
 `<Ctrl+Enter>`, the keyboard shortcuts can be customized under 
 **Edit->Preferences->Keybindings**. R-related commands 
 are prefixed with "R:".
+
+* Restart Komodo editor.
