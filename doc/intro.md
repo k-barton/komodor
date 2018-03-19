@@ -26,7 +26,7 @@ __Step 2. Install "R Interface" add-on.__
 * Access **Add ons** using `<Ctrl+Shift+O>` or **Menu: Tools->Add-ons**, then 
 navigate to **Add-ons->Packages->Languages->R interface**.
 
-* Double click the item or press <Enter> and choose "Install".
+* Double click the item or press `<Enter>` and choose "Install".
 
 The default keyboard shortcut for executing R code (current line or selected 
 text) is `<Ctrl+Shift+R>`. However, if you are used to e.g. RStudio's 
