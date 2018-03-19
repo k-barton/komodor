@@ -7,6 +7,8 @@ R environment and Komodo.
 
 ***
 
+<br clear="both" />
+
 This extension forked from [“Sciviews-K”](https://community.komodoide.com/packages/addons/sciviews-k/) by 
 Philippe Grosjean, and since then has been largely rewritten. 
 
