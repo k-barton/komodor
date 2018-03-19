@@ -141,7 +141,7 @@ function populateCranMirrorsList(rOutput) {
 	var mirror = Prefs.getPref("CRANMirror").trim();
 	var rl = document.getElementById("rCRANMirrorsList");
 
-	var res = require("kor/CSV").parse(rOutput, ';', 0, false, ['name', 'url', 'countryCode' ]);
+	var res = require("kor/csv").parse(rOutput, ';', 0, false, ['name', 'url', 'countryCode' ]);
 
 	while(rl.itemCount) rl.removeItemAt(0);
 	var item, sel = -1;
@@ -198,7 +198,7 @@ function populateUpdateablePkgs(rOutput) {
 	if (!rOutput || rOutput == 'NULL') return;
 	document.getElementById("rUpdateableLoadBox").loaded = true;
 	var rl = document.getElementById("rUpdateableList");
-	var res = require("kor/CSV").parse(rOutput, ';;', 0, true,
+	var res = require("kor/csv").parse(rOutput, ';;', 0, true,
 		['package', 'libPath', 'version', 'rVersion', 'reposVersion', 'repos' ]);
 
 	while(rl.itemCount) rl.removeItemAt(0);
@@ -223,7 +223,7 @@ function populateInstalledPkgs(rOutput) {
 	document.getElementById("rPackageLoadBox").loaded = true;
 	var rl = document.getElementById("rPackageList");
 
-	var res = require("kor/CSV").parse(rOutput, '\x1e', 0, false, ['name', 'version',
+	var res = require("kor/csv").parse(rOutput, '\x1e', 0, false, ['name', 'version',
 		'description', 'loaded' ]);
 
 	var selectedIndex, selectedItem, selectedLabel;
@@ -409,7 +409,7 @@ function populateAvailablePkgs(rOutput) {
 	var rl = document.getElementById("rAvailablePackageList");
 	document.getElementById("rAvailablePackagesLoadBox").loaded = true;
 
-	var res = require("kor/CSV").parse(rOutput, '\x1e', 1, false, ['name', 'version',
+	var res = require("kor/csv").parse(rOutput, '\x1e', 1, false, ['name', 'version',
 		'installedVersion', 'status', 'reposName' ]);
 	while(rl.itemCount) rl.removeItemAt(0);
 	let idx = String(res[0]).trim().split(" ").map(x => parseInt(x));
