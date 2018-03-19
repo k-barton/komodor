@@ -1,19 +1,29 @@
 ---
-title: "What's new in R Interface?"
+title: "What's new in R Interface for Komodo?"
 output: html_document
 css: chrome://komodor/skin/doc.css
 ---
+
 (Version #VERSION#)
 
+* Fixed (?) R object tree panel not being activated at startup.
+* Improved socket server restarting procedure.
+* Fixed broken R object removal (from R object browser).
+* Dropping a package name or workspace file name (*.RData) on the "search path" panel now attaches the package/workspace at the position where it was dropped (previously it was always right after `.GlobalEnv`).
+* R Preferences panel: icons visibility in menu lists (country flags should now be visible in the dropdown menu, application type icons added /gui or console/).
+
+
+(Version 0.13.10b)
 
 * R object browser:
 
+    - large "start R session" button is displayed in place of the R objects tree 
+      if no R session is connected.
     - "R Search Path" panel has been refurbished. It displays dependences for each
-      item, and packages which depend on the item. Items (with 
-      dependencies) can be detached via command buttons or by pressing Delete (or 
-      Shift+Delete).
+      item and packages which depend on the item. Items (with dependencies) can 
+	  be detached via command buttons or by pressing Delete (or Shift+Delete).
     - object list is being automatically updated after a command is executed by
-      R. To go back to manual refresh uncheck the option in "R Preferences".
+      R. To use manual refresh uncheck the option in "R Preferences".
 
 * "R preferences" page:
 
@@ -47,7 +57,7 @@ css: chrome://komodor/skin/doc.css
 	```r    
 	kor.r.evalUserCmd("runif(10)")
 	```
-    or (outside the main window)
+    or (outside the main `window`)
 	```r 
 	require("kor/r").evalUserCmd("runif(10)")
 	```
