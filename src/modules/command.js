@@ -220,6 +220,7 @@
         if (running != _RIsRunning) {
             _RIsRunning = running;
             _this.fireEvent(_W, 'r-status-change', { running: running });
+			logger.debug("R status changed to " + running);
             // buttons/menu items (except toolbar R button) respond to:
             _W.updateCommands('r_status_changed');
         }

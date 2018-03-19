@@ -56,9 +56,11 @@ function (verbose = FALSE) {
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
 		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
-				"cannot connect to Komodo. This may be caused by a previous R",
-				"session that was improperly closed. Quit R, kill any running",
-				"ghost R processes, then start R again."), 
+				"cannot connect to Komodo. Try restarting the application (or KomodoR socket server).",
+				#"This problem may also be caused by a previous R",
+				#"session that was improperly closed. Quit R, kill any running",
+				#"ghost R processes, then start R again."
+				), 
 				prefix = "  ", initial = ""), 
 				collapse = "\n"), title))
 		})

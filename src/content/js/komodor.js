@@ -11,12 +11,14 @@ self.kor = require("kor/main");
 
 (function() {
 	let logging = require("ko/logging");
+	let level = logging.LOG_WARN;
+	//let level = logging.LOG_DEBUG;
 	//LOG_NOTSET, LOG_DEBUG, LOG_INFO, LOG_WARN, LOG_ERROR, LOG_CRITICAL
-	logging.getLogger("komodoR").setLevel(logging.LOG_WARN);
-	logging.getLogger("korRConnector").setLevel(logging.LOG_WARN);
-	logging.getLogger("cile.rx").setLevel(logging.LOG_WARN);
-	logging.getLogger("koRLanguage").setLevel(logging.LOG_WARN);
-	logging.getLogger("RLinter").setLevel(logging.LOG_WARN);
-	logging.getLogger("koRmarkdownLanguage").setLevel(logging.LOG_WARN);
-	logging.getLogger("korScimozUtils").setLevel(logging.LOG_WARN);
+	logging.getLogger("komodoR").setLevel(level);
+	logging.getLogger("korRConnector").setLevel(level);
+	logging.getLogger("cile.rx").setLevel(level);
+	logging.getLogger("koRLanguage").setLevel(level);
+	logging.getLogger("RLinter").setLevel(level);
+	logging.getLogger("koRmarkdownLanguage").setLevel(level);
+	logging.getLogger("korScimozUtils").setLevel(level);
 }).call(null);

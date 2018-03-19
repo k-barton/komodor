@@ -1725,7 +1725,7 @@ var rob = {};
     
     this.activate = function(state) {
         var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
-        if (state == viewbox.hasAttribute("active")) return; // keep "=="
+        if (!viewbox || state == viewbox.hasAttribute("active")) return; // keep "=="
         var controls = document.getElementById("rbrowserToolbar").childNodes;
         if(state) {
             //_this.refresh(true);
@@ -1815,7 +1815,8 @@ var rob = {};
     };
 
     this.onLoad = function(/*event*/) {
-        logger.debug("Rbrowser.onLoad");
+        logger.debug("Rbrowser.onLoad (R is " + 
+			(require("kor/command").isRRunning ? "on" : "off") + ")");
         
 		let _w = require("kor/main").mainWin;
 		
@@ -1827,6 +1828,11 @@ var rob = {};
 		// needed if rob widget is loaded after initial "r-status-change" event.
 		if(require("kor/command").isRRunning) 
 			_this.activate(true);
+		else setTimeout(() => {
+			let rIsOn = require("kor/command").isRRunning;
+			logger.debug("Rbrowser.onLoad -> check again (R is " + (rIsOn ? "on" : "off") + ")");
+			if(rIsOn) _this.activate(true);
+		}, 2000);
 		
         const prefs = require("ko/prefs");
         let auPrefName = "RInterface.rBrowserAutoUpdate";
