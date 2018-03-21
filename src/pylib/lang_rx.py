@@ -96,7 +96,7 @@ class RxLexer(UDLLexer):
         #SilverCity.WordList(SilverCity.Keywords.perl_keywords),
         #SilverCity.WordList("")
     #]
-    #SilverCity.WordList("fsfsd fsfsdf")
+    #SilverCity.WordList("aumtu tumtu")
 
 # possible R triggers:
 # library|require(<|>     available packages
@@ -149,7 +149,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
     type_sep = u'\u001e'
     pathsep = os.sep + ("" if(os.altsep is None) else os.altsep)
-    
+   
     _rconn = None
     def _rconn_set_r_port(self, env, pref_name):
         # TODO: put this together with RConn.read_port_no'

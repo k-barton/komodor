@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
-  <title>What's new in R Interface?</title>
+  <title>What's new in R Interface for Komodo?</title>
   <style type="text/css">code{white-space: pre;}</style>
   <style type="text/css">
 div.sourceCode { overflow-x: auto; }
@@ -47,14 +47,24 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </head>
 <body>
 <div id="header">
-<h1 class="title">What's new in R Interface?</h1>
+<h1 class="title">What's new in R Interface for Komodo?</h1>
 </div>
-<p>(Version 0.3.9)</p>
+<p>(Version 0.3.22)</p>
+<ul>
+<li>Fixed (?) R object tree panel not being activated at startup.</li>
+<li>Improved socket server restarting procedure.</li>
+<li>Fixed broken R object removal (from R object browser).</li>
+<li>Dropping a package name or workspace file name (*.RData) on the &quot;search path&quot; panel now attaches the package/workspace at the position where it was dropped (previously it was always right after <code>.GlobalEnv</code>).</li>
+<li>R Preferences panel: icons visibility in menu lists (country flags should now be visible in the dropdown menu, application type icons added /gui or console/).</li>
+<li>Updated <strong>R Tools</strong></li>
+</ul>
+<p>(Version 0.13.10b)</p>
 <ul>
 <li><p>R object browser:</p>
 <ul>
+<li>large &quot;start R session&quot; button is displayed in place of the R objects tree if no R session is connected.</li>
 <li>&quot;R Search Path&quot; panel has been refurbished. It displays dependences for each item and packages which depend on the item. Items (with dependencies) can be detached via command buttons or by pressing Delete (or Shift+Delete).</li>
-<li>object list is being automatically updated after a command is executed by R. To go back to manual refresh uncheck the option in &quot;R Preferences&quot;.</li>
+<li>object list is being automatically updated after a command is executed by R. To use manual refresh uncheck the option in &quot;R Preferences&quot;.</li>
 </ul></li>
 <li><p>&quot;R preferences&quot; page:</p>
 <ul>
@@ -73,9 +83,9 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><p>R Package Manager has new style that matches application theme.</p></li>
 <li><p>A number of bug fixes and stability improvements.</p></li>
 <li><p>The code has been reorganized. Most JS code is now included in CommonJS modules. The global <code>sv</code> object is replaced by <code>kor</code>. For example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">    <span class="kw">kor.r.evalUserCmd</span>(<span class="st">&quot;runif(10)&quot;</span>)</code></pre></div>
-<p>or (outside the main window)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">    <span class="kw">require</span>(<span class="st">&quot;kor/r&quot;</span>)<span class="kw">.evalUserCmd</span>(<span class="st">&quot;runif(10)&quot;</span>)</code></pre></div></li>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kor.r.evalUserCmd</span>(<span class="st">&quot;runif(10)&quot;</span>)</code></pre></div>
+<p>or (outside the main <code>window</code>)</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(<span class="st">&quot;kor/r&quot;</span>)<span class="kw">.evalUserCmd</span>(<span class="st">&quot;runif(10)&quot;</span>)</code></pre></div></li>
 <li><p>Most internal R commands is executed asynchronously.</p></li>
 </ul>
 <p>(previous Version)</p>

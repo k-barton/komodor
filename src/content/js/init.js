@@ -189,15 +189,14 @@
         let cuih = ko.codeintel.CompletionUIHandler;
         if (cuih) {
             // TODO: replace with svg
-            let baseURI = "chrome://komodor/skin/images/";
+            let baseURI = "chrome://komodor/skin/images/codeintel/";
             //cuih.prototype.types.argument = cuih.prototype.types.interface;
             cuih.prototype.types.environment = cuih.prototype.types.namespace;
-            cuih.prototype.types.file = baseURI + "cb_file.png";
-            cuih.prototype.types.argument = baseURI + "cb_argument.png";
-            cuih.prototype.types.grapharg = baseURI + "cb_graphical_argument.png";
-            cuih.prototype.types.dataset = baseURI + "cb_data.png";
+            cuih.prototype.types.file = baseURI + "cb_file.svg";
+            cuih.prototype.types.argument = baseURI + "cb_arg.svg";
+            cuih.prototype.types.grapharg = baseURI + "cb_grapharg.svg";
+            cuih.prototype.types.dataset = baseURI + "cb_dataset.svg";
         }        
-        
         
         const notify = require("notify/notify");
         notify.categories.register("R-formatter", { label: "R code formatter", opts: { duration: 2000 } });
@@ -277,8 +276,10 @@
     //Services.obs.addObserver(onKomodoRUpdateRestart, "quit-application-requested", false);
 
     // Just in case, run a clean-up before quitting Komodo:
+	// Note: do not unload kor on Komodo exit "base::detach(\"package:kor\",unload=TRUE)"
     ko.main.addWillCloseHandler(() => require("kor/connector").stopSocketServer(), null);
-    //ko.main.addWillCloseHandler(sv.rconn.stopSocketServer, sv.rconn);
+    
+    //Notwork: ko.main.addWillCloseHandler(sv.rconn.stopSocketServer, sv.rconn);
     ko.main.addWillCloseHandler(onKomodoRUpdateRestart, null);
 
     var rStatusChangeObserver = function (event) {

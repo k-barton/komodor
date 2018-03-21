@@ -1125,7 +1125,7 @@ var rob = {};
             // Attach the file if it is an R workspace
             if (filePath && filePath.search(/\.RData$/i) > 0) {
                 R.loadWorkspace(filePath, (message) => {
-                    //_this.searchPath.refresh(); // uses AUTOUPDATE
+                    _this.searchPath.refresh();
                     UI.addNotification("Upon attaching the workspace \"" + filePath +
                         "\", R said: " + message);
                 }, pos);
@@ -1146,11 +1146,11 @@ var rob = {};
                         let pos;
                         if ((pos = message.indexOf('<error>')) > -1) {
                             message = message.substring(pos + 7);
-                        } //else  _this.searchPath.refresh();
+                        } else  _this.searchPath.refresh();
                         if (message)
                             UI.addNotification("Upon loading the library \"" + text +
                                 "\", R said: " + message);
-                    }, RConn.AUTOUPDATE | RConn.HIDDEN);
+                    }, RConn.HIDDEN); // not using autoupdate - always need to update
             }
         },
         onSearchPathDragStart(event) {

@@ -7,7 +7,7 @@
 startup(verbose = FALSE)
 }
 \arguments{
-\item{verbose}{logical. Should vebose messages be printed?}
+\item{verbose}{logical. Should verbose messages be printed?}
 }
 \description{
 This function initializes connection with Komodo and is not intended to be called by the user.

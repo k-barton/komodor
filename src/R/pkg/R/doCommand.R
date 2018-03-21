@@ -23,9 +23,9 @@ function(command, ...) {
         },
 		attach = {
 		    filename <- dots[[1L]]
-			pos <- if(length(dots) >= 2L) dots[[2L]][1L] else 2L
-			if(is.character(pos)) pos <- match(pos, search(), 2L)
-			tryCatch(attach(filename, pos = pos, name = basename(filename)),
+			posAfter <- if(length(dots) >= 2L) dots[[2L]][1L] else 2L
+			if(is.character(posAfter)) posAfter <- match(posAfter, search(), nomatch = 1L) + 1L
+			tryCatch(attach(filename, pos = posAfter, name = basename(filename)),
                      error = function(e) {
                         cat("<error>")
                         message(e)
@@ -37,7 +37,7 @@ function(command, ...) {
             posAfter <- if(length(dots) >= 2L) dots[[2L]] else 2L
 			sp <- search()
 			if(is.character(posAfter)) {
-				pos <- match(posAfter[1L], sp, nomatch = 2L)
+				pos <- match(posAfter[1L], sp, nomatch = 1L) + 1L
 			} else pos <- posAfter[1L]
 			if(pos == 1) pos <- 2L
 			if(pos > length(sp)) pos <- length(sp) - 1L

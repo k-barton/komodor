@@ -2,7 +2,7 @@
 #'
 #' This function initializes connection with Komodo and is not intended to be called by the user.
 #' @keywords internal
-#' @param verbose logical. Should vebose messages be printed?
+#' @param verbose logical. Should verbose messages be printed?
 
 startup <- 
 function (verbose = FALSE) {
@@ -56,7 +56,7 @@ function (verbose = FALSE) {
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
 		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
-				"cannot connect to Komodo. Try restarting the application (or KomodoR socket server).",
+				"cannot connect to Komodo. Try restarting the application (or KomodoR socket server)."
 				#"This problem may also be caused by a previous R",
 				#"session that was improperly closed. Quit R, kill any running",
 				#"ghost R processes, then start R again."
@@ -74,7 +74,7 @@ function (verbose = FALSE) {
 			sprintf("kor.cmdout.append('%s is started')", R.version.string),
 			"kor.command.setRStatus(true)",
 			# "kor.rbrowser.refresh(true)", # not before workspace is loaded
-			sprintf("kor.prefs.setPref('sciviews.r.port', %s)", portstr),
+			sprintf("kor.prefs.setPref('RInterface.RPort', %s)", portstr),
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
 				&& file.exists(".RData")) {
 				sprintf("kor.cmdout.append('%s')",

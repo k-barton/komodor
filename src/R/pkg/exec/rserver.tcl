@@ -99,9 +99,15 @@ proc DoServe {sock} {
 		set line [string map [list {\n} "\n" {\r} "\r" {\f} "\f" {\\} "\\" ] $line]
 #		Replace different newlines with \n
 		set line [string map [list "\r\n" "\n" "\r" "\n"] $line]
+		
+		if {$line == ""} {
+			return
+		}
 
 		if [catch {
 			regexp  {(?s)\A\x01(.)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
+			
+			Rprint "line is: '$line'" 1
 			
 			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
 
