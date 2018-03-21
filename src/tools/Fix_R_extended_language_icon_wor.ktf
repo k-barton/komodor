@@ -1,0 +1,27 @@
+// komodo tool: Fix R_extended language icon (workaround for Komodo >10)
+// ====================================================================
+// async: 1
+// is_clean: true
+// language: JavaScript
+// rank: 100
+// trigger: trigger_startup
+// trigger_enabled: 1
+// type: macro
+// version: 1.13.40
+// ====================================================================
+if(parseInt(ko.version.match(/^\d+/)) > 10) {
+
+    let fu = require("kor/fileutils");
+    let dir = fu.path("PrefD/icons/fileicons");
+    let files = fu.list(dir, "^R_extended");
+    
+    files.forEach(f => {
+        let m = f.match(/(\d+)\.png$/);
+        let size = 14;
+        if(m) size = parseInt(m[1]);
+        fu.readURIAsync("koicon://ko-svg/chrome/komodor/skin/images/r-lang.svg?size=" + size, "ASCII", (pngcontent) => {
+            fu.write(fu.path(dir, f), pngcontent, "ASCII", false);
+        });  
+    });
+
+}

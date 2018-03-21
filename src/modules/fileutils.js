@@ -373,6 +373,7 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
     //// inspired by "getDir" function from nsExtensionManager...
     this.getDir = function (path, isFile, createFile) {
         let leaves = [], key = (isFile ? path.parent : path);
+		// TypeError on line 376: key.exists is not a function
         while (!key.exists() || !key.isDirectory()) {
             leaves.unshift(key.leafName);
             if (!key.parent) break;

@@ -157,8 +157,9 @@
         // first run:
         const prefs = require("ko/prefs");
         let firstRunPref = "RInterface.firstRunDone";
+		let firstInstall = !prefs.hasPref(firstRunPref);
 
-        if (!prefs.hasPref(firstRunPref) || kor.version !== prefs.getStringPref(firstRunPref)) {
+        if (firstInstall || kor.version !== prefs.getStringPref(firstRunPref)) {
             prefs.setStringPref(firstRunPref, kor.version);
             
             // os.name is nt, posix, java. Use
@@ -178,8 +179,10 @@
 			}
 			
             // Open NEWS:
-            let doc = Services.koDocSvc.createDocumentFromURI("chrome://komodor/content/doc/NEWS.html");
-            require("ko/views").manager.topView.createViewFromDocument(doc, 'browser', -1);
+			if(!firstInstall) {
+				let doc = Services.koDocSvc.createDocumentFromURI("chrome://komodor/content/doc/NEWS.html");
+				require("ko/views").manager.topView.createViewFromDocument(doc, 'browser', -1);
+			} // TODO: else open intro.html
         } // end first run
 
         require("kor/prefs").setDefaults(false);
