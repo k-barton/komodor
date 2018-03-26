@@ -38,13 +38,6 @@ built-in R syntax highlighter. Code completion and syntax checking works only wi
 No additional R packages are required, however your R installation needs to have Tcl capability 
 (R: `capabilities("tcltk")`). See also _Known issues_ below.
 
-**Main API functions**
-
-*  in Komodo: `kor.r.evalUserCmd` JavaScript function sends a command to R.
-*  in R: `koCmd` executes a JavaScript command in Komodo and returns the result 
-   if any.
-*  For more advances uses, CommonJS module `"kor/r"` (or `kor.r` object in the main `window`) has functions to perform various tasks _via_ R, and the `"kor/connector"` module has more low level functions for communication between R and Komodo, of which `require("kor/connector").evalAsync(command, callback)` is the most useful.
-   
 **Some other, obscure features:**
 
 * *_Places_ panel*:
@@ -57,6 +50,7 @@ No additional R packages are required, however your R installation needs to have
           (e.g. `list$data$column`. Non-syntactic names will be backtick-quoted).
 		* hold both to insert “name()” for functions, “name=” for function 
 		  arguments.
+    * you can filter items either by object name or class name (toggle the "filter by" button next to the search box), using regular expressions. Prefix the search term with "~" to filter *out* matching names.
 * *R search path* box:
     * drop a package name onto it to load the package;
     * press "delete" to unload the selected package; 
@@ -71,7 +65,7 @@ No additional R packages are required, however your R installation needs to have
     * R markdown preview;
     * Insert result of the selected text evaluated in R;
 	* Color picker (inserts hex code to the text);
-	* Duplicate line or selection (assign to e.g. Ctrl+D to restore the good old 
+	* Duplicate line or selection (assign to Ctrl+D to restore the good old 
 	  pre-8 behaviour).
 	* “_Smart_ highlight” marks all occurences of the word under the cursor in 
 	  the current document.
@@ -81,6 +75,13 @@ No additional R packages are required, however your R installation needs to have
 
 The extension provides some code debugging capabilities, see 
 [Debugging R code](debugging.md).   
+
+**Main API functions**
+
+*  in Komodo: `kor.r.evalUserCmd` JavaScript function sends a command to R.
+*  in R: `koCmd` executes a JavaScript command in Komodo and returns the result 
+   if any.
+*  For more advances uses, CommonJS module `"kor/r"` (or `kor.r` object in the main `window`) has functions to perform various tasks _via_ R, and the `"kor/connector"` module has more low level functions for communication between R and Komodo, of which `require("kor/connector").evalAsync(command, callback)` is the most useful.
 
 **Known issues:**
 
