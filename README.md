@@ -26,7 +26,7 @@ Philippe Grosjean, and since then has been largely rewritten.
      (*.Rmd* files, partially implemented.)
 * Code completion (objects, argument names, list items)
 * Syntax checking
-* R object browser pane
+* R object browser pane with fully expandable tree allows for inspecting objects' structure including attributes and hidden objects.
 * Toolbar with commonly used commands
 * R help window
 * R package manager
