@@ -359,32 +359,38 @@ function (x) {
     if(missing(x)) return(c("", "language", "missing", ""))
 
 	# XXX better method of detecting promises?
-	error <- FALSE
-	tryCatch(x, error = function(e) error <<- TRUE, warning = function(e) error <<- TRUE)
-	if(error) return(c("", "language", "missing", ""))
+	if(tryCatch({ x; FALSE }, error = function(e) TRUE, warning = function(e) TRUE))
+		return(c("", "language", "missing", ""))
 		
 	xClass <- class(x)
 	s4 <- isS4(x)
-	slotnames <- if(s4) slotNames(x) else character(0L)
 	
-	#tryCatch({
+	if(tryCatch({
+		slotnames <- if(s4) slotNames(x) else character(0L)
+	
 		if(is.function(x))
 			d <- length(formals(x))
 		else
 			d <- dim(x)
 		if (is.null(d))
 			d <- if(s4) length(slotnames) else length(x)
-	#}, error = function(x) NULL)
-	
-	isRecursive <- (s4 || is.function(x) ||
-	    (is.recursive(x) && !inherits(x, 'POSIXlt'))) && !is.symbol(x) &&
-			 sum(d) != 0L
+			
+		isRecursive <- (s4 || is.function(x) ||
+			(is.recursive(x) && !inherits(x, 'POSIXlt'))) && !is.symbol(x) &&
+				 sum(d) != 0L
     
-	type <- 
-	if(is.language(x)) "language" else
-    if(is.pairlist(x) || is.list(x)) "list" else
-	if(is.factor(x)) "factor" else
-		  mode(x)
+	    FALSE
+	}, error = function(x) TRUE)) {
+		d <- "?"
+		slotnames <- character(0L)
+		isRecursive <- FALSE
+	} 
+	
+	type <- if(is.language(x)) "language" else
+		if(is.pairlist(x) || is.list(x)) "list" else
+		tryCatch(if(is.factor(x)) "factor" else mode(x),
+		error = function(e) mode(x), warning = function(e) mode(x))
+	    
 	
 	# attributes omit identical slots
 	c(paste0(d, collapse = "x"), type, xClass[1L],

@@ -211,7 +211,11 @@ function (expr, conn = NULL, markStdErr = FALSE,
 
 	if(.getWarnLevel() == 0L) {
 		nwarn <- length(last.warning)
-		if(doTraceback) assign("last.warning", last.warning, envir = baseenv())
+		if(doTraceback) {
+			if(bindingIsLocked("last.warning", baseenv()))
+				unlockBinding("last.warning", baseenv())
+			assign("last.warning", last.warning, envir = baseenv())
+		}
 
 		if(nwarn != 0L) mark(FALSE, 6L)
 		if(nwarn <= 10L) {
@@ -238,6 +242,9 @@ function (expr, conn = NULL, markStdErr = FALSE,
 
 	# allow for tracebacks of this call stack:
 	if(doTraceback && !is.null(Traceback)) {
+		if(bindingIsLocked(".Traceback", baseenv())) 
+			unlockBinding(".Traceback", baseenv())
+	
 		assign(".Traceback",
 			if (is.null(filename)) {
 				#lapply(Traceback, deparse, control=NULL)

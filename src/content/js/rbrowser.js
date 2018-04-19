@@ -43,8 +43,8 @@ var rob = {};
     // XXX make internal
     this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
    
-    var nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", "package:base",
-                                 "Autoloads"]);    
+    var nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", 
+		"package:base", "Autoloads"]);    
     
     this.searchPath = {
         _data: [],
@@ -111,7 +111,7 @@ var rob = {};
             //<richlistitem label="package:aumtutumtu" depends="stats dupa *aumtutumtu" nondetachable="true" />
             let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
             if (m) {
-                _this.evalEnv.isNew = m[1] !== _this.evalEnv.name; 
+                _this.evalEnv.isNew = (_this.evalEnv.name === undefined) || (m[1] !== _this.evalEnv.name);
                 //this.evalEnv.name = "<" + searchPath[0].substring(9, searchPath[0].length - 2) + ">";
                 _this.evalEnv.name = m[1] ? m[1] : "EvalEnv";
                 result[0].name = _this.evalEnv.name;
@@ -179,9 +179,11 @@ var rob = {};
 		"standardGeneric", "environment", "GlobalEnv", "package", "character",
 		"integer", "numeric", "logical", "list", "factor", "NULL", "DateTime",
 		"array", "matrix", "data.frame", "Matrix4", "expression", "language",
+		"histogram",
 		"name", "srcfilecopy", "srcref", "dist", "_lm", "_lme", "_glmm",
 		"lm", "lme", "gam", "glm", "gls", "merMod", "formula", "family", "terms",
-		"logLik", "connection", 'htest', 'ts', 'nls'
+		"logLik", "connection", "htest", "ts", "nls",
+		"Raster", "RasterBrick", "SpatialLine_", "SpatialPoint_", "SpatialPolygon_", "Spatial_"
 		];
 
     var hasIcon = (name) => iconTypes.indexOf(name) !== -1;
@@ -276,6 +278,16 @@ var rob = {};
                 name = "merMod";
             else if (name.endsWith("Matrix"))
                 name = "Matrix4";
+			else if (name.startsWith("SpatialLine") || name.startsWith("Line"))
+				name = "SpatialLine_";
+			else if (name.startsWith("SpatialPoint") || name.startsWith("Point"))
+				name = "SpatialPoint_";
+			else if (name.startsWith("SpatialPolygon") || name.startsWith("Polygon"))
+				name = "SpatialPolygon_";
+			//.SpatialPolygons.*
+			//SpatialPoints, SpatialGrid, SpatialPointsDataFrame, SpatialGridDataFrame
+			else if (name.startsWith("Spatial"))
+				name = "Spatial_";
             else if (name === "" && this.origItem.type === "args")
                 name = "missing-arg";
             else if (noicon) {
@@ -285,6 +297,8 @@ var rob = {};
                     name = "_lme";
                 else if (name.endsWith("lm"))
                     name = "_lm";
+				else if (name.startsWith("Raster"))
+					name = "Raster";
                 else
                     name = this.origItem.group;
             }
@@ -596,6 +610,9 @@ var rob = {};
             case LF.Env:
                 if (lines[i].indexOf("Env=") != 0) break;
                 envName = lines[i].substr(4).trim();
+				if(_this.evalEnv.name && envName == "getEvalEnv()")
+					 envName = _this.evalEnv.name;
+				
                 lookFor = LF.Obj;
                 itemConsumed = true;
                 break;
@@ -604,11 +621,13 @@ var rob = {};
                 objName = lines[i].substr(4).trim();
                 treeBranch = getTreeLeafByName(objName, envName);
                 logger.debug(
-                    `parseObjListResult: \nfound Obj=${objName}, Env=${envName}. Exists in tree=${treeBranch? 'yes' : 'no'}`
+                    `parseObjListResult: \nfound Obj="${objName}", Env="${envName}". Exists in tree: ${treeBranch? 'yes' : 'no'}`
                 );
                 if (!treeBranch && !objName) { // This is environment
                     treeBranch = new RObjectLeaf(envName, false);
                     _this.treeData.push(treeBranch);
+					logger.debug("parseObjListResult: adding new top-level item: " + treeBranch.name + "\n" +
+						"treeData = " + _this.treeData.map(x => x.name).join("; "));
                     if (currentPackages.indexOf(envName) == -1)
                         lastAddedRootElement = treeBranch;
                 }
@@ -624,7 +643,7 @@ var rob = {};
                 itemConsumed = true;
                 break;
             case LF.Data:
-                if (lines[i].indexOf("Env=") == 0) { // previous Env is empty
+                if (lines[i].indexOf("Env=") === 0) { // previous Env is empty
                     lookFor = LF.Env;
                     --i;
                     break;
@@ -632,9 +651,10 @@ var rob = {};
                 if (!lines[i].contains(sep)) break;
                 try {
                     let objlist = lines[i].split(recordSep);
+					let leaf;
                     for (let k = 0; k < objlist.length; ++k) {
                         if (objlist[k].length === 0) break;
-                        let leaf = new RObjectLeaf(envName, true, objlist[k].split(sep), k /* or i?*/ ,
+                        leaf = new RObjectLeaf(envName, true, objlist[k].split(sep), k /* or i?*/ ,
                             treeBranch);
                         treeBranch.children.push(leaf);
                     }
@@ -663,6 +683,9 @@ var rob = {};
             }
         }
         restoreSelection();
+		
+		logger.debug("parseObjListResult: \n" + "treeData = " + _this.treeData.toString());
+		
     };
 
     this.getOpenItems = function () {

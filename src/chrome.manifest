@@ -38,4 +38,3 @@ override chrome://komodor/content/keybindings.kkf chrome://komodor/content/keybi
 override chrome://komodor/content/keybindings.kkf chrome://komodor/content/keybindings/keybindings-mac.kkf os=darwin
 
 
-

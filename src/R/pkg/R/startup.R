@@ -54,6 +54,8 @@ function (verbose = FALSE) {
     } else portstr <- NULL
 	
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
+	    writeLines(text = paste(portstr, getOption("ko.port")), con = file.path(cwd0, "~ports"))
+	
 		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
 				"cannot connect to Komodo. Try restarting the application (or KomodoR socket server)."

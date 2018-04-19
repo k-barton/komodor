@@ -15,7 +15,7 @@
 
 <!ENTITY rob.insName "Insert name into text">
 <!ENTITY rob.insFullName "Insert full name">
-<!ENTITY rob.rmObj "Remove objects (insert R code to editor)">
+<!ENTITY rob.rmObj "Remove objects (insert R code into document)">
 <!ENTITY rob.loadPkg "Load R package">
 <!ENTITY rob.detach "Detach R package">
 <!ENTITY rob.clrFilter "Clear filter text">
