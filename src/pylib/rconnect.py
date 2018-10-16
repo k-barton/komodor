@@ -30,19 +30,17 @@
 #
 # ***** END LICENSE BLOCK *****
 
-
-# r connect:
+import os, re, sys
 import socket
-import re
-import os
-import json
-import logging
+# import logging
 
-log = logging.getLogger("RConn")
+#log = logging.getLogger("RConn")
+#log.setLevel(logging.INFO)
+
 
 class RConn(object):
     port = None
-    default_port = 2222
+    default_port = 8888
     def __init__(self, port):
         self.port = port if port > 0 else self.default_port
      
@@ -66,41 +64,43 @@ class RConn(object):
         return rval
     
     def connect(self, command, port, timeout):
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.settimeout(timeout)
-            try: s.connect(('localhost', port))
-            except IOError, e:
-                return unicode('\x15' + (e.args[0] if (e.errno == None) else e.strerror))
-    
-            full_command = '\x01h<cicpl>' \
-                    + command.replace("\\", "\\\\"). \
-                    replace("\n", "\\n").replace("\r", "\\r").replace("\f", "\\f")
-            
-            s.send(full_command + os.linesep)
-            # # command must end with newline
-            s.shutdown(socket.SHUT_WR)
-            result = u''
-            try:
-                while True:
-                    data = s.recv(1024L)
-                    if not data: break
-                    result += unicode(data)
-            except Exception, e:
-                log.debug(e)
-                pass
-            s.close()
-            result = result.rstrip()
-            message = ''
-            result = re.sub('(?<=\\\\)[0-9]{3}', lambda x: ("u%04x" % int(x.group(0), 8)), result)
-            result = re.sub('[\x00-\x08\x0e-\x1f]', lambda x: "\\u%04x" % ord(x.group(0)), result)
-            try:
-                resultObj = json.loads(result)
-                if(isinstance(resultObj, dict)):
-                    message = resultObj.get('message')
-                    result = resultObj.get('result')
-                    if isinstance(result, list):
-                        result = os.linesep.join(result)
-                    result = result.replace('\x02\x03', '')  # XXX: temporary fix
-            except Exception, e:
-                pass
-            return unicode(result)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(timeout)
+        try: s.connect(('localhost', port))
+        except IOError, e:
+            return unicode('\x15' + (e.args[0] if (e.errno == None) else e.strerror))
+
+        encoded_command = u''.join(('<cicpl>',
+                                    command.replace("\\", "\\\\"). \
+                                    replace("\n", "\\n").replace("\r", "\\r"). \
+                                    replace("\f", "\\f"), os.linesep))
+        # command must end with newline
+        # mode = 'hax' # hidden + encoded + returnASCII
+        try:
+            s.send(''.join(('\x01', 'hax', encoded_command.encode('utf-8'))))
+        # except UnicodeEncodeError, e:
+        except Exception, e:
+           return u''
+
+        s.shutdown(socket.SHUT_WR)
+
+        all_data = []
+        try:
+            while True:
+                data = s.recv(1024L)
+                if not data: break
+                all_data.append(data)
+        except Exception, e:
+            print e
+            pass
+        s.close()
+        all_data = "".join(all_data).rstrip()
+
+        result = all_data.split("\x1f")[2]
+        result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
+                        re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result)
+                        .decode('string_escape')) \
+                        .decode("utf-8") \
+                        .replace('\x02\x03', '')
+        
+        return unicode(result)

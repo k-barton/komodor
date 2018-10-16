@@ -39,11 +39,11 @@ import string
 from xpcom.server.enumerator import SimpleEnumerator
 import socket
 import threading
-import json
 from uuid import uuid1
 
 import logging
 log = logging.getLogger('korRConnector')
+#log.setLevel(logging.DEBUG)
 
 class korRConnector:
     _com_interfaces_ = [components.interfaces.korIRConnector]
@@ -133,7 +133,6 @@ class korRConnector:
         log.debug("connect: command was \n%s ... \n(notify=%d)" % (rcommand[0:36], notify))
 
         modeArr = mode.split(' ')
-        useJSON = modeArr.count('json')
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(timeout)
@@ -157,70 +156,52 @@ class korRConnector:
         
 
         rMode = 'h' if modeArr.count('h') else 'e'
-        do_print = rMode == 'h'
-
-        if useJSON:
-            full_command = '\x01' \
-                + rMode \
-                + '<' + uid + '>' \
-                + command.replace("\\", "\\\\"). \
+        # if isinstance(command, unicode):
+            # command = command.encode("UTF-8")
+        full_command = '\x01a' \
+            + rMode \
+            + '<' + uid + '>' \
+            + command.replace("\\", "\\\\"). \
                 replace("\n", "\\n").replace("\r", "\\r").replace("\f", "\\f")
-        #XXX: remove
-        else:
-            full_command = '<<<id=' + uid + '>>><<<' + mode + '>>>' + \
-                re.sub("(\r?\n|\r)", '<<<n>>>', command)
-            #command.replace(os.linesep,  '<<<n>>>')
+
         s.send(full_command + os.linesep)
         ## command must end with newline
-        ## TODO: replace all newlines by R
         s.shutdown(socket.SHUT_WR)
-        result = u''
+        all_data = []
         try:
             while True:
                 data = s.recv(1024L)
                 if not data: break
-                # if notify:
-                    #self._proxiedObsSvc.notifyObservers(cmdInfo, 'r-command-chunk', data)
-                    # self._proxiedObsSvc.notifyObservers(
-                    # self.notifyObservers(
-                        # WrapObject(cmdInfo, components.interfaces.korICommandInfo),
-                        # 'r-command-chunk', data)
-                #if do_print:
-                    #self.printResult(cmdInfo)
-                result += unicode(data)
+                all_data.append(data)
         except Exception, e:
             log.debug(e)
             pass
         s.close()
-        result = result.rstrip()
+        
         message = ''
-        if useJSON:
-            # Fix bad JSON: R escapes nonprintable characters as octal numbers
-            # (\OOO), but json needs unicode notation (\uHHHH).
-            result = re.sub('(?<=\\\\)[0-9]{3}',
-                            lambda x: ("u%04x" % int(x.group(0), 8)), result)
-            # TODO: shouldn't this be done elsewhere?
-            # Fix bad JSON from RSONIO::toJSON: control characters are not
-            #  escaped at all.
-            #  Must not escape e.g. any newlines outside the JSON object:
-            result = re.sub('[\x00-\x08\x0e-\x1f]',
-                   lambda x: "\\u%04x" % ord(x.group(0)), result)
-            try:
-                resultObj = json.loads(result)
-            except ValueError, e:
-                resultObj = {'message': u"empty", 'result': u"", 'browserMode': "FALSE"}
-                log.info("%s. Result was:\n%s" % (e, result))
-            if(isinstance(resultObj, dict)):
-                result = resultObj.get('result')
-                if isinstance(result, list):
-                    result = os.linesep.join(result)
-                #else: # isinstance(x, unicode)
-                #    result = resultObj.get('result')
-                #log.debug(type(result)) # <-- should be: <type 'unicode'>
-                result = result.replace('\x02\x03', '') # XXX: temporary fix
-                cmdInfo.message = unicode(resultObj.get('message'))
-                cmdInfo.result = unicode(result)
-                cmdInfo.browserMode = resultObj.get('browserMode') == "TRUE"
+        resultObj = ''.join(all_data).rstrip().split("\x1f")
+    
+        ## NEW RESULT FORMAT "message<US>browserMode<US>output"
+        ## US=\x1f, \037
+        
+        if len(resultObj) == 3:
+            result = resultObj[2]
+            # 1. <hh> => \\xhh
+            # 2. \\ => \
+            # 3. \032{<hh>} => <hh>, \032{\032} => \032
+            # 4. to UTF-8
+            result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
+                re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result)
+                    .decode('string_escape')) \
+                    .decode("utf-8") \
+                    .replace('\x02\x03', '') # XXX: temporary fix
+        else:
+            resultObj = [ 'empty', 'FALSE', u'' ]
+            log.info("%s. Result was:\n%s", e, resultObj)
+
+        cmdInfo.result = unicode(result)
+        cmdInfo.message = unicode(resultObj[0])
+        cmdInfo.browserMode = resultObj[1] == "TRUE"
 
         self.lastMessage = message
         self.lastResult = result
@@ -263,7 +244,7 @@ class korRConnector:
                 self.serverConn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.serverConn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 0)
                 self.serverConn.settimeout(5)
-                log.debug('trying socket (%s, %d) ' % (host, port))
+                log.debug('trying socket (%s, %d) ', host, port)
                 self.serverConn.bind((host, port))
                 break
             except Exception, e:
@@ -294,7 +275,7 @@ class korRConnector:
         # a string
         try:
             self.serverConn.listen(1)
-            log.debug('Socket server listening at %d' % self.socketIn[1])
+            log.debug('Socket server listening at %d', self.socketIn[1])
             count = 0
             connected = False
             while self.runServer:
@@ -312,7 +293,7 @@ class korRConnector:
                 data_all = u''
                 try:
                     while connected:
-                        log.debug('Connected by %s : %d' % addr)
+                        log.debug('Connected by %s : %d', addr)
                         data = conn.recv(1024L)   # XXX: error: [Errno 10054]
                         data_all += unicode(data) # XXX , encoding?
                         if (not data) or (data[-1] == '\n'): break
@@ -326,7 +307,7 @@ class korRConnector:
                     result = self.requestHandlerEvent(requestHandler, data_all)
                 except Exception, e:
                     result = e.args[0]
-                    log.debug('JS request exception: %s' % result)
+                    log.debug('JS request exception: %s', result)
                 if (result == None): conn.send('\n')
                 else: conn.send(result + '\n')
             
@@ -337,7 +318,7 @@ class korRConnector:
             log.debug(e.args)
         self.stopSocketServer()
 
-        log.debug("Exiting after %d connections" % count)
+        log.debug("Exiting after %d connections", count)
         try:
             self.notifyObservers(None, 'r-server-stopped', None)
         except Exception, e:
@@ -349,7 +330,7 @@ class korRConnector:
         return(uuid1().hex)
 
     def escape(self):
-        self.evalInRNotify('\x1b', '')
+        self.evalInRNotify('\x1b', '', 'esc')
         pass
         
 # //JS:

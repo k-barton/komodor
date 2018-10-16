@@ -105,9 +105,9 @@ proc DoServe {sock} {
 		}
 
 		if [catch {
-			regexp  {(?s)\A\x01(.)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
+			regexp  {(?s)\A\x01([a-z]*)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
 			
-			Rprint "line is: '$line'" 1
+			Rprint "line is: '$line', mode: $r_mode" 1
 			
 			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
 

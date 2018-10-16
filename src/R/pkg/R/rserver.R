@@ -17,7 +17,7 @@
 #'   * command ends with a newline.
 #'
 #' @return The result is an object with two components `"result"` and `"message"`.
-#' The "message" can be one of: "more" (incomplete code, waiting for continuation), "parse-error" or "done".
+#' The "message" must be one of: "more" (incomplete code, waiting for continuation), "parse-error" or "done".
 #' In the "result", element 'stdout' and 'stdin' streams are delimited by ASCII characters #003 and #002.
 #' @note
 #' Multiple servers can be started (on different ports), and each can

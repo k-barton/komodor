@@ -111,10 +111,10 @@ var rob = {};
             //<richlistitem label="package:aumtutumtu" depends="stats dupa *aumtutumtu" nondetachable="true" />
             let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
             if (m) {
-                _this.evalEnv.isNew = (_this.evalEnv.name === undefined) || (m[1] !== _this.evalEnv.name);
+				let newEvalEnvName = m[1] ? m[1] : "EvalEnv";
+                _this.evalEnv.isNew = (_this.evalEnv.name === undefined) || (newEvalEnvName !== _this.evalEnv.name);
                 //this.evalEnv.name = "<" + searchPath[0].substring(9, searchPath[0].length - 2) + ">";
-                _this.evalEnv.name = m[1] ? m[1] : "EvalEnv";
-                result[0].name = _this.evalEnv.name;
+                result[0].name = _this.evalEnv.name  = newEvalEnvName;
             } else
                 _this.evalEnv.name = undefined;
        
@@ -178,12 +178,14 @@ var rob = {};
 	    "S3", "S4", "missing-arg", "attrib", "function",
 		"standardGeneric", "environment", "GlobalEnv", "package", "character",
 		"integer", "numeric", "logical", "list", "factor", "NULL", "DateTime",
+		"hexmode", "octmode",
 		"array", "matrix", "data.frame", "Matrix4", "expression", "language",
 		"histogram",
 		"name", "srcfilecopy", "srcref", "dist", "_lm", "_lme", "_glmm",
 		"lm", "lme", "gam", "glm", "gls", "merMod", "formula", "family", "terms",
 		"logLik", "connection", "htest", "ts", "nls",
-		"Raster", "RasterBrick", "SpatialLine_", "SpatialPoint_", "SpatialPolygon_", "Spatial_"
+		"Raster", "RasterBrick", "SpatialLine_", "SpatialPoint_", "SpatialPolygon_", "Spatial_",
+		"gg_"
 		];
 
     var hasIcon = (name) => iconTypes.indexOf(name) !== -1;
@@ -284,6 +286,8 @@ var rob = {};
 				name = "SpatialPoint_";
 			else if (name.startsWith("SpatialPolygon") || name.startsWith("Polygon"))
 				name = "SpatialPolygon_";
+			else if (name.startsWith("gg"))
+				name = "gg_";
 			//.SpatialPolygons.*
 			//SpatialPoints, SpatialGrid, SpatialPointsDataFrame, SpatialGridDataFrame
 			else if (name.startsWith("Spatial"))

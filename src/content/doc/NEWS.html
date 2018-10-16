@@ -49,7 +49,14 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div id="header">
 <h1 class="title">What's new in R Interface for Komodo?</h1>
 </div>
-<p>(Version 0.3.45)</p>
+<p>(Version 0.3.52)</p>
+<ul>
+<li>R: Fixed error with file listing when objects' required packages were not available.</li>
+<li>R object browser: evaluation environment's tree was not displayed when <code>EvalEnv</code> had been set manually via <code>setEvalEnv()</code>.</li>
+<li>R object browser: new icons for Spatial* and Raster* objects.</li>
+<li>R: attempting to unlock <code>baseenv()</code>s bindings (issue #11).</li>
+</ul>
+<p>(Version 0.3.45b)</p>
 <ul>
 <li>Added workaround to replace the generic language icon for R_extended.</li>
 </ul>

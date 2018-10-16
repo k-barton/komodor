@@ -65,8 +65,11 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	#deparse(dExpr)
 	fooVars <- c(".._captureAll.expr_..", ".._captureAll.envir_..")
 
-	`restartError` <- function (e, calls) { # , foffset
+	`restartError` <- function (e, calls = list(e)) { # , foffset
 		# remove call (eval(expr, envir, enclos)) from the message
+		#print(sys.call())
+		#print(e)
+		
 		ncls <- length(calls)
 
 		DEBUG("restartError")
@@ -331,9 +334,9 @@ unsink <- function () {
 
 
 DEBUG <- function (...) {}
-#DEBUG <- function (x, ...) {
-#	cat("DEBUG: ")
-#	if(!is.character(substitute(x)))
-#		cat("[", deparse(substitute(x)), "] ")
-#	cat(x, "\n")
-#}
+# DEBUG <- function (x, ...) {
+	# cat("DEBUG: ")
+	# if(!is.character(substitute(x)))
+		# cat("[", deparse(substitute(x)), "] ")
+	# cat(x, "\n")
+# }

@@ -195,10 +195,10 @@ if (!Object.entries)
             }
 
             if (isTmp)
-                cmd = comment + 'kor::sourceTemp(' + _this.arg(path) + ', encoding="utf-8")';
+                cmd = comment + 'kor::sourceTemp(' + _this.arg(path) + ', encoding="utf-8", local = kor::getEvalEnv())';
             else
                 cmd = comment + 'base::source(' + _this.arg(path) + 
-					', encoding="' + view.koDoc.encoding.short_encoding_name.toLowerCase() + '")';
+					', encoding="' + view.koDoc.encoding.short_encoding_name.toLowerCase() + '", local = kor::getEvalEnv())';
 
             rval = _this.evalUserCmd(cmd);
 

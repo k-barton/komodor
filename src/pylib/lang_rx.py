@@ -35,8 +35,8 @@ R_extended support for codeintel.
 """
 import os
 import sys
-# import logging
-import operator
+import logging
+#import operator
 
 from codeintel2.common import *
 from codeintel2.citadel import CitadelBuffer, CitadelLangIntel
@@ -61,21 +61,21 @@ try:
     _xpcom_ = True
 except ImportError:
     _xpcom_ = False
-    
-    
+
 try:
     from rconnect import RConn
 except ImportError:
     sys.path.append(os.path.dirname(__file__))
     from rconnect import RConn
-   
+
 #from xpcom import components
 #R = components.classes["@komodor/korRConnector;1"].\
 #    getService(components.interfaces.korIRConnector)
 
 #---- Globals
 lang = "R_extended"
-# log = logging.getLogger("codeintel.R")
+#log = logging.getLogger("codeintel.Rx")
+#log.setLevel(1)
 
 # These keywords and builtin functions are copied from "Rlex.udl".
 # Reserved keywords
@@ -115,7 +115,7 @@ class RxLexer(UDLLexer):
 # Note that each name may be single, double or backtick quoted, or in multiple
 # lines
 
-# TODO:
+# TODO
 #  object$func(<|>) complete arguments
 
 #---- LangIntel class
@@ -142,14 +142,14 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
     argument_style   = variable_style
     element_style    = variable_style
     varname_styles   = (identifier_style, keyword_style)
-    
+
     # R functions that accept graphical parameters (par)
     func_graphics = ('plot', 'boxplot', 'bxp', 'box', 'curve', 'line', 'points',
-                'text', 'mtext', 'title', 'image',)
+                     'text', 'mtext', 'title', 'image',)
 
     type_sep = u'\u001e'
     pathsep = os.sep + ("" if(os.altsep is None) else os.altsep)
-   
+
     _rconn = None
     def _rconn_set_r_port(self, env, pref_name):
         # TODO: put this together with RConn.read_port_no'
@@ -169,8 +169,8 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
                 port = self._rconn.read_port_no()
         if port is not None:
             self._rconn.port = port
-        pass
-    
+
+
     def _eval_in_r(self, cmd, env):
         """evaluate cmd in R.
         """
@@ -179,7 +179,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             self._rconn_set_r_port(env, "RInterface.RPort")
             # env.add_pref_observer("RInterface.RPort", self._rconn_set_r_port)
         return self._rconn.eval_in_r(cmd)
-    
+
     ##
     # Implicit triggering event, i.e. when typing in the editor.
     #
@@ -197,15 +197,15 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         acc = buf.accessor
         last_pos = pos - 1
         char = acc.char_at_pos(last_pos)
-        
+
         # complete argument names after ,<space>
         complete_arg = (char in ' \t\n\r') and (acc.char_at_pos(last_pos - 1) == ',')
         if complete_arg:
             last_pos -= 1
             char = ','
-        
+
         style = acc.style_at_pos(last_pos)
-        
+
         if style == self.operator_style:
             if complete_arg or (char in '[('):
                 infun = self._in_func(pos, acc)
@@ -437,7 +437,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         try:
             ret = [ tuple(x.split(self.type_sep)) for x in res.split(os.linesep) ]
         except:
-            return ('none found', 'No completions available')
+            return ('none found', 'No completions found')
         if argnames:
             #log.debug("argnames = %s" % (", ".join(argnames) , ))
             argnames = [ x + ' =' for x in argnames ]
@@ -459,8 +459,13 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
     def _get_completions_default(self, text, cutoff, env):
         if not text.strip(): return None
-        cmd = 'kor::completion("%s")' % text.replace('"', '\\"')
+        cmd = u'kor::completion("%s")' % text.replace('"', '\\"')
+        
+        #log.debug(u"_get_completions_default: %s" % (cmd))
         res = self._eval_in_r(cmd, env)
+        
+        #log.debug(u"_get_completions_default: result is %s" % (res))
+
         
         #TODO: on timeout an empty string is returned
         #u'\x03Error: could not find function "completion"\r\n\x02'
@@ -475,7 +480,9 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
                           res.split(os.linesep) ] if len(x[1]) > cutoff ]
         except:
             return ('none found', 'No completions available')
-            
+        
+        #log.warning(u"_get_completions_default: %d completion items" % (len(cpl)))
+    
         if len(cpl):
             return ('success', cpl)
 

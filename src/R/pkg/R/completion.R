@@ -168,7 +168,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 						# perhaps scan global environment?
 					#}
 				} else {
-					object <- tryCatch(eval(object, parent.frame()), error = function(e) NULL)
+					object <- tryCatch(eval(object, getEvalEnv()), error = function(e) NULL) # ? or eval in parent.frame()
 					cls <- class(object)
 				}
 			}
