@@ -37,9 +37,9 @@ This add-on provides a file type named __“R\_extended”__ to avoid conflict w
 built-in R syntax highlighter. Code completion and syntax checking works only with “R\_extended” not “R“.
 
 No additional R packages are required, however your R installation needs to have
-Tcl capability (by default it does. Check in R with `capabilities("tcltk")`). See also _Known issues_ below.
+Tcl capability (by default it does. In R, check it with `capabilities("tcltk")`). See also _Known issues_ below.
    
-**Some other, obscure features:**
+**Other, obscure features:**
 
 * *_Places_ panel*:
     * load workspace from “.RData” files or source script from “.R” files: 
@@ -87,7 +87,7 @@ The extension provides some code debugging capabilities, see
 **Known issues:**
 
 * Output from R is displayed in the command output pane only __at the end of 
-  operation__ (real-time command output will be introduced in version 0.4)
+  operation__ (real-time output will be introduced in version 0.4)
 * Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape 
   key in RGui)
 * Executing Rgui's command “Stop all computations” will also stop R's socket 
