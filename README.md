@@ -59,9 +59,9 @@ Tcl capability (by default it does. In R, check it with `capabilities("tcltk")`)
 * *R help* window:
     * press Ctrl+R to run selected text as R code (or choose command from the 
 	  context menu).
-* R language help (Shift+F1 while in an *R_extended* document):
-    * the selected keyword is searched for in the loaded packages. If nothing is 
-	  found, press Shift+F1 again to search in all packages.
+* R language help:
+    * While in an *R_extended* document, press Shift+F1 once to search for the selected keyword in the __loaded__ packages.
+      Press Shift+F1 again to search in __all__ packages.
 * The *R tools* toolbox has some more or less useful commands:
     * R markdown preview;
     * Insert result of the selected text evaluated in R;
@@ -70,7 +70,6 @@ Tcl capability (by default it does. In R, check it with `capabilities("tcltk")`)
 	  pre-8 behaviour).
 	* “_Smart_ highlight” marks all occurences of the word under the cursor in 
 	  the current document.
-
 	  
 **Debugging R code**
 
