@@ -151,7 +151,8 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	} else
 		fun <- NULL
 
-	if(is.null(fun) || mode(fun) != "function") return(invisible(NULL))
+	if(is.null(fun) || mode(fun) != "function" || FUNC.NAME == "function")
+		return(invisible(NULL))
 	if (findGeneric(FUNC.NAME, envir) != "" || is.primitive(fun)) {
 
 		cl <- sys.call()

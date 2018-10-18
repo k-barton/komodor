@@ -63,7 +63,7 @@ function(x, id, mode) {
 	    msg <- "more"
 	} else {
 	    if (inherits(expr, "error")) {
-	        rval <- c("\003", as.character.error(expr), "\002")
+	        rval <- c("\x03", as.character.error(expr), "\x02")
 	        msg <- "parse-error"
 	    } else {
 			# XXX currently hidden eval mode implies: no traceback, evaluation in .GlobalEnv.
