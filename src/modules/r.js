@@ -20,6 +20,16 @@ if (!Object.entries)
         while (i--) resArray[i] = [ownProps[i], obj[ownProps[i]]];
         return resArray;
     };
+    
+if (!Object.values)
+    Object.values = function (obj) {
+    	var vals = [];
+         for (var key in obj)
+            if (obj.hasOwnProperty(key) && obj.propertyIsEnumerable(key))
+                vals.push(obj[key]);
+        return vals;
+    };
+
 
 (function () {
     "use strict";

@@ -208,9 +208,6 @@ this.getWindowRef = function (uri, name, features, focus, ...args) { //, ...
      return win;
  };
 
- 
- 
- 
 this.pathWithCurrentViewContent = function (view, isTempFile) {
     var rval = false;
     try {

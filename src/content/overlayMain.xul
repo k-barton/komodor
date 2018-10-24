@@ -345,7 +345,7 @@
 
 <ko-pane id="workspace_left_area">
 <browser type="ko-widget"
-	id="rbrowser_tabpanel"
+	id="rbrowserViewbox"
 	label="&rBrowser.tab;"
 	tab_onfocus="require('kor/main').rbrowser.focus();"
 	src="chrome://komodor/content/rbrowser-pane.xul"

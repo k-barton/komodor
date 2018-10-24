@@ -754,7 +754,7 @@ var rob = {};
             if (init) {
                 let thisWindow = self;
                 if (thisWindow.location.pathname.indexOf("komodo.xul") !== -1)  // in main window
-                    thisWindow = document.getElementById("rbrowser_tabpanel").contentWindow;
+                    thisWindow = document.getElementById("rbrowserViewbox").contentWindow;
                 thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
             }
             RConn.evalAsync(cmd, parseObjListResult, true);
@@ -1739,7 +1739,9 @@ var rob = {};
         _this.selection.rangedSelect(startIndex, endIndex, augment);
     };
 
-    this.focus = function () {};
+    this.focus = function () {
+        _this.refresh();
+    };
 
     this.toggleValue = function(event, name) {
         let control = event.target;
@@ -1819,6 +1821,15 @@ var rob = {};
     
     this.onREnvironmentChange = function(/*event*/) {
         logger.debug("onREnvironmentChange");
+// TODO: refresh only if on top. Events:
+// tabtab_oncommand="ko.places.viewMgr.focus(); ko.places.viewMgr.updateView();"
+// tab_onfocus="ko.places.viewMgr.focus(); ko.places.viewMgr.updateView();"
+        var panel = require("ko/windows").getMain()
+            .document.getElementById("rbrowserViewbox").parentElement;
+        
+        if(panel.parentNode.selectedPanel != panel)
+            return;
+
         _this.refresh();
     };
 
@@ -1889,7 +1900,7 @@ var rob = {};
         },
         createVisibleData: createVisibleData,
         cleanupObjectLists: cleanupObjectLists,
-        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "rbrowser_tabpanel")
+        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "rbrowserViewbox")
     };
     
 
