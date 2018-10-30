@@ -244,7 +244,6 @@
     let _curPrompt = promptStr.normal, _command = [];
     let _waitMessageTimeout;
 	
-	
 	_W.addEventListener('r-evalenv-change', (event) => {
 		if(!event.detail.evalEnvName) return;
 		_curPrompt = (event.detail.evalEnvName === ".GlobalEnv") ? 
@@ -283,6 +282,5 @@
         }
         _this.printResult(print_command, finalPrompt, executed, commandInfo);
     };
-    
     
 }).apply(module.exports);

@@ -9,7 +9,7 @@ function(fsep = ";", rsep = "\t")  {
     idxPkg <- grep("^package:", rval)
     pkgNames <- rval[idxPkg]
     pkgNames <- sub("^package:", "", pkgNames)
-    deps <- lapply(pkgNames, getAllDependencies)
+    deps <- lapply(pkgNames, .getAllDependencies)
     d0 <- vapply(deps, length, 0L) == 0L
     depsStr <- deps
     for(i in seq.int(along.with = depsStr)[!d0]) {
@@ -33,30 +33,36 @@ function(fsep = ";", rsep = "\t")  {
     return(paste(rval, collapse = rsep))
 }
 
-getDependencies <-
-function(pkgName, fields = "Depends") {
-    d <- unlist(packageDescription(pkgName)[fields])
-    if(is.null(d)) return(character(0L))
-    d <- sub("\\s*\\(.*$", "", unlist(strsplit(d, "\\s*,\\s*"), use.names = FALSE))
-    d[d != "R"]
-}
+#getDependencies <-
+#function(pkgName, fields = "Depends") {
+#    d <- unlist(packageDescription(pkgName)[fields])
+#    if(is.null(d)) return(character(0L))
+#    d <- sub("\\s*\\(.*$", "", unlist(strsplit(d, "\\s*,\\s*"), use.names = FALSE))
+#    d[d != "R"]
+#}
 
-getDependenciesCached <-
+# XXX: possible name conflict with pkgman.R:getDependencies
+.getDependenciesCached <-
 function(pkgName, fields = "Depends") {
     cacheName <- paste0(".deps_", paste0(tolower(sort(fields)), collapse = "."))
     if(!existsTemp(cacheName)) assignTemp(cacheName, new.env(parent = emptyenv()))
     cache <- getTemp(cacheName)
     if(exists(pkgName, cache, inherits = FALSE)) return(get(pkgName, cache, inherits = FALSE))
-    deps <- getDependencies(pkgName, fields)
+    ## deps <- getDependencies(pkgName, fields)
+    deps <- unlist(packageDescription(pkgName)[fields])
+    if(is.null(deps)) return(character(0L))
+    deps <- sub("\\s*\\(.*$", "", unlist(strsplit(deps, "\\s*,\\s*"), use.names = FALSE))
+    deps <- deps[deps != "R"]
+    ##
     assign(pkgName, deps, cache)
     deps
 }
 
-getAllDependencies <-
+.getAllDependencies <-
 function(pkgName, fields = "Depends") {
-    d <- getDependenciesCached(pkgName, fields)
+    d <- .getDependenciesCached(pkgName, fields)
     repeat {
-        d2 <- unique(unlist(lapply(d, getDependenciesCached, fields = fields)))
+        d2 <- unique(unlist(lapply(d, .getDependenciesCached, fields = fields)))
         if(any(i <- ! d2 %in% d)) d <- c(d, d2[i]) else break
     }
     d

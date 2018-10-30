@@ -12,9 +12,6 @@
 #'        to avoid overwriting of most recent user's errors and `warnings`.
 #' @note The code is based on functions `capture.output` and `.try_silent` from package \pkg{utils}.
 #' @export
-
-
-	
 `captureAll` <-
 function (expr, conn = NULL, markStdErr = FALSE,
 		envir = getEvalEnv(), doTraceback = TRUE) {
@@ -80,11 +77,16 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	
 	## Marker functions to recognize internal errors
 	`.._captureAll.envir_..` <- envir
+	#`.._captureAll.evalVis_..` <- function (.._captureAll.expr_..) {
+	#	DEBUG("before eval")
+	#	on.exit(DEBUG("after eval"))
+	#    rval <- withVisible(..korInternal(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv())))
+	#	rval
+	#}
 	`.._captureAll.evalVis_..` <- function (.._captureAll.expr_..) {
-		DEBUG("before eval")
-		on.exit(DEBUG("after eval"))
-	    rval <- withVisible(..korInternal(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv())))
-		rval
+		#DEBUG("before eval")
+		#on.exit(DEBUG("after eval"))
+		withVisible(..korInternal(eval(.._captureAll.expr_.., .._captureAll.envir_.., baseenv())))
 	}
 	#withVisible(.Internal("eval", .._captureAll.expr_.., .._captureAll.envir_.., baseenv()))
 		 
@@ -92,7 +94,8 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	#deparse(dExpr)
 	fooVars <- c(".._captureAll.expr_..", ".._captureAll.envir_..")
 
-	assignTraceback <- function(e, calls) {
+	assignTraceback <-
+	function(e, calls) {
 		ncls <- length(calls)
 		cfrom <- ncls
 		cto <- 1L
@@ -116,11 +119,8 @@ function (expr, conn = NULL, markStdErr = FALSE,
 				break
 			}
 
-		if(any(fooVars %in% all.vars(e$call)))
-			e$call <- NULL
-
 		# DEBUG
-		#for(i in 1:ncls) cat(">>", i, ": ", deparse(calls[[i]], width.cutoff = 20, nlines = 1), "\n")
+		#for(i in 1:ncls) cat(">>", i, ": ", deparse(calls[[i]], width.cutoff = 150, nlines = 1), "\n")
 		#cat("from: ", cfrom, " to", cto, " [n = ", ncls, "]\n")
 		###
 		Traceback <<- if(cfrom < cto) list() else
@@ -129,10 +129,12 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	
 	.onErrorWCH <- function (e) {
 		DEBUG("error handler:", conditionMessage(e))
+		DEBUG("error handler:", conditionCall(e))
 		on.exit(DEBUG("after error handler:", conditionMessage(e)))
 
 		if(doTraceback) assignTraceback(e, sys.calls())
-
+		if(any(fooVars %in% all.vars(e$call)))
+			e$call <- NULL
 		#cat("**Traceback**\n")
 		#cat("**[", cto, ":", cfrom, "]\n")
 		#print(calls)
@@ -349,7 +351,7 @@ unsink <- function () {
     sink(type = "message")
     sink(type = "output")
 }
-
+#
 #DEBUG <- function (x, ...) {
 #	 cat("DEBUG: ")
 #	 if(!is.character(substitute(x)))
@@ -358,4 +360,4 @@ unsink <- function () {
 #	 if(length(list(...))) cat("[", sapply(list(...), as.character), "]")
 #	 cat("\n")
 # }
- DEBUG <- function (...) {}
+DEBUG <- function (...) {}

@@ -19,7 +19,8 @@
 
 
 objls <-
-function (expr = NULL, envir = getEvalEnv(), all.names = FALSE, attrib = FALSE, ...) {
+function(expr = NULL, envir = getEvalEnv(), all.names = FALSE, attrib = FALSE, 
+    funcBody = FALSE, ...) {
 	ename <- NA_character_
 	
 	if(!missing(expr)) {
@@ -66,7 +67,7 @@ function (expr = NULL, envir = getEvalEnv(), all.names = FALSE, attrib = FALSE, 
 				rval <- NULL
 			} else {
 				if (is.function(obj)) {
-					rval <- objls_function(obj, objName)
+					rval <- objls_function(obj, objName, funcBody)
 					if (all.names && isS4(obj))
 						rval <- rbind(rval, objls_s4(obj, objName))
 					## TODO: S4 function
@@ -293,30 +294,44 @@ function(n) {
 
 # Called by objls_object for functions
 objls_function <-
-function (obj, objName = deparse(substitute(obj))) {
-	## formals(obj) returns NULL if only arg is ..., try: formals(expression)
-	obj <- formals(args(obj))
-	
-	objName <- paste0("formals(args(", objName, "))")
+function (obj, objName = deparse(substitute(obj)), 
+   includeBody = FALSE) {
+	## formals(obj) may return NULL if only arg is ..., try: formals(c)
 
-	if(length(obj) == 0L) return(NULL)
+    objNameFormals <- 
+    if(is.null(tmp <- formals(obj)) && !identical(tmp, tmp <- formals(args(obj)))) 
+       paste0("formals(args(", objName, "))") else
+       paste0("formals(", objName, ")")
+    objFormals <- tmp
 
-	itemnames <- fullnames <- names(obj)
+	if(length(objFormals) == 0L) return(NULL)
+
+	itemnames <- fullnames <- names(objFormals)
 	nsx <- itemnames != make.names(itemnames) # non-syntactic names
 	itemnames[nsx] <- bqname(itemnames[nsx])
-	fullnames <- paste0(objName, "$", itemnames)
-	
+	fullnames <- paste0(objNameFormals, "$", itemnames)
+    
 	n <- length(itemnames)
-	rval <- .createObjListResultMatrix(n)
-	rval[, 1L] <- itemnames
-	rval[, 2L] <- fullnames
+	rval <- .createObjListResultMatrix(n + includeBody)
+    if(includeBody) {
+        objBody <- body(obj)
+        rval[n + 1L, ] <- c("<function body>", paste0("body(", objName, ")"),
+            length(objBody), mode(objBody), class(objBody)[1L],
+            "r"
+            )
+    }
+    k <- 1L:n
+    rval[k, 1L] <- itemnames
+	rval[k, 2L] <- fullnames
+    
+    
 	j <- 3L:6L
 	for(i in seq.int(n)) {
-		x <- obj[[i]]
-		lang <- is.language(obj[[i]])
-		o.class <- class(obj[[i]])[1L]
-		o.mode <- mode(obj[[i]])
-		d <- deparse(obj[[i]])
+		x <- objFormals[[i]]
+		lang <- is.language(objFormals[[i]])
+		o.class <- class(objFormals[[i]])[1L]
+		o.mode <- mode(objFormals[[i]])
+		d <- deparse(objFormals[[i]])
 		if (lang && o.class == "name") {
 			o.class <- ""
 			o.mode <- ""

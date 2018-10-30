@@ -18,32 +18,21 @@ function(refresh = TRUE) {
 			# called from top level
 			message("koBrowseHere called from top level")
 		} else {
-			eval.parent(expression(setEvalEnv(sys.frame(sys.nframe()))))
+			envName <- format(expr)[1L]
+			setEvalEnv(eval.parent(expression(sys.frame(sys.nframe()))),
+				envName)
 			env <- getEvalEnv()
-			attr(env, "name") <- envName <- format(expr)[1L]
-            
-			#if(refresh) koCmd("_W.setTimeout(() => kor.rbrowser.refresh(), 100)");
-			if(refresh) koCmd(paste0("kor.fireEvent(\"r-evalenv-change\", {evalEnvName:",
-                deparse(envName, control = NULL), "})"))
-
-			stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
-				envName,
-				"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
-				"\n(Note this will not resume execution of the function)")))
+			attr(env, "name") <- envName 
 		}
 	}
 }
-
 
 #' @rdname koBrowse
 #' @export
 koBrowseEnd <-
 function(refresh = TRUE) {
 	if(!identical(getEvalEnv(), .GlobalEnv)) {
-		setEvalEnv(.GlobalEnv)
-		message("Evaluating in '.GlobalEnv'")
-		if(refresh) koCmd(paste0("kor.fireEvent(\"r-evalenv-change\", {evalEnvName:\".GlobalEnv\"})"));
-		
+		setEvalEnv(.GlobalEnv, ".GlobalEnv")
 	} else message("Already in '.GlobalEnv'")
 	invisible()
 }

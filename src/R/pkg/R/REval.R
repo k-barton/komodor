@@ -21,12 +21,18 @@
 function(x, id, mode) .Reval(x, id, mode)
 
 
+
+
 `.Reval` <- 
 function(x, id, mode) {
 	if (identical(x, "")) {
 	    tcl("set", "retval", "")  # is set in the function scope
 	    return(invisible())
 	}
+
+	.encodeResult <- function(text)
+		iconv(gsub("(<[0-9a-f]{2}>)", "\x1a{\\1}", encodeString(enc2utf8(text))), "UTF-8", "ASCII", "byte")
+
 	
 	evalShown <- ! grepl("h", mode, fixed = TRUE)
 	isEncoded <- grepl("x", mode, fixed = TRUE)
@@ -63,7 +69,7 @@ function(x, id, mode) {
 	    msg <- "more"
 	} else {
 	    if (inherits(expr, "error")) {
-	        rval <- c("\x03", as.character.error(expr), "\x02")
+	        rval <- c("\x03", .encodeResult(as.character.error(expr)), "\x02")
 	        msg <- "parse-error"
 	    } else {
 			# XXX currently hidden eval mode implies: no traceback, evaluation in .GlobalEnv.

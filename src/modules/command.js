@@ -288,13 +288,17 @@
 
     //var  _isRRunning = () => _RIsRunning;
     var _isRCurLanguage = () => true;
-    var rWantsMore = false;
+    var rWantsMore = false, rBrowsingFrame = false;
     
     Services.obs.addObserver({ observe(subject, topic, data) {
             rWantsMore = subject.message === "more";
             _W.updateCommands('r_command_executed');
         }}, "r-command-executed", false);
 
+    _W.addEventListener('r-evalenv-change', event =>
+        rBrowsingFrame = event.detail.evalEnvName !== ".GlobalEnv", 
+        false);
+     
     let controllersSet = false;
     this.setControllers = function _setControllers() {
         if (controllersSet) return;
@@ -320,6 +324,7 @@
             'cmd_svQuitR': [R.quit, ifRRunning],
 
             'cmd_svREscape': [R.escape, () => _RIsRunning && rWantsMore],
+            'cmd_REndBrowseFrame': [R.endBrowse, () => _RIsRunning && rBrowsingFrame],
             'cmd_svRRunAll': [() => R.send("all"), ifIsRDoc | ifRRunning],
             'cmd_svRSourceAll': [() => R.source("all"), ifIsRDoc | ifRRunning],
             'cmd_svRRunBlock': [() => R.send("block"), ifIsRDoc | ifRRunning],

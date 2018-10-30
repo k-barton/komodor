@@ -24,33 +24,55 @@ function (x, mode = "any")
 #' @rdname tempEnv
 #' @export
 `rmTemp` <- 
-function (x)
-   if(existsTemp(x)) rm(list = x, envir = tempEnv(), inherits = FALSE)
-     
+function (x, item = NULL) {
+	envir <- tempEnv()
+	if(exists(x, envir = envir, inherits = FALSE)) {
+		if(is.null(item))
+			rm(list = x, envir = envir, inherits = FALSE)
+		else if(exists(x, mode = "list", envir = envir, inherits = FALSE)) {
+		    value <- get(x, envir = envir, inherits = FALSE)
+			value[item] <- NULL
+			assignTemp(x, value)
+		}
+	}
+}
+
 #' @rdname tempEnv
 #' @export
 `getTemp` <- 
 function (x, default = NULL, mode = "any", item = NULL) {
-    Mode <- if (is.null(item)) mode else "any"
+    Mode <- if (is.null(item)) mode else "list"
 	env <- tempEnv()
-    if  (exists(x, envir = env, mode = Mode, inherits = FALSE)) {
+    if(exists(x, envir = env, mode = Mode, inherits = FALSE)) {
         value <- get(x, envir = env, mode = Mode, inherits = FALSE)
-        if (is.null(item)) {
+        if (is.null(item))
 			return(value)
-		} else {
+		else {
             item <- as.character(item)[1L]
-            if (inherits(value, "list") && item %in% names(value)) {
-                value <- value[[item]]
-                if (mode != "any" && mode(value) != mode) 
+			if(item %in% names(value)) {
+				value <- value[[item]]
+				if (mode != "any" && mode(value) != mode) 
 					value <- default
-                return(value)
-            } else {
-				if(!missing(default)) assign(x, default, envir = env, inherits = FALSE)
+				return(value)
+			} else { # x is a list, but has no item
+				if(!missing(default)) {
+					value[[item]] <- default
+					assign(x, value, envir = env, inherits = FALSE)
+				}
 				return(default)
 			}
         }
-    } else  { # Variable not found, return the default value
-		if(!missing(default)) assign(x, default, envir = env, inherits = FALSE)
+	} else { # Variable does not exist, or is not a list and item is given.
+			 # Return the default value
+		if(!missing(default)) {
+	        if (is.null(item))
+				assign(x, default, envir = env, inherits = FALSE)
+			else if(!exists(x, envir = env, inherits = FALSE)) {
+				value <- list(default)
+				names(value)[1L] <- as.character(item)[1L]
+				assign(x, value, envir = env, inherits = FALSE)
+			}
+		}
         return(default)
 	}
 }
@@ -70,6 +92,21 @@ getTemp(".EvalEnv", default = .GlobalEnv)
 #' @md
 #' @export
 #' @param envir the `environment` to use for evaluation of commands in Komodo.
+#' @param envName optional character string, the name of the `environment` to
+#         use in Komodo's R Object Browser. Set to `NULL` to skip firing 
+#         Komodo event.
+#  @param quiet if `TRUE`, no message is displayed
 setEvalEnv <-
-function(envir = .GlobalEnv) 
-assignTemp(".EvalEnv", envir)
+function(envir = .GlobalEnv, envName = deparse(substitute(envir)), quiet = FALSE) {
+	assignTemp(".EvalEnv", envir)
+	if(is.null(envName)) return()
+	
+	koCmd(paste0("kor.envChangeEvent(", deparse(envName, control = NULL), ")"))
+	if(quiet) return()
+	if(identical(envir, .GlobalEnv))
+		message("Evaluating in the global environment") else
+		stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
+			envName,
+			"\nUse 'koBrowseEnd()' to return to the global environment.",
+			"\n(Note this will not resume execution)")))
+}

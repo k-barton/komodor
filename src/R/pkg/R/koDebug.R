@@ -15,15 +15,10 @@ function(FUN, refresh = TRUE) {
 		cat("Error: ", conditionMessage(e), "\n")
 		cat("in: ", deparse(conditionCall(e), control = NULL), sep = "\n", "\n")
 		nframe <- sys.nframe() - 4L
-        setEvalEnv(sys.frame(nframe))
+		envName <- format(sys.call(nframe))[1L]
+        setEvalEnv(sys.frame(nframe), deparse(envName, control = NULL))
 		env <- getEvalEnv()
-		attr(env, "name") <- envName <- format(sys.call(nframe))[1L]
-		koCmd(paste0("kor.fireEvent(\"r-evalenv-change\", {evalEnvName:",
-                deparse(envName, control = NULL), "})"))
-		stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t",
-			envName,
-			"\nUse 'koBrowseEnd()' to return to '.GlobalEnv'.",
-			"\n(Note this will not resume execution of the function)")))
+		attr(env, "name") <- envName
 	}))
 	if(!refresh) expr[[1L]]$error[[3L]][[8L]] <- NULL
 	

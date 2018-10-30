@@ -22,6 +22,8 @@ var rob = {};
 //     \x1f - unit separator
 //     \x1d - group separator
 
+//TODO: Friendly display label for EvalEnv
+
 (function () {
 
     var logger = require("ko/logging").getLogger("komodoR");
@@ -36,16 +38,15 @@ var rob = {};
 
     // FIXME: sep is also defined as R.sep
     const sep = "\x1f", recordSep = "\x1e";
-    var _listAllNames = false, _listAttributes = false;
+    var _listAllNames = false, _listAttributes = false, _listFuncBody = false;
     var dQuote = s => "\"" + s + "\"";
     var svgParams = "?size=16&color=" + encodeURIComponent("#004fd2");
 
     // XXX make internal
     this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
+    const evalEnvLabel = "<Current evalutation frame>";
    
-    var nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", 
-		"package:base", "Autoloads"]);    
-    
+   
     this.searchPath = {
         _data: [],
         getListBox() document.getElementById("rbrowser_searchpath_listbox"),
@@ -73,7 +74,7 @@ var rob = {};
                     if (dataitem.depends) item.setAttribute("depends", dataitem.depends);
                     if (dataitem.reverseDepends) item.setAttribute("reverseDepends", dataitem.reverseDepends);
                     item.setAttribute("checked", checkedItems.indexOf(dataitem.name) !== -1);
-                    if (nonDetachable.has(dataitem.name)) item.setAttribute("nondetachable", "true");
+                    if (R.nonDetachable.has(dataitem.name)) item.setAttribute("nondetachable", "true");
                     list.appendChild(item);
                 } catch (e) {
                     logger.exception(e, "in searchPath.display");
@@ -111,7 +112,7 @@ var rob = {};
             //<richlistitem label="package:aumtutumtu" depends="stats dupa *aumtutumtu" nondetachable="true" />
             let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
             if (m) {
-				let newEvalEnvName = m[1] ? m[1] : "EvalEnv";
+				let newEvalEnvName = m[1] ? m[1] : evalEnvLabel;
                 _this.evalEnv.isNew = (_this.evalEnv.name === undefined) || (newEvalEnvName !== _this.evalEnv.name);
                 //this.evalEnv.name = "<" + searchPath[0].substring(9, searchPath[0].length - 2) + ">";
                 result[0].name = _this.evalEnv.name  = newEvalEnvName;
@@ -165,10 +166,11 @@ var rob = {};
         var rval = "kor::write.objList(kor::objls(" +
             (obj ? obj + ", " : "") +
             (env ? "envir=" + env + ", " : "") +
-            "all.names=" + (_listAllNames ? "TRUE" : "FALSE") +
-            ", attrib=" + (_listAttributes ? "TRUE" : "FALSE") +
-            "), sep=" + dQuote(sep) +
-            ", eol=" + dQuote(recordSep) + ")";
+            "all.names=" + R.arg(_listAllNames) +
+            ", attrib=" + R.arg(_listAttributes) +
+            ", funcBody=" + R.arg(_listFuncBody) +
+            "), sep=" + R.arg(sep) +
+            ", eol=" + R.arg(recordSep) + ")";
         logger.debug("R-browser command: \n" + "\n" + rval);
         return rval;
     };
@@ -362,45 +364,55 @@ var rob = {};
             _this.treeBox.getLastVisibleRow());
     };
 
+
     var parseRObjectName = (name, posObj) => {
-        var parents = [name], pos = 0;
-        while (name) {
-            if (name.startsWith("attr(") && name.endsWith(")")) {
-                let m = name.match(/^attr\((.+), "(?:[^"\\]|\\.)*"\)$/);
-                if (Array.isArray(m)) {
-                    name = m[1];
-                    pos += 5;
-                    } else name = "";
-            } else {
-                // remove last [@$]`?element`? 
-                if (name.endsWith("`")) { // match final `quoted name`
-                    let endpos = name.search(/(?:[@$]|^)`((?:[^`\\]|\\.)*)`$/);
-                    if (endpos > 0) {
-                        name = name.substr(0, endpos);
-                    } else name = "";
-                } else if (name.endsWith("]")) { // match final syntactic.name
-                    let endpos = name.search(/\[\[\d+\]\]?$/); // [[n]]
-                    if (endpos > 0) {
-                        name = name.substr(0, endpos);
-                    } else name = "";
-                } else {
-                    // Note: inline rx is faster than rx as variable. ???
-                    let endpos = name.search(/(?:[@$]|^)[a-zA-Z\u00c0-\uffef\.][\w\u00c0-\uffef\._]*$/);
-                    if (endpos > 0) {
-                        name = name.substr(0, endpos);
-                    } else name = "";
-                }
-                if (name && name.startsWith("formals(args(")) {
-                    name = name.substring(13, name.length - 2);
-                    pos += 13;
-                }
-            }
-            if (name) parents.push(name);
-        }
-        if (typeof posObj === "object") posObj.value = pos;
-        return parents;
+    	var parents = [name], pos = 0, m, endpos, guard = 0;
+    	while (name && ++guard < 64) {
+    		if (name.startsWith("attr(") && name.endsWith(")")) {
+    			m = name.match(/^attr\((.+), "(?:[^"\\]|\\.)*"\)$/);
+    			if (Array.isArray(m)) {
+    				name = m[1];
+    				pos += 5;
+    			} else name = "";
+    		} else if (name.startsWith("body(") && name.endsWith(")")) {
+    			name = name.substring(5, name.length - 1);
+    			pos += 5;
+    		} else { // remove last [@$]`?element`?
+    			if (name.endsWith("`")) {
+    				// match final `quoted name`
+    				endpos = name.search(/(?:[@$]|^)`((?:[^`\\]|\\.)*)`$/);
+    				if (endpos > 0) {
+    					name = name.substr(0, endpos);
+    				} else name = "";
+    			} else if (name.endsWith("]]")) { // match final syntactic.name
+    				endpos = name.search(/\[\[\d+\]\]?$/); // [[n]]
+    				if (endpos > 0) {
+    					name = name.substr(0, endpos);
+    				} else name = "";
+    			} else {
+    				// Note: inline rx is faster than rx as variable. ???
+    				endpos = name.search(/(?:[@$]|^)[a-zA-Z\u00c0-\uffef\.][\w\u00c0-\uffef\._]*$/);
+    				if (endpos > 0) {
+    					name = name.substr(0, endpos);
+    				} else name = "";
+    			}
+    			// formals(A)$B -> A
+    			if (name && name.endsWith(")")) {
+    				if (name.startsWith("formals(args(") && name.endsWith("))")) {
+    					name = name.substring(13, name.length - 2);
+    					pos += 13;
+    				} else if (name.startsWith("formals(")) {
+    					name = name.substring(8, name.length - 1);
+    					pos += 8;
+    				}
+    			}
+    		}
+    		if (name) parents.push(name);
+    	}
+    	if (typeof posObj === "object") posObj.value = pos;
+    	return parents;
     };
-    
+ 
     // RObjectLeaf constructor:
     function RObjectLeaf(env, obj, arr, index, parentElement) {
 
@@ -714,6 +726,14 @@ var rob = {};
             },
             enumerable: true
         },
+        'listFuncBody': {
+            get: () => _listFuncBody,
+            set: function (val) {
+                _listFuncBody = Boolean(val);
+                _this.refresh();
+            },
+            enumerable: true
+        },
         'listAttributes': {
             get: () => _listAttributes,
             set: function (val) {
@@ -742,14 +762,17 @@ var rob = {};
                         cmd += makeObjListCommand(_this.searchPath.getItemAtIndex(i).name, "") + "\n"; 
                 }     
             } else {
-                let openItems = _this.getOpenItems(); // [[env, fullName], ...]
-                let topItems = _this.treeData.map(x => [x.fullName, ""]);
+                let spItems = _this.searchPath._data.map(a => a.name);
+                let openItems = _this.getOpenItems() // [[env, fullName], ...]
+                    .filter(a => spItems.indexOf(a[0]) != -1);
+                let topItems = _this.treeData.map(x => [x.fullName, ""])
+                    .filter(a => spItems.indexOf(a[0]) != -1);
+
                 let allItems = openItems.concat(topItems);
                 let map = new Map(allItems.map(x => [x.join("::"), x])); // unique values
                 let cmdArr = [];
                 for (let v of map.values()) cmdArr.push(makeObjListCommand(v[0], v[1]));
                 cmd = cmdArr.join("\n");
-                
             }
             if (init) {
                 let thisWindow = self;
@@ -757,6 +780,7 @@ var rob = {};
                     thisWindow = document.getElementById("rbrowserViewbox").contentWindow;
                 thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
             }
+            
             RConn.evalAsync(cmd, parseObjListResult, true);
             isInitialized = true;            
         }).catch((e) => logger.exception(e));
@@ -1266,7 +1290,7 @@ var rob = {};
         
         var lastSelectedRow = items[items.length - 1].index;
         items = items.filter(o => /*o.type !== "args" &&*/
-            (o.type !== "environment" || !nonDetachable.has(o.name)) && !o.isInPackage);
+            (o.type !== "environment" || !R.nonDetachable.has(o.name)) && !o.isInPackage);
         items = items.filter(a => items.findIndex(b => a.isChildOf(b)) === -1);
         
         let objToRm = {}, cmdDetach = [], cmdRm, cmdRmElement = [];
@@ -1306,7 +1330,7 @@ var rob = {};
         }
 
         cmdRm = Object.keys(objToRm).map(i =>
-            `base::rm(list=${R.arg(objToRm[i])}, pos=${i === _this.evalEnv.name ? "getEvalEnv()" : R.arg(i)})`);
+            `base::rm(list=${R.arg(objToRm[i])}, pos=${i === _this.evalEnv.name ? "kor::getEvalEnv()" : R.arg(i)})`);
         
         let cmd = Array.concat(cmdDetach, cmdRm, cmdRmElement);
         
@@ -1442,7 +1466,7 @@ var rob = {};
                     disable = item.isPackage;
                     break;
                 case 't:noDelete':
-                    disable = (item.isPackage && nonDetachable.has(item.name)) || item.isInPackage;
+                    disable = (item.isPackage && R.nonDetachable.has(item.name)) || item.isInPackage;
                     break;
                 case 't:noHelp':
                     disable = !(item.isPackage || (item.isInPackage && item.type === "object" && !item.isHidden));
@@ -1468,28 +1492,11 @@ var rob = {};
     this.doRCommand = function (action, ...args) {
         switch (action) {
         case "browse-end":
-             RConn.evalAsync("kor::koBrowseEnd()", (data) => {
-                UI.addNotification("R: " + data.trim());
-             });
+             R.endBrowse();
              break;
         case "detach":
             if (!args) return;
-            let cmd, names = args[0];
-            if (!Array.isArray(names)) names = [names];
-            names = names.filter(x => !nonDetachable.has(x));
-            cmd = "kor::doCommand(\"detach\", " + R.arg(names) + ")";
-            
-            RConn.evalAsync(cmd, (data) => {
-                let re = /^<(error|success):(.*)>\s*$/gm, result, res = { error: [], success: [] }, msg = "R: ";
-                while ((result = re.exec(data))) res[result[1]].push(result[2]);
-                if (res.error.length !== 0)
-                    msg += res.error.map(x => '"' + x + '"').join(", ") + " could not be detached.\n";
-                if (res.success.length !== 0) {
-                    msg += res.success.map(x => '"' + x + '"').join(", ") + " successfully detached.\n";
-                    _this.refresh(); // XXX RConn.AUTOUPDATE
-                    UI.addNotification(msg);
-                }
-            }, true);
+            R.detach(args[0]);
             break;
         default:
             break;
@@ -1774,7 +1781,7 @@ var rob = {};
         }       
     };
     
-    this.onRStatusChange = function(event) {
+    var onRStatusChange = function(event) {
         try {
 			logger.debug("Rbrowser.onRStatusChange: " + event.detail.running);
             _this.activate(event.detail.running);
@@ -1790,66 +1797,39 @@ var rob = {};
 
         switch (commandType) {
             case "detach":
-//              alert("request detach: " + event.detail.name + "");
-                
-                let cmd;
-                if (event.detail.isEvalEnv) {
-                    cmd = "kor::koBrowseEnd()";
-                } else {
-                    let names = event.detail.name;
-                    if (!Array.isArray(names)) names = [names];
-                    names = names.filter(x => !nonDetachable.has(x));
-                    cmd = "kor::doCommand(\"detach\", " + R.arg(names) + ")";
-                }
-                RConn.evalAsync(cmd, (data) => {
-                        logger.debug("r-command-request detach callback: returned with data=" + data);
-                        let re = /^<(error|success):(.*)>\s*$/gm, result, res = {error: [], success: []},
-                            msg = "R: ";
-                        while((result = re.exec(data))) res[result[1]].push(result[2]);
-                        if (res.error.length !== 0)
-                            msg += res.error.map(x => '"' + x + '"').join(", ") + " could not be detached.\n";
-                        if (res.success.length !== 0) {
-                            msg += res.success.map(x => '"' + x + '"').join(", ") + " successfully detached.\n";
-                            _this.refresh(); // XXX RConn.AUTOUPDATE
-                            UI.addNotification(msg);
-                        }
-                    }, true);
+                if (event.detail.isEvalEnv)
+                    R.endBrowse();
+                else
+                    R.detach(event.detail.name);
                 break;
             default:
         }
     };
     
-    this.onREnvironmentChange = function(/*event*/) {
-        logger.debug("onREnvironmentChange");
-// TODO: refresh only if on top. Events:
-// tabtab_oncommand="ko.places.viewMgr.focus(); ko.places.viewMgr.updateView();"
-// tab_onfocus="ko.places.viewMgr.focus(); ko.places.viewMgr.updateView();"
+    var onREnvironmentChange = function(event) {
+        logger.debug(
+        `[onREnvironmentChange] Event type: ${event.type}: R command was "${event.detail ? event.detail.command : 'no event detail'}"`
+        );
         var panel = require("ko/windows").getMain()
             .document.getElementById("rbrowserViewbox").parentElement;
-        
-        if(panel.parentNode.selectedPanel != panel)
-            return;
-
+        if(panel.parentNode.selectedPanel != panel) return;
         _this.refresh();
     };
-
-    var autoUpdateObserver = {
+    
+    var autoUpdate, needUpdating = false;
+    var autoUpdatePrefObserver = {
         observe(prefset, prefName, data) {
             logger.debug("setting R browser autoupdate");
-            try {
-                require("kor/main").mainWin[
-                    prefset.getBooleanPref(prefName) ?
-                    'addEventListener' : 'removeEventListener'](
-                        'r-command-executed', _this.onREnvironmentChange, false);
-                
-            //if(prefset.getBooleanPref(prefName))
-            //    _w.addEventListener('r-autoupdate-needed', _this.onREnvironmentChange, false);
-            //else 
-            //    _w.removeEventListener('r-autoupdate-needed', _this.onREnvironmentChange, false);
-            } catch(e) {
-                logger.exception(e, "in autoUpdateObserver");
-            }
+            autoUpdate = prefset.getBooleanPref(prefName);
         }
+    };
+    var onREvalEnvChange = (event) => {
+        needUpdating = true;
+    };
+    var onAutoUpdate = (event) => {
+        if(autoUpdate || needUpdating)
+            onREnvironmentChange(event);
+        needUpdating = false;
     };
 
     this.onLoad = function(/*event*/) {
@@ -1858,10 +1838,10 @@ var rob = {};
         
 		let _w = require("kor/main").mainWin;
 		
-		_w.addEventListener('r-status-change', _this.onRStatusChange, false);
-		_w.addEventListener('r-evalenv-change', _this.onREnvironmentChange, false);
-		_w.addEventListener('r-environment-change', _this.onREnvironmentChange, false);
-        window.addEventListener("r-command-request", this.onRCommandRequestEvent, false);   
+		_w.addEventListener('r-status-change', onRStatusChange, false);
+		_w.addEventListener('r-evalenv-change', onREvalEnvChange, false);
+		_w.addEventListener('r-environment-change', onREnvironmentChange, false);
+        window.addEventListener("r-command-request", _this.onRCommandRequestEvent, false);   
 
 		// needed if rob widget is loaded after initial "r-status-change" event.
 		if(require("kor/command").isRRunning) 
@@ -1873,20 +1853,19 @@ var rob = {};
 		}, 2000);
 		
         const prefs = require("ko/prefs");
-        let auPrefName = "RInterface.rBrowserAutoUpdate";
+        const auPrefName = "RInterface.rBrowserAutoUpdate";
 		
 		if(!prefs.hasBooleanPref(auPrefName))
 			prefs.setBooleanPref(auPrefName, true);
         
-        if(prefs.getBooleanPref(auPrefName)) {
-                logger.debug("Rbrowser.onLoad: setting R browser autoupdate");
-                require("kor/main").mainWin
-                    .addEventListener('r-command-executed',
-                        _this.onREnvironmentChange, false);
-        }
+        autoUpdate = prefs.getBooleanPref(auPrefName);
         
-        prefs.prefObserverService.addObserver(autoUpdateObserver,
-            "RInterface.rBrowserAutoUpdate", true); 
+        if(autoUpdate) logger.debug("Rbrowser.onLoad: setting R browser autoupdate");
+        
+        require("kor/main").mainWin.addEventListener('r-command-executed',
+                    onAutoUpdate, false);
+        
+        prefs.prefObserverService.addObserver(autoUpdatePrefObserver, auPrefName, true); 
     };
     window.addEventListener("DOMContentLoaded", this.onLoad.call(this), false);
 	

@@ -140,6 +140,24 @@ image[class*="r-"][class$="-icon"][disabled="true"] {
 	filter: grayscale(50%);
 }
 
+.end-browse-icon {
+	list-style-image: url("@{svg-images}/environment.svg");
+}
+
+.end-browse-icon:hover,
+.end-browse-icon:hover:active {
+	filter: brightness(1.5);
+}
+
+.end-browse-icon[disabled="true"],
+.end-browse-icon[disabled="true"]:hover,
+.end-browse-icon[disabled="true"]:hover:active {
+	opacity: 0.7;
+	filter: grayscale(50%);
+}
+
+
+
 .reload-icon {
   list-style-image: url("@{images}/arrow_refresh.png");
 }
