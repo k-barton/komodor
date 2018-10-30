@@ -57,6 +57,9 @@ if (!Object.values)
     this.evalUserCmd = function (cmd) {
         rConn.evalAsync.call(rConn, widthPrefix() + cmd, null, rConn.AUTOUPDATE);
     };
+    
+    this.nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", 
+		"package:base", "Autoloads"]); 
 
     this.escape = function (cmd) rConn.escape(cmd);
 
@@ -296,6 +299,29 @@ if (!Object.values)
         return res;
     };
 
+    this.endBrowse = function() {
+        rConn.evalAsync("kor::koBrowseEnd()", (data) => {
+            ui.addNotification("R: " + data.trim());
+            }, 1);
+    }
+    
+    this.detach = function(names) {
+        if (!Array.isArray(names)) names = [names];
+        names = names.filter(x => !_this.nonDetachable.has(x));
+        if(names.length == 0) return;
+        var cmd = "kor::doCommand(\"detach\", " + _this.arg(names) + ")";
+        rConn.evalAsync(cmd, (data) => {
+                var re = /^<(error|success):(.*)>\s*$/gm, result, res = { error: [], success: [] }, msg = "R: ";
+                while ((result = re.exec(data))) res[result[1]].push(result[2]);
+                if (res.error.length !== 0)
+                    msg += res.error.map(x => '"' + x + '"').join(", ") + " could not be detached.\n";
+                if (res.success.length !== 0) {
+                    msg += res.success.map(x => '"' + x + '"').join(", ") + " successfully detached.\n";
+                    ui.addNotification(msg);
+                }
+            }, 3 /* == AU+H */);
+    }
+    
     /*
       demo()
     */
@@ -391,10 +417,12 @@ if (!Object.values)
             sep = [",", "\\t", " "][oFilterIdx.value];
             if (dec == "," && sep == ",") dec = ";";
         }
+        
+        if(!fileName) return null;
 
-        var cmd = 'utils::write.table(' + name + ', file="' +
-            su.addslashes(fileName) +
-            '", dec=' + _this.arg(dec) + ', sep=' + _this.arg(sep) + ', col.names=NA)';
+        var cmd = 'utils::write.table(' + name + ', file=' +
+            _this.arg(fileName) +
+            ', dec=' + _this.arg(dec) + ', sep=' + _this.arg(sep) + ', col.names=NA)';
         rConn.evalAsync(cmd, null, false);
         return cmd;
     };

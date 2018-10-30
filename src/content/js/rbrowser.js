@@ -45,7 +45,7 @@ var rob = {};
     // XXX make internal
     this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
     const evalEnvLabel = "<Current evalutation frame>";
-   
+    var copyToClipboardSep = ", ";
    
     this.searchPath = {
         _data: [],
@@ -495,14 +495,15 @@ var rob = {};
             return false;
         },
         get isTopLevelItem() !this.parentObject || this.parentObject.type === undefined,
-        get getTopParent() {
-            let p = this;
+        get getTopParent() { // Note: this returns 1-level object, not environment
+            var p = this;
+            if(!p.parentObject || p.isTopLevelItem) return null;
             while(!(p.parentObject.isTopLevelItem)) p = p.parentObject;
             return p;
         },
         get getNSPrefix() {
             let tp = this.getTopParent;
-            return tp.env.startsWith("package:") ? tp.env.substring(8) + (tp.isHidden ? ":::" : "::") : "";
+            return tp && tp.env.startsWith("package:") ? tp.env.substring(8) + (tp.isHidden ? ":::" : "::") : "";
         },
         // XXX: make a variable
         get getFullName() {
@@ -513,7 +514,7 @@ var rob = {};
         },
            
         get isPackage() this.className === "package" && this.name.startsWith("package:"),
-        get isInPackage() this.env && this.env.startsWith("package:"), // faster than 'substr(...) == "package"
+        get isInPackage() Boolean(this.env) && this.env.startsWith("package:"), // faster than 'substr(...) == "package"
 
         getLevel() {
             let p = this, i = 0;
@@ -1361,7 +1362,7 @@ var rob = {};
     this.getSelectedNames = function (fullNames, extended = false) {
         let namesArr = [], text, item, modif;
         if (extended && !fullNames)
-            modif = (s) => '"' + s + '"';
+            modif = dQuote;
         else if (extended && fullNames)
             modif = (s, item) => {
                 if (item.group === "function") s += "()";
@@ -1432,14 +1433,13 @@ var rob = {};
     };
 
     this.contextOnShow = function (event) {
-        let currentIndex = _this.selection.currentIndex;
+        var currentIndex = _this.selection.currentIndex;
         if (currentIndex == -1) return;
 
-        let item;
         //let itemIsEnvironment, itemIsPackage, itemIsInPackage, noDelete, itemIsFunction,
             //cannotSaveToFile, cannotSave, multipleSelection, noHelp;
 
-        item = _this.visibleData[currentIndex].origItem;
+        var item = _this.visibleData[currentIndex].origItem;
         //name = item.fullName;
         
         // Help can be shown only for one object:
@@ -1466,8 +1466,11 @@ var rob = {};
                     disable = item.isPackage;
                     break;
                 case 't:noDelete':
-                    disable = (item.isPackage && R.nonDetachable.has(item.name)) || item.isInPackage;
+                    disable = (item.isTopLevelItem && R.nonDetachable.has(item.fullName)) || item.isInPackage;
                     break;
+                /*case 't:isGlobalEnv':
+                    disable = item.fullName == ".GlobalEnv" && item.isTopLevelItem;
+                    break;*/
                 case 't:noHelp':
                     disable = !(item.isPackage || (item.isInPackage && item.type === "object" && !item.isHidden));
                     break;
@@ -1503,8 +1506,12 @@ var rob = {};
         }
     };
 
+    const clipboardHelper = 
+        Components.classes['@mozilla.org/widget/clipboardhelper;1']
+            .getService(Components.interfaces.nsIClipboardHelper);   
+    
     this.treeItemCommand = function (action) {
-        let items = Array.from(_this.selectedItemsOrd);
+        var items = Array.from(_this.selectedItemsOrd);
         //let command;
         switch (action) {
         case 'save':
@@ -1567,11 +1574,12 @@ var rob = {};
             //TODO: dump data for objects other than 'data.frame'
         case 'write.table':
         case 'writeToFile':
-            for (let i in items)
-                if (item.hasOwnProperty(i)) {
-                    let expr = items[i].getFullName;
-                    R.saveDataFrame(expr, '', items[i].name);
-                }
+            for (let i = 0; i < items.length; ++i)
+                R.saveDataFrame(items[i].getFullName, '', items[i].name);
+            break;
+            
+        case 'copyToClipboard':
+            clipboardHelper.copyString(items.map(a => a.getFullName).join(copyToClipboardSep));        
             break;
 
             // Default is to just execute command and display results
@@ -1620,7 +1628,8 @@ var rob = {};
             let key = event.keyCode ? event.keyCode : event.charCode;
             switch (key) {
             case 46: // Delete key
-                _this.removeSelected(event.shiftKey);
+                //_this.removeSelected(event.shiftKey);
+                _this.removeSelected(true);
                 event.originalTarget.focus();
                 return false;
             case 45: // Insert
@@ -1634,7 +1643,12 @@ var rob = {};
                     else
                         _this.selection.selectAll();
                 }
-                /* falls through */
+                return false;
+            case 67: // Ctrl + C
+            case 99: // Ctrl + c
+                if (event.ctrlKey && !event.shiftKey) 
+                    _this.treeItemCommand("copyToClipboard");
+                return false;
             case 0:
                 return false;
             case 93:
@@ -1648,6 +1662,20 @@ var rob = {};
                 contextMenu.openPopup(null, "after_pointer", x, y, true);
                 /* falls through */
                 // TODO: Escape key stops retrieval of R objects
+            case 112: // F1
+                event.preventDefault();
+                if(!event.shiftKey) return false;
+                
+                let currentIndex = _this.selection.currentIndex;
+                if(currentIndex < 0 || currentIndex >= _this.visibleData.length)
+                    return false;
+                //if(selectedRows.length != 1) return false;
+                let item = _this.visibleData[currentIndex].origItem;
+                
+                if(!(item.isPackage || (item.isInPackage && item.type === "object" && !item.isHidden)))
+                   return false; 
+                _this.treeItemCommand("help");
+                return false;
             default:
                 return false;
             }

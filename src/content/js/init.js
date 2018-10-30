@@ -5,6 +5,7 @@
 (function () {
     //var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
+    //logger.setLevel(logger.DEBUG);
     
     logger.debug("initialization started");
 
@@ -220,13 +221,44 @@
             for(let button of document.getElementById("RToolbar").getElementsByTagName("toolbarbutton"))
                 buttonSetImageAttribute(button);
         }
+        
+// TODO: update ~ports file upon change of port in R (on `startServer`)
+// store path to "~ports" in tempEnv
+        var setUpPorts = () => {
+        	var filename = fileUtils.path("PrefD", "extensions",
+        		kor.extensionId, "R", "~ports");
+        	if (fileUtils.exists(filename) !== fileUtils.TYPE_FILE) {
+        		logger.info("~ports file not found.");
+        		return;
+        	}
+        	var s = fileUtils.read(filename).trim();
+        	if (!s) {
+        		logger.warning("~ports file is empty");
+        		return;
+        	}
+        	var a = s.split(/\s+/).map(x => parseInt(x));
+        	if (a.length < 2) {
+        		logger.warning("~ports content is not valid");
+        		return;
+        	}
+        	var prefs = require("ko/prefs");
+        	prefNames = ['RInterface.RPort', 'RInterface.koPort'];
+        	for (let i = 0; i < 2; ++i) {
+        		prefs.deletePref(prefNames[i]);
+        		prefs.setLongPref(prefNames[i], a[i]);
+        	}
+            logger,debug("initialization - connection ports updated: " +
+                         prefNames[0] + ": " + a[0] + "," +
+                         prefNames[1] + ": " + a[1] + ".");
+        };
 		
         setTimeout(() => {
-            kor.rconn.startSocketServer();
             kor.command.setControllers();
-            kor.command.setRStatus(kor.rconn.isRConnectionUp(true));
+            setUpPorts();
+        	kor.rconn.restartSocketServer(null, () => {
+        		kor.command.setRStatus(kor.rconn.isRConnectionUp());
+        	});
             ko.commands.updateCommand("cmd_svREscape"); // ?
-
             logger.debug("initialization - delayed tasks end");
 
         }, 1000);

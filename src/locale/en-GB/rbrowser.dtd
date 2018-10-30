@@ -14,7 +14,11 @@
 <!ENTITY rob.unfoldAll "Unfold all items of current branch">
 
 <!ENTITY rob.insName "Insert name into text">
+<!ENTITY rob.insName.acc "I">
 <!ENTITY rob.insFullName "Insert full name">
+<!ENTITY rob.insFullName.acc "F">
+<!ENTITY rob.copyToClipboard "Copy">
+<!ENTITY rob.copyToClipboard.acc "C">
 <!ENTITY rob.rmObj "Remove objects (insert R code into document)">
 <!ENTITY rob.loadPkg "Load R package">
 <!ENTITY rob.detach "Detach R package">
@@ -31,14 +35,27 @@
 <!ENTITY rob.listAllNames.acc "H">
 <!ENTITY rob.listAllNames.tip "List hidden objects">
 <!ENTITY rob.listAllNames.desc "R Object Browser: List hidden objects">
+<!ENTITY rob.listFuncBody "Browse function body">
+<!ENTITY rob.listFuncBody.acc "B">
+<!ENTITY rob.listFuncBody.tip "Browse function body">
+<!ENTITY rob.listFuncBody.desc "R Object Browser: Browse function body">
+
+
 <!ENTITY rob.help "R help on selected name">
+<!ENTITY rob.help.acc "H">
 <!ENTITY rob.names "Names">
 <!ENTITY rob.str "Structure">
+<!ENTITY rob.str.acc "T">
 <!ENTITY rob.plot "Plot">
+<!ENTITY rob.plot.acc "L">
 <!ENTITY rob.print "Print">
+<!ENTITY rob.print.acc "P">
 <!ENTITY rob.summary "Summary">
+<!ENTITY rob.summary.acc "U">
 <!ENTITY rob.write_table "Write to textfile...">
+<!ENTITY rob.write_table.acc "W">
 <!ENTITY rob.save "Save selected...">
+<!ENTITY rob.save.acc "S">
 
 <!ENTITY rob.deleteNow "Remove objects">
 <!ENTITY rob.deleteNow.acc "R">

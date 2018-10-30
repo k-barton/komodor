@@ -45,8 +45,9 @@
     </resources>
 	<content orient="vertical">
 		<xul:hbox>
-			<xul:label xbl:inherits="value=label" class="searchpath-item-name" />
-			<xul:hbox align="right" flex="1">
+			<xul:label xbl:inherits="value=label" class="searchpath-item-name"
+				crop="end" flex="1" />
+			<xul:hbox align="right">
 				<xul:hbox class="item-details" anonid="detach-button-box">
 					<xul:toolbarbutton label="detach" anonid="detach-button"
 						tooltiptext="detach package %s"

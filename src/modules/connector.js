@@ -32,7 +32,10 @@ var kor = {
     get version() require("kor/main").version,
     get command() require("kor/main").command,
     get rbrowser() require("kor/main").rbrowser,
-    get fireEvent() require("kor/main").fireEvent
+    get fireEvent() require("kor/main").fireEvent,
+    envChangeEvent(env) {
+        require("kor/main").fireEvent("r-evalenv-change", {evalEnvName: env});
+    }
 };
 
 
@@ -115,17 +118,19 @@ var kor = {
     this.HIDDEN = 2;
     
     // Evaluate in R
+    // hidden passed as a number controls both visibility and autoupdate
+    // 1: autoupdated, 2: hidden, 3: both, 0: none
     this.evalAsync = function (command, callback, hidden, stdOut, ...args) { //, ...
         if(command === undefined || command == null) 
 			throw new Error("in 'evalAsync': 'command' is null or undefined");
         
-        let autoUpdate = false;
+        var autoUpdate = false;
         if(typeof hidden === "number") {
             autoUpdate = (hidden & _this.AUTOUPDATE) === _this.AUTOUPDATE;
             hidden = (hidden & _this.HIDDEN) === _this.HIDDEN;
         } else hidden = Boolean(hidden);
         
-        logger.debug("evalAsync: autoUpdate=" + autoUpdate);
+        logger.debug("evalAsync: autoUpdate=" + autoUpdate + "\nR command: " + command);
 		
         // XXX: background calls (e.g. object browser) need to have unique id.
         // ID for user commands should be one and fixed (to allow for multiline)

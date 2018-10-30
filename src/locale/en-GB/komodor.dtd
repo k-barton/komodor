@@ -46,6 +46,9 @@
 <!ENTITY rEscape "Interrupt current command">
 <!ENTITY rEscape.key "E">
 
+<!ENTITY rEndBrowseFrame "Stop browsing current frame">
+<!ENTITY rEndBrowseFrame.key "B">
+
 <!ENTITY RToolbar.label "R toolbar">
 
 <!ENTITY userInterfaceShowHideRToolbar.desc "Show/Hide R toolbar">

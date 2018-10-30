@@ -48,6 +48,12 @@ Contributors:
 		desc="&rob.listAllNames.desc;"
 		tooltiptext="&rob.listAllNames.tip;"
 		accesskey="&rob.listAllNames.acc;" />
+	<command id="cmd_rbrowserToggleFuncBody" key="key_cmd_rbrowserToggleFuncBody"
+		oncommand="rob.toggleValue(event, 'listFuncBody');"
+        label="&rob.listFuncBody;" 
+		desc="&rob.listFuncBody.desc;"
+		tooltiptext="&rob.listFuncBody.tip;"
+		accesskey="&rob.listFuncBody.acc;" />
 </commandset>
 
 <popupset id="extensionPopupSet">
@@ -55,7 +61,7 @@ Contributors:
 		<menuitem id="menu_rbrowser_insertname"
 			label="&rob.insName;"
 			oncommand="rob.insertName(false)"
-			accesskey="I"
+			accesskey="&rob.insName.acc;"
 			acceltext="Ins" />
 		<menuitem id="menu_rbrowser_insertquoted"
 			label="&rob.insertQuoted;"
@@ -65,23 +71,24 @@ Contributors:
 		<menuitem id="menu_rbrowser_insertfullname"
 			class="primary_menu_item"
 			oncommand="rob.insertName(true)"
-			accesskey="F"
+			accesskey="&rob.insFullName.acc;"
 			label="&rob.insFullName;"
 			acceltext="Ctrl+Ins" />
 
 		<menuseparator keep="false" intoplevel="true"/>
-		<menuitem id="cmd_rbrowser_removeobj"
+		<!-- 
+        <menuitem id="cmd_rbrowser_removeobj"
 			label="&rob.rmObj;"
 			oncommand="rob.removeSelected(event.shiftKey)"
 			accesskey="R"
 			acceltext="Del"
 			testDisableIf="t:noDelete"
-			key="key_cmd_delete" />
+			key="key_cmd_delete" /> -->
 		<menuitem id="menu_rbrowser_deletenow"
 			label="&rob.deleteNow;"
 			oncommand="rob.removeSelected(true)"
 			class="menuitem-iconic list-item-remove-icon"
-			acceltext="Shift+Del"
+			acceltext="Del"
 			testDisableIf="t:noDelete"
 			accesskey="&rob.deleteNow.acc;" />
 
@@ -90,22 +97,22 @@ Contributors:
 			label="&rob.summary;"
 			oncommand="rob.treeItemCommand('summary')"
 			testDisableIf="t:isFunction t:isEnvironment"
-			accesskey="S" />
+			accesskey="&rob.summary.acc;" />
 		<menuitem id="cmd_rbrowser_print"
 			label="&rob.print;"
 			oncommand="rob.treeItemCommand('print')"
 			testDisableIf="t:isPackage"
-			accesskey="P" />
+			accesskey="&rob.print.acc;" />
 		<menuitem id="cmd_rbrowser_plot"
 			label="&rob.plot;"
 			oncommand="rob.treeItemCommand('plot')"
 			testDisableIf="t:noPlot"
-			accesskey="O"/>
+			accesskey="&rob.plot.acc;" />
 		<menuitem id="cmd_rbrowser_str"
 			label="&rob.str;"
 			oncommand="rob.treeItemCommand('str')"
 			testDisableIf="t:isPackage"
-			accesskey="T"/>
+			accesskey="&rob.str.acc;" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_selectall"
@@ -120,19 +127,28 @@ Contributors:
 			acceltext="Ctrl+Shift+A" />
 
 		<menuseparator keep="false" intoplevel="true"/>
-		<menuitem id="menu_rbrowser_write_table"
+        <menuitem id="menu_rbrowser_write_table"
+            class="menuitem-iconic native-copy-icon"
+			label="&rob.copyToClipboard;"
+			oncommand="rob.treeItemCommand('copyToClipboard')"
+            acceltext="Ctrl+C"
+			accesskey="&rob.copyToClipboard.acc;" />	
+
+        <menuseparator keep="false" intoplevel="true"/>            
+      
+        <menuitem id="menu_rbrowser_write_table"
 			class="menuitem-iconic write-table-icon"
 			label="&rob.write_table;"
 			oncommand="rob.treeItemCommand('write.table')"
 			testDisableIf="t:noSaveToFile"
-			accesskey="T"/>
+			accesskey="&rob.write_table.acc;" />
 
 		<menuitem id="menu_rbrowser_save"
 			class="menuitem-iconic save-buffer-icon"
 			label="&rob.save;"
 			oncommand="rob.treeItemCommand('save')"
 			testDisableIf="t:noSave"
-			accesskey="S" />
+			accesskey="&rob.save.acc;" />
 
 		<menuseparator keep="false" intoplevel="true"/>
 		<menuitem id="menu_rbrowser_help"
@@ -140,7 +156,7 @@ Contributors:
 			class="menuitem-iconic help-icon"
 			oncommand="rob.treeItemCommand('help')"
 			testDisableIf="t:multipleSelection t:noHelp"
-			accesskey="H" />
+			accesskey="&rob.help.acc;" />
 	</menupopup>
 </popupset>
 
@@ -205,6 +221,9 @@ Contributors:
 								/>
 							<menuitem id="rbrowser_tools_listAttributes"
 								type="checkbox" observes="cmd_rbrowserToggleListAttributes" 
+								/>
+							<menuitem id="rbrowser_tools_listFuncBody"
+								type="checkbox" observes="cmd_rbrowserToggleFuncBody" 
 								/>
 							</menupopup>
 				</toolbarbutton>		   
