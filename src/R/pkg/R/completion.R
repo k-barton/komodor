@@ -8,7 +8,6 @@
 #' completeArgs("[", object)
 #' completeArgs("stats::`anova`", fm1) # function names may be backtick quoted,
 #'                                     # and have a namespace extractor
-
 #' @describeIn completion generic code completion.
 #' @param code character string, the code to be completed.
 #' @param pos cursor position within `code`. Defaults to at end of `code`.
@@ -20,6 +19,22 @@
 #' completion("print(x")
 #' completeSpecial("data")
 #' @export
+
+## TODO: `backtick-quote` non syntactic names
+## TODO: ` | ...`  --> style is BQ, trigger if ch[-1] == `
+## TODO: % | operators% --> style is OP & ch[first of style] == %, trigger if ch[-1] == %, completePercentOperator()
+## TODO: object $ "| ..." --> style is DQ|SQ|BQ & ch[-1] == $ && in variable, trigger if ch[-1] in "`'
+## TODO: object $ `| ...`
+## TODO: object[["| ..."
+## TODO: object[[ ... , |  --> completeArgs("`[[`(object, "
+## TODO: object[[1]] $|
+## TODO: object[[1]] [[ "| ..."
+## TODO: object[[1L]] $|
+## TODO: object[[1L]] [[ "| ..."
+## TODO: object[[name]] $| --> object $ `name` $
+## TODO: object[[name]] [["|  ..."
+## TODO: attr(object, "|  ..." -> names(attributes(object))
+
 completion <- 
 function (code, field.sep = "\x1e", sep = "\n",
 		  pos = nchar(code), min.length = 2L,
@@ -153,7 +168,8 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 
 	if(is.null(fun) || mode(fun) != "function" || FUNC.NAME == "function")
 		return(invisible(NULL))
-	if (findGeneric(FUNC.NAME, envir) != "" || is.primitive(fun)) {
+
+	if (isS3stdGeneric(fun) || isGeneric(FUNC.NAME, envir) || is.primitive(fun)) {
 
 		cl <- sys.call()
 		cl$field.sep <- NULL
@@ -161,7 +177,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		if(length(cl) > 2L){
 			object <- cl[[3L]]
 			if (!missing(object)) {
-				if(mode(object) == "call") {
+				if(is.call(object)) {
 					if ("~" %in% all.names(object, functions = TRUE, max.names = 4L))
 						cls <- "formula"
 					#else {
@@ -171,10 +187,12 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 				} else {
 					object <- tryCatch(eval(object, getEvalEnv()), error = function(e) NULL) # ? or eval in parent.frame()
 					cls <- class(object)
+					if(isS4(object))
+						cls <- c(cls, selectSuperClasses(getClass(cls)))
+						# XXX compare with: extends(cls)
 				}
 			}
 		}
-
 
 		if(is.na(cls[1L])) {
 			ret <- argNamesFun(.getS3method(FUNC.NAME, "default"))
