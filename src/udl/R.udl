@@ -14,7 +14,7 @@ pattern NM = '[$LTR\.][$LTR\d\._]*'
 pattern NBQ = '`([^`]|\\.)+`'
 pattern BRACEE = '\)\]'
 pattern BRACES = '\(\['
-pattern OP = '!%&\*\+,-\/;<=>\?\^\{\}~|'
+pattern OP = ':!%&\*\+,-\/;<=>\?\^\{\}~|'
 
 # required for token_check:
 start_style SSL_DEFAULT
