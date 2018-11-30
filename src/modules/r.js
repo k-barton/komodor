@@ -131,7 +131,7 @@ if (!Object.values)
         try {
             var scimoz = ui.getCurrentScimoz();
             if (scimoz === null) return false;
-            var text = ui.getTextRange("sel", true);
+            var text = ui.getTextRangeWithBrowseCode("sel", true);
             if (!text) { // No selection
                 var currentLine = scimoz.lineFromPosition(scimoz.currentPos);
                 var oText = {
@@ -187,7 +187,7 @@ if (!Object.values)
                 isTmp = true;
 				
                 let fileName = svc.OS.path.withoutExtension(doc.baseName) + "_" + what;
-                let content = ui.getTextRange(what);
+                let content = ui.getTextRangeWithBrowseCode(what);
                 let description = '';
                 if (what == "function") {
                     let rx = /(([`'"])(.+)\2|([\w\u00C0-\uFFFF\.]+))(?=\s*<-\s*function)/;
@@ -227,7 +227,7 @@ if (!Object.values)
         if (!scimoz) return;
 
         try {
-            let cmd = ui.getTextRange(what, !what.contains("sel")).trimRight();
+            let cmd = ui.getTextRangeWithBrowseCode(what, !what.contains("sel")).trimRight();
             if (cmd) _this.evalUserCmd(cmd);
 
             if (what == "line" || what == "linetoend") // || what == "para"
@@ -350,7 +350,8 @@ if (!Object.values)
         fu.write(htmlFileName, html, enc1);
 
         korCommand.openHelp(fu.toFileURI(htmlFileName));
-        window.setTimeout(file => {
+        
+        require("sdk/timers").setTimeout(file => {
                 try {
                     fu.getLocalFile(htmlFileName).remove(false);
                 } catch (e) {}
@@ -365,7 +366,7 @@ if (!Object.values)
             true, false);
     };
 
-    // Quit R (ask to save in save in not defined)
+    // Quit R (ask to save if 'save' is not defined)
     this.quit = function (save) {
         var response;
         if (typeof (save) === "undefined") {
@@ -378,9 +379,8 @@ if (!Object.values)
         } else response = save ? "yes" : "no";
 
         rConn.evalAsync('base::q(' + _this.arg(response.toLowerCase()) + ')', null, true);
-        // Clear the objects browser
-        //require("kor/main").rbrowser.clearAll();
-        setTimeout(() => korCommand.setRStatus(rConn.isRConnectionUp(false)),
+        require("sdk/timers").setTimeout(
+            () => korCommand.setRStatus(rConn.isRConnectionUp(false)),
             1000);
     };
     

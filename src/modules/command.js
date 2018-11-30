@@ -91,6 +91,7 @@
             }
         } else {
             let uri;
+            // XXX JavaScript Error: "ko.places.manager is undefined" 
             if (ko.places.manager.currentPlaceIsLocal) {
                 uri = ko.places.getDirectory();
             } else {
@@ -140,6 +141,11 @@
                 _this.openRPreferences();
             return;
         }
+
+		if(!ko.places.manager) { // Komodo is not ready
+			require("sdk/timers").setTimeout(() => startR(), 500);
+			return;
+		}
 		
 		if(!RConn.serverIsUp) {
 			logger.debug("startR: starting socket server.");
@@ -211,7 +217,7 @@
         target.dispatchEvent(event);
     };
 
-    this.setRStatus = function (running) {
+    this.setRStatus = function (running, quiet) {
         // Toggle status if no argument
         if (arguments.length === 0)
             throw("Error in setRStatus: argument 'running' is required");
@@ -219,7 +225,8 @@
 
         if (running != _RIsRunning) {
             _RIsRunning = running;
-            _this.fireEvent(_W, 'r-status-change', { running: running });
+            _this.fireEvent(_W, 'r-status-change', { running: running, 
+                                                     quiet: Boolean(quiet) });
 			logger.debug("R status changed to " + running);
             // buttons/menu items (except toolbar R button) respond to:
             _W.updateCommands('r_status_changed');

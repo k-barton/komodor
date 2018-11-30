@@ -86,7 +86,6 @@ function PrefR_OnLoad(/*event*/) {
         logger.exception(e, "PrefR_OnLoad");
     }
 	parent.hPrefWindow.onpageload();
-
 }
 
 function getSelectedInterpreterPath() {
@@ -379,7 +378,6 @@ function OnPreferencePageInitalize(prefset) {
     //let str = Object.keys(korPrefs.defaults).map((i) => `${i} = ${prefs.getPref(i)}/ ${korPrefs.getPref(i)} (${prefs._prefset.getPrefType(i)})`);
     //ko.dialogs.alert("R preferences:", str.join("\r\n"), "Komodo-R interface");
  
-    
     populateRunRAs();
     populatePathToR();
     
@@ -393,7 +391,6 @@ function OnPreferencePageInitalize(prefset) {
    
    menuListSetValues(); // Restores saved menu values
 }
-
 
 // For menulists, take the 'value' argument or text in the textbox, and append
 // it as new element to the list if it is new, otherwise set as selected
@@ -453,11 +450,38 @@ function updateRVersionLabel(pathToR) {
 	});
 }
 
+function updateRCmdArgsFrom(input) {
+    var cmdArgs0 = document.getElementById("RInterface.cmdArgs").value;
+    var remove = input.checked == input.rcmdl.no;
+    var userArgsPos = cmdArgs0.search(/\s--args\s/);
+    var cmdArgs = (userArgsPos !== -1) ? cmdArgs0.substr(0, userArgsPos) : cmdArgs0;
+    var rx = input.rcmdl.regExp;
+    if(remove) cmdArgs = cmdArgs.replace(rx, " ");
+         else if(cmdArgs.search(rx) === -1)
+            cmdArgs = input.rcmdl.argName + " " + cmdArgs;
+    if(userArgsPos !== -1) cmdArgs += cmdArgs0.substr(userArgsPos);
+    document.getElementById("RInterface.cmdArgs").value = cmdArgs;
+}
+
+function updateOptionsFromCmdl() {
+    var cmdArgs = document.getElementById("RInterface.cmdArgs").value;
+    var userArgsPos = cmdArgs.search(/\s--args\s/);
+    cmdArgs = (userArgsPos !== -1) ? cmdArgs.substr(0, userArgsPos) : cmdArgs;
+
+    var inputs = document.getElementsByAttribute("rcmdlArgs", "*");
+    var input;
+    for(let i = 0; i < inputs.length; ++i) {
+        input = inputs[i];
+        input.checked = (cmdArgs.search(input.rcmdl.regExp) === -1) === input.rcmdl.no;
+        // XXX: weird behaviour of test/exec, result changes every 2-nd call
+        //input.checked = input.rcmdl.regExp.test(cmdArgs) != input.rcmdl.no;
+    }
+}
+
 function updateRCommand(update) {
     var appId = document.getElementById("RInterface.runRAs").value;
 	var appPath = document.getElementById("RInterface.pathToR").value;
-
-     if(!appId || !appPath) return '';
+    if(!appId || !appPath) return '';
 
     var cmdArgs = document.getElementById("RInterface.cmdArgs").value;
 	var args1 = "";
@@ -480,22 +504,20 @@ function updateRCommand(update) {
 	cmd = cmd.replace("%Path%", appPath)
 		.replace("%title%", "R [Komodo]").replace("%cwd%", cwd)
 		.replace("%args%", cmdArgs) + args1;
+    
+    if(update) document.getElementById('RInterface.RCommand').value = cmd;
 
-    if (update) {
-        let cmdLabel = document.getElementById('RInterface.RCommand');
-        cmdLabel.value = cmd;
-		cmdLabel.setAttribute("defaultValue", cmd);
-		cmdLabel.removeAttribute("edited");
-        document.getElementById('RCommand_reset').disabled = true;
-    }
     return cmd;
 }
 
-function onUserEditCommandLine(cmdLabel) {
-	//let cmdLabel = document.getElementById('RInterface.RCommand');
-	let edited = cmdLabel.value !== cmdLabel.getAttribute("defaultValue");
-	if(edited) cmdLabel.setAttribute("edited", "true"); else cmdLabel.removeAttribute("edited");
-    document.getElementById('RCommand_reset').disabled = !edited;
+function onCmdlOptionsChecked(input) {
+    updateRCmdArgsFrom(input);
+    updateRCommand(true);
+}
+
+function onUserEditCommandLine() {
+    updateOptionsFromCmdl();
+    updateRCommand(true);
 }
 
 function OnPreferencePageLoading(prefset) {
@@ -528,7 +550,25 @@ function OnPreferencePageLoading(prefset) {
 
     let cmdLabel = document.getElementById('RInterface.RCommand');
     cmdLabel.setAttribute("defaultValue", updateRCommand(false));
-    onUserEditCommandLine(cmdLabel);
+
+    var cmdArgs = document.getElementById("RInterface.cmdArgs").value;
+
+    var inputs = document.getElementsByAttribute("rcmdlArgs", "*");
+    var input, argNames, remove, rx;
+    for(let i = 0; i < inputs.length; ++i) {
+        input = inputs[i];
+        argNames = input.getAttribute("rcmdlArgs");
+        if((remove = argNames.startsWith("!"))) argNames = argNames.substr(1);
+        argNames = argNames.split(/\s+/);
+        rx = RegExp("(?:^|\\s)(" + argNames.map(a => (a.length == 1 ? "-" : "--") + a).join("|") + ")(?:$|\\s+)", "g");
+        //input.checked = rx.test(cmdArgs) != remove; // no ===
+        input.checked = (cmdArgs.search(rx) === -1) === remove;
+        input.rcmdl = {
+        	regExp: rx,
+        	argName: (argNames[0].length == 1 ? "-" : "--") + argNames[0],
+        	no: remove
+        };
+    }
  
 	updateCranMirrorListAsync(false);
 	updateRVersionLabel();
@@ -656,13 +696,6 @@ function rRunAsOnSelect(event) {
 	updateRVersionLabel(menuPathToR.value);
 }
 
-function resetUserEditCommandLine() {
-	let cmdLabel = document.getElementById('RInterface.RCommand');
-    cmdLabel.value = cmdLabel.getAttribute("defaultValue");
-	cmdLabel.removeAttribute("edited");
-    document.getElementById('RCommand_reset').disabled = true;
-}
-
 function addCustomPathToR(path) {
     var menu = document.getElementById("RInterface.pathToR");
 	var os;
@@ -762,5 +795,3 @@ function onCranMirrorListUpdated() {
 
 addEventListener("load", PrefR_OnLoad, false);
 addEventListener("r_cran_mirrors_updated", onCranMirrorListUpdated, false);
-
-

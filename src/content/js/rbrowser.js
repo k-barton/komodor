@@ -9,6 +9,7 @@
  * TODO: context menu for search-paths list
  * TODO: add context menu item for environments: remove all objects
  */
+
 /* globals require, document, self */
 
 var rob = {};
@@ -22,11 +23,10 @@ var rob = {};
 //     \x1f - unit separator
 //     \x1d - group separator
 
-//TODO: Friendly display label for EvalEnv
-
 (function () {
 
     var logger = require("ko/logging").getLogger("komodoR");
+    //logger.setLevel(logger.DEBUG);
     
     const { arr: ArrayUtils, str: StringUtils } = require("kor/utils");
     const fileUtils = require("kor/fileutils");
@@ -114,8 +114,7 @@ var rob = {};
             if (m) {
 				let newEvalEnvName = m[1] ? m[1] : evalEnvLabel;
                 _this.evalEnv.isNew = (_this.evalEnv.name === undefined) || (newEvalEnvName !== _this.evalEnv.name);
-                //this.evalEnv.name = "<" + searchPath[0].substring(9, searchPath[0].length - 2) + ">";
-                result[0].name = _this.evalEnv.name  = newEvalEnvName;
+                result[0].name = _this.evalEnv.name = newEvalEnvName;
             } else
                 _this.evalEnv.name = undefined;
        
@@ -364,7 +363,6 @@ var rob = {};
             _this.treeBox.getLastVisibleRow());
     };
 
-
     var parseRObjectName = (name, posObj) => {
     	var parents = [name], pos = 0, m, endpos, guard = 0;
     	while (name && ++guard < 64) {
@@ -413,8 +411,8 @@ var rob = {};
     	return parents;
     };
  
-    // RObjectLeaf constructor:
-    function RObjectLeaf(env, obj, arr, index, parentElement) {
+    // RObjectItem constructor:
+    function RObjectItem(env, obj, arr, index, parentElement) {
 
         var dimNumeric = 1;
         if (obj) { /// Objects
@@ -429,14 +427,14 @@ var rob = {};
                 this.env = env;
                 this._isRecursive = arr[5].contains('r');
                 this.isHidden = arr[5].contains('h');
-                this.isAttribute = arr[5].contains('a'); // XXX: make it a new type?
+                this.isAttribute = arr[5].contains('a');
                 this.hasAttributes = arr[5].contains('b');
                 if (this.isRecursive) this.children = [];
                 this.sortData = [this.name.toLowerCase(), dimNumeric, this.className.toLowerCase(),
                     this.group.toLowerCase(), index
                 ];
             } catch (e) {
-                logger.exception(e, "in RObjectLeaf constructor [" + arr + "]");
+                logger.exception(e, "in RObjectItem constructor [" + arr + "]");
             }
             this.parentObject = parentElement;
             
@@ -463,7 +461,7 @@ var rob = {};
         }
     }
 
-    RObjectLeaf.prototype = {
+    RObjectItem.prototype = {
         name: null,
         fullName: null,
         children: undefined,
@@ -522,7 +520,7 @@ var rob = {};
             return i;
             },
     };
-    Object.defineProperty(RObjectLeaf.prototype, "toString", {enumerable: false, configurable: false, writable: false});
+    Object.defineProperty(RObjectItem.prototype, "toString", {enumerable: false, configurable: false, writable: false});
     
     var updateTopLevelItem = (object, pos = null, doUpdVisDat = false) => {
         if(!object.isTopLevelItem) return;
@@ -538,28 +536,31 @@ var rob = {};
     var cleanupObjectLists = () => {
         if (!_this.treeData) return;
         // TODO: filter + Array.from ?
+        var pos;
         for (let i = _this.treeData.length - 1; i >= 0; --i) {
-            let pos = _this.searchPath.indexOf(_this.treeData[i].name);
+            pos = _this.searchPath.indexOf(_this.treeData[i].name);
             if (pos === -1) _this.treeData.splice(i, 1);
-            else updateTopLevelItem(_this.treeData[i], pos, false);    
+            else 
+                updateTopLevelItem(_this.treeData[i], pos, false);    
         }
         _this.sort(null, null);
         //createVisibleData();
     };
    
-    var getTreeLeafByName = (name, env) => {
-        let p = _this.treeData, res;
+    var getBranchByName = (name, env) => {
+        var p = _this.treeData, res;
         if (!p.length) return null;
         
-        let findFullName = (arr, nm) => arr.find(o => o.fullName === nm);
+        var findFullName = (arr, nm) => arr.find(o => o.fullName === nm);
         res = findFullName(p, env);
         if(res === undefined) return null;
         if (!name) return res;
         
         var ancestry = parseRObjectName(name);
+        var res1;
         p = res;
         for(let k = ancestry.length - 1; k >= 0; --k) {
-           let res1 = findFullName(p.children, ancestry[k]);
+           res1 = findFullName(p.children, ancestry[k]);
            if(res1 === undefined) return null;
            p = res1;
         }
@@ -594,6 +595,11 @@ var rob = {};
             closedPackages[x.name] = !x.isOpen;
             return x.name;
         });
+        
+        var topLevelItemIsClosed = {};
+        for(let i = 0; i < _this.treeData.length; ++i)
+            topLevelItemIsClosed[_this.treeData[i].name] =  !_this.treeData[i].isOpen;
+        var currentTopLevelItems = Object.keys(topLevelItemIsClosed);
 
         if (rebuild) _this.treeData.splice(0);
 
@@ -604,11 +610,7 @@ var rob = {};
         if (!data) return;
         var lines = data.split(/[\r\n]{1,2}/);
 
-        const LF = {
-            Env: 0,
-            Obj: 1,
-            Data: 2
-        };
+        const LF = { Env: 0, Obj: 1, Data: 2 };
         var lookFor = LF.Env;
 
         // debug:
@@ -616,13 +618,16 @@ var rob = {};
             .replace(new RegExp(recordSep, "g"), "\n")
             .substring(0, 100);
 
-        let treeBranch, envName, objName;
+        let branch, envName, objName;
         for (let i = 0; i < lines.length; ++i) {
             let itemConsumed = false;
             //logger.debug(
             //    `parseObjListResult: \nline ${i}, looking for ${['env', 'obj', 'data'][lookFor]} in: \n` +
             //    prettyLine(lines[i]));
 
+            // TODO Env= Obj=objname[start:end]
+            //      /\[(\d+):(\d+)\]$/
+            //      ... ... NNNN <truncated> r
             switch (lookFor) {
             case LF.Env:
                 if (lines[i].indexOf("Env=") != 0) break;
@@ -636,25 +641,30 @@ var rob = {};
             case LF.Obj:
                 if (lines[i].indexOf("Obj=") != 0) break;
                 objName = lines[i].substr(4).trim();
-                treeBranch = getTreeLeafByName(objName, envName);
+                branch = getBranchByName(objName, envName);
                 logger.debug(
-                    `parseObjListResult: \nfound Obj="${objName}", Env="${envName}". Exists in tree: ${treeBranch? 'yes' : 'no'}`
+                    `parseObjListResult: \nfound Obj="${objName}", Env="${envName}". Exists in tree: ${branch? 'yes' : 'no'}`
                 );
-                if (!treeBranch && !objName) { // This is environment
-                    treeBranch = new RObjectLeaf(envName, false);
-                    _this.treeData.push(treeBranch);
-					logger.debug("parseObjListResult: adding new top-level item: " + treeBranch.name + "\n" +
+                if (!branch && !objName) { // This is environment
+                    branch = new RObjectItem(envName, false);
+                    _this.treeData.push(branch);
+					logger.debug("parseObjListResult: adding new top-level item: " + branch.name + "\n" +
 						"treeData = " + _this.treeData.map(x => x.name).join("; "));
-                    if (currentPackages.indexOf(envName) == -1)
-                        lastAddedRootElement = treeBranch;
+                    if (currentTopLevelItems.indexOf(envName) == -1)
+                        lastAddedRootElement = branch;
                 }
-                if (treeBranch) {
+                if (branch) {
                     //var isEmpty = (lines.length == i + 2) || (lines[i + 2].indexOf('Env') == 0);
                     if (!objName) { // XXX: one-liner
-                        if (closedPackages[envName]) treeBranch.isOpen = false;
-                    } else treeBranch.isOpen = true;
-                    treeBranch.children = [];
-                    treeBranch.childrenLoaded = true;
+                        if (topLevelItemIsClosed[envName]) branch.isOpen = false;
+                    } else branch.isOpen = true;
+                
+                    branch.children = []; 
+                    // XXX: skip if Appending
+                    // XXX: There will be problems with appending on refresh
+                    //      how to tell the desired object length to return?
+                    
+                    branch.childrenLoaded = true;
                     lookFor = LF.Data;
                 } else lookFor = LF.Env; // this object is missing, skip all children
                 itemConsumed = true;
@@ -671,9 +681,9 @@ var rob = {};
 					let leaf;
                     for (let k = 0; k < objlist.length; ++k) {
                         if (objlist[k].length === 0) break;
-                        leaf = new RObjectLeaf(envName, true, objlist[k].split(sep), k /* or i?*/ ,
-                            treeBranch);
-                        treeBranch.children.push(leaf);
+                        leaf = new RObjectItem(envName, true, objlist[k].split(sep), k /* or i?*/ ,
+                            branch);
+                        branch.children.push(leaf);
                     }
                     logger.debug(`parseObjListResult: \nfound data n=${objlist.length}`);
                 } catch (e) {
@@ -1787,6 +1797,11 @@ var rob = {};
         _this[name] = value;
     };
     
+    this.isActive = function() {
+        var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
+        return Boolean(viewbox) && viewbox.hasAttribute("active");
+    };
+    
     this.activate = function(state) {
         var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
         if (!viewbox || state == viewbox.hasAttribute("active")) return; // keep "=="
@@ -1813,6 +1828,12 @@ var rob = {};
         try {
 			logger.debug("Rbrowser.onRStatusChange: " + event.detail.running);
             _this.activate(event.detail.running);
+            if(event.detail.running)
+                setTimeout(() => {
+                    if(!require("kor/command").isRRunning) return;
+                    if(!_this.isActive) _this.activate(); // XXX: needed?
+                    else _this.searchPath.refreshAsync();
+                }, 2048);
          } catch(e) {
             logger.exception(e);
         }
@@ -1871,15 +1892,21 @@ var rob = {};
 		_w.addEventListener('r-environment-change', onREnvironmentChange, false);
         window.addEventListener("r-command-request", _this.onRCommandRequestEvent, false);   
 
-		// needed if rob widget is loaded after initial "r-status-change" event.
-		if(require("kor/command").isRRunning) 
-			_this.activate(true);
-		else setTimeout(() => {
-			let rIsOn = require("kor/command").isRRunning;
-			logger.debug("Rbrowser.onLoad -> check again (R is " + (rIsOn ? "on" : "off") + ")");
-			if(rIsOn) _this.activate(true);
-		}, 2000);
-		
+        // needed if rob widget is loaded after initial "r-status-change" event.
+        if (require("kor/command").isRRunning)
+            _this.activate(true);
+        else {
+            let checkCounter = 0;
+            let intervalID = setInterval(() => {
+                let rIsOn = require("kor/command").isRRunning;
+                logger.debug("Rbrowser.onLoad -> check again[" + checkCounter + 
+                    "] (R is " + (rIsOn ? "on" : "off") + ")");
+                if(rIsOn || checkCounter++ > 2)
+                    clearInterval(intervalID);
+                if (rIsOn) _this.activate(true);
+            }, 2048);
+        }
+
         const prefs = require("ko/prefs");
         const auPrefName = "RInterface.rBrowserAutoUpdate";
 		

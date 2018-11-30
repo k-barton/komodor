@@ -146,6 +146,8 @@ function (code, field.sep = "\x1e", sep = "\n",
 #'        appropriate method.
 # @param field.sep character string to be used as a field separator.
 #' @export
+
+
 `completeArgs` <-
 function(FUNC.NAME, ..., field.sep = "\x1e") {
 	rx <- regexpr("^([\\w\\.]+):{2,3}(`|)([\\w\\.\\[\\%]+)\\2$", FUNC.NAME, perl = TRUE)
@@ -169,7 +171,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 	if(is.null(fun) || mode(fun) != "function" || FUNC.NAME == "function")
 		return(invisible(NULL))
 
-	if (isS3stdGeneric(fun) || isGeneric(FUNC.NAME, envir) || is.primitive(fun)) {
+	if (is.primitive(fun) || isS3stdGeneric(fun) || isGeneric(FUNC.NAME, envir)) {
 
 		cl <- sys.call()
 		cl$field.sep <- NULL
@@ -214,17 +216,18 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 			}
 		}
 	} else ret <- character(0L)
-	ret <- unique(c(ret, names(formals(args(fun)))))
+	
+	if(!is.null(a <- args(fun))) ret <- unique(c(ret, names(formals(a))))
+		
 	if (length(ret) > 1L && (FUNC.NAME == "[" || FUNC.NAME == "[["))
-		ret <- ret[-1L]
+		ret <- ret[ ! ret %in% c("x", "i", "j") ]
 	if(FUNC.NAME %in% names(.completion_specfun))
 		ret <- unique(c(ret, .completion_specfun[[FUNC.NAME]]))
-
 
 	ret <- ret[ret != "..."]
 	if(length(ret))
 		cat(paste("argument", field.sep, ret, " =", sep = ""), sep = "\n")
-	return(invisible(NULL))
+	invisible()
 }
 
 #' @describeIn completion provides special completions.
@@ -263,11 +266,17 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 				data(verbose = FALSE)$results[, "Item"], perl = TRUE))
 	   }, "[" = {
 			type <- "$variable"
-			tryCatch(paste("\"", dimnames(x)[[argpos]], "\"", sep = ""),
-							error = function(e) "")
-	   }, return(invisible(NULL)))
+			tryCatch(paste0("\"", dimnames(x)[[argpos]], "\""),
+				error = function(e) "")
+	   }, attr = {
+		    type <- "$variable"
+			tryCatch(paste0("\"", names(attributes(x)), "\""),
+				error = function(e) "")
+	   },
+		return(invisible())
+	   )
 	cat(paste(type, res, sep = field.sep), sep = "\n")
-	return(invisible(NULL))
+	invisible()
 }
 
 

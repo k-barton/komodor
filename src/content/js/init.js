@@ -251,12 +251,14 @@
                          prefNames[0] + ": " + a[0] + "," +
                          prefNames[1] + ": " + a[1] + ".");
         };
-		
+        
+ 	
         setTimeout(() => {
             kor.command.setControllers();
             setUpPorts();
+            kor.command.setRStatus(false, /*quiet=*/ true);
         	kor.rconn.restartSocketServer(null, () => {
-        		kor.command.setRStatus(kor.rconn.isRConnectionUp());
+        		kor.command.setRStatus(kor.rconn.isRConnectionUp(true));
         	});
             ko.commands.updateCommand("cmd_svREscape"); // ?
             logger.debug("initialization - delayed tasks end");
@@ -324,6 +326,7 @@
         let el = document.getElementById('cmd_svRStarted');
         if (running) el.setAttribute("checked", "true");
             else el.removeAttribute("checked");
+        if(event.detail.quiet) return;
         require("kor/ui").addNotification(running ? "R session is connected" : "R is not running");
     };
     window.addEventListener("r-status-change", rStatusChangeObserver, false);

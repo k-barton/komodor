@@ -33,9 +33,11 @@
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/bindings/widgets.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/bindings/buttons.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/menulist.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/tree.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/prefs/prefs.css" type="text/css"?>
+<?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/menulist-iconic.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pref-R.css" type="text/css"?>
 
@@ -67,7 +69,7 @@
 			<separator />
 		</vbox>
 			<hbox align="center">
-				<label class="label equalheight" control="RInterface.runRAs" value="Preferred way to run R:" />
+				<label class="label equalheight" control="RInterface.runRAs" value="Run R as:" />
 				<menulist id="RInterface.runRAs" oncommand="rRunAsOnSelect(event)" pref="true" editable="false" />
 			</hbox>
 			<label value="Use this application:" control="RInterface.pathToR" />
@@ -85,7 +87,8 @@
 						</hbox>
 						<hbox align="center">
 							<button tooltiptext="Refresh" oncommand="populatePathToR();"
-									buttonstyle="pictures" class="refresh-icon menulist-buttons" />
+									buttonstyle="pictures" 
+                                    class="refresh-icon button-toolbar-a" />
 							<button class="menulist-buttons" label="Browse..."
 									oncommand="addCustomPathToR()" />
 						</hbox>
@@ -95,30 +98,43 @@
 					</hbox>
 					<row align="center">
 						<hbox align="center">
-							<label value="Command line arguments:" control="RInterface.cmdArgs" pref="false" />
+							<label value="Command line arguments:" control="RInterface.cmdArgs" />
 							<textbox id="RInterface.cmdArgs" pref="true" editable="true" flex="1"
-									 oninput="updateRCommand(event);" style="margin-right: 0" />
+									 oninput="onUserEditCommandLine(this)"
+									 style="margin-right: 0" />
 						</hbox>
 						<hbox align="center">
-							<toolbarbutton oncommand="require('kor/r').help('Startup')"
-										   buttonstyle="pictures" class="help-icon"
+							<button oncommand="require('kor/r').help('Startup')"
+										   buttonstyle="pictures" class="help-icon button-toolbar-a"
 										   tooltiptext="Show R Help about the command line" />
 						</hbox>
 					</row>
-					<hbox align="center" style="margin-top: 4px;">
-						<label class="label" control="R_command" crop="end"
-							   value="This command will be used to start R (R-&gt;Start R):" />
-					</hbox>
-					<row align="center">
-						<hbox align="center">
-							<textbox pref="true" id="RInterface.RCommand" value="" flex="1" defaultValue=""
-									 oninput="onUserEditCommandLine(this)" style="margin-right: 0" />
-							<!--class="plain"-->
+					<row align="center" id="rcmdlArgs">
+						<hbox align="left">
+							<checkbox id="RCmdl.no:no-restore" 
+								label="Restore saved workspace" 
+								rcmdlArgs="!no-restore no-restore-data vanilla"
+								tooltiptext="Should saved images (file .RData in the directory where R was started) be restored at startup?"
+								oncommand="onCmdlOptionsChecked(this)"
+								/>
+							<checkbox id="RCmdl.quiet" 
+								label="Do not print out the initial welcome messages"
+								rcmdlArgs="quiet q silent"
+								oncommand="onCmdlOptionsChecked(this)"
+								/>
 						</hbox>
-						<hbox align="center">
-							<button id="RCommand_reset" tooltiptext="Reset"
-									oncommand="resetUserEditCommandLine()" class="menulist-buttons"
-									label="Reset" disabled="true" flex="0" />
+					</row>
+					<row align="center">
+						<hbox align="center" style="margin-top: 4px;">
+							<label class="label" control="R_command" crop="end"
+								   value="This command will be used to start R (R-&gt;Start R):" />
+						</hbox>
+					</row>
+					<row align="center">
+                    	<hbox align="center">
+							<textbox pref="true" id="RInterface.RCommand" value="" flex="1" defaultValue=""
+									 readonly="true"
+									 style="margin-right: 0" />
 						</hbox>
 					</row>
 				</rows>
@@ -135,7 +151,6 @@
 			</hbox>
 		</groupbox>
 		
-		
 		<separator class="thin" />
 		<groupbox orient="vertical">
 			<caption label="Data input and output" />
@@ -147,7 +162,7 @@
 					<column flex="1" />
 				</columns>
 				<rows>
-					<row align="center">
+					<row align="left">
 						<hbox align="right">
 							<label value="Decimal separator" control="RInterface.CSVDecimalSep" />
 						</hbox>
@@ -185,8 +200,10 @@
 								<!-- /set manually/ pref="true" prefattribute="value"-->
 								<menupopup maxheight="200" />
 							</menulist>
-							<button id="RefreshCRANMirrors" label="Refresh list" tooltip="Refresh list"
-									buttonstyle="pictures" class="refresh-icon menulist-buttons"
+							<button id="RefreshCRANMirrors" label="Refresh list"
+                                    tooltiptext="Refresh mirror list"
+									buttonstyle="pictures" 
+                                    class="refresh-icon button-toolbar-a"
 									oncommand="updateCranMirrorListAsync(true)" />
 						</hbox>
 						<hbox align="right">

@@ -6,14 +6,54 @@ css: chrome://komodor/skin/doc.css
 
 (Version #VERSION#)
 
+* Preferences: Startup options get new checkboxes to edit command line
+* Codeintel: fixed problems with non-ascii names in code completion.
+* Improved output from R (in some special cases errors or warnings were not 
+  printed correctly or were omitted. For example if error occurred both in the 
+  function and in its `on.exit` code) (issue #12)
+* Added option for browsing R function body's code (activated with the 
+  Object Browser toolbar's cog menu item).
+* Added "Stop browsing current frame" button. It is active if the current R
+  evaluation environment (frame) is not the Global Environment 
+  (R user's workspace).
+* Improved detection of the R application at startup (when previously 
+  connected R session had been open when Komodo was re/started the R Object 
+  Browser sometimes failed to activate)
+  
+(Version 0.3.52)
+
+* R: Fixed error with file listing when objects' required packages were not 
+  available.
+* R object browser: evaluation environment's tree was not displayed when 
+  `EvalEnv` had been set manually via `setEvalEnv()`.
+* R object browser: new icons for Spatial* and Raster* objects.
+* R: attempting to unlock `baseenv()`s bindings (issue #11).
+
+(Version 0.3.45b)
+
+* Added workaround to replace the generic language icon for R_extended.
+
+(Version 0.3.40b)
+
+* Code completion: repaired wrapped argument rows, SVG images replace old
+  PNG icons.
+* R Search Path panel: is updated on successful drop.
+* original R window title is restored when package "kor" is detached.
+
+(Version 0.3.22b)
+
 * Fixed (?) R object tree panel not being activated at startup.
 * Improved socket server restarting procedure.
 * Fixed broken R object removal (from R object browser).
-* Dropping a package name or workspace file name (*.RData) on the "search path" panel now attaches the package/workspace at the position where it was dropped (previously it was always right after `.GlobalEnv`).
-* R Preferences panel: icons visibility in menu lists (country flags should now be visible in the dropdown menu, application type icons added /gui or console/).
+* Dropping a package name or workspace file name (*.RData) on the "search path" 
+  panel now attaches the package/workspace at the position where it was dropped 
+  (previously it was always right after `.GlobalEnv`).
+* R Preferences panel: icons visibility in menu lists (country flags should now 
+  be visible in the dropdown menu, application type icons added 
+  /gui or console/).
+* Updated __R Tools__
 
-
-(Version 0.13.10b)
+(Version 0.3.10b)
 
 * R object browser:
 

@@ -401,8 +401,8 @@ this.getTextRange = function (what, gotoend = false, select = false, range, incl
                 scimoz.getLineEndPosition(i)).trim() != "";
             --i) {}
 
-        for (let i = curLine; i <= scimoz.lineCount && scimoz.lineLength(i) > 0 && scimoz
-            .getTextRange(
+        for (let i = curLine; i <= scimoz.lineCount && scimoz.lineLength(i) > 0
+            && scimoz.getTextRange(
                 scimoz.positionFromLine(i),
                 pEnd = scimoz.getLineEndPosition(i)).trim() != "";
             ++i) {}
@@ -446,6 +446,40 @@ this.getTextRange = function (what, gotoend = false, select = false, range, incl
 
     return text;
 }; // getTextRange
+
+const range = (start, stop, step) => 
+    Array.from({ length: (stop - start) / step }, 
+    (_, i) => start + (i * step));
+
+var getMarker = (scimoz, line) => {
+    let m = scimoz.markerGet(line);
+    return range(0, 32, 1).filter(i => (Math.pow(2, i) & m) != 0);
+};
+
+// TODO: find postion with style == default
+this.getTextRangeWithBrowseCode = function(...args) {
+	var view = require("ko/views").current();
+	if (!view) return "";
+	view.scintilla.focus();
+	var text, o = {}, linesWithMarkers, lineno;
+	var scimoz = view.scimoz;
+	var browserStr = "kor::koBrowseHere();";
+	args[3] = o; // range
+	var text = this.getTextRange.apply(this, args);
+	var eol = this.eOLChar(scimoz);
+	var eolLen = eol.length;
+	var startline = scimoz.lineFromPosition(o.value.start);
+	linesWithMarkers = range(startline, 
+        scimoz.lineFromPosition(o.value.end), 1)
+            .filter(x => getMarker(scimoz, x)
+            .some((x) => x > 6 && x < 19 && x != 13));
+    if (linesWithMarkers.length === 0) return text;
+	lineno = linesWithMarkers[0] - startline;
+    var p = -1;
+	for (let i = 0; i < lineno; ++i) p = text.indexOf(eol, p + eolLen);
+	p += eolLen;
+	return text.substr(0, p) + browserStr + text.substr(p);
+} // getTextRangeWithBrowseCode
 
 
 this.colorPicker = {};
