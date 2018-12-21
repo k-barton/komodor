@@ -22,9 +22,9 @@ Philippe Grosjean, and since then has been largely rewritten.
      block, function at cursor, or a whole file.
 * Syntax highlighting:
    + R language including [Roxygen](http://roxygen.org/) tags
-   + R documentation (*.Rd* files, partially implemented.)
+   + R documentation (*.Rd* files, partially implemented. __Help wanted!__)
    + [Rmarkdown](https://cran.r-project.org/package=rmarkdown) 
-     (*.Rmd* files, partially implemented.)
+     (*.Rmd* files, partially implemented.  __Help wanted!__)
 * Code completion (objects, argument names, list items)
 * Syntax checking
 * R object browser pane with fully expandable tree allows for inspecting
@@ -100,6 +100,7 @@ The extension provides some code debugging capabilities, see
   operation__ (real-time output will be introduced in version 0.4)
 * Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape
   key in RGui)
+* On MAC OS X, problems with starting R.app and connection (__Mac testers wanted__)
 * Executing Rgui's command “Stop all computations” will also stop R's socket
   server and hence break the connection with Komodo. It may also cause R crash
   (it happens sometimes on Windows).
