@@ -78,46 +78,53 @@
 		persist="checked"
 		oncommand="ko.commands.doCommandAsync('cmd_viewrtoolbar', event);"
 	/>
-	<broadcaster id="cmd_svRStarted"
-		oncommand="ko.commands.doCommand(require('kor/main').command.isRRunning ? 'cmd_svQuitR' : 'cmd_svStartR');"
+	<broadcaster id="cmd_RStarted"
+		oncommand="ko.commands.doCommand(require('kor/main').command.isRRunning ? 'cmd_RQuit' : 'cmd_RStart');"
 		/>
 </broadcasterset>
 
 <commandset id="allcommands">
+	<commandset id="cmdset_rEnvironment">
+		<command id="cmd_RBrowseFrame" key="key_cmd_RBrowseFrame"
+			oncommand="ko.commands.doCommand('cmd_RBrowseFrame');"
+			desc="R: &rEndBrowseFrame;" label="&rEndBrowseFrame;"
+		    disabled="true"
+			accesskey="&rEndBrowseFrame.key;"/>			
+	</commandset>
+
 	<commandset id="cmdset_rApp" commandupdater="true"
 		oncommandupdate="ko.commands.updateCommandset(this);"
 		events="r_status_changed">
-		
-		<commandset id="cmdset_rApp" commandupdater="true"
+	
+		<commandset id="cmdset_rCommand" commandupdater="true"
 			oncommandupdate="ko.commands.updateCommandset(this);"
 			events="r_command_executed">
-			<command id="cmd_svREscape" key="key_cmd_svREscape"
-				oncommand="ko.commands.doCommand('cmd_svREscape');"
+			<command id="cmd_REscape" key="key_cmd_REscape"
+				oncommand="ko.commands.doCommand('cmd_REscape');"
 				desc="R: &rEscape;" label="&rEscape;" accesskey="&rEscape.key;"/>			
 		</commandset>
-		
-		<command id="cmd_svStartR" key="key_cmd_svStartR"
-			oncommand="ko.commands.doCommand('cmd_svStartR');"
+		<command id="cmd_RStart" key="key_cmd_RStart"
+			oncommand="ko.commands.doCommand('cmd_RStart');"
 			desc="R: &StartR;" label="&StartR;" accesskey="&StartR.key;"
 			/>
-		<command id="cmd_svQuitR" key="key_cmd_svQuitR"
-			oncommand="ko.commands.doCommand('cmd_svQuitR');"
+		<command id="cmd_RQuit" key="key_cmd_RQuit"
+			oncommand="ko.commands.doCommand('cmd_RQuit');"
 			desc="R: &QuitR;" label="&QuitR;" accesskey="&QuitR.key;"/>
 
-		<command id="cmd_svOpenPkgManager" key="key_cmd_svOpenPkgManager"
-			oncommand="ko.commands.doCommand('cmd_svOpenPkgManager');" 
+		<command id="cmd_RPkgManagerOpen" key="key_cmd_RPkgManagerOpen"
+			oncommand="ko.commands.doCommand('cmd_RPkgManagerOpen');" 
 			disabled="false"
 			desc="R: &pkgMgr;" label="&pkgMgr;" accesskey="&pkgMgr.key;"/>
-		<command id="cmd_svOpenHelp" key="key_cmd_svOpenHelp"
-			oncommand="ko.commands.doCommand('cmd_svOpenHelp');"
+		<command id="cmd_RHelpOpen" key="key_cmd_RHelpOpen"
+			oncommand="ko.commands.doCommand('cmd_RHelpOpen');"
 			desc="R: &helpStart;" label="&helpStart;" accesskey="&helpStart.key;"/>
 		
-		<command id="cmd_svOpenRPreferences" key="key_cmd_svOpenRPreferences"
-			oncommand="ko.commands.doCommand('cmd_svOpenRPreferences');"
+		<command id="cmd_RPreferencesOpen" key="key_cmd_RPreferencesOpen"
+			oncommand="ko.commands.doCommand('cmd_RPreferencesOpen');"
 			desc="R: &openRPrefs;" label="&openRPrefs;" accesskey="&openRPrefs.key;"/>
 
-		<command id="cmd_svFormatRCodeInView" key="key_cmd_svFormatRCodeInView"
-			oncommand="ko.commands.doCommand('cmd_svFormatRCodeInView');"
+		<command id="cmd_RFormatCodeInView" key="key_cmd_RFormatCodeInView"
+			oncommand="ko.commands.doCommand('cmd_RFormatCodeInView');"
 			desc="R: &formatRCode;" label="&formatRCode;" accesskey="&formatRCode.key;"/>
 
 	</commandset>
@@ -125,49 +132,49 @@
 <commandset id="cmdset_r_control" commandupdater="true"
   events="language_changed,current_view_changed,r_status_changed"
   oncommandupdate="ko.commands.updateCommandset(this);">
-	<command id="cmd_svRRunAll" key="key_cmd_svRRunAll"
-		oncommand="ko.commands.doCommand('cmd_svRRunAll')"
+	<command id="cmd_RRunAll" key="key_cmd_RRunAll"
+		oncommand="ko.commands.doCommand('cmd_RRunAll')"
 		desc="R: &rSendFile;" label="&rSendFile;" accesskey="&rSendFile.key;"/>
-	<command id="cmd_svRSourceAll" key="key_cmd_svRSourceAll"
-		oncommand="ko.commands.doCommand('cmd_svRSourceAll')"
+	<command id="cmd_RSourceAll" key="key_cmd_RSourceAll"
+		oncommand="ko.commands.doCommand('cmd_RSourceAll')"
 		desc="R: &rSrcFile;" label="&rSrcFile;" accesskey="&rSrcFile.key;"/>
-	<command id="cmd_svRRunBlock" key="key_cmd_svRRunBlock"
-		oncommand="ko.commands.doCommand('cmd_svRRunBlock')"
+	<command id="cmd_RRunBlock" key="key_cmd_RRunBlock"
+		oncommand="ko.commands.doCommand('cmd_RRunBlock')"
 		desc="R: &rSendBlock;" label="&rSendBlock;" accesskey="&rSendBlock.key;"/>
-	<command id="cmd_svRRunFunction" key="key_cmd_svRRunFunction"
-		oncommand="ko.commands.doCommand('cmd_svRRunFunction')"
+	<command id="cmd_RRunFunction" key="key_cmd_RRunFunction"
+		oncommand="ko.commands.doCommand('cmd_RRunFunction')"
 		desc="R: &rSendFun;" label="&rSendFun;" accesskey="&rSendFun.key;"/>
-	<command id="cmd_svRRunLine" key="key_cmd_svRRunLine"
-		oncommand="ko.commands.doCommand('cmd_svRRunLine')"
+	<command id="cmd_RRunLine" key="key_cmd_RRunLine"
+		oncommand="ko.commands.doCommand('cmd_RRunLine')"
 		desc="R: &rSendLine;" label="&rSendLine;" accesskey="&rSendLine.key;"/>
-	<command id="cmd_svRRunPara" key="key_cmd_svRRunPara"
-		oncommand="ko.commands.doCommand('cmd_svRRunPara')"
+	<command id="cmd_RRunPara" key="key_cmd_RRunPara"
+		oncommand="ko.commands.doCommand('cmd_RRunPara')"
 		desc="R: &rSendPara;" label="&rSendPara;" accesskey="&rSendPara.key;"/>
-	<command id="cmd_svRSourceBlock" key="key_cmd_svRSourceBlock"
-		oncommand="ko.commands.doCommand('cmd_svRSourceBlock')"
+	<command id="cmd_RSourceBlock" key="key_cmd_RSourceBlock"
+		oncommand="ko.commands.doCommand('cmd_RSourceBlock')"
 		desc="R: &rSrcBlock;" label="&rSrcBlock;" accesskey="&rSrcBlock.key;"/>
-	<command id="cmd_svRSourceFunction" key="key_cmd_svRSourceFunction"
-		oncommand="ko.commands.doCommand('cmd_svRSourceFunction')"
+	<command id="cmd_RSourceFunction" key="key_cmd_RSourceFunction"
+		oncommand="ko.commands.doCommand('cmd_RSourceFunction')"
 		desc="R: &rSrcFun;" label="&rSrcFun;" accesskey="&rSrcFun.key;"/>
-	<command id="cmd_svRSourcePara" key="key_cmd_svRSourcePara"
-		oncommand="ko.commands.doCommand('cmd_svRSourcePara')"
+	<command id="cmd_RSourcePara" key="key_cmd_RSourcePara"
+		oncommand="ko.commands.doCommand('cmd_RSourcePara')"
 		desc="R: &rSrcPara;" label="&rSrcPara;" accesskey="&rSrcPara.key;"/>
-	<command id="cmd_svRRunLineOrSelection" key="key_cmd_svRRunLineOrSelection"
-		oncommand="ko.commands.doCommand('cmd_svRRunLineOrSelection')"
+	<command id="cmd_RRunLineOrSelection" key="key_cmd_RRunLineOrSelection"
+		oncommand="ko.commands.doCommand('cmd_RRunLineOrSelection')"
 		desc="R: &rSendLineOrSelection;" label="&rSendLineOrSelection;"
 		accesskey="&rSendLineOrSelection.key;"/>
-	<command id="cmd_svRSourceLineOrSelection" key="key_cmd_svRSourceLineOrSelection"
-		oncommand="ko.commands.doCommand('cmd_svRSourceLineOrSelection')"
+	<command id="cmd_RSourceLineOrSelection" key="key_cmd_RSourceLineOrSelection"
+		oncommand="ko.commands.doCommand('cmd_RSourceLineOrSelection')"
 		desc="R: &rSrcLineOrSelection;" label="&rSrcLineOrSelection;"
 		accesskey="&rSrcLineOrSelection.key;"/>
 
 	<commandset id="cmdset_r_control" commandupdater="false" events="select"
 		oncommandupdate="ko.commands.updateCommandset(this);">
-		<command id="cmd_svRRunSelection" key="key_cmd_svRRunSelection"
-			oncommand="ko.commands.doCommand('cmd_svRRunSelection')"
+		<command id="cmd_RRunSelection" key="key_cmd_RRunSelection"
+			oncommand="ko.commands.doCommand('cmd_RRunSelection')"
 			desc="R: &rSendSel;" label="&rSendSel;" accesskey="&rSendSel.key;"/>
-		<command id="cmd_svRSourceSelection" key="key_cmd_svRSourceSelection"
-			oncommand="ko.commands.doCommand('cmd_svRSourceSelection')"
+		<command id="cmd_RSourceSelection" key="key_cmd_RSourceSelection"
+			oncommand="ko.commands.doCommand('cmd_RSourceSelection')"
 			desc="R: &rSrcSel;" label="&rSrcSel;" accesskey="&rSrcSel.key;"/>
 	</commandset>
 </commandset>
@@ -177,39 +184,39 @@
 	<menu id="menu_r" label="R" accesskey="R"
 		insertbefore="menu_window,help_menu">
 		<menupopup id="popup_r">
-			<menuitem id="r_start_console_menu" observes="cmd_svStartR"
+			<menuitem id="r_start_console_menu" observes="cmd_RStart"
 				class="menuitem-iconic r-run-command-icon"/>
-			<menuitem id="r_quit_console_menu" observes="cmd_svQuitR"
+			<menuitem id="r_quit_console_menu" observes="cmd_RQuit"
 				class="menuitem-iconic r-quit-command-icon"/>
-			<menuitem id="r_start_help" observes="cmd_svOpenHelp"
+			<menuitem id="r_start_help" observes="cmd_RHelpOpen"
 					  class="menuitem-iconic help-icon"/>
-			<menuitem id="r_start_pkg_manager" observes="cmd_svOpenPkgManager"
+			<menuitem id="r_start_pkg_manager" observes="cmd_RPkgManagerOpen"
 				class="menuitem-iconic r-pkg-manager-icon"/>
 			
-			<menuitem id="r_format_r_code" observes="cmd_svFormatRCodeInView"
+			<menuitem id="r_format_r_code" observes="cmd_RFormatCodeInView"
 				class="menuitem"/>
 
-			<menuitem id="r_open_r_prefs" observes="cmd_svOpenRPreferences"
+			<menuitem id="r_open_r_prefs" observes="cmd_RPreferencesOpen"
 				class="menuitem"/>
 				
 			<menuseparator/>
-			<menuitem id="r_send_line_sel_menu" observes="cmd_svRRunLineOrSelection"
+			<menuitem id="r_send_line_sel_menu" observes="cmd_RRunLineOrSelection"
 				class="menuitem-iconic r-run-selection-icon"/>
-			<menuitem id="r_send_all_menu" observes="cmd_svRRunAll"
+			<menuitem id="r_send_all_menu" observes="cmd_RRunAll"
 				class="menuitem-iconic r-run-all-icon"/>
-			<menuitem id="r_src_all_menu" observes="cmd_svRSourceAll"
+			<menuitem id="r_src_all_menu" observes="cmd_RSourceAll"
 				class="menuitem-iconic r-source-all-icon"/>
-			<menuitem id="r_send_block_menu" observes="cmd_svRRunBlock"
+			<menuitem id="r_send_block_menu" observes="cmd_RRunBlock"
 				class="menuitem-iconic r-run-block-icon"/>
-			<menuitem id="r_src_block_menu" observes="cmd_svRSourceBlock"
+			<menuitem id="r_src_block_menu" observes="cmd_RSourceBlock"
 				class="menuitem-iconic r-source-block-icon"/>
-			<menuitem id="r_send_para_menu" observes="cmd_svRRunPara"
+			<menuitem id="r_send_para_menu" observes="cmd_RRunPara"
 				class="menuitem-iconic r-run-para-icon"/>
-			<menuitem id="r_src_para_menu" observes="cmd_svRSourcePara"
+			<menuitem id="r_src_para_menu" observes="cmd_RSourcePara"
 				class="menuitem-iconic r-source-para-icon"/>
-			<menuitem id="r_send_function_menu" observes="cmd_svRRunFunction"
+			<menuitem id="r_send_function_menu" observes="cmd_RRunFunction"
 				class="menuitem-iconic r-run-function-icon"/>
-			<menuitem id="r_src_function_menu" observes="cmd_svRSourceFunction"
+			<menuitem id="r_src_function_menu" observes="cmd_RSourceFunction"
 				class="menuitem-iconic r-source-function-icon"/>
 		</menupopup>
 	</menu>
@@ -246,77 +253,84 @@
 					   autoCheck="false"
 					   persist="buttonstyle kohidden"
 					   class="r-run-command-icon first-child"
-					   observes="cmd_svRStarted"
+					   observes="cmd_RStarted"
 					   id="RToolbarStartR"
 					   label="&StartR;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rEscape;"
 					   persist="buttonstyle kohidden"
 					   class="stop-icon"
-					   observes="cmd_svREscape"
+					   observes="cmd_REscape"
 					   id="RToolbarEscape"
 					   label="&rEscape;" />
+        <toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rEndBrowseFrame;"
+					   persist="buttonstyle kohidden"
+					   class="end-browse-icon"
+					   observes="cmd_RBrowseFrame"
+					   id="RToolbarEndBrowseFrame"
+					   label="&rEndBrowseFrame;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSendLineOrSelection;"
 					   persist="buttonstyle kohidden"
 					   class="r-run-selection-icon"
-					   observes="cmd_svRRunLineOrSelection"
+					   observes="cmd_RRunLineOrSelection"
 					   id="RToolbarRunLineOrSelection"
 					   label="&rSendLineOrSelection;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSendFile;"
 					   persist="buttonstyle"
 					   class="r-run-all-icon"
-					   observes="cmd_svRRunAll"
+					   observes="cmd_RRunAll"
 					   id="RToolbarRunAll"
 					   label="&rSendFile;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSrcFile;"
 					   persist="buttonstyle kohidden"
 					   class="r-source-all-icon"
-					   observes="cmd_svRSourceAll"
+					   observes="cmd_RSourceAll"
 					   id="RToolbarSourceAll"
 					   label="&rSrcFile;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSendBlock;"
 					   persist="buttonstyle kohidden"
 					   class="r-run-block-icon"
-					   observes="cmd_svRRunBlock"
+					   observes="cmd_RRunBlock"
 					   id="RToolbarRunBlock"
 					   label="&rSendBlock;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSrcBlock;"
 					   persist="buttonstyle kohidden"
 					   class="r-source-block-icon"
-					   observes="cmd_svRSourceBlock"
+					   observes="cmd_RSourceBlock"
 					   id="RToolbarSourceBlock"
 					   label="&rSrcBlock;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSendPara;"
 					   persist="buttonstyle kohidden"
 					   class="r-run-para-icon"
-					   observes="cmd_svRRunPara"
+					   observes="cmd_RRunPara"
 					   id="RToolbarRunPara"
 					   label="&rSendPara;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSrcPara;"
 					   persist="buttonstyle kohidden"
 					   class="r-source-para-icon"
-					   observes="cmd_svRSourcePara"
+					   observes="cmd_RSourcePara"
 					   id="RToolbarSourcePara"
 					   label="&rSrcPara;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSendFun;"
 					   persist="buttonstyle kohidden"
 					   class="r-run-function-icon"
-					   observes="cmd_svRRunFunction"
+					   observes="cmd_RRunFunction"
 					   id="RToolbarRunFunction"
 					   label="&rSendFun;" />
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSrcFun;"
 					   persist="buttonstyle kohidden"
 					   class="r-source-function-icon last-child"
-					   observes="cmd_svRSourceFunction"
+					   observes="cmd_RSourceFunction"
 					   id="RToolbarSourceFunction"
 					   label="rSrcFun;" />
 		</toolbaritem>

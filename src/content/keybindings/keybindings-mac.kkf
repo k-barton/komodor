@@ -1,11 +1,11 @@
 version 666
 
-binding cmd_svRSourceLineOrSelection Meta+Shift+<
-binding cmd_svRSourceBlock Meta+Shift+W
-binding cmd_svRRunFunction Meta+Shift+"
-binding cmd_svRSourceFunction Meta+Shift+I
-binding cmd_svRRunLineOrSelection Meta+Shift+R
-binding cmd_svRRunBlock Meta+Shift+D
-binding cmd_svRRunPara Meta+Shift+A
-binding cmd_svRSourceAll Meta+Shift+G
-binding cmd_svRSourcePara Meta+Shift+>
+binding cmd_RSourceLineOrSelection Meta+Shift+<
+binding cmd_RSourceBlock Meta+Shift+W
+binding cmd_RRunFunction Meta+Shift+"
+binding cmd_RSourceFunction Meta+Shift+I
+binding cmd_RRunLineOrSelection Meta+Shift+R
+binding cmd_RRunBlock Meta+Shift+Y
+binding cmd_RRunPara Meta+Shift+A
+binding cmd_RSourceAll Meta+Shift+G
+binding cmd_RSourcePara Meta+Shift+>

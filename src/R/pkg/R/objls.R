@@ -254,11 +254,12 @@ function (obj, objName, isAttrib = FALSE) {
 		fullnames[!i] <- paste0(objName, "$", fullnames[!i])
 	} else {
 		itemnames <- fullnames <- names(obj)
+
 		if (is.null(itemnames)) {
 			itemnames <- seq_along(obj)
 			fullnames <- paste0(objName, "[[", itemnames, "]]")
 		} else {
-			w.names <- itemnames != ""
+			w.names <- !is.na(itemnames) & itemnames != ""
 			.names <- itemnames[w.names]
 			nsx <- .names != make.names(.names)  # Non-syntactic names
 			.names[nsx] <- bqname(.names[nsx])
@@ -323,7 +324,6 @@ function (obj, objName = deparse(substitute(obj)),
     k <- 1L:n
     rval[k, 1L] <- itemnames
 	rval[k, 2L] <- fullnames
-    
     
 	j <- 3L:6L
 	for(i in seq.int(n)) {

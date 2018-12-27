@@ -1446,15 +1446,9 @@ var rob = {};
         var currentIndex = _this.selection.currentIndex;
         if (currentIndex == -1) return;
 
-        //let itemIsEnvironment, itemIsPackage, itemIsInPackage, noDelete, itemIsFunction,
-            //cannotSaveToFile, cannotSave, multipleSelection, noHelp;
-
         var item = _this.visibleData[currentIndex].origItem;
-        //name = item.fullName;
         
         // Help can be shown only for one object:
-
-        //var menuNode = document.getElementById("rObjectsContext");
         let menuItems = event.target.childNodes;
 
         for (let i = 0; i < menuItems.length; ++i) {
@@ -1718,7 +1712,6 @@ var rob = {};
         //require("kor/cmdout").append(`key=${event.key} (${event.key.charCodeAt(0)}) keyCode=${event.keyCode}, charCode=${event.charCode}, 
 		//target=${target.id}/${target.tagName}`);
 		
-		
 		let onItemSelect = (listbox, event, idx) => {
 			listbox.selectedIndex = idx;
 			listbox.selectedItem._checkbox.focus();
@@ -1901,7 +1894,7 @@ var rob = {};
                 let rIsOn = require("kor/command").isRRunning;
                 logger.debug("Rbrowser.onLoad -> check again[" + checkCounter + 
                     "] (R is " + (rIsOn ? "on" : "off") + ")");
-                if(rIsOn || checkCounter++ > 2)
+                if(rIsOn || checkCounter++ > 3)
                     clearInterval(intervalID);
                 if (rIsOn) _this.activate(true);
             }, 2048);

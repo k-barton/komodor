@@ -5,7 +5,7 @@
 (function () {
     //var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
-    //logger.setLevel(logger.DEBUG);
+    logger.setLevel(logger.INFO);
     
     logger.debug("initialization started");
 
@@ -85,6 +85,9 @@
             return false;
         }
         if (!kkfContent) return false;
+        
+        var logLevel = logger.getEffectiveLevel();
+        logger.setLevel(logger.INFO);
 
         logger.info("Setting default key bindings.");
 
@@ -97,7 +100,7 @@
             currentConfiguration = kbMgr.makeNewConfiguration(currentConfiguration + " [+R]");
 
         //from: gKeybindingMgr.parseConfiguration
-        //var bindingRx = /[\r\n]+(# *SciViews|binding cmd_sv.*)/g;
+        //var bindingRx = /[\r\n]+(# *SciViews|binding cmd_.*)/g;
 
         var bindingStr = kkfContent.match(new RegExp("^binding cmd_.*$", "gm"));
         var schemeKeys = {}, cmdName, key, cmdNames = [];
@@ -111,12 +114,12 @@
 
         // upgrade command names if needed:
         cmdNames.forEach(cmdid => {
-            let cmdOld = cmdid.replace(/^cmd_sv/, "cmd_"); // XXX: update cmd_R ==> cmd_svR
+            let cmdOld = cmdid.replace(/^cmd_/, "cmd_sv"); // XXX: update cmd_svR ==> cmd_R
             let keyLabel = kbMgr.command2keylabel(cmdOld); // String!
             if (keyLabel) {
                 // assignKey-> keysequence2keylabel produces some weird labels like F11,0 fix it here:
                 let key = Array.from(kbMgr.command2key[cmdOld]); // clone array
-                logger.debug("Upgrading command " + cmdOld + " to " + cmdid + ": key is " + key);
+                logger.info("Upgrading command " + cmdOld + " to " + cmdid + ": key is " + key);
                 kbMgr.clearBinding(cmdOld, "", false);
                 kbMgr.assignKey(cmdid, key, "");
                 kbMgr.command2key[cmdid] = key;
@@ -134,9 +137,8 @@
                 if (!usedBy.length) {
                     kbMgr.assignKey(cmdid, keySequence, '');
                     kbMgr.makeKeyActive(cmdid, keySequence);
-                    logger.debug("Assigned key sequence " + keySequence.join(", ") +
-                        " to command " +
-                        cmdid);
+                    logger.info("Assigned key sequence " + keySequence.join(", ") +
+                        " to command " + cmdid);
                 }
             });
         }
@@ -145,10 +147,12 @@
         kbMgr.saveCurrentConfiguration();
         kbMgr.loadConfiguration(kbMgr.currentConfiguration, true);
         //delete kbMgr;
+        logger.setLevel(logLevel);
+
         return true;
     } // _setKeybindings
 
-    //this.setKeybindings = function (clearOnly, sfx) _setKeybindings(clearOnly, sfx);
+    //this.setKeybindings = function (clearOnly) _setKeybindings(clearOnly);
    
     var onLoad = function korOnLoadObserver( /*win, topic, ...data */ ) {
         logger.debug("initialization - onLoad started (on komodo-ui-started event)");
@@ -259,8 +263,15 @@
             kor.command.setRStatus(false, /*quiet=*/ true);
         	kor.rconn.restartSocketServer(null, () => {
         		kor.command.setRStatus(kor.rconn.isRConnectionUp(true));
+                if(kor.command.isRRunning) {
+                    let cmd = "base::cat(base::identical(kor::getTemp(\".EvalEnv\", .GlobalEnv), .GlobalEnv))";
+                    kor.rconn.evalAsync(cmd, (x) => {
+                        if(x === "TRUE") return;
+                        kor.fireEvent("r-evalenv-change", {evalEnvName: "<environment>"});
+                        }, true, true);
+                }
         	});
-            ko.commands.updateCommand("cmd_svREscape"); // ?
+            ko.commands.updateCommand("cmd_REscape"); // ?
             logger.debug("initialization - delayed tasks end");
 
         }, 1000);
@@ -272,7 +283,6 @@
     // "komodo-post-startup" event in Komodo 9 only.
     //addEventListener("komodo-post-startup", _this.onLoad, false);
     Services.obs.addObserver(onLoad, "komodo-ui-started", false);
-  
          
 //var buttonGetImage = (button) => {
 //    let imgsrc = document.defaultView.getComputedStyle(button).listStyleImage;
@@ -319,18 +329,29 @@
     //Notwork: ko.main.addWillCloseHandler(sv.rconn.stopSocketServer, sv.rconn);
     ko.main.addWillCloseHandler(onKomodoRUpdateRestart, null);
 
-    var rStatusChangeObserver = function (event) {
+    //var rStatusChangeObserver = function (event) {
+    window.addEventListener("r-status-change", function (event) {
         let running = event.detail.running;
         if (typeof event.detail.running === "undefined")
             logger.warning("'r-status-change' event did not provide the expected data");
-        let el = document.getElementById('cmd_svRStarted');
+        let el = document.getElementById('cmd_RStarted');
         if (running) el.setAttribute("checked", "true");
             else el.removeAttribute("checked");
         if(event.detail.quiet) return;
         require("kor/ui").addNotification(running ? "R session is connected" : "R is not running");
-    };
-    window.addEventListener("r-status-change", rStatusChangeObserver, false);
+    }, false);
     
-   logger.debug("initialization (main thread) completed");
+    // TODO: use commandupdater?
+    window.addEventListener("r-evalenv-change", function (event) {
+        let evalEnvName  = event.detail.evalEnvName;
+        if (typeof evalEnvName === "undefined")
+            logger.warning("'r-evalenv-change' event did not provide the expected data");
+        let el = document.getElementById('cmd_RBrowseFrame');
+        if (evalEnvName === ".GlobalEnv") el.setAttribute("disabled", "true");
+            else el.removeAttribute("disabled");
+    }, false);
+   
+    
+    logger.debug("initialization (main thread) completed");
 
 }).apply(null);

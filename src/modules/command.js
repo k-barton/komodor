@@ -6,7 +6,7 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 /* globals require, Services
-   */
+ */
 
 (function () {
 "use strict";
@@ -302,9 +302,9 @@
             _W.updateCommands('r_command_executed');
         }}, "r-command-executed", false);
 
-    _W.addEventListener('r-evalenv-change', event =>
-        rBrowsingFrame = event.detail.evalEnvName !== ".GlobalEnv", 
-        false);
+    _W.addEventListener('r-evalenv-change', event => {
+        rBrowsingFrame = event.detail.evalEnvName !== ".GlobalEnv";
+    }, false);
      
     let controllersSet = false;
     this.setControllers = function _setControllers() {
@@ -321,32 +321,32 @@
         const ifRRunning = 1, ifRStopped = 2, ifIsRDoc = 4, ifHasSelection = 8;
         const R = require("kor/r");
         var handlers = {
-            'cmd_svOpenPkgManager': [_this.openPkgManager, ifRRunning],
-            'cmd_svOpenHelp': [_this.openHelp, ifRRunning],
-            'cmd_svOpenRPreferences': [_this.openRPreferences, -1],
+            'cmd_RPkgManagerOpen': [_this.openPkgManager, ifRRunning],
+            'cmd_RHelpOpen': [_this.openHelp, ifRRunning],
+            'cmd_RPreferencesOpen': [_this.openRPreferences, -1],
             
-            'cmd_svFormatRCodeInView': [R.formatRCodeInView, ifIsRDoc | ifRRunning],
+            'cmd_RFormatCodeInView': [R.formatRCodeInView, ifIsRDoc | ifRRunning],
 
-            'cmd_svStartR': [_this.startR, ifRStopped],
-            'cmd_svQuitR': [R.quit, ifRRunning],
+            'cmd_RStart': [_this.startR, ifRStopped],
+            'cmd_RQuit': [R.quit, ifRRunning],
 
-            'cmd_svREscape': [R.escape, () => _RIsRunning && rWantsMore],
-            'cmd_REndBrowseFrame': [R.endBrowse, () => _RIsRunning && rBrowsingFrame],
-            'cmd_svRRunAll': [() => R.send("all"), ifIsRDoc | ifRRunning],
-            'cmd_svRSourceAll': [() => R.source("all"), ifIsRDoc | ifRRunning],
-            'cmd_svRRunBlock': [() => R.send("block"), ifIsRDoc | ifRRunning],
-            'cmd_svRRunFunction': [() => R.send("function"), ifIsRDoc | ifRRunning],
-            'cmd_svRRunLine': [() => R.send("line"), ifIsRDoc | ifRRunning],
-            'cmd_svRRunPara': [() => R.send("para"), ifIsRDoc | ifRRunning],
-            'cmd_svRSourceBlock': [() => R.source("block"), ifIsRDoc | ifRRunning],
-            'cmd_svRSourceFunction': [() => R.source("function"), ifIsRDoc | ifRRunning],
-            'cmd_svRSourcePara': [() => R.source("para"), ifIsRDoc | ifRRunning],
-            'cmd_svRRunLineOrSelection': [R.run, ifIsRDoc | ifRRunning],
-            'cmd_svRSourceLineOrSelection': [() => R.source("lineorsel"),
+            'cmd_REscape': [R.escape, () => _RIsRunning && rWantsMore],
+            'cmd_RBrowseFrame': [R.endBrowse, () => _RIsRunning && rBrowsingFrame],
+            'cmd_RRunAll': [() => R.send("all"), ifIsRDoc | ifRRunning],
+            'cmd_RSourceAll': [() => R.source("all"), ifIsRDoc | ifRRunning],
+            'cmd_RRunBlock': [() => R.send("block"), ifIsRDoc | ifRRunning],
+            'cmd_RRunFunction': [() => R.send("function"), ifIsRDoc | ifRRunning],
+            'cmd_RRunLine': [() => R.send("line"), ifIsRDoc | ifRRunning],
+            'cmd_RRunPara': [() => R.send("para"), ifIsRDoc | ifRRunning],
+            'cmd_RSourceBlock': [() => R.source("block"), ifIsRDoc | ifRRunning],
+            'cmd_RSourceFunction': [() => R.source("function"), ifIsRDoc | ifRRunning],
+            'cmd_RSourcePara': [() => R.source("para"), ifIsRDoc | ifRRunning],
+            'cmd_RRunLineOrSelection': [R.run, ifIsRDoc | ifRRunning],
+            'cmd_RSourceLineOrSelection': [() => R.source("lineorsel"),
                 ifIsRDoc | ifRRunning ],
-            'cmd_svRRunSelection': [() => R.send("sel"),
+            'cmd_RRunSelection': [() => R.send("sel"),
                 ifIsRDoc | ifRRunning | ifHasSelection ],
-            'cmd_svRSourceSelection': [() => R.source("sel"),
+            'cmd_RSourceSelection': [() => R.source("sel"),
                 ifIsRDoc | ifRRunning | ifHasSelection ],
             'cmd_viewrtoolbar': [() => ko.uilayout.toggleToolbarVisibility("RToolbar"), -1]
         };
