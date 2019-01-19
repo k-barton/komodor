@@ -101,7 +101,7 @@ Contributors:
 		<menuitem id="cmd_rbrowser_print"
 			label="&rob.print;"
 			oncommand="rob.treeItemCommand('print')"
-			testDisableIf="t:isPackage"
+			testDisableIf="t:noPrint"
 			accesskey="&rob.print.acc;" />
 		<menuitem id="cmd_rbrowser_plot"
 			label="&rob.plot;"

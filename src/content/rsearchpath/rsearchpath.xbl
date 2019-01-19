@@ -182,7 +182,9 @@
 			<setter><![CDATA[
 				val = Boolean(val);
 				button = document.getAnonymousElementByAttribute(this, "anonid", "detach-button");
-				button.setAttribute("label", val ? "stop browsing this frame" : "detach package " + packageName);
+				button.setAttribute("label", val ? "remove this frame" : "detach package " + packageName);
+                button.setAttribute("tooltiptext", val ? "Remove current evaluation frame and go back to GlobalEnv" :
+					"detach package " + packageName);
 				if(val) this.setAttribute("evalEnv", true);
 				else if (this.hasAttribute("evalEnv"))
 					this.removeAttribute("evalEnv");

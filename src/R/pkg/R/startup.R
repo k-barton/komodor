@@ -15,7 +15,7 @@ function (verbose = FALSE) {
 	cwd0 <- normalizePath(".")
 	if(file.exists(initFileName)) {
 		vmsg("Executing", initFileName, "...")
-		source(initFileName, echo = verbose)
+		source(initFileName, echo = verbose, encoding = "UTF-8")
 		vmsg("Done.")
 	} else vmsg(initFileName, "not found.")
 	msg("cwd is now ", sQuote(getwd()))

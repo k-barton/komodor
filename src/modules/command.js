@@ -166,7 +166,8 @@
             "ko.host=\"localhost\")\n" +
             "..ko.repos.. <- base::getOption(\"repos\"); ..ko.repos..[[\"CRAN\"]] <- \"" +
             Prefs.getPref("CRANMirror") + "\"; " +
-            "base::options(repos = ..ko.repos..); base::rm(..ko.repos..); \n"
+            "base::options(repos = ..ko.repos..); base::rm(..ko.repos..); \n",
+            "utf-8"
         );
         // TODO: use RInterface.RHost
 

@@ -44,7 +44,8 @@ var rob = {};
 
     // XXX make internal
     this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
-    const evalEnvLabel = "<Current evalutation frame>";
+    const evalEnvLabel = "<Current evalutation frame>",
+          functionBodyLabel = "<function body>";
     var copyToClipboardSep = ", ";
    
     this.searchPath = {
@@ -1468,6 +1469,9 @@ var rob = {};
                     break;
                 case 't:isPackage':
                     disable = item.isPackage;
+                    break;
+                case 't:noPrint':
+                    disable = item.isTopLevelItem;
                     break;
                 case 't:noDelete':
                     disable = (item.isTopLevelItem && R.nonDetachable.has(item.fullName)) || item.isInPackage;

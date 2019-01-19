@@ -251,11 +251,10 @@
         		prefs.deletePref(prefNames[i]);
         		prefs.setLongPref(prefNames[i], a[i]);
         	}
-            logger,debug("initialization - connection ports updated: " +
+            logger.debug("initialization - connection ports updated: " +
                          prefNames[0] + ": " + a[0] + "," +
                          prefNames[1] + ": " + a[1] + ".");
         };
-        
  	
         setTimeout(() => {
             kor.command.setControllers();

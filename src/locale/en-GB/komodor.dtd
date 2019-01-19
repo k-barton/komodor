@@ -46,7 +46,7 @@
 <!ENTITY rEscape "Interrupt current command">
 <!ENTITY rEscape.key "E">
 
-<!ENTITY rEndBrowseFrame "Stop browsing current frame">
+<!ENTITY rEndBrowseFrame "Switch back to evaluation in Global Environment">
 <!ENTITY rEndBrowseFrame.key "B">
 
 <!ENTITY RToolbar.label "R toolbar">
