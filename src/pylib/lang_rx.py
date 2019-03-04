@@ -35,7 +35,7 @@ R_extended support for codeintel.
 """
 import os
 import sys
-import logging
+# import logging
 #import operator
 
 from codeintel2.common import *
@@ -74,8 +74,8 @@ except ImportError:
 
 #---- Globals
 lang = "R_extended"
-#log = logging.getLogger("codeintel.Rx")
-#log.setLevel(1)
+# log = logging.getLogger("codeintel.Rx")
+# log.setLevel(logging.DEBUG)
 
 # These keywords and builtin functions are copied from "Rlex.udl".
 # Reserved keywords
@@ -145,7 +145,12 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
     # R functions that accept graphical parameters (par)
     func_graphics = ('plot', 'boxplot', 'bxp', 'box', 'curve', 'line', 'points',
-                     'text', 'mtext', 'title', 'image',)
+                     'text', 'mtext', 'title', 'image', 'polypath',
+                     'rasterImage', 'rect', 'barplot', 'dotchart', 'hist',
+                     'polygon', 'segments', 'arrows', 'rect', 'spineplot',
+                     'xspline', 'text', 'scatter.smooth',
+                     
+                     )
 
     type_sep = u'\u001e'
     pathsep = os.sep + ("" if(os.altsep is None) else os.altsep)
@@ -255,8 +260,13 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
 
         ch = acc.char_at_pos(pos)
         prv_ch = acc.char_at_pos(last_pos)
+        
+        
+        self._eval_in_r("# [codeintel] buf=%s pos=%d " % (buf, pos), buf.env)
+        
+        # log.debug('[preceding_trg_from_pos] \n buf = %s' % (buf, ))
         # log.debug('w = "%s", ch = "%s", prv_ch = "%s", pos = %d, curr_pos = %d ' \
-        #          % (w, ch, prv_ch, pos, curr_pos, ))
+                # % (w, ch, prv_ch, pos, curr_pos, ))
         if style in self.word_styles:
             if self._is_bquoted(w):
                 return None
@@ -473,6 +483,8 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             return ('error', res.strip("\x02\x03\r\n"))
         cplstr = res.replace('\x03', '').replace('\x02', '')
         if not cplstr: return None
+        
+        
         
         try:
             cpl = [ ( x[0], x[1][cutoff:] )

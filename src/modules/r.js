@@ -384,6 +384,21 @@ if (!Object.values)
             1000);
     };
     
+    this.viewTable = function _viewTable(name) {
+        var cssURI = require("kor/prefs")
+            .getPref("RInterface.viewTableCSSURI",
+                "resource://kor-doc/viewTable.css");
+        //fu.pathFromURI(uri) == uri
+        
+        var maxRows = require("kor/prefs").getPref("RInterface.viewTableMaxRows", 256);
+        // TODO: add kor::
+        var cmd = 'view(' + name + ', cssfile=' +
+            _this.arg(cssURI) +
+            ', max.rows=' + _this.arg(maxRows) + ')';
+        rConn.evalAsync(cmd, null, false);
+        return cmd;
+    }
+    
     this.saveDataFrame = function _saveDataFrame(name, fileName, objName,
         dec = require("ko/prefs").getStringPref("RInterface.CSVDecimalSep"),
         sep = require("ko/prefs").getStringPref("RInterface.CSVSep")) {

@@ -7,7 +7,7 @@
   "value": [
     "/* globals Services, ko */", 
     "", 
-    "var doc = Services.koDocSvc.createDocumentFromURI(\"chrome://komodor/content/doc/NEWS.html\");", 
+    "var doc = Services.koDocSvc.createDocumentFromURI(\"resource://kor-doc/NEWS.html\");", 
     "ko.views.manager.topView.createViewFromDocument(doc, 'browser', -1);"
   ], 
   "version": "0.3.12", 

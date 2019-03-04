@@ -7,6 +7,7 @@
 #' @param expr optional, the object of which elements should be listed.
 #' @param all.names logical. If `FALSE`, names which begin with a `.` are omitted.
 #' @param attrib logical. If `TRUE` and `expr` is not missing, lists object's `attributes` after object's elements.
+#' @param funcBody logical. Whether to treat a function body as an additional, recursive element. 
 #' @param \dots additional arguments. Ignored.
 #' @examples
 #'  objls()
@@ -14,7 +15,6 @@
 #' if(require(datasets)) {
 #'    write.objList(objls(npk))
 #'    objls(Loblolly)
-#'
 #' }
 
 

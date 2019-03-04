@@ -1,25 +1,3 @@
-#' @title Code completion
-#' @description Provide choices for code completion.
-#' @md
-#' @examples 
-#' ## TODO: define gm1 && object
-#' completeArgs("anova", fm1) # if 'fm1' is of class 'glm', it returns argument
-#'    						  #names for 'anova.glm'
-#' completeArgs("[", object)
-#' completeArgs("stats::`anova`", fm1) # function names may be backtick quoted,
-#'                                     # and have a namespace extractor
-#' @describeIn completion generic code completion.
-#' @param code character string, the code to be completed.
-#' @param pos cursor position within `code`. Defaults to at end of `code`.
-#' @param min.length minimum length of the code.
-#' @param skip.used.args logical. Should alredy used arguments be omitted from the result?
-#' @param field.sep character string to be used as a field separator in the result.
-#' @param sep character string to be used as a record separator in the result.
-#' @examples
-#' completion("print(x")
-#' completeSpecial("data")
-#' @export
-
 ## TODO: `backtick-quote` non syntactic names
 ## TODO: ` | ...`  --> style is BQ, trigger if ch[-1] == `
 ## TODO: % | operators% --> style is OP & ch[first of style] == %, trigger if ch[-1] == %, completePercentOperator()
@@ -35,6 +13,31 @@
 ## TODO: object[[name]] [["|  ..."
 ## TODO: attr(object, "|  ..." -> names(attributes(object))
 
+
+
+#' @rdname completion
+#' @encoding utf-8
+#' @title Code completion
+#' @description Provide choices for code completion.
+#' @md
+#' @examples 
+#' ## TODO: define gm1 && object
+#' completeArgs("anova", fm1) # if 'fm1' is of class 'glm', it returns argument
+#'    						  #names for 'anova.glm'
+#' completeArgs("[", object)
+#' completeArgs("stats::`anova`", fm1) # function names may be backtick quoted,
+#'                                     # and have a namespace extractor
+# @describeIn completion generic code completion.
+#' @param code character string, the code to be completed.
+#' @param pos cursor position within `code`. Defaults to at end of `code`.
+#' @param min.length minimum length of the code.
+#' @param skip.used.args logical. Should alredy used arguments be omitted from the result?
+#' @param field.sep character string to be used as a field separator in the result.
+#' @param sep character string to be used as a record separator in the result.
+#' @examples
+#' completion("print(x")
+#' completeSpecial("data")
+#' @export
 completion <- 
 function (code, field.sep = "\x1e", sep = "\n",
 		  pos = nchar(code), min.length = 2L,
@@ -147,7 +150,6 @@ function (code, field.sep = "\x1e", sep = "\n",
 # @param field.sep character string to be used as a field separator.
 #' @export
 
-
 `completeArgs` <-
 function(FUNC.NAME, ..., field.sep = "\x1e") {
 	rx <- regexpr("^([\\w\\.]+):{2,3}(`|)([\\w\\.\\[\\%]+)\\2$", FUNC.NAME, perl = TRUE)
@@ -221,7 +223,13 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		
 	if (length(ret) > 1L && (FUNC.NAME == "[" || FUNC.NAME == "[["))
 		ret <- ret[ ! ret %in% c("x", "i", "j") ]
-	if(FUNC.NAME %in% names(.completion_specfun))
+	
+    if(isTRUE(FUNC.NAME %in% names(.passDots))) {
+        ret <- unique(c(ret, getTemp("cpl_cached_arg",
+			item = .passDots[[FUNC.NAME]],
+			default = argNamesFun(get(.passDots[[FUNC.NAME]],
+				mode = "function", envir = 2L)))))
+    } else if(isTRUE(FUNC.NAME %in% names(.completion_specfun)))
 		ret <- unique(c(ret, .completion_specfun[[FUNC.NAME]]))
 
 	ret <- ret[ret != "..."]
@@ -293,13 +301,8 @@ argNames <- getFrom("utils", "argNames")
 argNamesFun <- function(f) if(is.function(f)) names(formals(f)) else NULL
 
 .completion_specfun <- list(
-	rep = c('times', 'length.out', 'each'),
-	bxp = c('boxwex', 'staplewex', 'outwex','boxlty', 'boxlwd', 'boxcol',
-		'boxfill', 'medlty', 'medlwd', 'medpch', 'medcex', 'medcol', 'medbg',
-		'whisklty', 'whisklwd', 'whiskcol', 'staplelty', 'staplelwd',
-		'staplecol', 'outlty', 'outlwd', 'outpch', 'outcex', 'outcol', 'outbg')
-	)
-.completion_specfun[['boxplot']] <- .completion_specfun[['bxp']]
+	rep = c('times', 'length.out', 'each')
+)
 
 # "imports" from unexported "utils"
 cplutils <- list()
@@ -329,3 +332,19 @@ rm(i)
     names(out) <- what
     return(sub("^package:", "", out))
 }
+
+.passDots <- list(
+    read.delim = "read.table",
+    read.delim2 = "read.table",
+    read.csv = "read.table",
+    read.csv2 = "read.table",
+    boxplot = "bxp",
+	plot = "par",
+	heatmap = "image",
+	filled.contour = "title",
+	spineplot = "rect",
+	rug = "axis",
+	smoothScatter = "image",
+	loess.smooth = "loess.control",
+	loess = "loess.control"
+)

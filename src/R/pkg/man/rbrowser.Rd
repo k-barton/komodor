@@ -8,11 +8,11 @@
 \usage{
 objSearch(fsep = ";", rsep = "\\t")
 
-objls(expr = NULL, envir = getEvalEnv(), all.names = FALSE, attrib = FALSE, 
-    funcBody = FALSE, ...)
+objls(expr = NULL, envir = getEvalEnv(), all.names = FALSE,
+  attrib = FALSE, funcBody = FALSE, ...)
 
-write.objList(x, file = "", sep = " ", eol = "\\n", fileEncoding = "",
-  ...)
+write.objList(x, file = "", sep = " ", eol = "\\n",
+  fileEncoding = "", ...)
 }
 \arguments{
 \item{fsep, rsep}{character strings for field and record separator, respectively.}

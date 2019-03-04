@@ -456,7 +456,9 @@ var getMarker = (scimoz, line) => {
     return range(0, 32, 1).filter(i => (Math.pow(2, i) & m) != 0);
 };
 
+// TODO: get R fragment from Rmd
 // TODO: find postion with style == default
+// XXX: does not work for type="doc"
 this.getTextRangeWithBrowseCode = function(...args) {
 	var view = require("ko/views").current();
 	if (!view) return "";

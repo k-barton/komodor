@@ -2,52 +2,54 @@
 % Please edit documentation in R/pkgman.R
 \name{pkgMan}
 \alias{pkgMan}
-\alias{pkgManGetDescription}
-\alias{pkgManGetMirrors}
+\alias{getRepositories}
+\alias{pkgManGetPackages}
+\alias{pkgManGetRepositories}
 \alias{pkgManGetAvailable}
-\alias{pkgManGetInstalled}
+\alias{pkgManGetMirrors}
 \alias{pkgManSetCRANMirror}
-\alias{pkgManInstallPackages}
+\alias{pkgManGetDescription}
+\alias{pkgManGetInstalled}
+\alias{getAvailable}
 \alias{pkgManRemovePackage}
 \alias{pkgManLoadPackage}
-\alias{pkgManGetRepositories}
-\alias{pkgManGetUpdateable}
 \alias{pkgManDetachPackage}
+\alias{pkgManGetUpdateable}
 \title{Package manager supporting routines}
 \usage{
-pkgManGetDescription(pkgName, print = TRUE, omitFields = NULL,
-  revDep = TRUE, ...)
+getRepositories()
+
+pkgManGetPackages(pkgName, type = "installed")
+
+pkgManGetRepositories()
+
+pkgManGetAvailable(page = "next", pattern = "", ilen = 50,
+  col = c("Package", "Version", "InstalledVersion", "Status",
+  "RepositoryName", "Priority"), reload = FALSE)
 
 pkgManGetMirrors()
 
-pkgManGetAvailable(page = "next", pattern = "", ilen = 50,
-  col = c("Package", "Version", "InstalledVersion", "Status", "Repository"),
-  reload = FALSE, sep = ";", eol = "\\t\\n")
-
-pkgManGetInstalled(sep = ";", eol = "\\t\\n")
-
 pkgManSetCRANMirror(url)
 
-pkgManInstallPackages(pkgName, installDeps = FALSE, ask = TRUE)
+pkgManGetDescription(pkgName, print = TRUE, omitFields = NULL,
+  revDep = TRUE, ...)
+
+pkgManGetInstalled()
+
+getAvailable()
 
 pkgManRemovePackage(pkgName)
 
 pkgManLoadPackage(pkgName)
 
-pkgManGetRepositories(json = TRUE, sep = ";;")
-
-pkgManGetUpdateable(sep = ";;", eol = "\\n")
-
 pkgManDetachPackage(pkgName)
+
+pkgManGetUpdateable()
 }
 \arguments{
-\item{pkgName}{names of the packages to be installed/removed etc.}
+\item{pkgName}{character vector of package names}
 
-\item{print}{logical, if \code{TRUE} the result is printed in DCF format.}
-
-\item{revDep}{logical, should reverse dependencies (only within installed packages) be added to standard fields?}
-
-\item{\dots}{optional, additional arguments passed to \code{pkgReverseDependencies}. Possible arguments are:}
+\item{type}{either \code{"installed"} or \code{"available"}}
 
 \item{page}{character string. Either "prev", "next" (default), "first", "last" or "current".}
 
@@ -59,17 +61,28 @@ pkgManDetachPackage(pkgName)
 
 \item{reload}{Should new data be produced if a cached copy exists?}
 
-\item{sep, eol}{record and end of line separators.}
-
 \item{url}{character string. CRAN mirror URL.}
+
+\item{print}{logical, if \code{TRUE} the result is printed in DCF format.}
+
+\item{omitFields}{a character vector giving the tags of fields to be omitted.}
+
+\item{revDep}{logical, should reverse dependencies (only within installed
+packages) be added to standard fields?}
+
+\item{\dots}{optional, additional arguments passed to
+\code{pkgReverseDependencies}. Possible arguments are:
+\code{revFields} (a character vector of fields to examine for reverse
+dependencies, must be one/some of \code{"Depends"}, \code{"Imports"}, \code{"Suggests"}
+and \code{"Enhances"}.}
 
 \item{installDeps}{logical. Install package dependencies?}
 
 \item{ask}{if \code{TRUE}, asks for confirmation first.}
-
-\item{json}{logical. Should the result be stringized in JSON format?}
-
-\item{fields}{a character vector giving the tags of fields to be omitted.}
+}
+\value{
+`pkgMan*` functions return `NULL` invisibly, with the side effect
+   the result being printed serialized in JSON format.
 }
 \description{
 These functions are used by the R package manager.

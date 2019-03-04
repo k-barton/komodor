@@ -52,6 +52,8 @@
 <!ENTITY rob.print.acc "P">
 <!ENTITY rob.summary "Summary">
 <!ENTITY rob.summary.acc "U">
+<!ENTITY rob.view_table "View">
+<!ENTITY rob.view_table.acc "V">
 <!ENTITY rob.write_table "Write to textfile...">
 <!ENTITY rob.write_table.acc "W">
 <!ENTITY rob.save "Save selected...">

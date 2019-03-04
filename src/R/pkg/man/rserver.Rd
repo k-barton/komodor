@@ -8,10 +8,6 @@
 \alias{stopAllServers}
 \alias{enumConnections}
 \alias{stopAllConnections}
-\alias{enumServers}
-\alias{stopAllServers}
-\alias{enumConnections}
-\alias{stopAllConnections}
 \title{Communication between R and Komodo}
 \usage{
 startServer(port)
@@ -29,7 +25,7 @@ stopAllConnections()
 }
 \value{
 The result is an object with two components \code{"result"} and \code{"message"}.
-The "message" can be one of: "more" (incomplete code, waiting for continuation), "parse-error" or "done".
+The "message" must be one of: "more" (incomplete code, waiting for continuation), "parse-error" or "done".
 In the "result", element 'stdout' and 'stdin' streams are delimited by ASCII characters #003 and #002.
 }
 \description{

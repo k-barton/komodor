@@ -19,19 +19,21 @@ qParse, formatCode,
 setEvalEnv, getEvalEnv,
 isInstalledPkg,
 
-rmElement, doCommand
+rmElement, doCommand,
+
+view
  
 # TclReval, TclReval2, tclfun,
 
 )
 
 importFrom("tcltk", ".Tcl.callback", ".Tcl", "tcl")
-importFrom("methods", "selectMethod", "slot", "slotNames", "is")
+importFrom("methods", "selectMethod", "slot", "slotNames", "is",
+           "getClass", "isGeneric", "selectSuperClasses")
 importFrom("utils", "compareVersion", "contrib.url", "getCRANmirrors",
            "install.packages", "installed.packages", "old.packages",
            "packageDescription", "remove.packages", "write.table",
 		   "getSrcFilename", "getS3method", "tail", "data", 
-		   "available.packages", "loadhistory", "browseURL"
-		   )
+		   "available.packages", "loadhistory", "browseURL", "isS3stdGeneric")
 		   
 S3method(print, objList)

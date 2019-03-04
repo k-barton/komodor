@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>What's new in R Interface for Komodo?</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" href="doc.css" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">What's new in R Interface for Komodo?</h1>
+</div>
+<p>(Version #VERSION#)</p>
+<ul>
+<li>TODO: Preferences: added a limit to the maximum number of sub-items to be listed in the R Object Browser. Listing extremely large <code>list</code>s or <code>data.frames</code> causes R to freeze, hence the limit.</li>
+<li><code>data.frame</code>s content can be shown in a browser window. Access the command from the R Object Browser item context menu (&quot;View&quot;) or use an R command: <code>view(&lt;data.frame object&gt;)</code>.</li>
+<li>Preferences: Startup options get new checkboxes to edit command line</li>
+<li>Codeintel: fixed problems with non-ascii names in code completion.</li>
+<li>Improved output from R (in some special cases errors or warnings were not printed correctly or were omitted. For example if error occurred both in the function and in its <code>on.exit</code> code) (issue #12)</li>
+<li>Added option for browsing R function body's code (activated with the Object Browser toolbar's cog menu item).</li>
+<li>Added &quot;Stop browsing current frame&quot; button. It is active if the current R evaluation environment (frame) is not the Global Environment (R user's workspace).</li>
+<li>Improved detection of the R application at startup (when previously connected R session had been open when Komodo was re/started the R Object Browser sometimes failed to activate)</li>
+</ul>
+<p>(Version 0.3.52)</p>
+<ul>
+<li>R: Fixed error with file listing when objects' required packages were not available.</li>
+<li>R object browser: evaluation environment's tree was not displayed when <code>EvalEnv</code> had been set manually via <code>setEvalEnv()</code>.</li>
+<li>R object browser: new icons for Spatial* and Raster* objects.</li>
+<li>R: attempting to unlock <code>baseenv()</code>s bindings (issue #11).</li>
+</ul>
+<p>(Version 0.3.45b)</p>
+<ul>
+<li>Added workaround to replace the generic language icon for R_extended.</li>
+</ul>
+<p>(Version 0.3.40b)</p>
+<ul>
+<li>Code completion: repaired wrapped argument rows, SVG images replace old PNG icons.</li>
+<li>R Search Path panel: is updated on successful drop.</li>
+<li>original R window title is restored when package &quot;kor&quot; is detached.</li>
+</ul>
+<p>(Version 0.3.22b)</p>
+<ul>
+<li>Fixed (?) R object tree panel not being activated at startup.</li>
+<li>Improved socket server restarting procedure.</li>
+<li>Fixed broken R object removal (from R object browser).</li>
+<li>Dropping a package name or workspace file name (*.RData) on the &quot;search path&quot; panel now attaches the package/workspace at the position where it was dropped (previously it was always right after <code>.GlobalEnv</code>).</li>
+<li>R Preferences panel: icons visibility in menu lists (country flags should now be visible in the dropdown menu, application type icons added /gui or console/).</li>
+<li>Updated <strong>R Tools</strong></li>
+</ul>
+<p>(Version 0.3.10b)</p>
+<ul>
+<li><p>R object browser:</p>
+<ul>
+<li>large &quot;start R session&quot; button is displayed in place of the R objects tree if no R session is connected.</li>
+<li>&quot;R Search Path&quot; panel has been refurbished. It displays dependences for each item and packages which depend on the item. Items (with dependencies) can be detached via command buttons or by pressing Delete (or Shift+Delete).</li>
+<li>object list is being automatically updated after a command is executed by R. To use manual refresh uncheck the option in &quot;R Preferences&quot;.</li>
+</ul></li>
+<li><p>&quot;R preferences&quot; page:</p>
+<ul>
+<li>User can edit the command to start R.</li>
+<li>Information about R version string is shown upon choosing the R application path.</li>
+<li>Package <code>formatR</code> is detected (and installed) via command line, so also when no R session is connected.</li>
+<li>On Linux, some additional terminal emulators to run R within have been added.</li>
+<li>On Mac, added option to use <code>xterm</code> (this has not been tested and is likely not to work).</li>
+</ul></li>
+<li><p>&quot;R Tools&quot; toolbox has a new folder &quot;Troubleshooting&quot; with some tools that may come in handy when things when something breaks.</p></li>
+<li><p>Command Output panel:</p>
+<ul>
+<li>Large outputs from R no longer cause Komodo freeze.</li>
+<li>R output's printing width is set to match the width of the Command Output panel.</li>
+</ul></li>
+<li><p>R Package Manager has new style that matches application theme.</p></li>
+<li><p>A number of bug fixes and stability improvements.</p></li>
+<li><p>The code has been reorganized. Most JS code is now included in CommonJS modules. The global <code>sv</code> object is replaced by <code>kor</code>. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">kor.r.evalUserCmd</span>(<span class="st">&quot;runif(10)&quot;</span>)</code></pre></div>
+<p>or (outside the main <code>window</code>)</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">require</span>(<span class="st">&quot;kor/r&quot;</span>)<span class="kw">.evalUserCmd</span>(<span class="st">&quot;runif(10)&quot;</span>)</code></pre></div></li>
+<li><p>Most internal R commands is executed asynchronously.</p></li>
+</ul>
+<p>(previous Version)</p>
+<ul>
+<li><p>Much improved &quot;R object browser&quot; widget:</p>
+<ul>
+<li>browsing within R expression tree (e.g. <code>parse</code>d code, function <code>body</code>, or <code>formula</code>)</li>
+<li>listing of objects' attributes (menu under <img src="chrome://komodor/skin/images/cog.svg" width="16" 
+  style="vertical-align: middle;" alt="cog" /> button on the widget's toolbar)</li>
+<li>removal of formal function arguments (only non-package functions) and objects' attributes (Shift+Del)</li>
+<li>listing of the current evaluation environment in the <a href="chrome://komodor/content/doc/koDebug.html">debugging mode</a></li>
+<li>new SVG icons, simplified style</li>
+<li>&quot;Group&quot; column is removed (which has been present only for historical reasons)</li>
+<li>&quot;R search path&quot; panel: restored keyboard navigation</li>
+</ul></li>
+<li><p>Large number of bug fixes and stability improvements.</p></li>
+</ul>
+</body>
+</html>

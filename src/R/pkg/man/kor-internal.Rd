@@ -4,7 +4,6 @@
 \name{kor-internal}
 \alias{kor-internal}
 \alias{getHelpURL}
-\alias{kor-internal}
 \alias{koPager}
 \alias{koBrowser}
 \alias{qParse}

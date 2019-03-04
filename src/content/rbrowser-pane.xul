@@ -136,7 +136,14 @@ Contributors:
 
         <menuseparator keep="false" intoplevel="true"/>            
       
-        <menuitem id="menu_rbrowser_write_table"
+        <menuitem id="menu_rbrowser_view_table"
+			class="menuitem-iconic view-table-icon"
+			label="&rob.view_table;"
+			oncommand="rob.treeItemCommand('view.table')"
+			testDisableIf="t:notViewable t:multipleSelection"
+			accesskey="&rob.view_table.acc;" />
+	
+		<menuitem id="menu_rbrowser_write_table"
 			class="menuitem-iconic write-table-icon"
 			label="&rob.write_table;"
 			oncommand="rob.treeItemCommand('write.table')"

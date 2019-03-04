@@ -25,8 +25,9 @@ override chrome://komodor/skin/pkgman/pkgman.css less://komodor/skin/pkgman/pkgm
 override chrome://komodor/content/js/r-help.js chrome://komodor/content/js/r-help9.js appversion<10.00
 override chrome://komodor/content/js/r-help.js chrome://komodor/content/js/r-help10.js appversion>=10.00
 
-
 category toolbox komodor@komodor 1
+
+resource kor-doc doc/
 
 resource kor modules/
 category require-path kor resource://kor/

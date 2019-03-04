@@ -1,0 +1,94 @@
+body {
+    background-color: #eeeeee;
+    margin: 0px;
+}
+
+h1 {
+    font-family: monospace;
+    font-size: large;
+    padding: 0.3em 0.5em;
+}
+
+.truncation-info {
+    color: red;
+}
+
+
+table {
+    border-collapse: collapse;
+    background-color: #eeeeee;
+}
+
+td, th {
+    vertical-align:  top;
+    font-family: monospace;
+    padding: .3em .5em;
+}
+
+td.numeric, td.factor {
+    text-align: right;
+}
+
+td:first-child {
+   font-weight: bold; 
+}
+
+col.rowname {
+    /*background-color: gray;*/
+}
+
+td.factor, td.logical {
+    font-style: italic;
+}
+
+td.logical {
+    text-align: center;
+}
+
+tr td {
+    /*background-color: #c0c0c0;*/
+}
+
+
+tr:nth-child(odd):not(:first-child) td {
+    background-color: #dddddd;
+}
+
+tr:first-child > * {
+    border-top: 1px black solid;
+}
+
+tr:first-child th {
+    border-bottom: 1px black dotted;
+}
+
+tr:last-child td {
+    border-bottom: 1px black solid;
+}
+
+
+tr:nth-of-type(2) {
+    text-align: center;
+    border-bottom: 1px black solid;
+}
+
+
+tr:nth-of-type(2) td {
+    /*background-color: gray;*/
+    color: #595959;
+    font-style: italic;
+}
+
+td:first-child {
+    text-align: right;    
+}
+
+td.na {
+    color: #842109;
+    font-style: italic;
+}
+
+td.null {
+    color: #004080;
+    font-style: italic;
+}

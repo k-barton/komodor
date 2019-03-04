@@ -149,6 +149,13 @@
 						  label="Automatically update object tree upon every calculation"
 						  pref="true" prefattribute="checked" />
 			</hbox>
+            <hbox>
+            	<label value="Limit number of displayed items to (large values may cause R to freeze for some time):" 
+                    control="RInterface.rBrowserMaxItems" />
+				<textbox id="RInterface.rBrowserMaxItems" pref="true" 
+                    width="50" class="numeric-input" type="number" 
+                    min="0" max="65535" wraparound="true" />
+            </hbox>
 		</groupbox>
 		
 		<separator class="thin" />

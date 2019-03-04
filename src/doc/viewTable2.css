@@ -1,0 +1,149 @@
+body {
+    background-color: #cac6bd;
+    margin: 0px;
+}
+
+h1 {
+    font-family: monospace;
+    font-size: large;
+    padding: 0.3em 0.5em;
+}
+
+.truncation-info {
+    color: red;
+}
+
+
+table {
+    border-collapse: collapse;
+    background-color: #dddbd5;
+}
+
+td, th {
+    vertical-align:  top;
+    font-family: monospace;
+    padding: .3em .5em;
+}
+
+tr:not(:nth-child(2))
+td:not(:first-child) {
+    padding: 0;
+}
+
+td.numeric, td.factor {
+    text-align: right;
+}
+
+td:first-child {
+   font-weight: bold; 
+}
+
+td.factor, td.logical {
+    font-style: italic;
+}
+
+td.logical {
+    text-align: center;
+}
+
+tr td {
+    /*background-color: #c0c0c0;*/
+}
+
+/*tr:nth-child(odd):not(:first-child)*/
+tr:nth-child(2n+1)
+    td:not(:first-child) {
+    /*background-color: #ddddaa;*/
+    /*background-color: #dddddd;*/
+}
+
+tr:first-child > * {
+    border-top: 1px black solid;
+    border-bottom: none;
+}
+
+tr:first-child th {
+    /*border-bottom: 1px black dotted;*/
+}
+
+tr:last-child td {
+    /*border-bottom: 1px black solid;*/
+}
+
+tr:nth-of-type(2) > *:not(:first-child) {
+    text-align: center;
+    border-bottom: 1px black solid;
+}
+
+tr:not(:nth-of-type(1)):not(:nth-of-type(2)) td:first-child {
+    border-right: 1px black solid;
+}
+
+tr:nth-of-type(1) > *:not(:last-child):not(:first-child),
+tr:nth-of-type(2) > *:not(:last-child):not(:first-child) {
+    border-left: 1px black solid;
+    border-right: 1px black solid;  
+}
+
+tr:not(:nth-of-type(1)):not(:nth-of-type(2))
+    td:not(:first-child):not(:last-child) {
+    border-right: 1px black dotted;
+}
+
+tr:not(:nth-of-type(1)):not(:nth-of-type(2)):not(:last-of-type)
+    td:not(:first-child) {
+    border-bottom: 1px black dotted;
+}
+
+tr:nth-of-type(2) td {
+    /*background-color: gray;*/
+    color: #595959;
+    font-style: italic;
+}
+
+td:first-child {
+    text-align: right;    
+}
+
+td.na {
+    color: #842109;
+    font-style: italic;
+}
+
+td.null {
+    color: #004080;
+    font-style: italic;
+}
+
+
+tr:nth-child(1) th,
+tr:nth-child(2) td,
+tr td:first-child {
+    background-color: #bbbbbb;
+}
+
+
+table {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+.cc {
+    max-height: 1em;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    max-width: 100%;
+    padding: .3em .5em;
+    white-space: pre-wrap;
+    text-overflow: ellipsis;
+}
+
+.cc:hover {
+    max-height: none;
+    width: inherit;
+    overflow-y: visible;
+    overflow-x: visible;
+    position: absolute;
+    background-color: white;
+    white-space: pre-wrap;
+}

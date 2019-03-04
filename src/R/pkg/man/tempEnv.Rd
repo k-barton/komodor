@@ -8,23 +8,20 @@
 \alias{setEvalEnv}
 \alias{getEvalEnv}
 \alias{existsTemp}
-\alias{rmTemp}
-\alias{getTemp}
-\alias{getEvalEnv}
-\alias{setEvalEnv}
 \title{temporary environment}
 \usage{
 assignTemp(x, value)
 
 existsTemp(x, mode = "any")
 
-rmTemp(x)
+rmTemp(x, item = NULL)
 
 getTemp(x, default = NULL, mode = "any", item = NULL)
 
 getEvalEnv()
 
-setEvalEnv(envir = .GlobalEnv)
+setEvalEnv(envir = .GlobalEnv, envName = deparse(substitute(envir)),
+  quiet = FALSE)
 }
 \arguments{
 \item{x, item}{a variable or list item name, given as a character string.}
@@ -34,6 +31,8 @@ setEvalEnv(envir = .GlobalEnv)
 \item{mode}{the mode or type of object sought.}
 
 \item{envir}{the \code{environment} to use for evaluation of commands in Komodo.}
+
+\item{envName}{optional character string, the name of the \code{environment} to}
 }
 \description{
 Maintain temporary environment. Set evaluation environment.

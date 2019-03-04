@@ -99,7 +99,13 @@ class KoRLinter:
                 result.severity = result.SEV_ERROR
                 result.lineStart = result.lineEnd = lineNo
                 l1 = datalines[lineNo - 1][:columnNo]
-
+# TODO: [ERROR] RLinter: list index out of range
+# Traceback (most recent call last):
+# File "koRLinter.py", line 101, in lint
+# l1 = datalines[lineNo - 1][:columnNo]
+# IndexError: list index out of range
+                
+                
                 ntabs = l1.count("\t")
                 result.columnStart = columnNo - (ntabs * 7)
                 result.columnEnd = len(datalines[lineNo - 1]) + 1

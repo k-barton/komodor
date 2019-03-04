@@ -4,8 +4,8 @@
 \alias{captureAll}
 \title{Send output and error stream to a character string or connection.}
 \usage{
-captureAll(expr, conn = NULL, markStdErr = FALSE, envir = getEvalEnv(),
-  doTraceback = TRUE)
+captureAll(expr, conn = NULL, markStdErr = FALSE,
+  envir = getEvalEnv(), doTraceback = TRUE)
 }
 \arguments{
 \item{expr}{a single \code{expression} to be evaluated.}

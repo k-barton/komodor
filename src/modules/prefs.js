@@ -114,7 +114,7 @@ PrefsetExt.prototype = {
         setDefaults : { value(revert) _pref.setDefaults.bind(_pref)(revert, _this.defaults), enumerable: true }
    }); 
     
-    // when changing this, update oldNames accordingly
+    // when changing this, update oldNames below accordingly
     this.defaults = { 
         'RInterface.koPort': 7052,
         'RInterface.RPort': 8888,
@@ -124,6 +124,7 @@ PrefsetExt.prototype = {
         'RInterface.cmdArgs': '--quiet',
         'RInterface.RCommand': '',
         'RInterface.rBrowserAutoUpdate': true,
+        'RInterface.rBrowserMaxItems': 256,
         'RInterface.CSVDecimalSep': '.',
         'RInterface.CSVSep': ',',
         'CRANMirror': 'https://cran.r-project.org/',
@@ -132,7 +133,9 @@ PrefsetExt.prototype = {
         'RInterface.marginClick': true,
         'RInterface.format.keepBlankLines': true,
         'RInterface.format.replaceAssign': false,
-        'RInterface.format.newlineBeforeBrace': false
+        'RInterface.format.newlineBeforeBrace': false,
+        'RInterface.viewTableMaxRows': 512,
+        'RInterface.viewTableCSSURI': "resource://kor-doc/viewTable.css"
     };
 
     this.defaults[require("kor/main").langName + "HelpCommand"] =
@@ -143,12 +146,14 @@ PrefsetExt.prototype = {
         // backward compatibility - rename old properties
         // IMPORTANT: update order to match 'defaults'!
         let oldNames = ["sciviews.ko.port", "sciviews.r.port", "sciviews.r.host", "svRDefaultInterpreter",
-            "svRApplication", "svRArgs", "svRCommand", null,
+            "svRApplication", "svRArgs", "svRCommand", 
+            null, null,
             "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
             "rRemoteHelpURL", "sciviews.margin.click",
             "RInterface.tidy.keepBlankLines", "RInterface.tidy.replaceAssign",
             "RInterface.tidy.newlineBeforeBrace",
-            "R_extendedHelpCommand"
+            null, null,
+            "R_extendedHelpCommand",
         ];
         let newNames = Object.keys(_this.defaults);
         for (let i = 0; i < newNames.length; ++i) {

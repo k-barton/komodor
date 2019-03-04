@@ -28,7 +28,9 @@
             prefs.setBooleanPref("donotask_r_association_override", false);
             
         if (!rFileLang || (rFileLang != kor.langName &&
-            require("ko/dialogs").confirm("Currently *.R files are associated with language " + rFileLang + ". " +
+            require("ko/dialogs")
+                .confirm("Currently *.R files are associated with language " + 
+                rFileLang + ". " +
                 "Would you like to replace this association with R language? " +
                 "\n(This can be changed in Preferences -> File associations)", {
                     yes: "Yes", no: "No", response: "Yes",
@@ -185,7 +187,7 @@
 			
             // Open NEWS:
 			if(!firstInstall) {
-				let doc = Services.koDocSvc.createDocumentFromURI("chrome://komodor/content/doc/NEWS.html");
+				let doc = Services.koDocSvc.createDocumentFromURI("resource://kor-doc/NEWS.html");
 				require("ko/views").manager.topView.createViewFromDocument(doc, 'browser', -1);
 			} // TODO: else open intro.html
         } // end first run

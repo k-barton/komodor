@@ -26,7 +26,7 @@ var rob = {};
 (function () {
 
     var logger = require("ko/logging").getLogger("komodoR");
-    //logger.setLevel(logger.DEBUG);
+    logger.setLevel(logger.DEBUG);
     
     const { arr: ArrayUtils, str: StringUtils } = require("kor/utils");
     const fileUtils = require("kor/fileutils");
@@ -44,7 +44,7 @@ var rob = {};
 
     // XXX make internal
     this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
-    const evalEnvLabel = "<Current evalutation frame>",
+    const evalEnvLabel = "<Current evaluation frame>",
           functionBodyLabel = "<function body>";
     var copyToClipboardSep = ", ";
    
@@ -110,7 +110,7 @@ var rob = {};
                     reverseDepends: (x.length > 2 && x[2]) ? x[2] : null
                 };
             });
-            //<richlistitem label="package:aumtutumtu" depends="stats dupa *aumtutumtu" nondetachable="true" />
+            //<richlistitem label="package:aumtutumtu" depends="stats *aumtutumtu" nondetachable="true" />
             let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
             if (m) {
 				let newEvalEnvName = m[1] ? m[1] : evalEnvLabel;
@@ -160,7 +160,7 @@ var rob = {};
     };
     
     var makeObjListCommand = (env, obj) => {
-        env = !env ? "\"\"" : (_this.evalEnv.name && env === _this.evalEnv.name ? "getEvalEnv()" :
+        env = !env ? "\"\"" : (_this.evalEnv.name && env === _this.evalEnv.name ? "kor::getEvalEnv()" :
             dQuote(StringUtils.addslashes(env)));
         
         var rval = "kor::write.objList(kor::objls(" +
@@ -282,17 +282,24 @@ var rob = {};
                 name = "merMod";
             else if (name.endsWith("Matrix"))
                 name = "Matrix4";
-			else if (name.startsWith("SpatialLine") || name.startsWith("Line"))
+			else if (name.startsWith("SpatialLine") || name.startsWith("Line") || 
+                name === "sfc_LINESTRING" || name === "sfc_MULTILINESTRING"
+                )
 				name = "SpatialLine_";
-			else if (name.startsWith("SpatialPoint") || name.startsWith("Point"))
+			else if (name.startsWith("SpatialPoint") || 
+                name.startsWith("Point") ||
+                name === "sfc_POINT" || name === "sfc_MULTIPOINT"
+                )
 				name = "SpatialPoint_";
-			else if (name.startsWith("SpatialPolygon") || name.startsWith("Polygon"))
+			else if (name.startsWith("SpatialPolygon") || 
+                name.startsWith("Polygon") ||
+                name === "sfc_POLYGON")
 				name = "SpatialPolygon_";
 			else if (name.startsWith("gg"))
 				name = "gg_";
 			//.SpatialPolygons.*
 			//SpatialPoints, SpatialGrid, SpatialPointsDataFrame, SpatialGridDataFrame
-			else if (name.startsWith("Spatial"))
+			else if (name.startsWith("Spatial") || name == "sf" || name.startsWith("sfc_"))
 				name = "Spatial_";
             else if (name === "" && this.origItem.type === "args")
                 name = "missing-arg";
@@ -1491,6 +1498,9 @@ var rob = {};
                 case 't:noSave':
                     disable = _this.selectedItemsOrd.findIndex((item) => item.type == 'object') == -1;
                     break;
+                case 't:notViewable':
+                    disable = !item.isRecursive || !(/^\d+x\d+$/.test(item.dims));
+                    break;
                 default:
                     break;
                 }
@@ -1579,11 +1589,15 @@ var rob = {};
             //}
             break;
 
-            //TODO: dump data for objects other than 'data.frame'
+        //TODO: dump data for objects other than 'data.frame'
         case 'write.table':
         case 'writeToFile':
             for (let i = 0; i < items.length; ++i)
                 R.saveDataFrame(items[i].getFullName, '', items[i].name);
+            break;
+
+        case 'view.table':
+            R.viewTable(items[0].getFullName);
             break;
             
         case 'copyToClipboard':
@@ -1800,6 +1814,8 @@ var rob = {};
     };
     
     this.activate = function(state) {
+        state = Boolean(state);
+        logger.debug("Rbrowser.activate: start (state=", state, ")");
         var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
         if (!viewbox || state == viewbox.hasAttribute("active")) return; // keep "=="
         var controls = document.getElementById("rbrowserToolbar").childNodes;
@@ -1811,14 +1827,16 @@ var rob = {};
             setTimeout(() => {
 			   logger.debug("Rbrowser.activate->on timeout (delayed refresh)");
 			   _this.refresh(true); 
-			   }, 250);
+			   }, 256);
 
         } else {
             logger.debug("Rbrowser.activate: clearing R browser");
             _this.clearAll();
             viewbox.removeAttribute("active");
             for(let el of controls) el.setAttribute("disabled", "true");
-        }       
+        }
+        logger.debug("Rbrowser.activate: end (active=" + this.isActive() + ")");
+
     };
     
     var onRStatusChange = function(event) {
@@ -1828,7 +1846,7 @@ var rob = {};
             if(event.detail.running)
                 setTimeout(() => {
                     if(!require("kor/command").isRRunning) return;
-                    if(!_this.isActive) _this.activate(); // XXX: needed?
+                    if(!_this.isActive()) _this.activate(); // XXX: needed?
                     else _this.searchPath.refreshAsync();
                 }, 2048);
          } catch(e) {
@@ -1890,19 +1908,20 @@ var rob = {};
         window.addEventListener("r-command-request", _this.onRCommandRequestEvent, false);   
 
         // needed if rob widget is loaded after initial "r-status-change" event.
-        if (require("kor/command").isRRunning)
-            _this.activate(true);
-        else {
-            let checkCounter = 0;
-            let intervalID = setInterval(() => {
-                let rIsOn = require("kor/command").isRRunning;
-                logger.debug("Rbrowser.onLoad -> check again[" + checkCounter + 
-                    "] (R is " + (rIsOn ? "on" : "off") + ")");
-                if(rIsOn || checkCounter++ > 3)
+        let checkCounter = 0;
+        let intervalID = setInterval(() => {
+            let rIsOn = require("kor/command").isRRunning;
+            logger.debug("Rbrowser.onLoad -> checking R connection[" + checkCounter + 
+                "]: R is " + (rIsOn ? "on" : "off"));     
+            if(rIsOn) {
+                if(_this.isActive()) 
                     clearInterval(intervalID);
-                if (rIsOn) _this.activate(true);
-            }, 2048);
-        }
+                else _this.activate(true);
+            } else if(checkCounter++ > 5)
+                clearInterval(intervalID);
+ 
+        }, 1024);
+
 
         const prefs = require("ko/prefs");
         const auPrefName = "RInterface.rBrowserAutoUpdate";
