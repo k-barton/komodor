@@ -56,6 +56,10 @@ function go(uri, loadFlags) {
 	}
 }
 
+// viewZoomOverlay.js uses this
+function getBrowser() rHelpBrowser;
+
+
 // display formatted search results in a help window
 function rHelpSearch(topic) {
 	if (!topic)	return;
@@ -183,8 +187,12 @@ var progressListener = {
 	onSecurityChange: function(aWebProgress, aRequest, aState) { }
 };
 
+
+var getSelection = () => window.content.getSelection().toString().trim(); 
+
+
 function rHelpBrowserContextOnShow(event) {
-	var selText = window.content.getSelection().toString().trim();
+	var selText = getSelection();
 	var el = document.getElementById("cmd_rsearch_for");
 	var elLabel;
 	var nothingSelected = !selText;
@@ -198,9 +206,18 @@ function rHelpBrowserContextOnShow(event) {
 	el.setAttribute("label", elLabel);
 	el.setAttribute("disabled", nothingSelected);
 	document.getElementById("cmd_run_r_code").setAttribute("disabled", nothingSelected);
-
+    
+    var searchTerm = selText.match(/^[\w\.-_]+/);
+    
+    el = document.getElementById("cmd_rhelp_for");
+    if(searchTerm === null) {
+        el.setAttribute("disabled", true);
+        el.setAttribute("label", UI.translate("R Help for selection"));
+    } else {
+        el.setAttribute("disabled", false);
+        el.setAttribute("label", UI.translate("R Help for \"%S\"", searchTerm));
+    }
 	goUpdateCommand("cmd_copy");
-
 }
 
 function runSelAsRCode() {

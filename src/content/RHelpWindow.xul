@@ -27,6 +27,7 @@
 <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
 <script type="application/x-javascript" src="chrome://global/content/printUtils.js" />
 <script type="application/x-javascript" src="chrome://global/content/contentAreaUtils.js" />
+<script type="application/x-javascript" src="chrome://global/content/viewZoomOverlay.js"/>
 <script type="application/x-javascript" src="chrome://komodor/content/RHelpWindow.js" />
 
 <keyset id="keyset_main">
@@ -36,6 +37,12 @@
     <key id="key_go_back" keycode="VK_BACK" command="cmd_go_back" modifiers="" />
     <key id="key_go_home" keycode="VK_HOME" command="cmd_go_home" modifiers="alt" />
     <key id="key_run_r_code" key="R" command="cmd_run_r_code" modifiers="accel" />
+    <key id="key_rhelp_for" keycode="VK_F1" command="cmd_rhelp_for" modifiers="shift" />
+    <!-- <key id="key_textZoomReduce" keycode="VK_SUBTRACT" command="cmd_textZoomReduce" modifiers="accel" /> -->
+    <!-- <key id="key_textZoomEnlarge" keycode="VK_ADD" command="cmd_textZoomEnlarge" modifiers="accel" /> -->
+    <key id="key_textZoomReduce" key="-" command="cmd_textZoomReduce" modifiers="accel" />
+    <key id="key_textZoomEnlarge" key="=" command="cmd_textZoomEnlarge" modifiers="accel" />
+    <key id="key_textZoomReset" key="0" command="cmd_textZoomReset" modifiers="accel" />
 </keyset>
 
 <commandset id="commandset_main">
@@ -68,11 +75,19 @@
 		   disabled="true"  />
   <command id="cmd_run_r_code" oncommand="runSelAsRCode()"
 		   label="Run as R code" desc="Execute selected text in R" accesskey="r" />
-  <command id="cmd_rsearch_for" oncommand="rHelpSearch(window.content.getSelection().toString().trim());"
+  <command id="cmd_rsearch_for" oncommand="rHelpSearch(getSelection());"
 		   label="Search R for selection" desc="Search R for selected text" accesskey="S" />
+   <command id="cmd_rhelp_for" oncommand="R.help(getSelection());"
+		   label="R Help for selection" desc="Display R help for selected text" accesskey="H" />
 
   <command id="cmd_copy" oncommand="goDoCommand('cmd_copy')" disabled="true"/>
   <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')"/>
+
+  <command id="cmd_textZoomReduce" oncommand="ZoomManager.reduce();"/>
+  <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.enlarge();"/>
+  <command id="cmd_textZoomReset" oncommand="ZoomManager.reset();"/>
+  
+  
 </commandset>
 
 <popupset>
@@ -84,6 +99,9 @@
 				  />
 		<menuitem id="menu_cmd_rsearch_for"
 				  command="cmd_rsearch_for"
+				  />
+         <menuitem id="menu_cmd_rhelp_for"
+				  command="cmd_rhelp_for"
 				  />
 		<menuseparator />
 		<menuitem id="context-copy"
