@@ -1559,36 +1559,61 @@ var rob = {};
                     return false;
                 } else return true;
             });
-            
-            let dup = ArrayUtils.duplicates(items.map(x => x.name));
-            if (dup.length &&
-                !require("ko/dialogs").confirm("Objects with the same names from different" +
-                    "environments selected. Following object will be taken from the " +
-                    "foremost location in the search path: " + dup.join(', '),
-                    {response: "Cancel", title: "...", icon: "warning"})) return;
 
             let fileName = items.length == 1 ? items[0].name
                 .replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
-
-            let dir;
-            try {
-                dir = fileUtils.path(RConn.eval("base::cat(base::getwd())"));
-            } catch (e) {
-                logger.exception(e, "in 'treeItemCommand'");
-                return;
-            }
-
-            if (!dir) return;
-
-            let oFilterIdx = {};
-            fileName = UI.browseForFile(dir, fileName + '.RData', '', ["R data (*.RData)|*.RData"], false,
-                true, oFilterIdx);
-
-            if (!fileName) return;
-
-            RConn.evalAsync(`base::save(list=${R.arg(items.map(x => x.name))}, file=${R.arg(fileName)})`,
-                            null, false);
             
+            let robj = new Map();
+            for (it of items) {
+                let key = parseInt(it.getTopParent.parentObject.dims) + 1;
+                if (!robj.has(key)) robj.set(key, []);
+                robj.get(key).push(it);
+            }
+            let moreEnvironments = Array.from(robj.keys()).length > 1;
+            if(moreEnvironments &&
+               !require("ko/dialogs").confirm("Objects from different " +
+                    "environments will be saved into separate files " +
+                    "(with suffix of the environment position appended to file name).",
+                    {response: "Cancel", title: "R interface: save R objects",
+                        icon: "warning"}))
+                    return;
+
+            RConn.evalAsync("base::cat(base::getwd())", (output, fileName, robj)=> {
+            	var dir;
+                try {
+            		dir = fileUtils.path(output);
+            	} catch (e) {
+            		logger.exception(e, "in 'treeItemCommand'");
+            		return;
+            	}
+                if (!dir) return;
+                var oFilterIdx = {};
+                fileName = UI.browseForFile(dir, fileName + '.RData', '',
+                    ["R data (*.RData)|*.RData"], false,
+                    true, oFilterIdx);
+                if (!fileName) return;
+                
+                var rCommand;
+                if(moreEnvironments) {
+                   let rCommands = []; 
+                   for (let item of robj) rCommands.push(
+                        "base::save(list=" +
+                        R.arg(item[1].map(x => x.name)) +
+                        ", envir=as.environment(" + item[0] +
+                        "), file=" + R.arg(fileName.replace(/(\.([^\.]+)|)$/,
+                            "[" + item[0] + "]$1")) +
+                        ")");
+                    rCommand = rCommands.join("\n");
+                } else {
+                    let item = robj.entries().next().value;
+                    rCommand = "base::save(list=" +
+                          R.arg(item[1].map(x => x.name)) +
+                          ", envir=as.environment(" + item[0] + "), file=" + R.arg(fileName) + ")";
+                } 
+                RConn.evalAsync(rCommand, null, false);
+            }, true, true, fileName, robj);
+
+
             break;
             // Special handling for help
         case 'help':

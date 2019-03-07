@@ -158,7 +158,7 @@ this.browseForFile = function (directory, filename, title, filter, multiple, sav
 
         // append extension according to active filter
         if (mode === nsIFilePicker.modeSave) {
-            if (!svc.Os.path.getExtension(path)) 
+            if (!svc.Os.path.getExtension(path) && ! svc.Os.path.basename(path).startsWith(".")) 
                 path += svc.Os.path.getExtension(filters[fp.filterIndex]);
         }
         if (typeof filterIndex === "object") filterIndex.value = fp.filterIndex;

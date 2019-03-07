@@ -442,6 +442,14 @@ if (!Object.values)
         return cmd;
     };
 
+    this.get = function(x, envir, hidden = false, envirArg = null) {
+        if(!envir || envir === ".GlobalEnv") return x;
+        if(envir.startsWith("package:"))
+            return envir.substring(8) + (hidden ? ":::" : "::") + x;
+        if(envirArg === null) envirArg = envir;
+        return "base::get(" + _this.arg(x) + ", envir=" + _this.arg(envirArg) + ")"; 
+    };
+    
     this.arg = function r_arg(...args) {
         return args.map((a) => {
             switch (typeof a) {
