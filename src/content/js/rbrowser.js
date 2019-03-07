@@ -514,11 +514,30 @@ var rob = {};
         // XXX: make a variable
         get getFullName() {
             var pos = {};
-            parseRObjectName(this.fullName, pos);
+            parseRObjectName(this.fullName, pos); // for pos.value
             return this.fullName.substr(0, pos.value) + this.getNSPrefix +
                 this.fullName.substr(pos.value); 
         },
-           
+        
+        get rExpression() {
+            if(this.isTopLevelItem)
+                return "base::as.environment(" + (parseInt(this.dims) + 1) + ")";
+            if(this.getNSPrefix !== "" || this.env === ".GlobalEnv")
+                return this.getFullName;
+            var pos = {}, parsed, topParent, topName, topNameExpr, name;
+            name = this.fullName;
+            parsed = parseRObjectName(name, pos);
+            topParent = this.getTopParent;
+            topName = parsed[parsed.length - 1];
+            
+            return name.substring(0, pos.value) + 
+                R.get(topName,
+                      this.env,
+                      topParent.isHidden,
+                      parseInt(topParent.parentObject.dims) + 1) +
+                name.substring(pos.value + topName.length);
+        },
+        
         get isPackage() this.className === "package" && this.name.startsWith("package:"),
         get isInPackage() Boolean(this.env) && this.env.startsWith("package:"), // faster than 'substr(...) == "package"
 
@@ -1540,13 +1559,13 @@ var rob = {};
                     return false;
                 } else return true;
             });
-
+            
             let dup = ArrayUtils.duplicates(items.map(x => x.name));
             if (dup.length &&
                 !require("ko/dialogs").confirm("Objects with the same names from different" +
                     "environments selected. Following object will be taken from the " +
                     "foremost location in the search path: " + dup.join(', '),
-                    {response: "Cancel", title: "bla", icon: "warning"})) return;
+                    {response: "Cancel", title: "...", icon: "warning"})) return;
 
             let fileName = items.length == 1 ? items[0].name
                 .replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
@@ -1588,16 +1607,19 @@ var rob = {};
             }
             //}
             break;
+            
+        //_this.selectedItemsOrd.map(item => item.rExpression).join(", \n ") + "\n";
+
 
         //TODO: dump data for objects other than 'data.frame'
         case 'write.table':
         case 'writeToFile':
             for (let i = 0; i < items.length; ++i)
-                R.saveDataFrame(items[i].getFullName, '', items[i].name);
+                R.saveDataFrame(items[i].rExpression, '', items[i].name);
             break;
 
         case 'view.table':
-            R.viewTable(items[0].getFullName);
+            R.viewTable(items[0].rExpression);
             break;
             
         case 'copyToClipboard':
@@ -1617,7 +1639,7 @@ var rob = {};
                     /*cmd.push(action + "(evalq(" + obj[i].fullName +
                     ", envir = as.environment(\"" +
                     obj[i].env. !!!addslashes() + "\")))");*/
-                    commandArr.push(action + "(" + items[i].getFullName + ")");
+                    commandArr.push(action + "(" + items[i].rExpression + ")");
                 }
             R.evalUserCmd(commandArr.join("\n"));
         }
