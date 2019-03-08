@@ -442,13 +442,16 @@ if (!Object.values)
         return cmd;
     };
 
-    this.get = function(x, envir, hidden = false, envirArg = null) {
-        if(!envir || envir === ".GlobalEnv") return x;
-        if(envir.startsWith("package:"))
+    this.get = function r_get(x, envir, hidden = false) {
+        if (typeof envir === "string" && envir.startsWith("package:")) 
             return envir.substring(8) + (hidden ? ":::" : "::") + x;
-        if(envirArg === null) envirArg = envir;
-        return "base::get(" + _this.arg(x) + ", envir=" + _this.arg(envirArg) + ")"; 
+        var pos;
+        if (envir === -1) pos = ', pos=kor::getEvalEnv()';
+            else if (envir === null) pos = "";
+            else pos = ", pos=" + envir;
+        return "base::get(" + _this.arg(x) + pos + ", inherits=FALSE)";
     };
+
     
     this.arg = function r_arg(...args) {
         return args.map((a) => {

@@ -507,6 +507,7 @@ var rob = {};
             while(!(p.parentObject.isTopLevelItem)) p = p.parentObject;
             return p;
         },
+        get getEnvironment() this.getTopParent.parentObject,
         get getNSPrefix() {
             let tp = this.getTopParent;
             return tp && tp.env.startsWith("package:") ? tp.env.substring(8) + (tp.isHidden ? ":::" : "::") : "";
@@ -519,25 +520,47 @@ var rob = {};
                 this.fullName.substr(pos.value); 
         },
         
+        //sel().getEnvironment.fullName;
+        //rob.evalEnv.name;
+        //sel().getEnvironment.isCurrentEvalEnv
+        // Boolean(rob.evalEnv.name)
+        
         get rExpression() {
-            if(this.isTopLevelItem)
-                return "base::as.environment(" + (parseInt(this.dims) + 1) + ")";
-            if(this.getNSPrefix !== "" || this.env === ".GlobalEnv")
+            if(this.isTopLevelItem) {
+                let posoff = _this.evalEnv.name ? 0 : 1;
+                let pos = parseInt(this.dims) + posoff;
+                if (pos === 1 && this.name === ".GlobalEnv")
+                    return this.name;
+                if (pos === 0 && this.name === _this.evalEnv.name)
+                   return "kor::getEvalEnv()";
+                return "base::as.environment(" + pos + ")";
+            }
+            if(this.getEnvironment.dims === "0")
                 return this.getFullName;
-            var pos = {}, parsed, topParent, topName, topNameExpr, name;
+            var pos = {}, parsed, topParent, topName, topNameExpr, name, envir;
             name = this.fullName;
             parsed = parseRObjectName(name, pos);
             topParent = this.getTopParent;
             topName = parsed[parsed.length - 1];
+            envir = topParent.getEnvironment;
             
+            var posArg;
+            if(envir.fullName === _this.evalEnv.name && envir.dims === "0") { // double check
+                //posArg = -1; // --> getEvalEnv()
+                posArg = null; // --> no pos arg
+            } else if (envir.fullName === ".GlobalEnv" && envir.dims === "0") {
+                posArg = null; // --> no pos arg
+            } else if (envir.isPackage) {
+                posArg = envir.name;
+            } else {
+                posArg = parseInt(envir.dims) + (Boolean(_this.evalEnv.name) ? 0 : 1);
+            }
+      
             return name.substring(0, pos.value) + 
-                R.get(topName,
-                      this.env,
-                      topParent.isHidden,
-                      parseInt(topParent.parentObject.dims) + 1) +
+                R.get(topName, posArg, topParent.isHidden) +
                 name.substring(pos.value + topName.length);
         },
-        
+         
         get isPackage() this.className === "package" && this.name.startsWith("package:"),
         get isInPackage() Boolean(this.env) && this.env.startsWith("package:"), // faster than 'substr(...) == "package"
 
@@ -1783,7 +1806,6 @@ var rob = {};
 			listbox.ensureIndexIsVisible(listbox.selectedIndex);
 			event.preventDefault();
 		};
-		
 		    
         switch (event.key) {
         case " ":
