@@ -33,17 +33,17 @@ var rob = {};
     const RConn = require("kor/connector");
     const R = require("kor/r");
     const UI = require("kor/ui");
+    const rGlobalEnvStr = ".GlobalEnv";
 
     var _this = this;
 
-    // FIXME: sep is also defined as R.sep
     const sep = "\x1f", recordSep = "\x1e";
     var _listAllNames = false, _listAttributes = false, _listFuncBody = false;
     var dQuote = s => "\"" + s + "\"";
     var svgParams = "?size=16&color=" + encodeURIComponent("#004fd2");
 
     // XXX make internal
-    this.evalEnv = { name: undefined, /*searchPathItem: undefined, */isNew: false };
+    this.evalEnv = { name: undefined, isNew: false };
     const evalEnvLabel = "<Current evaluation frame>",
           functionBodyLabel = "<function body>";
     var copyToClipboardSep = ", ";
@@ -59,7 +59,7 @@ var rob = {};
             let selectedIndex = list.selectedIndex;
             while (list.firstChild) list.removeItemAt(0);
             let checkedItems = _this.treeData.map(x => x.name);
-            if (checkedItems.length === 0) checkedItems.push(".GlobalEnv");
+            if (checkedItems.length === 0) checkedItems.push(rGlobalEnvStr);
             if (this._data.length === 0) return;
         
             let item, n = this._data.length, dataitem;
@@ -97,24 +97,24 @@ var rob = {};
                 if (idx !== -1) selectedIndex = idx;
             }
             list.selectedIndex = Math.min(selectedIndex, n - 1);
-
             logger.debug("searchPath.display() done");
-
         },
         parseString(str) {
             let result = str.replace(/[\n\r\f]/g, "").split(recordSep).map(x => {
                 x = x.split(sep);
                 return {
-                    name: x[0], 
+                    type: x[0].substr(0, 1),
+                    name: x[0].substr(1), 
                     depends: (x.length > 1 && x[1]) ? x[1] : null,
                     reverseDepends: (x.length > 2 && x[2]) ? x[2] : null
                 };
             });
             //<richlistitem label="package:aumtutumtu" depends="stats *aumtutumtu" nondetachable="true" />
-            let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
-            if (m) {
-				let newEvalEnvName = m[1] ? m[1] : evalEnvLabel;
-                _this.evalEnv.isNew = (_this.evalEnv.name === undefined) || (newEvalEnvName !== _this.evalEnv.name);
+            //let m = result[0].name.match(/^<EvalEnv(?:\[(.+)\]|)>/);
+            if (result[0].type === "3") {
+				let newEvalEnvName = result[0].name ? result[0].name : evalEnvLabel;
+                _this.evalEnv.isNew = (_this.evalEnv.name === undefined) ||
+                    (newEvalEnvName !== _this.evalEnv.name);
                 result[0].name = _this.evalEnv.name = newEvalEnvName;
             } else
                 _this.evalEnv.name = undefined;
@@ -122,10 +122,11 @@ var rob = {};
             this._data.splice(0);
             Array.prototype.push.apply(this._data, result);
         },
-        refresh(focus = false) {
+        refresh(focus = false) { // synchronous. XXX: remove?
             let data;
             try {
-                data = RConn.eval('base::cat(kor::objSearch("' + sep + '", "' + recordSep  + '"))', 2);
+                data = RConn.eval('base::cat(kor::objSearch("' + sep + '", "' +
+                    recordSep  + '"))', 2);
             } catch (e) {
                 logger.exception(e, "in searchPath.refresh.");
                 return;
@@ -160,8 +161,9 @@ var rob = {};
     };
     
     var makeObjListCommand = (env, obj) => {
-        env = !env ? "\"\"" : (_this.evalEnv.name && env === _this.evalEnv.name ? "kor::getEvalEnv()" :
-            dQuote(StringUtils.addslashes(env)));
+        env = !env ? "\"\"" : (_this.evalEnv.name &&
+            env === _this.evalEnv.name ? "kor::getEvalEnv()" :
+                dQuote(StringUtils.addslashes(env)));
         
         var rval = "kor::write.objList(kor::objls(" +
             (obj ? obj + ", " : "") +
@@ -277,7 +279,7 @@ var rob = {};
             let noicon = !hasIcon(name);
             if (this.origItem.isTopLevelItem)
                 name = this.origItem.isPackage ? "package" :
-                    this.origItem.name === ".GlobalEnv" ? "GlobalEnv" : "environment";
+                    this.origItem.name === rGlobalEnvStr ? "GlobalEnv" : "environment";
             else if (name.endsWith("merMod") && name.search(/(^|\w)merMod$/) !== -1)
                 name = "merMod";
             else if (name.endsWith("Matrix"))
@@ -458,7 +460,7 @@ var rob = {};
             this.name = env;
             this.fullName = env;
             this.children = [];
-            this.className = this.isCurrentEvalEnv || env === ".GlobalEnv" ? "environment" : "package";
+            this.className = this.isCurrentEvalEnv || env === rGlobalEnvStr ? "environment" : "package";
             
             this.dims = dimNumeric = pos;
             this.sortData = [this.name.toLowerCase(), pos, this.className.toLowerCase(),
@@ -529,7 +531,7 @@ var rob = {};
             if(this.isTopLevelItem) {
                 let posoff = _this.evalEnv.name ? 0 : 1;
                 let pos = parseInt(this.dims) + posoff;
-                if (pos === 1 && this.name === ".GlobalEnv")
+                if (pos === 1 && this.name === rGlobalEnvStr)
                     return this.name;
                 if (pos === 0 && this.name === _this.evalEnv.name)
                    return "kor::getEvalEnv()";
@@ -548,7 +550,7 @@ var rob = {};
             if(envir.fullName === _this.evalEnv.name && envir.dims === "0") { // double check
                 //posArg = -1; // --> getEvalEnv()
                 posArg = null; // --> no pos arg
-            } else if (envir.fullName === ".GlobalEnv" && envir.dims === "0") {
+            } else if (envir.fullName === rGlobalEnvStr && envir.dims === "0") {
                 posArg = null; // --> no pos arg
             } else if (envir.isPackage) {
                 posArg = envir.name;
@@ -805,18 +807,45 @@ var rob = {};
         },
         
     });
+    
+    this.instaPackRefresh = function(state) {
+        logger.debug("Rbrowser.instaPackRefresh");
+    	if (state) {
+            // skip loaded packages, update on searchPath refresh
+    		RConn.evalAsync("base::cat(utils::installed.packages()[,1L])",
+    			(output) => {
+    				var pkgNames = output.split(" ");
+    				var list = document.getElementById("rbrowserInstalledPackagesList");
+    				var selectedName = list.selectedItem ? list.selectedItem.value : null;
+                    list.removeAllItems();
+                    for (let a of pkgNames) list.appendItem(a, a);
+                    if(selectedName) list.selectedIndex = pkgNames.indexOf(selectedName);
+    				var box = document.getElementById("rbrowserInstalledPackagesBox");
+    				for (let el of box.childNodes) el.removeAttribute("disabled");
+    			}, true, true);
+    	} else {
+    		let box = document.getElementById("rbrowserInstalledPackagesBox");
+    		for (let el of box.childNodes) el.setAttribute("disabled", "true");
+    	}
+    };
+    
+    this.instaPackLoadSelected = function() {
+        var list = document.getElementById("rbrowserInstalledPackagesList");
+        RConn.evalAsync("base::library(" + R.arg(list.selectedItem.value) + ")",
+            () => _this.searchPath.refreshAsync(), false);
+    };
 
     this.refresh = function (force = false) {
 		logger.debug("Rbrowser.refresh");
-		if(!require("kor/command").isRRunning) return;
+    	if(!require("kor/command").isRRunning) return;
 
         _this.searchPath.refreshAsync().then(() => {
             var cmd, init;
             init = !isInitialized || force || !_this.treeData.length || !_this.treeBox;
             if (init) {
-                let globalEnvIdx = _this.searchPath.indexOf(".GlobalEnv");
+                let globalEnvIdx = _this.searchPath.indexOf(rGlobalEnvStr);
                 if (globalEnvIdx < 1)
-                    cmd = makeObjListCommand(".GlobalEnv", "");
+                    cmd = makeObjListCommand(rGlobalEnvStr, "");
                 else {
                     cmd = "";
                     for (let i = 0; i <= globalEnvIdx; ++i)
@@ -832,7 +861,7 @@ var rob = {};
                 let allItems = openItems.concat(topItems);
                 let map = new Map(allItems.map(x => [x.join("::"), x])); // unique values
                 let cmdArr = [];
-                for (let v of map.values()) cmdArr.push(makeObjListCommand(v[0], v[1]));
+                for (let [k, v] of map.values()) cmdArr.push(makeObjListCommand(k, v));
                 cmd = cmdArr.join("\n");
             }
             if (init) {
@@ -843,7 +872,8 @@ var rob = {};
             }
             
             RConn.evalAsync(cmd, parseObjListResult, true);
-            isInitialized = true;            
+            setTimeout(_this.instaPackRefresh, 2500, true); // XXX: should happen afterwards
+            isInitialized = true;
         }).catch((e) => logger.exception(e));
     };
     
@@ -1228,7 +1258,7 @@ var rob = {};
 			//let el = event.target;
 			try {
 				if(el._isEvalEnv) el = el.nextElementSibling;
-				if(el.label === ".GlobalEnv") el = el.nextElementSibling;
+				if(el.label === rGlobalEnvStr) el = el.nextElementSibling;
 			} catch(e) {
 				el = null;
 			}
@@ -1293,12 +1323,12 @@ var rob = {};
     
     this.canDrop = function () false;
     this.drop = function ( /*idx, orientation*/ ) {};
-   
     
     this.clearAll = function () {
         if (!isInitialized) return;
         
         _this.searchPath.clear();
+        _this.instaPackRefresh(false);
         //_this.displayPackageList();      
         
         let rowCount = _this.visibleData.length;
@@ -1313,7 +1343,7 @@ var rob = {};
         //document.getElementById("rbrowser_objects_tree").disabled = true;
     };
 
-    this.toggleViewSearchPath = function () {
+    this.searchPathToggleView = function () {
         var button = document.getElementById("rbrowserSubpanelToggle");
         var deck = document.getElementById("rbrowserSubpanelBox");
         var state = button.getAttribute("state");
@@ -1520,13 +1550,13 @@ var rob = {};
                     disable = item.isPackage;
                     break;
                 case 't:noPrint':
-                    disable = item.isTopLevelItem;
+                    disable = false; //item.isTopLevelItem;
                     break;
                 case 't:noDelete':
                     disable = (item.isTopLevelItem && R.nonDetachable.has(item.fullName)) || item.isInPackage;
                     break;
                 /*case 't:isGlobalEnv':
-                    disable = item.fullName == ".GlobalEnv" && item.isTopLevelItem;
+                    disable = item.fullName == rGlobalEnvStr && item.isTopLevelItem;
                     break;*/
                 case 't:noHelp':
                     disable = !(item.isPackage || (item.isInPackage && item.type === "object" && !item.isHidden));
@@ -1552,6 +1582,12 @@ var rob = {};
 
     };
     
+    this.loadSelectedPackage = function() {
+    	var list = document.getElementById("rbrowserInstalledPackagesList");
+        if(!list.selectedItem.value) return;
+    	R.evalAsync("base::library(" + R.arg(list.selectedItem.value) + ")");
+    }   
+    
     this.doRCommand = function (action, ...args) {
         switch (action) {
         case "browse-end":
@@ -1568,7 +1604,7 @@ var rob = {};
 
     const clipboardHelper = 
         Components.classes['@mozilla.org/widget/clipboardhelper;1']
-            .getService(Components.interfaces.nsIClipboardHelper);   
+            .getService(Components.interfaces.nsIClipboardHelper);
     
     this.treeItemCommand = function (action) {
         var items = Array.from(_this.selectedItemsOrd);
@@ -1587,16 +1623,17 @@ var rob = {};
                 .replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
             
             let robj = new Map();
+            let posoff = _this.evalEnv.name ? 0 : 1;
             for (it of items) {
-                let key = parseInt(it.getTopParent.parentObject.dims) + 1;
+                let key = parseInt(it.getTopParent.parentObject.dims) + posoff;
                 if (!robj.has(key)) robj.set(key, []);
                 robj.get(key).push(it);
             }
             let moreEnvironments = Array.from(robj.keys()).length > 1;
             if(moreEnvironments &&
                !require("ko/dialogs").confirm("Objects from different " +
-                    "environments will be saved into separate files " +
-                    "(with suffix of the environment position appended to file name).",
+                    "environments will be saved into separate files. " +
+                    "The environment index will be appended to file names.",
                     {response: "Cancel", title: "R interface: save R objects",
                         icon: "warning"}))
                     return;
@@ -1619,23 +1656,24 @@ var rob = {};
                 var rCommand;
                 if(moreEnvironments) {
                    let rCommands = []; 
-                   for (let item of robj) rCommands.push(
+                   for (let [key, value] of robj) rCommands.push(
                         "base::save(list=" +
-                        R.arg(item[1].map(x => x.name)) +
-                        ", envir=as.environment(" + item[0] +
+                        R.arg(value.map(x => x.name)) +
+                        ", envir=as.environment(" + key +
                         "), file=" + R.arg(fileName.replace(/(\.([^\.]+)|)$/,
-                            "[" + item[0] + "]$1")) +
+                            "[" + key + "]$1")) +
                         ")");
                     rCommand = rCommands.join("\n");
                 } else {
-                    let item = robj.entries().next().value;
+                    let [key, value] = robj.entries().next().value;
                     rCommand = "base::save(list=" +
-                          R.arg(item[1].map(x => x.name)) +
-                          ", envir=as.environment(" + item[0] + "), file=" + R.arg(fileName) + ")";
+                          R.arg(value.map(x => x.name)) +
+                          ", envir=as.environment(" + key + "), file=" + R.arg(fileName) + ")";
                 } 
                 RConn.evalAsync(rCommand, null, false);
             }, true, true, fileName, robj);
 
+            //Services.koOs.path.relpath(path, cwd)
 
             break;
             // Special handling for help
@@ -1793,78 +1831,83 @@ var rob = {};
         return false;
     };
 
-    this.onSearchPathKeyEvent = function (event) {
-        let listbox = _this.searchPath.getListBox();
-        let target = event.originalTarget;
-        
-        //require("kor/cmdout").append(`key=${event.key} (${event.key.charCodeAt(0)}) keyCode=${event.keyCode}, charCode=${event.charCode}, 
-		//target=${target.id}/${target.tagName}`);
-		
-		let onItemSelect = (listbox, event, idx) => {
-			listbox.selectedIndex = idx;
-			listbox.selectedItem._checkbox.focus();
-			listbox.ensureIndexIsVisible(listbox.selectedIndex);
-			event.preventDefault();
-		};
-		    
-        switch (event.key) {
-        case " ":
-            if (target.getAttribute("anonid") !== "checkbox") { // only handle this event when checkbox not in
-                                                                // focus
-                let item = listbox.selectedItem;
-                item.check();
-                if (!item.label) return;
-                if (item.checked) addObjectList(item.label);
-                else removeObjectList(item.label);
-                return;
-            }
-            break;
-        case "Clear": /* falls through */
-        case "Delete": /* falls through */
-        case "Del":
-            let listItem = listbox.selectedItem;
-            if(listItem.hasAttribute("evalEnv"))
-                _this.doRCommand("browse-end");
-            else {
-                if (listItem._detachableItems && listItem._detachableItems.length !== 0)
-                    _this.doRCommand("detach", event.shiftKey ?
-                        listItem._detachableItems : listItem._detachableItems[0]);
-            }
-            return;
-            // for some reason arrow keys/home/end do not work by default, pgup/pgdown do.
-        case "End":
-            onItemSelect(listbox, event, listbox.itemCount - 1);
-			return;
-        case "Home":
-			onItemSelect(listbox, event, 0);
-            return;
-        case "Up": /* falls through */
-        case "ArrowUp":
-			onItemSelect(listbox, event, (listbox.selectedIndex > 0)? 
-				listbox.selectedIndex - 1 : 0);
-            return;
-        case "Down":  /* falls through */
-        case "ArrowDown":
-			onItemSelect(listbox, event, 
-				(listbox.selectedIndex < listbox.itemCount - 1)? 
-					listbox.selectedIndex + 1 : listbox.selectedIndex);
-            return;
-        default:
-            return;
-        }
+    this.onSearchPathKeyEvent = function(event) {
+    	let listbox = _this.searchPath.getListBox();
+    	let target = event.originalTarget;
+
+    	//require("kor/cmdout").append(`key=${event.key} (${event.key.charCodeAt(0)}) keyCode=${event.keyCode}, charCode=${event.charCode}, 
+    	//target=${target.id}/${target.tagName}`);
+
+    	let onItemSelect = (listbox, event, idx) => {
+    		listbox.selectedIndex = idx;
+    		listbox.selectedItem._checkbox.focus();
+    		listbox.ensureIndexIsVisible(listbox.selectedIndex);
+    		event.preventDefault();
+    	};
+
+    	switch (event.key) {
+    		case " ":
+    			if (target.getAttribute("anonid") !== "checkbox") { // only handle this event when checkbox not in
+    				// focus
+    				let item = listbox.selectedItem;
+    				item.check();
+    				if (!item.label) return;
+    				if (item.checked) addObjectList(item.label);
+    				else removeObjectList(item.label);
+    				return;
+    			}
+    			break;
+    		case "Clear":
+    			/* falls through */
+    		case "Delete":
+    			/* falls through */
+    		case "Del":
+    			let listItem = listbox.selectedItem;
+    			if (listItem.hasAttribute("evalEnv"))
+    				_this.doRCommand("browse-end");
+    			else {
+    				if (listItem._detachableItems && listItem._detachableItems.length !== 0)
+    					_this.doRCommand("detach", event.shiftKey ?
+    						listItem._detachableItems : listItem._detachableItems[0]);
+    			}
+    			return;
+    			// for some reason arrow keys/home/end do not work by default, pgup/pgdown do.
+    		case "End":
+    			onItemSelect(listbox, event, listbox.itemCount - 1);
+    			return;
+    		case "Home":
+    			onItemSelect(listbox, event, 0);
+    			return;
+    		case "Up":
+    			/* falls through */
+    		case "ArrowUp":
+    			onItemSelect(listbox, event, (listbox.selectedIndex > 0) ?
+    				listbox.selectedIndex - 1 : 0);
+    			return;
+    		case "Down":
+    			/* falls through */
+    		case "ArrowDown":
+    			onItemSelect(listbox, event,
+    				(listbox.selectedIndex < listbox.itemCount - 1) ?
+    				listbox.selectedIndex + 1 : listbox.selectedIndex);
+    			return;
+    		default:
+    			return;
+    	}
     };
 
-    this.selectAllSiblings = function (idx, augment) {
-        let startIndex = _this.visibleData[idx].parentIndex + 1, endIndex;
-        let curLvl = _this.visibleData[idx].level;
-        for (endIndex = startIndex; endIndex < _this.visibleData.length &&
-            _this.visibleData[endIndex].level >= curLvl;
-            ++endIndex) {}
-        --endIndex;
-        _this.selection.rangedSelect(startIndex, endIndex, augment);
+    this.selectAllSiblings = function(idx, augment) {
+    	let startIndex = _this.visibleData[idx].parentIndex + 1,
+    		endIndex;
+    	let curLvl = _this.visibleData[idx].level;
+    	for (endIndex = startIndex; endIndex < _this.visibleData.length &&
+    		_this.visibleData[endIndex].level >= curLvl;
+    		++endIndex) {}
+    	--endIndex;
+    	_this.selection.rangedSelect(startIndex, endIndex, augment);
     };
 
-    this.focus = function () {
+    this.focus = function() {
         _this.refresh();
     };
 
@@ -1882,6 +1925,7 @@ var rob = {};
         return Boolean(viewbox) && viewbox.hasAttribute("active");
     };
     
+    // activate(true) -> refresh(true); activate(false) -> clearAll()
     this.activate = function(state) {
         state = Boolean(state);
         logger.debug("Rbrowser.activate: start (state=", state, ")");
@@ -1897,7 +1941,6 @@ var rob = {};
 			   logger.debug("Rbrowser.activate->on timeout (delayed refresh)");
 			   _this.refresh(true); 
 			   }, 256);
-
         } else {
             logger.debug("Rbrowser.activate: clearing R browser");
             _this.clearAll();
@@ -1990,7 +2033,6 @@ var rob = {};
                 clearInterval(intervalID);
  
         }, 1024);
-
 
         const prefs = require("ko/prefs");
         const auPrefName = "RInterface.rBrowserAutoUpdate";

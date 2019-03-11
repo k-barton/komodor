@@ -6,9 +6,21 @@ objSearch  <-
 function(fsep = ";", rsep = "\t")  {
     
     rval <- search()
-    idxPkg <- grep("^package:", rval)
-    pkgNames <- rval[idxPkg]
-    pkgNames <- sub("^package:", "", pkgNames)
+
+    type <- vapply(seq.int(length(rval)), function(i) {
+        e <- as.environment(i)
+        if(is.character(attr(e, "name")) &&
+            startsWith(attr(e, "name"), "package:") &&
+            !is.null(attr(e, "path")))
+                return(1L)
+        if(identical(base::.GlobalEnv, e)) return(0L)
+        2L
+    }, 0L)
+    
+    
+    #idxPkg <- startsWith("package:", rval)
+    idxPkg <- which(type == 1L)
+    pkgNames <- substr(rval[idxPkg], 9L, 64L)
     deps <- lapply(pkgNames, .getAllDependencies)
     d0 <- vapply(deps, length, 0L) == 0L
     depsStr <- deps
@@ -24,14 +36,25 @@ function(fsep = ";", rsep = "\t")  {
     requiredBy <- lapply(pkgNames, function(x) pkgNames[vapply(deps, function(d) x %in% d, FALSE)])
     requiredByStr <- lapply(requiredBy, paste0, collapse = " ")
     rval[idxPkg] <- paste(rval[idxPkg], depsStr, requiredByStr, sep = fsep)
+    rval <- paste0(type, rval)
 
-    
     if (!identical(ee <- getEvalEnv(), .GlobalEnv)) {
         eeName <- attr(ee, "name")
-        rval <- c(if (is.null(eeName)) "<EvalEnv>" else paste0("<EvalEnv[", eeName[1L], "]>"), rval)
+        rval <- c(if (is.null(eeName)) "3" else paste0("3", eeName[1L], ""), rval)
     }
     return(paste(rval, collapse = rsep))
 }
+
+#cat(objSearch(rsep = "\n"))
+
+#sapply(seq.int(length(x)), function(i) {
+#    e <- as.environment(i)
+#    if(is.character(attr(e, "name")) && startsWith(attr(e, "name"), "package:") && !is.null(attr(e, "path")))
+#        return(1);
+#    if(identical(base::.GlobalEnv, e)) return(0);
+#    2
+#})
+
 
 #getDependencies <-
 #function(pkgName, fields = "Depends") {

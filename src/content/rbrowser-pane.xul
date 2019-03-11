@@ -106,7 +106,7 @@ Contributors:
 		<menuitem id="cmd_rbrowser_plot"
 			label="&rob.plot;"
 			oncommand="rob.treeItemCommand('plot')"
-			testDisableIf="t:noPlot"
+			testDisableIf="t:noPlot t:isEnvironment"
 			accesskey="&rob.plot.acc;" />
 		<menuitem id="cmd_rbrowser_str"
 			label="&rob.str;"
@@ -165,6 +165,22 @@ Contributors:
 			testDisableIf="t:multipleSelection t:noHelp"
 			accesskey="&rob.help.acc;" />
 	</menupopup>
+    
+    <menupopup id="rbrowser_searchpath_listbox_context" onpopupshowing="null">
+		<menuitem id="menu_rbrowser_searchpath_1"
+			label="item 1"
+			oncommand="alert(this.label)"
+			accesskey="1"
+			acceltext="1" />
+         <menuitem id="menu_rbrowser_searchpath_2"
+			label="item 2"
+			oncommand="alert(this.label)"
+			accesskey="2"
+			acceltext="2" />
+		<menuseparator keep="false" intoplevel="true"/>
+    </menupopup>
+    
+    
 </popupset>
 
 <vbox flex="1" id="rbrowserViewbox_rbrowserWrapper">
@@ -288,7 +304,7 @@ Contributors:
 			<splitter id="rbrowserSubpanelSplitter"
 					  orient="vertical"
 					  resizeafter="farthest"
-					  ondblclick="rob.toggleViewSearchPath()"
+					  ondblclick="rob.searchPathToggleView()"
 					  collapse="after">
 				<vbox flex="1" height="32">
 					<hbox id="rbrowserSubpanelSplitterHboxBorder" flex="1">
@@ -299,12 +315,12 @@ Contributors:
 								   class="panel-label">&rob.RSearchPath;</label>
 							<spacer flex="1" />
 							<toolbarbutton id="rbrowserSubpanelToggle"
-										   buttonstyle="pictures"
-										   oncommand="rob.toggleViewSearchPath();"
-										   persist="state"
-										   state="collapsed"
-										   tooltiptext="&rob.RSearchPathButton.tip;"
-										   />
+								buttonstyle="pictures"
+								oncommand="rob.searchPathToggleView();"
+								persist="state"
+								state="collapsed"
+								tooltiptext="&rob.RSearchPathButton.tip;"
+								/>
 							<spacer flex="1" />
 						</hbox>
 					</hbox>
@@ -322,6 +338,19 @@ Contributors:
 					onkeypress="rob.onSearchPathKeyEvent(event);"
 					oncommand="rob.packageSelectedEvent(event);"/>
 				-->
+				<hbox id="rbrowserInstalledPackagesBox" minheight="24">
+					<menulist id="rbrowserInstalledPackagesList" flex="1"
+						tooltip="Select R package to load" disabled="true" />
+					<toolbarbutton id="rbrowserInstalledPackagesRefreshListButton"
+						label="Refresh" buttonstyle="pictures" class="refresh-icon"
+						accesskey="R"
+						oncommand="rob.instaPackRefresh(true)"
+						disabled="true" />
+					<toolbarbutton id="rbrowserInstalledPackagesLoadButton" label="Load"
+						accesskey="L" oncommand="rob.instaPackLoadSelected()"
+						disabled="true" />
+				</hbox>
+
 				<richlistbox class="rsearchpath" flex="1" id="rbrowser_searchpath_listbox"
 					ondrop="rob.draghandlers.onSearchPathDrop(event);"
 					ondragover="rob.draghandlers.onSearchPathDragOver(event);"
@@ -330,6 +359,7 @@ Contributors:
 					oncommand="rob.packageSelectedEvent(event);"
 					ondragenter="rob.draghandlers.onSearchPathDragEnter(event);"
 					ondragleave="rob.draghandlers.onSearchPathDragLeave(event);"
+                    context="rbrowser_searchpath_listbox_context"
 					/>
 				
 			</vbox>

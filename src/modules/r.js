@@ -24,7 +24,7 @@ if (!Object.entries)
 if (!Object.values)
     Object.values = function (obj) {
     	var vals = [];
-         for (var key in obj)
+        for (var key in obj)
             if (obj.hasOwnProperty(key) && obj.propertyIsEnumerable(key))
                 vals.push(obj[key]);
         return vals;
@@ -150,7 +150,7 @@ if (!Object.values)
         }
     };
 
-	let sourceDescr = {
+	var sourceDescr = {
 		"sel": "selection",
 		"word": "word under cursor",
 		"block": "bookmark delimited block",
@@ -175,7 +175,7 @@ if (!Object.values)
             if (!doc) return false;
 
             var cmd, path, isTmp, comment = "";
-            if (!what || what == "all") {
+            if (!what || what === "all") {
                 let isTempFile = {};
                 path = ui.pathWithCurrentViewContent(view, isTempFile);
                 if (path === null) return false;
@@ -189,7 +189,7 @@ if (!Object.values)
                 let fileName = svc.OS.path.withoutExtension(doc.baseName) + "_" + what;
                 let content = ui.getTextRangeWithBrowseCode(what);
                 let description = '';
-                if (what == "function") {
+                if (what === "function") {
                     let rx = /(([`'"])(.+)\2|([\w\u00C0-\uFFFF\.]+))(?=\s*<-\s*function)/;
                     let match = content.match(rx);
                     let funcName = (match ? match[3] || match[4] : '');
@@ -208,10 +208,13 @@ if (!Object.values)
             }
 
             if (isTmp)
-                cmd = comment + 'kor::sourceTemp(' + _this.arg(path) + ', encoding="utf-8", local = kor::getEvalEnv())';
+                cmd = comment + 'kor::sourceTemp(' + _this.arg(path) +
+                    ', encoding="utf-8", local = kor::getEvalEnv())';
             else
                 cmd = comment + 'base::source(' + _this.arg(path) + 
-					', encoding="' + view.koDoc.encoding.short_encoding_name.toLowerCase() + '", local = kor::getEvalEnv())';
+					', encoding="' +
+                    view.koDoc.encoding.short_encoding_name.toLowerCase() +
+                    '", local = kor::getEvalEnv())';
 
             rval = _this.evalUserCmd(cmd);
 
@@ -222,20 +225,20 @@ if (!Object.values)
     };
 
     // Send whole or a part of the current buffer to R and place cursor at next line
-    this.send = function (what = "all") {
-        let scimoz = ui.getCurrentScimoz();
-        if (!scimoz) return;
+    this.send = function(what = "all") {
+    	let scimoz = ui.getCurrentScimoz();
+    	if (!scimoz) return;
 
-        try {
-            let cmd = ui.getTextRangeWithBrowseCode(what, !what.contains("sel")).trimRight();
-            if (cmd) _this.evalUserCmd(cmd);
+    	try {
+    		let cmd = ui.getTextRangeWithBrowseCode(what, !what.contains("sel")).trimRight();
+    		if (cmd) _this.evalUserCmd(cmd);
 
-            if (what == "line" || what == "linetoend") // || what == "para"
-                scimoz.charRight();
-        } catch (e) {
-            logger.exception(e, "");
-         }
-        return;
+    		if (what === "line" || what === "linetoend") // || what == "para"
+    			scimoz.charRight();
+    	} catch (e) {
+    		logger.exception(e, "");
+    	}
+    	return;
     };
 
     // Get help in R (HTML format)
@@ -288,12 +291,12 @@ if (!Object.values)
     // Run the example for selected item
     this.example = function (topic = "") {
         var res = false;
-        if (topic == "")
+        if (!topic)
             topic = ui.getTextRange("word");
-        if (topic == "") {
+        if (topic === "") {
             ui.addNotification(ui.translate("Selection is empty"));
         } else {
-            res = _this.evalUserCmd("utils::example(" + topic + ")");
+            res = _this.evalUserCmd("utils::example(" + _this.arg(topic) + ")");
             //ui.addNotification(ui.translate("R example run for \"%S\"", topic));
         }
         return res;
@@ -629,7 +632,7 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
             callback(undefined);
             return;
         }
-        rConn.evalAsync("kor::isInstalledPkg(\"" + pkgName + "\")", (result) => {
+        rConn.evalAsync("kor::isInstalledPkg(" + _this.arg(pkgName) + ")", (result) => {
             callback(parseInt(result) > 0);
         }, true, true);
     };
@@ -639,7 +642,7 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
             callback(undefined);
             return;
         }
-        rConn.evalAsync(`utils::install.packages("${pkgName}")`,
+        rConn.evalAsync(`utils::install.packages(${_this.arg(pkgName)})`,
             () => _this.isPackageInstalled(pkgName, callback), rConn.AUTOUPDATE);
     };
 	
@@ -651,8 +654,6 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
         rConn.evalAsync(`kor::doCommand("attach", ${_this.arg(filePath)}, ${_this.arg(pos)})`,
             callback.bind(null), rConn.AUTOUPDATE);
     };
-	
-	
-	
+
 
 }).apply(module.exports);
