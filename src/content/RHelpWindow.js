@@ -12,6 +12,7 @@ if(typeof require === "undefined")
 
 const R = require("kor/r");
 const UI = require("kor/ui");
+const Fu = require("kor/fileutils");
 
 var logger = require("ko/logging").getLogger("komodoR");
 
@@ -40,20 +41,21 @@ function go(uri, loadFlags) {
 		return;
 	}
 
-	if (uri) {
+	if (uri) 
 		rHelpTopic.value = uri;
-	} else {
-		uri = rHelpTopic.value;
-	}
-	rHelpTopic.select();
+	else 
+        uri = rHelpTopic.value;
 
-	if (isUrl(uri)) {
+	rHelpTopic.select();
+    
+    if(Fu.exists2(uri) !== 0) {
+        rHelpBrowser.webNavigation.loadURI(Fu.toFileURI(uri), loadFlags, null, null, null);
+    } else if (isUrl(uri)) {
 		// This looks like a URL
 		rHelpBrowser.webNavigation.loadURI(uri, loadFlags, null, null, null);
-	} else {
+	} else
 		// Look for this 'topic' web page
 		R.help(uri);
-	}
 }
 
 // viewZoomOverlay.js uses this

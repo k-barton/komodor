@@ -47,10 +47,10 @@ var kor = {};
         command: { get() require("kor/command"), enumerable: true},
         rbrowser: { get() {
             if (!_rOB) {
-                var rbrowserWidget = require("ko/windows").getWidgetWindows()
-                    .find(x => x.name === "rbrowserViewbox");
-                if (!rbrowserWidget) return undefined;
-                _rOB = rbrowserWidget.rob;
+                var robWidget = require("ko/windows").getWidgetWindows()
+                    .find(x => x.name === "robViewbox");
+                if (!robWidget) return undefined;
+                _rOB = robWidget.rob;
             }
             return _rOB;
             }, enumerable: true},

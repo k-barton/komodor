@@ -3,7 +3,7 @@
 @svg-images: "koicon://ko-svg/chrome/komodor/skin/images";
 
 
-#rbrowserSubpanelToggle {
+#robSubpanelToggle {
     &[state="open"] {
         list-style-image: url("koicon://ko-svg/chrome/icomoon/skin/arrow-down2.svg?preset=widgets");
     }
@@ -18,7 +18,7 @@
 }
 
 /* No default grippy image. Splitter-like cursor as appropriate. */
-#rbrowserSubpanelSplitter {
+#robSubpanelSplitter {
     background: transparent !important;
     border: none;
     border-top: solid 1px ThreeDShadow;
@@ -34,13 +34,13 @@
     }
 }
 
-#rbrowserSubpanelSplitterHboxBorder {
+#robSubpanelSplitterHboxBorder {
   -moz-box-orient: horizontal;
   height: 1px;
   margin: 0 0;
 }
 
-#rbrowser_objects_tree {
+#rob_objects_tree {
     treecol#r-dims {
         text-align: right;
     }
@@ -82,8 +82,8 @@
 
 
 
-// #rbrowser_objects_tree
-#rbrowser_filterbox {
+// #rob_objects_tree
+#rob_filterbox {
     margin: 4px 4px 2px 2px;
     /*min-width: 40px;
 	max-width: 200px;*/
@@ -93,7 +93,7 @@
     }
 }
 
-#rbrowser_objects_tree_placeholder {
+#rob_objects_tree_placeholder {
     
     button:first-of-type {
         -moz-appearance: none;
@@ -113,19 +113,19 @@
 }
     
 #rbrowserViewbox_rbrowser:not([active]) {
-    #rbrowser_objects_tree {
+    #rob_objects_tree {
         visibility: collapse;
     }
-    #rbrowser_objects_tree_placeholder {
+    #rob_objects_tree_placeholder {
         visibility: visible;
     }
 }
 
 #rbrowserViewbox_rbrowser[active] {
-    #rbrowser_objects_tree {
+    #rob_objects_tree {
         visibility: visible;
     }
-    #rbrowser_objects_tree_placeholder {
+    #rob_objects_tree_placeholder {
         visibility: collapse;
     }
 }
@@ -140,28 +140,28 @@
     visibility: collapse;
 }
 
-#rbrowser_filterByName_button {
+#rob_filterByName_button {
     list-style-image: url("@{svg-images}/filter-name.svg?size=@{icon-size}&preset=widgets");
     &[checked="true"] {
         .filterbuttonchecked;
     }
 }
 
-#rbrowser_filterByClass_button {
+#rob_filterByClass_button {
     list-style-image: url("@{svg-images}/filter-class.svg?size=@{icon-size}&preset=widgets");
     &[checked="true"] {
         .filterbuttonchecked;
     }
 }
 
-#rbrowser_showAll_button {
+#rob_showAll_button {
     list-style-image: url("@{svg-images}/eye-closed.svg?size=@{icon-size}&preset=widgets");
     &[checked="true"] {
         list-style-image: url("@{svg-images}/eye-red.svg?size=@{icon-size}&preset=widgets");
     }
 }
 
-#rbrowser_showAttributes_button {
+#rob_showAttributes_button {
     list-style-image: url("@{images}/objects-hide-attributes.png");
     &[checked="true"] {
         list-style-image: url("@{images}/objects-show-attributes.png");
@@ -180,17 +180,21 @@
     list-style-image: url("@{svg-images}/plus-circle.svg?size=@{icon-size}&preset=widgets");
 }
 
-#rbrowserToolbar {
+#rbrowserViewbox_rbrowser {
     .refresh-icon {
         list-style-image: url("@{svg-images}/refresh.svg?size=@{icon-size}&preset=widgets");
     }
     .tools-icon {
         list-style-image: url("@{svg-images}/cog.svg?size=@{icon-size}&preset=widgets");
     }
+    .load-package-icon {
+        list-style-image: url("@{svg-images}/package-load.svg?size=@{icon-size}&preset=widgets");
+    }
+
 }
 
 
-#rbrowserToolbar {
+#robToolbar {
     &>toolbarbutton {
         & {
             border-width: 1px;
@@ -207,7 +211,7 @@
 }
 
 
-#rbrowser_searchpath_listbox {
+#rob_searchpath_listbox {
     .eval-env {
         font-style: italic;
     }
