@@ -9,6 +9,13 @@
 
 self.kor = require("kor/main");
 
+// var mozIJSSubScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+                            // .getService(Components.interfaces.mozIJSSubScriptLoader);
+                            
+for(let a of ["tools", "init", "r-help", "bookmark"])
+    Services.scriptloader
+        .loadSubScript("chrome://komodor/content/js/" + a + ".js", window, "utf-8");
+
 (function() {
 	let logging = require("ko/logging");
 	let level = logging.LOG_WARN;

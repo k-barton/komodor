@@ -10,14 +10,6 @@
 
 "use strict";
 
-
-//var getValueType = (x) => {
-//    let type = typeof x;
-//    if(type === "number") type = Number.isInteger(x) ? "long": "double";
-//    return type;
-//};
-
-
 const PrefsetExt = exports.PrefsetExt = function(prefset) {
     var _prefset = prefset || require("ko/prefs");
 	Object.defineProperty(this, '_prefset', {
@@ -95,8 +87,6 @@ PrefsetExt.prototype = {
     }
 };
 
-
-
 (function () {
 
     var logger = require("ko/logging").getLogger("komodoR-prefs");
@@ -104,7 +94,6 @@ PrefsetExt.prototype = {
     Object.defineProperty(this, 'toString', { value: () => "[object KorPrefs]",  enumerable: false});
 
     var _pref = new PrefsetExt();
-
     
     Object.defineProperties(this, { 
         prefset: { get() _pref._prefset, enumerable: true },
@@ -112,7 +101,7 @@ PrefsetExt.prototype = {
         getPref : { get() _pref.getPref.bind(_pref), enumerable: true },
         deletePref : { get() _pref.deletePref.bind(_pref), enumerable: true },
         setDefaults : { value(revert) _pref.setDefaults.bind(_pref)(revert, _this.defaults), enumerable: true }
-   }); 
+    }); 
     
     // when changing this, update oldNames below accordingly
     this.defaults = { 
@@ -141,6 +130,11 @@ PrefsetExt.prototype = {
     this.defaults[require("kor/main").langName + "HelpCommand"] =
         'javascript:kor.r.help(\"%W\")'; // jshint ignore: line
   
+    // this.reset = (prefName) => {
+        // if(!prefName || !this.defaults.hasOwnProperty(prefName)) return null;
+        // return this.setPref(prefName, this.defaults[prefName]);
+    // };
+
     this.renamePrefs = function() {
         // Update preference names:
         // backward compatibility - rename old properties

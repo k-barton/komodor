@@ -1,35 +1,35 @@
 <?xml version="1.0"?>
-	<!-- ***** BEGIN LICENSE BLOCK *****
-	Version: MPL 1.1/GPL 2.0/LGPL 2.1
+<!-- ***** BEGIN LICENSE BLOCK *****
+Version: MPL 1.1/GPL 2.0/LGPL 2.1
 
-	The contents of this file are subject to the Mozilla Public License
-	Version 1.1 (the "License"); you may not use this file except in
-	compliance with the License. You may obtain a copy of the License at
-	http://www.mozilla.org/MPL/
+The contents of this file are subject to the Mozilla Public License
+Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.mozilla.org/MPL/
 
-	Software distributed under the License is distributed on an "AS IS"
-	basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
-	License for the specific language governing rights and limitations
-	under the License.
+Software distributed under the License is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations
+under the License.
 
-	Contributor(s):
-	Kamil Barton
-	Philippe Grosjean
-	
-	Alternatively, the contents of this file may be used under the terms of
-	either the GNU General Public License Version 2 or later (the "GPL"), or
-	the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
-	in which case the provisions of the GPL or the LGPL are applicable instead
-	of those above. If you wish to allow use of your version of this file only
-	under the terms of either the GPL or the LGPL, and not to allow others to
-	use your version of this file under the terms of the MPL, indicate your
-	decision by deleting the provisions above and replace them with the notice
-	and other provisions required by the GPL or the LGPL. If you do not delete
-	the provisions above, a recipient may use your version of this file under
-	the terms of any one of the MPL, the GPL or the LGPL.
+Contributor(s):
+Kamil Barton
+Philippe Grosjean
 
-	***** END LICENSE BLOCK ***** -->
-	
+Alternatively, the contents of this file may be used under the terms of
+either the GNU General Public License Version 2 or later (the "GPL"), or
+the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+in which case the provisions of the GPL or the LGPL are applicable instead
+of those above. If you wish to allow use of your version of this file only
+under the terms of either the GPL or the LGPL, and not to allow others to
+use your version of this file under the terms of the MPL, indicate your
+decision by deleting the provisions above and replace them with the notice
+and other provisions required by the GPL or the LGPL. If you do not delete
+the provisions above, a recipient may use your version of this file under
+the terms of any one of the MPL, the GPL or the LGPL.
+
+***** END LICENSE BLOCK ***** -->
+
 <?xml-stylesheet href="chrome://global/skin" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/bindings/widgets.css" type="text/css"?>
@@ -41,13 +41,11 @@
 <?xml-stylesheet href="chrome://komodor/skin/menulist-iconic.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pref-R.css" type="text/css"?>
 
-<window
-	xmlns:html="http://www.w3.org/1999/xhtml"
-	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-	class="kodialog pref-window" orient="vertical">
-	<!-- class="kodialog pref-window" orient="vertical" onload="PrefR_OnLoad(event);"> -->
-	<script src="chrome://komodo/content/library/trace.js" type="application/x-javascript" />
-	<script src="chrome://komodo/content/library/dialogs.js" type="application/x-javascript" />
+<window xmlns:html="http://www.w3.org/1999/xhtml" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+    class="kodialog pref-window" orient="vertical">
+    <!-- class="kodialog pref-window" orient="vertical" onload="PrefR_OnLoad(event);"> -->
+    <script src="chrome://komodo/content/library/trace.js" type="application/x-javascript" />
+    <script src="chrome://komodo/content/library/dialogs.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/uriparse.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/filepickers.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/windowManager.js" type="application/x-javascript" />
@@ -69,10 +67,12 @@
 			<separator />
 		</vbox>
 			<hbox align="center">
-				<label class="label equalheight" control="RInterface.runRAs" value="Run R as:" />
+				<label class="label equalheight" control="RInterface.runRAs" 
+                    accesskey="R" value="Run R as:" />
 				<menulist id="RInterface.runRAs" oncommand="rRunAsOnSelect(event)" pref="true" editable="false" />
 			</hbox>
-			<label value="Use this application:" control="RInterface.pathToR" />
+			<label value="Use this application:" accesskey="A"
+                control="RInterface.pathToR" />
 			<grid>
 				<columns>
 					<column flex="1" />
@@ -89,7 +89,9 @@
 							<button tooltiptext="Refresh" oncommand="populatePathToR();"
 									buttonstyle="pictures" 
                                     class="refresh-icon button-toolbar-a" />
-							<button class="menulist-buttons" label="Browse..."
+							<button class="menulist-buttons"
+                                    label="Browse..."
+                                    accesskey="B"
 									oncommand="addCustomPathToR()" />
 						</hbox>
 					</row>
@@ -98,7 +100,8 @@
 					</hbox>
 					<row align="center">
 						<hbox align="center">
-							<label value="Command line arguments:" control="RInterface.cmdArgs" />
+							<label value="Command line arguments:" accesskey="C"
+                                control="RInterface.cmdArgs" />
 							<textbox id="RInterface.cmdArgs" pref="true" editable="true" flex="1"
 									 oninput="onUserEditCommandLine(this)"
 									 style="margin-right: 0" />
@@ -113,13 +116,15 @@
 						<hbox align="left">
 							<checkbox id="RCmdl.no:no-restore" 
 								label="Restore saved workspace" 
+                                accesskey="W"
 								rcmdlArgs="!no-restore no-restore-data vanilla"
 								tooltiptext="Should saved images (file .RData in the directory where R was started) be restored at startup?"
 								oncommand="onCmdlOptionsChecked(this)"
 								/>
 							<checkbox id="RCmdl.quiet" 
 								label="Do not print out the initial welcome messages"
-								rcmdlArgs="quiet q silent"
+								accesskey="O"
+                                rcmdlArgs="quiet q silent"
 								oncommand="onCmdlOptionsChecked(this)"
 								/>
 						</hbox>
@@ -127,7 +132,7 @@
 					<row align="center">
 						<hbox align="center" style="margin-top: 4px;">
 							<label class="label" control="R_command" crop="end"
-								   value="This command will be used to start R (R-&gt;Start R):" />
+								   value="This command will be used to start R:" />
 						</hbox>
 					</row>
 					<row align="center">
@@ -147,10 +152,15 @@
 			<hbox align="left">
 				<checkbox id="RInterface.rBrowserAutoUpdate"
 						  label="Automatically update object tree upon every calculation"
-						  pref="true" prefattribute="checked" />
+						  accesskey="U"
+                          pref="true" prefattribute="checked" />
 			</hbox>
             <hbox>
-            	<label value="Limit number of displayed items to (large values may cause R to freeze for some time):" 
+            	<description>
+                Displaying objects with large number of items (>1000) may cause R to freeze for some time. 
+            	</description>
+                <label value="Limit number of items displayed in a tree branch to:" 
+                    accesskey="T"
                     control="RInterface.rBrowserMaxItems" />
 				<textbox id="RInterface.rBrowserMaxItems" pref="true" 
                     width="50" class="numeric-input" type="number" 
@@ -161,31 +171,53 @@
 		<separator class="thin" />
 		<groupbox orient="vertical">
 			<caption label="Data input and output" />
-			<grid>
+			<grid flex="1">
 				<columns>
-					<column flex="1" />
 					<column flex="0" />
-					<column flex="1" />
 					<column flex="1" />
 				</columns>
 				<rows>
-					<row align="left">
-						<hbox align="right">
-							<label value="Decimal separator" control="RInterface.CSVDecimalSep" />
+					<row>
+						<label value="Default separators for data frame export:" />
+						<hbox align="left">
+							<label value="Decimal separator"
+                                   accesskey="D"
+								   control="RInterface.CSVDecimalSep" />
+							<menulist pref="true" id="RInterface.CSVDecimalSep"
+									  values=", ."
+									  persist="values" maxValues="3"
+									  sizetopopup="pref" class="short" />
+							<label value="CSV field separator"
+                                   accesskey="C"
+								   control="RInterface.CSVSep" />
+							<menulist pref="true" id="RInterface.CSVSep"
+									  editable="true"
+									  onkeyup="if (event.keyCode == 13) editMenulist(this);"
+									  onblur="editMenulist(this);"
+									  values=", ; \t" persist="values"
+									  maxValues="5" sizetopopup="pref"
+									  class="short" />
 						</hbox>
-						<menulist pref="true" id="RInterface.CSVDecimalSep" values=", ." persist="values"
-								  maxValues="3" sizetopopup="pref" class="short">
-							<menupopup />
-						</menulist>
-						<hbox align="right">
-							<label value="CSV field separator" control="RInterface.CSVSep" />
+					</row>
+					<row>
+						<label value="URI of a CSS stylesheet to use for data frame view:"
+                               accesskey="S"
+							   control="RInterface.viewTableCSSURI" />
+						<hbox align="left">
+							<textbox id="RInterface.viewTableCSSURI" pref="true"
+									 width="222"
+									 style="margin-left: 4px; margin-right: 0px;" />
+                            <button class="menulist-buttons"
+                                    label="Browse..."
+                                    accesskey="B"
+									oncommand="browseForViewTableCSSURI()" />
+							<button class="menulist-buttons reset-icon button-toolbar"
+                                    label="Use default"
+                                    accesskey="F"
+									oncommand="resetToDefault('RInterface.viewTableCSSURI');"
+									buttonstyle="pictures"
+									/>
 						</hbox>
-						<menulist pref="true" id="RInterface.CSVSep" editable="true"
-								  onkeyup="if (event.keyCode == 13) editMenulist(this);" 
-								  onblur="editMenulist(this);" values=", ; \t" persist="values"
-								  maxValues="5" sizetopopup="pref" class="short">
-							<menupopup />
-						</menulist>
 					</row>
 				</rows>
 			</grid>
@@ -200,29 +232,45 @@
 				</columns>
 				<rows>
 					<row align="center">
-						<label value="Default CRAN mirror:" control="CRANMirror" />
-						<hbox align="right">
-							<menulist id="CRANMirror" sizetopopup="none" width="200" class="menulist-buttons"
-									  oncommand="OnCranMirrorChange()" flex="1">
+						<label value="Default CRAN mirror:"
+                            accesskey="M"
+                        control="CRANMirror" />
+						<hbox
+							align="right">
+							<menulist
+								id="CRANMirror"
+								sizetopopup="none"
+								width="200"
+								class="menulist-buttons"
+								oncommand="OnCranMirrorChange()"
+								flex="1">
 								<!-- /set manually/ pref="true" prefattribute="value"-->
-								<menupopup maxheight="200" />
+								<menupopup
+									maxheight="200" />
 							</menulist>
-							<button id="RefreshCRANMirrors" label="Refresh list"
-                                    tooltiptext="Refresh mirror list"
-									buttonstyle="pictures" 
-                                    class="refresh-icon button-toolbar-a"
-									oncommand="updateCranMirrorListAsync(true)" />
+							<button
+								id="RefreshCRANMirrors"
+								label="Refresh list"
+								accesskey="L"
+								tooltiptext="Refresh mirror list"
+								buttonstyle="pictures"
+								class="refresh-icon button-toolbar-a"
+								oncommand="updateCranMirrorListAsync(true)" />
 						</hbox>
-						<hbox align="right">
-							<checkbox id="CRANMirrorSecure" label="Secure mirrors (HTTPS)" pref="true"
-									  prefattribute="checked" oncommand="setCranMirrorsSecure(this.checked)" />
-						</hbox>
+					<hbox align="right">
+						<checkbox id="CRANMirrorSecure"
+								  label="Secure mirrors (HTTPS)"
+								  accesskey="H" pref="true" prefattribute="checked"
+								  oncommand="setCranMirrorsSecure(this.checked)" />
+					</hbox>
 					</row>
 					<hbox align="center" flex="1">
 						<label id="CRANMirrorDescr" class="description" value="" />
 					</hbox>
 					<row align="center">
-						<label value="Remote help url:" control="RInterface.rRemoteHelpURL" />
+						<label value="Remote help url:" 
+                            accesskey="E"
+                            control="RInterface.rRemoteHelpURL" />
 						<textbox id="RInterface.rRemoteHelpURL" pref="true" width="222"
 								 style="margin-left: 4px; margin-right: 0px;" />
 					</row>
@@ -231,6 +279,7 @@
 		</groupbox>
 		<hbox hiddenPre9="false" hidden="true">
 			<button label="Show advanced settings (rarely need to be changed)"
+                    accesskey="G"
 					oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;"
 					hidden="true" hiddenPre9="false" />
 		</hbox>
@@ -265,12 +314,11 @@
 			<vbox id="no-avail-formatR-message" flex="1" align="center">
 				<description style="font-weight: bold;">
 			Code formatting requires R package "formatR" to be installed.
-			
 					<label id="formatR-install-offer" style="visibility: collapse;">
-				Click 
+			Click 
 						<button class="button-link-a" oncommand="formatR_install();"
 								style="border-width: 0; display: inline-block; -moz-appearance: none;">here</button>
-				to install it from CRAN.
+			to install it from CRAN.
 					</label>
 				</description>
 			</vbox>

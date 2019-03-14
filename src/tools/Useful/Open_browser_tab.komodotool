@@ -1,0 +1,16 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Open browser tab", 
+  "language": "JavaScript", 
+  "trigger": "trigger_postopen", 
+  "trigger_enabled": false, 
+  "value": [
+    "ko.views.manager.openViewAsync(\"browser\", \"about:blank\");", 
+    "//ko.views.manager.openViewAsync(\"browser\", \"about:blank\", null, null, callback);"
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "type": "macro", 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/globe2.svg"
+}

@@ -243,7 +243,7 @@ if (!Object.values)
 
     // Get help in R (HTML format)
     function askRForHelpURL(topic, pkg) {
-        let res = "", cmd = "";
+        let cmd = "";
         if (pkg === true) {
             pkg = 'NA'; // try.all.packages
         } else if (pkg !== undefined) {
@@ -259,7 +259,8 @@ if (!Object.values)
                     result = result.substr(0, result.indexOf("<[end-of-result]>") - 1);
                     if (!result.startsWith("http")) result = null;
                     resolve(result);
-                }, true, false)});
+                }, true, false);
+                });
     }
 
     var _lastHelpTopic = {
@@ -306,7 +307,7 @@ if (!Object.values)
         rConn.evalAsync("kor::koBrowseEnd()", (data) => {
             ui.addNotification("R: " + data.trim());
             }, 1);
-    }
+    };
     
     this.detach = function(names) {
         if (!Array.isArray(names)) names = [names];
@@ -323,7 +324,7 @@ if (!Object.values)
                     ui.addNotification(msg);
                 }
             }, 3 /* == AU+H */);
-    }
+    };
     
     /*
       demo()
@@ -334,7 +335,7 @@ if (!Object.values)
         let file = fu.getLocalFile(fileName);
         if (!file.exists()) return;
 
-        encoding = encoding ? encoding : "utf-8";
+        encoding = encoding ? encoding.toLowerCase() : "utf-8";
         let enc1 = encoding.replace(/^windows-/, "cp");
         let content = fu.read(fileName, enc1);
         if(removeFile) file.remove(false);
@@ -389,18 +390,18 @@ if (!Object.values)
     
     this.viewTable = function _viewTable(name) {
         var cssURI = require("kor/prefs")
-            .getPref("RInterface.viewTableCSSURI",
-                "resource://kor-doc/viewTable.css");
+            .getPref("RInterface.viewTableCSSURI", 
+            "resource://kor-doc/viewTable.css");
         //fu.pathFromURI(uri) == uri
         
-        var maxRows = require("kor/prefs").getPref("RInterface.viewTableMaxRows", 256);
+        var maxRows = require("kor/prefs")
+            .getPref("RInterface.viewTableMaxRows", 256);
         // TODO: add kor::
-        var cmd = 'view(' + name + ', cssfile=' +
-            _this.arg(cssURI) +
+        var cmd = 'view(' + name + ', cssfile=' + _this.arg(cssURI) +
             ', max.rows=' + _this.arg(maxRows) + ')';
         rConn.evalAsync(cmd, null, false);
         return cmd;
-    }
+    };
     
     this.saveDataFrame = function _saveDataFrame(name, fileName, objName,
         dec = require("ko/prefs").getStringPref("RInterface.CSVDecimalSep"),
@@ -433,7 +434,7 @@ if (!Object.values)
                 "Whitespace delimited values (*.txt)|*.txt"
             ], false, true, oFilterIdx);
             sep = [",", "\\t", " "][oFilterIdx.value];
-            if (dec == "," && sep == ",") dec = ";";
+            if (dec === "," && sep === ",") dec = ";";
         }
         
         if(!fileName) return null;

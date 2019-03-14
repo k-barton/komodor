@@ -34,7 +34,7 @@ xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <treechildren container="false" id="languagesChildren">
     <treeitem container="false" id="svPrefRItem">
       <treerow>
-	<treecell class="treecell-indent" url="chrome://komodor/content/pref-R.xul"
+	<treecell class="treecell-indent" url="chrome://komodor/content/pref-R/pref-R.xul"
 		  id="" label="R"/>
       </treerow>
     </treeitem>

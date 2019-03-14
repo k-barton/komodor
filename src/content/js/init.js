@@ -76,7 +76,7 @@
     //--------------------------------------------------------------------------  
 
     // Set default keybindings from file
-    // chrome://komodor/content/default-keybindings.kkf
+    // chrome://komodor/content/keybindings.kkf
     // preserving user modified ones and avoiding key conflicts
     // sfx is for platform specific keybindings
     function _setKeybindings(clearOnly) {

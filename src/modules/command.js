@@ -106,12 +106,11 @@
 		logger.debug("openRPreferences: start");
         let item = "svPrefRItem";
         require("sdk/timers").setImmediate(() => _W.prefs_doGlobalPrefs(item, true /*=modal*/));
-
          // // workaround the bug with switching to the right panel:
          // var prefFrameLoadEvent = function _prefFrameLoadEvent(event) {
          	// try {
          		// let prefWin = event.detail.parent;
-         		// //prefWin.hPrefWindow.contentFrame.contentDocument.location !== "chrome://komodor/content/pref-R.xul";
+         		// //prefWin.hPrefWindow.contentFrame.contentDocument.location !== "chrome://komodor/content/pref-R/pref-R.xul";
          		// if (prefWin.hPrefWindow.filteredTreeView.getCurrentSelectedId() !== item)
          			// prefWin.switchToPanel(item);
          	// } catch (e) {
@@ -275,7 +274,7 @@
             }
         }
 
-        var rHelpHref = "chrome://komodor/content/RHelpWindow.xul";
+        var rHelpHref = "chrome://komodor/content/RHelpWindow/RHelpWindow.xul";
 
         rHelpWin = UI.getWindowByURI(rHelpHref);
         if (!rHelpWin || rHelpWin.closed) {

@@ -1,0 +1,15 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "R code block with figure", 
+  "value": [
+    "```{r fig.height=4, fig.width=8, fig.cap=\"\"!@#_currentPos!@#_anchor}", 
+    "[[%s]]", 
+    "```"
+  ], 
+  "set_selection": "true", 
+  "version": "1.0.12", 
+  "indent_relative": "false", 
+  "type": "snippet", 
+  "treat_as_ejs": "false", 
+  "auto_abbreviation": "false"
+}

@@ -28,7 +28,7 @@ var rob = {};
     var logger = require("ko/logging").getLogger("komodoR");
     logger.setLevel(logger.DEBUG);
     
-    const { arr: ArrayUtils, str: StringUtils } = require("kor/utils");
+    const { /*arr: ArrayUtils, */ str: StringUtils } = require("kor/utils");
     const fileUtils = require("kor/fileutils");
     const RConn = require("kor/connector");
     const R = require("kor/r");
@@ -50,9 +50,9 @@ var rob = {};
    
     this.searchPath = {
         _data: [],
-        getListBox() document.getElementById("rbrowser_searchpath_listbox"),
+        getListBox() document.getElementById("rob_searchpath_listbox"),
         display() {
-            logger.debug("searchPath.display()");
+            logger.debug("searchPath.display");
 
             let list = this.getListBox();
             let selectedLabel = list.selectedItem ? list.selectedItem.label : null;
@@ -322,7 +322,7 @@ var rob = {};
         }
     };
 
-    var addVisibleDataItems = function rbrowser_addVisibleDataItems(item, parentIndex, level = -1) {
+    var addVisibleDataItems = function rob_addVisibleDataItems(item, parentIndex, level = -1) {
         if (item === undefined) return parentIndex;
         if (!parentIndex) parentIndex = 0;
 
@@ -330,7 +330,6 @@ var rob = {};
         var len = item.length;
 
         for (let i = 0; i < len; ++i) {
-            //item[i].className != "package" &&
             if (level === 1 && !_this.filter(item[i].sortData[filterBy])) {
                 item[i].index = -1;
                 continue;
@@ -341,8 +340,7 @@ var rob = {};
 
             if (vItem.isContainer && vItem.isOpen && vItem.childrenLength > 0) {
                 let idxBefore = idx;
-                idx = rbrowser_addVisibleDataItems(item[i].children, idx, level + 1);
-
+                idx = rob_addVisibleDataItems(item[i].children, idx, level + 1);
                 // No children is visible
                 if (idxBefore == idx) vItem.isContainerEmpty = true;
             }
@@ -456,7 +454,6 @@ var rob = {};
             
             this.isCurrentEvalEnv = _this.evalEnv.name && env === _this.evalEnv.name;
             
-            //this.name = this.isCurrentEvalEnv ? evalEnvName : env;
             this.name = env;
             this.fullName = env;
             this.children = [];
@@ -514,18 +511,13 @@ var rob = {};
             let tp = this.getTopParent;
             return tp && tp.env.startsWith("package:") ? tp.env.substring(8) + (tp.isHidden ? ":::" : "::") : "";
         },
-        // XXX: make a variable
+        // XXX: cache
         get getFullName() {
             var pos = {};
             parseRObjectName(this.fullName, pos); // for pos.value
             return this.fullName.substr(0, pos.value) + this.getNSPrefix +
                 this.fullName.substr(pos.value); 
         },
-        
-        //sel().getEnvironment.fullName;
-        //rob.evalEnv.name;
-        //sel().getEnvironment.isCurrentEvalEnv
-        // Boolean(rob.evalEnv.name)
         
         get rExpression() {
             if(this.isTopLevelItem) {
@@ -539,7 +531,7 @@ var rob = {};
             }
             if(this.getEnvironment.dims === "0")
                 return this.getFullName;
-            var pos = {}, parsed, topParent, topName, topNameExpr, name, envir;
+            var pos = {}, parsed, topParent, topName, name, envir;
             name = this.fullName;
             parsed = parseRObjectName(name, pos);
             topParent = this.getTopParent;
@@ -550,13 +542,13 @@ var rob = {};
             if(envir.fullName === _this.evalEnv.name && envir.dims === "0") { // double check
                 //posArg = -1; // --> getEvalEnv()
                 posArg = null; // --> no pos arg
-            } else if (envir.fullName === rGlobalEnvStr && envir.dims === "0") {
+            } else if (envir.fullName === rGlobalEnvStr && envir.dims === "0")
                 posArg = null; // --> no pos arg
-            } else if (envir.isPackage) {
+            else if (envir.isPackage)
                 posArg = envir.name;
-            } else {
+            else
                 posArg = parseInt(envir.dims) + (Boolean(_this.evalEnv.name) ? 0 : 1);
-            }
+
       
             return name.substring(0, pos.value) + 
                 R.get(topName, posArg, topParent.isHidden) +
@@ -564,7 +556,7 @@ var rob = {};
         },
          
         get isPackage() this.className === "package" && this.name.startsWith("package:"),
-        get isInPackage() Boolean(this.env) && this.env.startsWith("package:"), // faster than 'substr(...) == "package"
+        get isInPackage() Boolean(this.env) && this.env.startsWith("package:"),
 
         getLevel() {
             let p = this, i = 0;
@@ -572,7 +564,11 @@ var rob = {};
             return i;
             },
     };
-    Object.defineProperty(RObjectItem.prototype, "toString", {enumerable: false, configurable: false, writable: false});
+    
+    Object.defineProperty(RObjectItem.prototype, "toString", {
+        enumerable: false, 
+        configurable: false, 
+        writable: false});
     
     var updateTopLevelItem = (object, pos = null, doUpdVisDat = false) => {
         if(!object.isTopLevelItem) return;
@@ -642,11 +638,11 @@ var rob = {};
     var parseObjListResult = (data, rebuild, scrollToRoot) => {
 
         //logger.debug("parseObjListResult: \n" + data.replace(/[^\w ]/g, "."));
-        var closedPackages = {};
-        var currentPackages = _this.treeData.map(x => {
-            closedPackages[x.name] = !x.isOpen;
-            return x.name;
-        });
+        //var closedPackages = {};
+        // var currentPackages = _this.treeData.map(x => {
+            // closedPackages[x.name] = !x.isOpen;
+            // return x.name;
+        // });
         
         var topLevelItemIsClosed = {};
         for(let i = 0; i < _this.treeData.length; ++i)
@@ -666,9 +662,9 @@ var rob = {};
         var lookFor = LF.Env;
 
         // debug:
-        var prettyLine = l => l.replace(new RegExp(sep, "g"), "·")
-            .replace(new RegExp(recordSep, "g"), "\n")
-            .substring(0, 100);
+        //var prettyLine = l => l.replace(new RegExp(sep, "g"), "·")
+        //    .replace(new RegExp(recordSep, "g"), "\n")
+        //    .substring(0, 100);
 
         let branch, envName, objName;
         for (let i = 0; i < lines.length; ++i) {
@@ -733,7 +729,7 @@ var rob = {};
 					let leaf;
                     for (let k = 0; k < objlist.length; ++k) {
                         if (objlist[k].length === 0) break;
-                        leaf = new RObjectItem(envName, true, objlist[k].split(sep), k /* or i?*/ ,
+                        leaf = new RObjectItem(envName, true, objlist[k].split(sep), k /* or i?*/,
                             branch);
                         branch.children.push(leaf);
                     }
@@ -808,6 +804,8 @@ var rob = {};
         
     });
     
+    // begin instaPack
+    
     this.instaPackRefresh = function(state) {
         logger.debug("Rbrowser.instaPackRefresh");
     	if (state) {
@@ -815,25 +813,66 @@ var rob = {};
     		RConn.evalAsync("base::cat(utils::installed.packages()[,1L])",
     			(output) => {
     				var pkgNames = output.split(" ");
-    				var list = document.getElementById("rbrowserInstalledPackagesList");
+    				var list = document.getElementById("robInstalledPackagesList");
     				var selectedName = list.selectedItem ? list.selectedItem.value : null;
                     list.removeAllItems();
                     for (let a of pkgNames) list.appendItem(a, a);
                     if(selectedName) list.selectedIndex = pkgNames.indexOf(selectedName);
-    				var box = document.getElementById("rbrowserInstalledPackagesBox");
+    				var box = document.getElementById("robInstalledPackagesBox");
     				for (let el of box.childNodes) el.removeAttribute("disabled");
     			}, true, true);
     	} else {
-    		let box = document.getElementById("rbrowserInstalledPackagesBox");
+    		let box = document.getElementById("robInstalledPackagesBox");
     		for (let el of box.childNodes) el.setAttribute("disabled", "true");
     	}
     };
     
     this.instaPackLoadSelected = function() {
-        var list = document.getElementById("rbrowserInstalledPackagesList");
+        var list = document.getElementById("robInstalledPackagesList");
         RConn.evalAsync("base::library(" + R.arg(list.selectedItem.value) + ")",
             () => _this.searchPath.refreshAsync(), false);
     };
+
+    this.instaPackListKeyEvent = function(event) {
+    	let listbox = event.target;
+  
+        let onItemSelect = (listbox, event, idx) => {
+            listbox.selectedIndex = idx;
+            listbox.ensureIndexIsVisible(listbox.selectedIndex);
+            event.preventDefault();
+        };
+
+    	switch (event.key) {
+    		case "End":
+    			onItemSelect(listbox, event, listbox.itemCount - 1);
+    			return;
+    		case "Home":
+    			onItemSelect(listbox, event, 0);
+    			return;
+    		case "Up":
+    			/* falls through */
+    		case "ArrowUp":
+    			onItemSelect(listbox, event, (listbox.selectedIndex > 0) ?
+    				listbox.selectedIndex - 1 : 0);
+    			return;
+    		case "Down":
+    			/* falls through */
+    		case "ArrowDown":
+    			onItemSelect(listbox, event,
+    				(listbox.selectedIndex < listbox.itemCount - 1) ?
+    				listbox.selectedIndex + 1 : listbox.selectedIndex);
+    			return;
+            case "PageDown":
+                onItemSelect(listbox, event, Math.min(listbox.itemCount - 1, listbox.selectedIndex + 25));
+                return;
+            case "PageUp":
+                onItemSelect(listbox, event, Math.max(0, listbox.selectedIndex - 25));
+                return;
+    		default:
+    			return;
+    	}
+    };
+    // end instaPack
 
     this.refresh = function (force = false) {
 		logger.debug("Rbrowser.refresh");
@@ -867,8 +906,8 @@ var rob = {};
             if (init) {
                 let thisWindow = self;
                 if (thisWindow.location.pathname.indexOf("komodo.xul") !== -1)  // in main window
-                    thisWindow = document.getElementById("rbrowserViewbox").contentWindow;
-                thisWindow.document.getElementById("rbrowser_objects_tree").view = _this;
+                    thisWindow = document.getElementById("robViewbox").contentWindow;
+                thisWindow.document.getElementById("rob_objects_tree").view = _this;
             }
             
             RConn.evalAsync(cmd, parseObjListResult, true);
@@ -901,7 +940,7 @@ var rob = {};
 
     // filtering by exclusion: prepend with "~"
     var _getFilter = () => {
-        var tb = document.getElementById("rbrowser_filterbox");
+        var tb = document.getElementById("rob_filterbox");
         var obRx, text, not;
         text = tb.value;
         not = (text[0] == "~");
@@ -928,7 +967,7 @@ var rob = {};
     this.sort = function sort(column, root) {
         var columnName, currentElement, tree, sortDirection, realOrder, order,
             sortDirs;
-        tree = document.getElementById("rbrowser_objects_tree");
+        tree = document.getElementById("rob_objects_tree");
         sortDirection = tree.getAttribute("sortDirection");
         sortDirs = ["descending", "natural", "ascending", "descending"];
         realOrder = sortDirs.indexOf(sortDirection) - 1;
@@ -1022,22 +1061,31 @@ var rob = {};
             restoreSelection();
         }
     };
+    
+    this.canFoldAll = () => {
+        if (!_this.rowCount) return 0;
+        var idx = _this.selection.currentIndex;
+        if (idx === -1) idx = 0;
+        var curItem = _this.visibleData[idx].origItem;
+        var parentObject = curItem.parentObject;
+        if (!parentObject) return 0;
+        var siblings = parentObject.children ? parentObject.children : parentObject;
+        return siblings.some(a => a.isRecursive && !a.isOpen) | (2 * siblings.some(a => a.isOpen));
+    };
 
-    this.foldAll = function (open) {
+    this.foldAll = function(open) {
         if (!this.rowCount) return;
-
         var idx = this.selection.currentIndex;
-        if (idx == -1) idx = 0;
-
+        if (idx === -1) idx = 0;
         var curItem = this.visibleData[idx].origItem;
         var parentObject = curItem.parentObject;
-        if (parentObject) {
-            let siblings = parentObject.children ? 
-                parentObject.children : parentObject;
-            for (let i = 0; i < siblings.length; ++i)
-                if (siblings[i].isOpen === open)
-                    this.toggleOpenState(siblings[i].index);
-        }
+        if (!parentObject) return;
+        var siblings = parentObject.children ?
+            parentObject.children : parentObject; // if an environment, take parentObject
+        for (let i = 0; i < siblings.length; ++i)
+            if (siblings[i].isOpen === open)
+                this.toggleOpenState(siblings[i].index);
+    
     };
 
     this.toggleOpenState = function (idx) {
@@ -1046,6 +1094,7 @@ var rob = {};
 
         if (!item) return;
 
+        // XXX: update already loaded children?
         _this.selection.select(idx);
         if (item.isList && !item.origItem.isOpen && !item.origItem.childrenLoaded) {
             addObjectList(item.origItem.env, item.origItem.fullName);
@@ -1210,7 +1259,7 @@ var rob = {};
                 let text = data.getData("text/plain").trim();
                 let pos = _this.searchPath.indexOf(text);
                 if (pos == -1) return;
-                document.getElementById("rbrowser_searchpath_listbox").getItemAtIndex(pos).checked =
+                document.getElementById("rob_searchpath_listbox").getItemAtIndex(pos).checked =
                     true;
                 addObjectList(text);
             } else if (data.types.contains("Files")) {
@@ -1262,7 +1311,7 @@ var rob = {};
 			} catch(e) {
 				el = null;
 			}
-			pos = el && el.label ? el.label : 2;
+			var pos = el && el.label ? el.label : 2;
 
             // Attach the file if it is an R workspace
             if (filePath && filePath.search(/\.RData$/i) > 0) {
@@ -1302,7 +1351,7 @@ var rob = {};
 			}
 
             let text = _this.searchPath.getItemAtIndex(
-				//document.getElementById("rbrowser_searchpath_listbox").selectedIndex
+				//document.getElementById("rob_searchpath_listbox").selectedIndex
 				event.target.parentElement.getIndexOfItem(event.target)
 				).name;
             event.dataTransfer.setData("text/plain", text);
@@ -1340,12 +1389,12 @@ var rob = {};
         treeBox.invalidateRange(treeBox.getFirstVisibleRow(), treeBox.getLastVisibleRow());
         treeBox.rowCountChanged(0, -rowCount);
         treeBox.endUpdateBatch();
-        //document.getElementById("rbrowser_objects_tree").disabled = true;
+        //document.getElementById("rob_objects_tree").disabled = true;
     };
 
     this.searchPathToggleView = function () {
-        var button = document.getElementById("rbrowserSubpanelToggle");
-        var deck = document.getElementById("rbrowserSubpanelBox");
+        var button = document.getElementById("robSubpanelToggle");
+        var deck = document.getElementById("robSubpanelBox");
         var state = button.getAttribute("state");
         switch (state) {
         case "collapsed":
@@ -1514,7 +1563,7 @@ var rob = {};
             //menuItem.setAttribute("checked", true);
         }*/
 
-        var filterBox = document.getElementById("rbrowser_filterbox");
+        var filterBox = document.getElementById("rob_filterbox");
 
         filterBox.emptyText = menuItem.getAttribute("label") + "...";
         filterBox.focus();
@@ -1583,10 +1632,10 @@ var rob = {};
     };
     
     this.loadSelectedPackage = function() {
-    	var list = document.getElementById("rbrowserInstalledPackagesList");
+    	var list = document.getElementById("robInstalledPackagesList");
         if(!list.selectedItem.value) return;
     	R.evalAsync("base::library(" + R.arg(list.selectedItem.value) + ")");
-    }   
+    };   
     
     this.doRCommand = function (action, ...args) {
         switch (action) {
@@ -1624,7 +1673,7 @@ var rob = {};
             
             let robj = new Map();
             let posoff = _this.evalEnv.name ? 0 : 1;
-            for (it of items) {
+            for (let it of items) {
                 let key = parseInt(it.getTopParent.parentObject.dims) + posoff;
                 if (!robj.has(key)) robj.set(key, []);
                 robj.get(key).push(it);
@@ -1659,7 +1708,7 @@ var rob = {};
                    for (let [key, value] of robj) rCommands.push(
                         "base::save(list=" +
                         R.arg(value.map(x => x.name)) +
-                        ", envir=as.environment(" + key +
+                        ", envir=base::as.environment(" + key +
                         "), file=" + R.arg(fileName.replace(/(\.([^\.]+)|)$/,
                             "[" + key + "]$1")) +
                         ")");
@@ -1668,35 +1717,23 @@ var rob = {};
                     let [key, value] = robj.entries().next().value;
                     rCommand = "base::save(list=" +
                           R.arg(value.map(x => x.name)) +
-                          ", envir=as.environment(" + key + "), file=" + R.arg(fileName) + ")";
+                          ", envir=base::as.environment(" + key + "), file=" + R.arg(fileName) + ")";
                 } 
                 RConn.evalAsync(rCommand, null, false);
             }, true, true, fileName, robj);
 
             //Services.koOs.path.relpath(path, cwd)
-
             break;
-            // Special handling for help
         case 'help':
-            // help only for first item
-            //if (items.length > 1) 
-            let item = items[0];         
-        
+            let item = items[0]; // help only for first item    
             // Help only for packages and objects inside a package
             // TODO: help for packages, package argument for R.help
-            if (item.isPackage) {
+            if (item.isPackage)
                 R.help(item.name.replace(/^package:/, '') + "-package");
-            } else if (item.isInPackage) {
+            else if (item.isInPackage)
                 R.help(item.name, item.env.replace(/^package:/, ''));
-            } else {
-                R.help(item.name);
-            }
-            //}
+           
             break;
-            
-        //_this.selectedItemsOrd.map(item => item.rExpression).join(", \n ") + "\n";
-
-
         //TODO: dump data for objects other than 'data.frame'
         case 'write.table':
         case 'writeToFile':
@@ -1723,7 +1760,7 @@ var rob = {};
             for (let i in items)
                 if (items.hasOwnProperty(i)) {
                     /*cmd.push(action + "(evalq(" + obj[i].fullName +
-                    ", envir = as.environment(\"" +
+                    ", envir = base::as.environment(\"" +
                     obj[i].env. !!!addslashes() + "\")))");*/
                     commandArr.push(action + "(" + items[i].rExpression + ")");
                 }
@@ -1751,6 +1788,14 @@ var rob = {};
 
             _this.selectedItemsOrd.splice(0);
             Array.prototype.push.apply(_this.selectedItemsOrd, newItems);
+            
+            
+            // enable/disable foldAll buttons can-open, can-close
+            var test = _this.canFoldAll();
+            document.getElementById("rob_foldAll_button").disabled =
+                (test & 2) === 0;
+            document.getElementById("rob_ExpandAll_button").disabled =
+                (test & 1) === 0;
             
             return false;
         case "keyup":
@@ -1826,7 +1871,7 @@ var rob = {};
         _this.insertName(event.ctrlKey, event.shiftKey);
 
         // This does not have any effect
-        //document.getElementById("rbrowser_objects_tree").focus();
+        //document.getElementById("rob_objects_tree").focus();
         event.originalTarget.focus();
         return false;
     };
@@ -1834,9 +1879,6 @@ var rob = {};
     this.onSearchPathKeyEvent = function(event) {
     	let listbox = _this.searchPath.getListBox();
     	let target = event.originalTarget;
-
-    	//require("kor/cmdout").append(`key=${event.key} (${event.key.charCodeAt(0)}) keyCode=${event.keyCode}, charCode=${event.charCode}, 
-    	//target=${target.id}/${target.tagName}`);
 
     	let onItemSelect = (listbox, event, idx) => {
     		listbox.selectedIndex = idx;
@@ -1911,13 +1953,36 @@ var rob = {};
         _this.refresh();
     };
 
-    this.toggleValue = function(event, name) {
-        let control = event.target;
-        let value = Boolean(control.getAttribute("checked"));
-        let command = document.getElementById(control.observes);
+    this.toggleValue = function(event) {
+        var control = event.target;
+        var value = Boolean(control.getAttribute("checked"));
+        var command = document.getElementById(control.observes);
+        if(!command) throw new Error("event target observes no command");
         if (value) command.setAttribute("checked", "true");
-        else command.removeAttribute("checked"); 
-        _this[name] = value;
+            else command.removeAttribute("checked");
+        var relpref = control.getAttribute("relatedpref");
+        _this[relpref] = value;
+    };
+    
+    this.toggleValues = function(event, relprefs) {
+        var control = event.target;
+        var command = document.getElementById(control.observes);
+        if(!command) throw new Error("event target observes no command");
+        var cmdset = command.parentNode;
+        if(!cmdset || cmdset.tagName !== "commandset") return;
+        if(!Array.isArray(relprefs)) throw new Error("command not in a commandset");
+        var name, coll, el;
+        var value = Boolean(control.getAttribute("checked"));
+        if (value) command.setAttribute("checked", "true");
+            else command.removeAttribute("checked");
+        for(name of relprefs) {
+            coll = cmdset.getElementsByAttribute("relatedpref", name);
+            if(coll.length === 0) continue;
+            el = coll[0];
+            if(value) el.removeAttribute("disabled");
+                else el.setAttribute("disabled", "true");
+            _this[name] = value ? Boolean(el.getAttribute("checked")): false;
+        }
     };
     
     this.isActive = function() {
@@ -1931,7 +1996,7 @@ var rob = {};
         logger.debug("Rbrowser.activate: start (state=", state, ")");
         var viewbox = document.getElementById("rbrowserViewbox_rbrowser");
         if (!viewbox || state == viewbox.hasAttribute("active")) return; // keep "=="
-        var controls = document.getElementById("rbrowserToolbar").childNodes;
+        var controls = document.getElementById("robToolbar").childNodes;
         if(state) {
             //_this.refresh(true);
             logger.debug("Rbrowser.activate: refreshing R browser");
@@ -1987,7 +2052,7 @@ var rob = {};
         `[onREnvironmentChange] Event type: ${event.type}: R command was "${event.detail ? event.detail.command : 'no event detail'}"`
         );
         var panel = require("ko/windows").getMain()
-            .document.getElementById("rbrowserViewbox").parentElement;
+            .document.getElementById("robViewbox").parentElement;
         if(panel.parentNode.selectedPanel != panel) return;
         _this.refresh();
     };
@@ -2061,7 +2126,7 @@ var rob = {};
         },
         createVisibleData: createVisibleData,
         cleanupObjectLists: cleanupObjectLists,
-        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "rbrowserViewbox")
+        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "robViewbox")
     };
     
 

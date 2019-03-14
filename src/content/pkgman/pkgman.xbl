@@ -200,7 +200,7 @@
 				<xul:button anonid="removePkgButton" label="Uninstall package" mode="installed"
 					oncommand="pkgManRemove(this.getAttribute('pkg'))"
 					xbl:inherits="pkg=label" />
-				<xul:button anonid="loadPkgButton" label="Load package" mode="installed/"
+				<xul:button anonid="loadPkgButton" label="Load package" mode="installed"
 					oncommand="pkgManLoad(this.getAttribute('pkg'))"
 					xbl:inherits="pkg=label" />
 				<xul:button anonid="detachPkgButton" label="Detach package" mode="installed loaded"
@@ -247,7 +247,7 @@
 					var fullDescription = document
 						.getAnonymousElementByAttribute(this, "anonid",
 							"fullDescription");
-					if (!fullDescription) return '';
+					if (!fullDescription || !val) return '';
 
 					var grid = this.buildDescription(val);
 					fullDescription.parentNode.replaceChild(grid, fullDescription);
@@ -259,60 +259,89 @@
 			  ]]>
 			</setter>
 		</property>
+		<property name="loaded" onget="return this.hasAttribute('loaded')">
+			<setter>
+			  <![CDATA[
+					if((val = Boolean(val)))
+						this.setAttribute("loaded", true);
+					else
+						this.removeAttribute("loaded");
+					return val;
+			  ]]>
+		</setter>
+		</property>
 		<method name="setVersion">
             <parameter name="version"/>
             <parameter name="installedVersion"/>
 			   <body>
 		<![CDATA[
+		
+				var isInstalled = Boolean(version) && Boolean(installedVersion);
+				var isOld = false;
+				if(isInstalled) {
+					this.setAttribute("installed", true);
+					this.setAttribute("installedVersion", installedVersion);
+					isOld = installedVersion != version;
+				} else {
+					this.removeAttribute("installed");
+					this.removeAttribute("installedVersion");
+				}
+				if(isOld) {
+					this.setAttribute("old", true);
+					this.setAttribute("versionTooltip", "Newer version is available.");
+				} else {
+					this.removeAttribute("old");
+					this.removeAttribute("versionTooltip");
+				}
+				
 				var elVersion = document.getAnonymousElementByAttribute(this,
 					"anonid", "version");
 				var elInstalledVersion = document.getAnonymousElementByAttribute(this,
 					"anonid", "installedVersion");
 
-				if (version == installedVersion) installedVersion = '';
-				elInstalledVersion.value = installedVersion;
-				elVersion.value = "(" + version + ")";
+				elInstalledVersion.value =
+					version == installedVersion ? "" : installedVersion;
+				elVersion.value = version ? "(" + version + ")" : "";
+				
 		]]>
 			</body>
 		</method>
         <method name="buildDescription">
-            <parameter name="text"/>
+            <parameter name="descrObj"/>
             <body>
 		<![CDATA[
-					const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-					let lines = text.split(/[\r\n]+/);
-					let grid = document.createElementNS(XUL_NS, 'grid');
-					grid.className = "description-full";
+				const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+				let grid = document.createElementNS(XUL_NS, 'grid');
+				grid.className = "description-full";
 
-					var cols = grid.appendChild(document.createElementNS(XUL_NS, 'columns'));
-					for (let i = 0; i < 2; ++i) {
-						let c = cols.appendChild(document.createElementNS(XUL_NS, 'column'));
-						c.setAttribute("flex", i);
+				var cols = grid.appendChild(document.createElementNS(XUL_NS, 'columns'));
+				for (let i = 0; i < 2; ++i) {
+					let c = cols.appendChild(document.createElementNS(XUL_NS, 'column'));
+					c.setAttribute("flex", i);
+				}
+				var rows = grid.appendChild(document.createElementNS(XUL_NS, 'rows'));
+				var rowClassName, value, row, label, descr;
+				
+				//if(descr.Depends !== undefined)
+					//descr.Depends = descr.Depends.replace(/\s*,?R\s*\([^\)]+\),?\s*/, "");
+				
+				for(let key of Object.keys(descrObj)) {
+					value = descrObj[key];
+					if (!value) continue;
+					if (key.startsWith("[reverse]")) {
+						key = fieldName.substr(9);
+						rowClassName = "reverseDep";
 					}
-					var rows = grid.appendChild(document.createElementNS(XUL_NS, 'rows'));
-					for (let i = 0; i < lines.length; ++i) {
-						let strs = lines[i].match(/^([^:]+): *(.*)$/);
-						let fieldName = strs[1].trim().replace(/_/g, " ");
-						let rowClassName;
-						let fieldVal = strs[2].trim();
-						if (fieldName === "Depends")
-							fieldVal = fieldVal.replace(/\s*,?R\s*\([^\)]+\),?\s*/, ""); // remove R
-						else if (fieldName.startsWith("[reverse]")) {
-							fieldName = fieldName.substr(9);
-							rowClassName = "reverseDep";
-						}
-						if (!fieldVal) continue;
-
-						let row = rows.appendChild(document.createElementNS(XUL_NS, 'row'));
-						let label = row.appendChild(document.createElementNS(XUL_NS, 'label'));
-						label.setAttribute("value", fieldName);
-						let desc = row.appendChild(document.createElementNS(XUL_NS, 'description'));
-						desc.textContent = fieldVal;
-						if(rowClassName) row.className = rowClassName;
-						label.className = "DescriptionField"; // + className;
-						desc.className = "DescriptionText"; // + className;
-					}
-					return grid;
+					row = rows.appendChild(document.createElementNS(XUL_NS, 'row'));
+					label = row.appendChild(document.createElementNS(XUL_NS, 'label'));
+					label.setAttribute("value", key);
+					descr = row.appendChild(document.createElementNS(XUL_NS, 'description'));
+					descr.textContent = value;
+					if(rowClassName) row.className = rowClassName;
+					label.className = "DescriptionField"; // + className;
+					descr.className = "DescriptionText"; // + className;
+				}
+				return grid;
 		]]>
 			</body>
 		</method>
@@ -405,7 +434,7 @@
 <!-- based on preferences.xml paneButton -->
 <binding id="viewbutton" extends="chrome://global/content/bindings/radio.xml#radio">
     <resources>
-      <stylesheet src="chrome://komodor/skin/pkgman.css"/>
+      <stylesheet src="chrome://komodor/skin/pkgman/pkgman.css"/>
     </resources>
     <content>
       <xul:image class="viewButtonIcon" xbl:inherits="src"/>
@@ -415,7 +444,7 @@
       <property name="accessibleType" readonly="true">
         <getter>
           <![CDATA[
-					return Components.interfaces.nsIAccessibleProvider.XULListitem;
+			return Components.interfaces.nsIAccessibleProvider.XULListitem;
           ]]>
         </getter>
       </property>

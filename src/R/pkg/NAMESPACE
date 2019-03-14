@@ -21,7 +21,7 @@ isInstalledPkg,
 
 rmElement, doCommand,
 
-view
+view, rmdToHtml
  
 # TclReval, TclReval2, tclfun,
 

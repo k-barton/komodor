@@ -35,7 +35,7 @@ Contributors:
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/rbrowser.js"/>
+<script type="application/x-javascript" src="chrome://komodor/content/rob/rbrowser.js"/>
 
 <commandset id="cmdset_rob" commandupdater="false">
 	<command id="cmd_robToggleListAllExtras" key="key_cmd_rbrowserToggleListAllExtras"
@@ -344,7 +344,9 @@ Contributors:
 				  persist="height collapsed" flex="1">
 				<hbox id="robInstalledPackagesBox" minheight="24">
 					<menulist id="robInstalledPackagesList" flex="1"
-						tooltiptext="&rob.instapack.tip;" disabled="true" />
+						tooltiptext="&rob.instapack.tip;" disabled="true"
+                        onkeypress="rob.instaPackListKeyEvent(event)"
+                        />
 					<toolbarbutton id="robInstalledPackagesLoadButton" 
                         label="&rob.instapack.load.label;"
                         tooltiptext="&rob.instapack.load.tip;" 

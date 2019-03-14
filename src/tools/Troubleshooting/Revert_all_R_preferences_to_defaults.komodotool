@@ -1,0 +1,15 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Revert all R preferences to defaults", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "require(\"kor/prefs\").setDefaults(true);"
+  ], 
+  "version": "1.0.12", 
+  "rank": 100, 
+  "async": false, 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/wrench4.svg", 
+  "type": "macro", 
+  "trigger": "trigger_postopen"
+}

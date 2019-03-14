@@ -21,9 +21,9 @@ function(file, pandoc = NULL, verbose = FALSE, ...) {
     owd <- setwd(tmpdir)
     on.exit(setwd(owd))
     
-    outMd <- getFrom("knitr", "knit")(file1, encoding = "utf-8", quiet = !verbose,
-                                envir = getEvalEnv(), ...)
-   
+    outMd <- suppressWarnings(getFrom("knitr", "knit")(file1, encoding = "utf-8", quiet = !verbose,
+                                envir = getEvalEnv(), ...))
+    
     if(missing(pandoc) || is.null(pandoc)) {
         pandoc <- Sys.which("pandoc")
         if(pandoc == "") stop("'pandoc' not found on the system path")

@@ -1,0 +1,13 @@
+version 100
+
+binding cmd_RRunAll F5
+binding cmd_RSourceAll Shift+F5
+binding cmd_RRunLineOrSelection F6
+binding cmd_RSourceLineOrSelection Shift+F6
+binding cmd_RRunBlock F7
+binding cmd_RSourceBlock Shift+F7
+binding cmd_RRunLineOrSelection F11
+binding cmd_RRunPara F12
+binding cmd_RSourcePara Shift+F12
+binding cmd_RRunFunction Ctrl+F12
+binding cmd_RSourceFunction Ctrl+Shift+F12

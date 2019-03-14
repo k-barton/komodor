@@ -53,11 +53,6 @@
 	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
 <script type="application/x-javascript" src="chrome://komodor/content/js/komodor.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/tools.js"/><!--array-->
-<script type="application/x-javascript" src="chrome://komodor/content/js/init.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/r-help.js"/>
-<script type="application/x-javascript" src="chrome://komodor/content/js/bookmark.js"/>
-
 
 <broadcasterset id="broadcasterset_global">
 	<broadcaster id="sv_r_is_running" disabled="false"/>
@@ -362,7 +357,7 @@
 	id="robViewbox"
 	label="&rBrowser.tab;"
 	tab_onfocus="require('kor/main').rbrowser.focus();"
-	src="chrome://komodor/content/rbrowser-pane.xul"
+	src="chrome://komodor/content/rob/rbrowser-pane.xul"
     icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg" 
 	style="list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg)"
 	/>

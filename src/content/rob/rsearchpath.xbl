@@ -13,7 +13,7 @@
 <binding id="r-search-path-list"
 		 extends="chrome://global/content/bindings/richlistbox.xml#richlistbox">
     <resources>
-		<stylesheet src="chrome://komodor/content/rsearchpath/rsearchpath.css" />
+		<stylesheet src="chrome://komodor/content/rob/rsearchpath.css" />
     </resources>
 	<implementation>
 		<method name="indexOf">
@@ -40,7 +40,7 @@
 <binding id="r-search-path-item"
 		 extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
     <resources>
-	<stylesheet src="chrome://komodor/content/rsearchpath/rsearchpath.css" />
+	<stylesheet src="chrome://komodor/content/rob/rsearchpath.css" />
 
     </resources>
 	<content orient="vertical">

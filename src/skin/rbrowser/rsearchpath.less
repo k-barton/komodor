@@ -1,9 +1,13 @@
 
+@rsearchpath-xbl: "chrome://komodor/content/rob/rsearchpath.xbl";
+@svg-images: "koicon://ko-svg/chrome/komodor/skin/images";
+
+
 .rsearchpath {
-	-moz-binding: url("chrome://komodor/content/rsearchpath/rsearchpath.xbl#r-search-path-list");
+    -moz-binding: url("@{rsearchpath-xbl}#r-search-path-list");
 
 	richlistitem {
-		-moz-binding: url("chrome://komodor/content/rsearchpath/rsearchpath.xbl#r-search-path-item");
+		-moz-binding: url("@{rsearchpath-xbl}#r-search-path-item");
 		&:not(:last-child) {
 			border-bottom: 1px @item-border dotted;
 		}
@@ -15,16 +19,16 @@
 		.searchpath-item-name {
 			padding-left: 20px;
 			min-height: 16px;
-			background-image: url('koicon://ko-svg/chrome/komodor/skin/images/environment.svg?size=16');
+			background-image: url('@{svg-images}/environment.svg?size=16');
 			background-size: 16px 16px;
 			background-position: left center;
 			background-repeat: no-repeat;
 
 			&[value^="package:"] {
-				background-image: url("koicon://ko-svg/chrome/komodor/skin/images/package.svg?size=16");
+				background-image: url("@{svg-images}/package.svg?size=16");
 			}
 			&[value=".GlobalEnv"] {
-				background-image: url("koicon://ko-svg/chrome/komodor/skin/images/GlobalEnv.svg?size=16");
+				background-image: url("@{svg-images}/GlobalEnv.svg?size=16");
 			}
 		}
 
