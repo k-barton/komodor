@@ -656,5 +656,5 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
             callback.bind(null), rConn.AUTOUPDATE);
     };
 
-
+    
 }).apply(module.exports);

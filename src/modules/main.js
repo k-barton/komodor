@@ -12,12 +12,8 @@
 
 var kor = {};
 
-// TODO: replace
-// ko.views.manager.currentView => require("ko/views").current()
-// ko.views.manager.currentView.scimoz => require("ko/views").current().get("scimoz")
-
 (function () {
-    var logger = require("ko/logging").getLogger("komodoR");
+    //var logger = require("ko/logging").getLogger("komodoR");
     
     var _this = this;
     var _version, _w;

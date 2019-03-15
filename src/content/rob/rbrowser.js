@@ -6,7 +6,6 @@
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
 /*
- * TODO: context menu for search-paths list
  * TODO: add context menu item for environments: remove all objects
  */
 
@@ -2078,7 +2077,7 @@ var rob = {};
 			(require("kor/command").isRRunning ? "on" : "off") + ")");
         
 		let _w = require("kor/main").mainWin;
-		
+
 		_w.addEventListener('r-status-change', onRStatusChange, false);
 		_w.addEventListener('r-evalenv-change', onREvalEnvChange, false);
 		_w.addEventListener('r-environment-change', onREnvironmentChange, false);

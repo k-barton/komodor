@@ -9,12 +9,13 @@
 
 self.kor = require("kor/main");
 
-// var mozIJSSubScriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
-                            // .getService(Components.interfaces.mozIJSSubScriptLoader);
-                            
-for(let a of ["tools", "init", "r-help", "bookmark"])
-    Services.scriptloader
-        .loadSubScript("chrome://komodor/content/js/" + a + ".js", window, "utf-8");
+let scriptloader = ((typeof Services === "object") && Services.scriptloader)?
+	Services.scriptloader :
+    Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+        .getService(Components.interfaces.mozIJSSubScriptLoader);
+for(let a of ["init", "r-help", "bookmark"])
+    scriptloader.loadSubScript("chrome://komodor/content/js/" + a + ".js", window, "utf-8");
+scriptloader = null;
 
 (function() {
 	let logging = require("ko/logging");

@@ -2,8 +2,8 @@
   "keyboard_shortcut": "", 
   "name": "R code block with figure", 
   "value": [
-    "```{r fig.height=4, fig.width=8, fig.cap=\"\"!@#_currentPos!@#_anchor}", 
-    "[[%s]]", 
+    "```{r fig.height=4, fig.width=8, fig.cap=\"\"}", 
+    "[[%(w:else:)]]!@#_currentPos!@#_anchor", 
     "```"
   ], 
   "set_selection": "true", 

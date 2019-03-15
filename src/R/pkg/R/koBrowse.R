@@ -18,7 +18,7 @@ function(refresh = TRUE) {
 			# called from top level
 			message("koBrowseHere called from top level")
 		} else {
-			envName <- format(expr)[1L]
+			envName <- gsub("(^\\s+|\\s+$)", "", format(expr)[1L])
 			setEvalEnv(eval.parent(expression(sys.frame(sys.nframe()))),
 				envName)
 			env <- getEvalEnv()

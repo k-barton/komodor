@@ -2,16 +2,13 @@
   "keyboard_shortcut": "", 
   "name": "What's new?", 
   "language": "JavaScript", 
-  "trigger": "trigger_postopen", 
   "trigger_enabled": false, 
   "value": [
-    "/* globals Services, ko */", 
-    "", 
-    "var doc = Services.koDocSvc.createDocumentFromURI(\"resource://kor-doc/NEWS.html\");", 
-    "ko.views.manager.topView.createViewFromDocument(doc, 'browser', -1);"
+    "require(\"kor/ui\").openBrowser(\"resource://kor-doc/NEWS.html\");"
   ], 
-  "version": "0.3.12", 
+  "trigger": "trigger_postopen", 
   "rank": 100, 
+  "version": "0.3.12", 
   "async": false, 
   "type": "macro", 
   "icon": "koicon://ko-svg/chrome/icomoon/skin/file8.svg"

@@ -3,7 +3,7 @@
   "name": "R code block", 
   "value": [
     "```{r}", 
-    "[[%s]]!@#_currentPos!@#_anchor", 
+    "[[%(w:else:)]]!@#_currentPos!@#_anchor", 
     "```"
   ], 
   "set_selection": "true", 

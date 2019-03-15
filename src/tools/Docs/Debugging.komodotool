@@ -4,15 +4,13 @@
   "language": "JavaScript", 
   "trigger_enabled": false, 
   "value": [
-    "/* globals Services, ko */", 
     "", 
-    "var doc = Services.koDocSvc.createDocumentFromURI(\"resource://kor-doc/koDebug.html\");", 
-    "ko.views.manager.topView.createViewFromDocument(doc, 'browser', -1);"
+    "require(\"kor/ui\").openBrowser(\"resource://kor-doc/koDebug.html\");"
   ], 
-  "version": "0.3.12", 
+  "trigger": "trigger_postopen", 
   "rank": 100, 
+  "version": "0.3.12", 
   "async": false, 
-  "icon": "koicon://ko-svg/chrome/icomoon/skin/file8.svg", 
   "type": "macro", 
-  "trigger": "trigger_postopen"
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/file8.svg"
 }

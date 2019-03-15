@@ -176,7 +176,6 @@ this.getCurrentScimoz = function () {
     return scimoz;
 };
  
- 
 this.getWindowByURI = function (uri) {
      var wm = Cc['@mozilla.org/appshell/window-mediator;1']
          .getService(Ci.nsIWindowMediator);
@@ -483,7 +482,6 @@ this.getTextRangeWithBrowseCode = function(...args) {
 	return text.substr(0, p) + browserStr + text.substr(p);
 } // getTextRangeWithBrowseCode
 
-
 this.colorPicker = {};
 
 (function () {
@@ -585,7 +583,20 @@ if ((platform === "winnt") || (platform === "darwin")) {
 
 }).apply(this.colorPicker);
 
+this.openBrowser = function(uri, inRHelpWindow = false) {
+    if(inRHelpWindow)
+        require("kor/command").openHelp(uri)
+    else {
+        let kvm = require("ko/views").manager;
+        let view = kvm.getViewForURI(uri, "browser");
+        if(view && view.browser) {
+            view.browser.webNavigation.reload(view.browser.webNavigation.LOAD_FLAGS_NONE);
+            view.makeCurrent();
+        } else 
+            kvm.openViewAsync("browser", uri);
+    }
+};
 
-    
+   
 }).apply(module.exports);
 

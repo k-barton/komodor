@@ -43,6 +43,9 @@
 <!ENTITY formatRCode "Format R code">
 <!ENTITY formatRCode.key "F">
 
+<!ENTITY rRmdPreview "RMarkdown preview">
+<!ENTITY rRmdPreview.key "K">
+
 <!ENTITY rEscape "Interrupt current command">
 <!ENTITY rEscape.key "E">
 

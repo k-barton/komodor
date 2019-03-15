@@ -142,7 +142,7 @@
         }
 
 		if(!ko.places.manager) { // Komodo is not ready
-			require("sdk/timers").setTimeout(() => startR(), 500);
+			require("sdk/timers").setTimeout(() => startR(), 512);
 			return;
 		}
 		
@@ -259,9 +259,9 @@
     this.openHelp = function (location) {
         if (location) {
             try {
-				if (location.search(/[a-z\-\.]/i)) { // supposedly a keyword
+				//if (location.search(/[a-z\-\.]/i)) { // supposedly a keyword
 					//location = RConn.evalAsync("base::cat(kor::getHelpURL(" + TODO + "))",);
-				}
+				//}
                 if (!isUrl(location)) location = fu.toFileURI(location);
             } catch (e) { // fallback
                 if (!isUrl(location)) location = "file://" + location.replace(/\\/g, "/");
@@ -294,8 +294,15 @@
     };
 
     //var  _isRRunning = () => _RIsRunning;
+    var koViews = require("ko/views");
+    
     var _isRCurLanguage = () => true;
     var rWantsMore = false, rBrowsingFrame = false;
+    var _isRmdCurLanguage = () => {
+        var view = koViews.current();
+        if (!view || !view.koDoc) return false;
+        return view.koDoc.language === "Rmarkdown";
+    };
     
     Services.obs.addObserver({ observe(subject, topic, data) {
             rWantsMore = subject.message === "more";
@@ -318,12 +325,14 @@
         var xtk = _W.xtk;
         xtk.include("controller");
 
-        const ifRRunning = 1, ifRStopped = 2, ifIsRDoc = 4, ifHasSelection = 8;
+        const ifRRunning = 1, ifRStopped = 2, ifIsRDoc = 4, ifHasSelection = 8,
+            ifIsRmdDoc = 16;
         const R = require("kor/r");
         var handlers = {
             'cmd_RPkgManagerOpen': [_this.openPkgManager, ifRRunning],
             'cmd_RHelpOpen': [_this.openHelp, ifRRunning],
             'cmd_RPreferencesOpen': [_this.openRPreferences, -1],
+            'cmd_RRmdPreview': [_this.rmdPreview, ifIsRmdDoc | ifRRunning],
             
             'cmd_RFormatCodeInView': [R.formatRCodeInView, ifIsRDoc | ifRRunning],
 
@@ -351,13 +360,6 @@
             'cmd_viewrtoolbar': [() => ko.uilayout.toggleToolbarVisibility("RToolbar"), -1]
         };
 
-        //{
-        //    return true;
-        //    // var view = require("ko/views").current();
-        //    // if (!view || !view.document) return(false);
-        //    // return(view.document.language == kor.langName);
-        //}
-
         var _hasSelection = () => {
             var view = require("ko/views").current();
             if (!view || !view.scimoz) return false;
@@ -369,11 +371,12 @@
             if (test === -1) return true;
             if (typeof test === "function") return test();
             return (
-                (((test & ifRRunning) !== ifRRunning) || _RIsRunning) && (((test &
-                    ifRStopped) !== ifRStopped) || !_RIsRunning) && (((test & ifIsRDoc) !==
-                    ifIsRDoc) || _isRCurLanguage()) && (((test & ifHasSelection) !==
-                    ifHasSelection) || _hasSelection())
-            );
+                (((test & ifRRunning) !== ifRRunning) || _RIsRunning) &&
+                (((test & ifRStopped) !== ifRStopped) || !_RIsRunning) &&
+                (((test & ifIsRDoc) !== ifIsRDoc) || _isRCurLanguage()) &&
+                (((test & ifIsRmdDoc) !== ifIsRmdDoc) || _isRmdCurLanguage()) &&
+                (((test & ifHasSelection) !== ifHasSelection) || _hasSelection())
+           );
         };
 
         // From: komodo.jar/controller.js
@@ -470,5 +473,27 @@
         }
 
     }; // end this.places
+
+    this.rmdPreview = function(beVerbose = false, showInTab = true) {
+        var view = require("ko/views").current();
+        if (!view || !view.koDoc) return;
+        if (['Rmarkdown', 'Markdown'].indexOf(view.koDoc.language) === -1)
+            return;
+        var file = UI.pathWithCurrentViewContent();
+        if (!file) return;
+        var r = require("kor/r"); // cyclic dependency: command<=>r
+        RConn.evalAsync("kor::rmdToHtml(" + r.arg(file) +
+            ", verbose=" + r.arg(beVerbose) + ")",
+            (output) => {
+                var path = output.substr(0, output.search(/ *[\r\n]+/));
+                if (!fu.exists(path)) {
+                    UI.addNotification(
+                        "Rmarkdown preview: no file produced",
+                        "r-interface", true)
+                    return;
+                }
+                UI.openBrowser(fu.toFileURI(path), !showInTab);
+            }, false);
+    };
 
 }).apply(module.exports);

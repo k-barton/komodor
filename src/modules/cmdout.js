@@ -1,21 +1,6 @@
 'use strict';
 
-/* globals Cc, Ci, Cu, require, Components    */
-
-
-//if (typeof require !== "function") {
-//    _W = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-//        .getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("Komodo");
-//    var require = _W.require;
-//} else {
-//}
-
-//var CmdOut = {};
-//if (typeof module === "object") {
-//    module.exports = CmdOut;
-//} else {
-//    this.EXPORTED_SYMBOLS = ["CmdOut"]; // jshint ignore: line
-//}
+/* globals require  */
 
 (function () {
     

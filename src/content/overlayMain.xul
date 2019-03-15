@@ -163,6 +163,11 @@
 		desc="R: &rSrcLineOrSelection;" label="&rSrcLineOrSelection;"
 		accesskey="&rSrcLineOrSelection.key;"/>
 
+	<command id="cmd_RRmdPreview" key="key_cmd_RRmdPreview"
+		oncommand="ko.commands.doCommand('cmd_RRmdPreview')"
+		desc="R: &rRmdPreview;" label="&rRmdPreview;"
+		accesskey="&rRmdPreview.key;"/>
+
 	<commandset id="cmdset_r_control" commandupdater="false" events="select"
 		oncommandupdate="ko.commands.updateCommandset(this);">
 		<command id="cmd_RRunSelection" key="key_cmd_RRunSelection"
@@ -187,13 +192,14 @@
 					  class="menuitem-iconic help-icon"/>
 			<menuitem id="r_start_pkg_manager" observes="cmd_RPkgManagerOpen"
 				class="menuitem-iconic r-pkg-manager-icon"/>
-			
-			<menuitem id="r_format_r_code" observes="cmd_RFormatCodeInView"
-				class="menuitem"/>
-
 			<menuitem id="r_open_r_prefs" observes="cmd_RPreferencesOpen"
 				class="menuitem"/>
-				
+			<menuseparator/>
+
+			<menuitem id="r_format_r_code" observes="cmd_RFormatCodeInView"
+				class="menuitem"/>
+			<menuitem id="r_rmd_preview" observes="cmd_RRmdPreview"
+				class="menuitem"/>
 			<menuseparator/>
 			<menuitem id="r_send_line_sel_menu" observes="cmd_RRunLineOrSelection"
 				class="menuitem-iconic r-run-selection-icon"/>
@@ -324,10 +330,17 @@
 		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rSrcFun;"
 					   persist="buttonstyle kohidden"
-					   class="r-source-function-icon last-child"
+					   class="r-source-function-icon"
 					   observes="cmd_RSourceFunction"
 					   id="RToolbarSourceFunction"
-					   label="rSrcFun;" />
+					   label="&rSrcFun;" />
+		<toolbarbutton buttonstyle="pictures"
+					   tooltiptext="&rRmdPreview;"
+					   persist="buttonstyle kohidden"
+					   class="r-rmd-preview-icon last-child"
+					   observes="cmd_RRmdPreview"
+					   id="RToolbarRmdPreview"
+					   label="&rRmdPreview;" />
 		</toolbaritem>
 	</toolbar>
 </toolboxrow>
@@ -361,7 +374,6 @@
     icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg" 
 	style="list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg)"
 	/>
-<!-- icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?size=14" -->
 </ko-pane>
 
 
