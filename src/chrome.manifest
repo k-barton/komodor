@@ -2,7 +2,7 @@ content komodor jar:komodor.jar!/content/
 
 overlay chrome://komodo/content/komodo.xul chrome://komodor/content/overlayMain.xul
 
-overlay chrome://komodo/content/pref/pref.xul chrome://komodor/content/prefOverlay.xul
+overlay chrome://komodo/content/pref/pref.xul chrome://komodor/content/pref-R/prefOverlay.xul
 
 overlay chrome://komodo-places/content/places_panel.xul chrome://komodor/content/places.xul
 

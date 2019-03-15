@@ -49,7 +49,7 @@ the terms of any one of the MPL, the GPL or the LGPL.
 	<script src="chrome://komodo/content/library/uriparse.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/filepickers.js" type="application/x-javascript" />
 	<script src="chrome://komodo/content/library/windowManager.js" type="application/x-javascript" />
-	<script src="chrome://komodor/content/js/pref-R.js" type="application/x-javascript" />
+	<script src="chrome://komodor/content/pref-R/pref-R.js" type="application/x-javascript" />
 	
 	<box class="kobox-smallheader" title="R interpreter configuration" />
 	<vbox flex="1" class="autoscroll">
