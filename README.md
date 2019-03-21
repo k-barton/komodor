@@ -34,6 +34,8 @@ Philippe Grosjean, and since then has been largely rewritten.
 * R package manager
 * R working directory can be changed from _Places_ pane (in the context menu)
 
+ ![R Interface screenshot](https://raw.githubusercontent.com/k-barton/komodor/master/docs/komodor-main.png)
+
 This add-on provides a file type named __“R\_extended”__ to avoid conflict with
 Komodo's built-in R syntax highlighter. Code completion and syntax checking
 works only with “R\_extended” not “R”.
