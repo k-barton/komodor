@@ -4,8 +4,8 @@
 'use strict'; // jshint ignore:line
 
 //Usage:
-// Cu.import("chrome://komodor/content/modules/Utils.jsm");
-// Cu.import("resource://kor/Utils.jsm");
+// Cu.import("chrome://komodor/content/modules/utils.js");
+// Cu.import("resource://kor/utils.js");
 
 this.ArrayUtils = { // jshint ignore:line
     

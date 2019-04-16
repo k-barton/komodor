@@ -364,6 +364,17 @@
 		/>
 </menupopup>
 
+<menupopup id="tabContextMenu">
+    <menuseparator id="buffertab-context-sep-r"/>
+    <menuitem id="buffertab-context-r-source" observes="cmd_RSourceAll"
+    label="&rSrcFileX;" />
+</menupopup>
+
+<menupopup id="editorContextMenu">
+    <menuseparator id="editor-context-sep-r"/>
+    <menuitem id="editor-context-r-selection-send" 
+    observes="cmd_RRunLineOrSelection" label="&rSendLineOrSelectionX;" />
+</menupopup>
 
 <ko-pane id="workspace_left_area">
 <browser type="ko-widget"
@@ -375,7 +386,6 @@
 	style="list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg)"
 	/>
 </ko-pane>
-
 
 <ko-pane id="workspace_bottom_area">
 <browser type="ko-widget"

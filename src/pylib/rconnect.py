@@ -96,11 +96,14 @@ class RConn(object):
         s.close()
         all_data = "".join(all_data).rstrip()
 
-        result = all_data.split("\x1f")[2]
-        result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
-                        re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result)
-                        .decode('string_escape')) \
-                        .decode("utf-8") \
-                        .replace('\x02\x03', '')
+        result = all_data.split("\x1f")
+        if(len(result) >= 3):
+            result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
+                            re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result[2]) \
+                            .decode('string_escape')) \
+            .decode("utf-8") \
+            .replace('\x02\x03', '')
+        else:
+            result = u'';
         
         return unicode(result)

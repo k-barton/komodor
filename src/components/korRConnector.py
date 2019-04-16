@@ -179,25 +179,25 @@ class korRConnector:
         s.close()
         
         message = ''
+        result = ''
         resultObj = ''.join(all_data).rstrip().split("\x1f")
     
         ## NEW RESULT FORMAT "message<US>browserMode<US>output"
         ## US=\x1f, \037
         
         if len(resultObj) == 3:
-            result = resultObj[2]
             # 1. <hh> => \\xhh
             # 2. \\ => \
             # 3. \032{<hh>} => <hh>, \032{\032} => \032
             # 4. to UTF-8
             result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
-                re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result)
+                re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', resultObj[2])
                     .decode('string_escape')) \
                     .decode("utf-8") \
                     .replace('\x02\x03', '') # XXX: temporary fix
         else:
             resultObj = [ 'empty', 'FALSE', u'' ]
-            log.info("%s. Result was:\n%s", e, resultObj)
+            log.info("Malformed result received. Contents:\n%s", resultObj)
 
         cmdInfo.result = unicode(result)
         cmdInfo.message = unicode(resultObj[0])

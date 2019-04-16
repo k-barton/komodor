@@ -23,7 +23,6 @@ var logger = require("ko/logging").getLogger("komodoR");
 
 if(!w.log) w.log = require("ko/logging").getLogger("wtf");
 
-
 var PrefR_CranMirrors = { http : [], https : [] }/*, PrefR_CMSecure*/;
 
 const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
@@ -291,7 +290,7 @@ var formatR_checkIfAvailable = (pathToR) => {
 };
 
 var formatR_install = () => {
-	let cmd = `install.packages('formatR', repos='${getSelectedCranMirror()[3]}');cat(length(find.package('formatR',quiet=1)))`;
+	let cmd = `install.packages('formatR',repos='${getSelectedCranMirror()[3L]}');cat(length(find.package('formatR',quiet=TRUE)))`;
 	let pathToR = getSelectedInterpreterPath();
 	require("kor/main").rCliExec(pathToR, cmd).then(str => {
         let success = str.endsWith("1");

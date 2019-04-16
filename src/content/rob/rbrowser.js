@@ -838,6 +838,7 @@ var rob = {};
         let onItemSelect = (listbox, event, idx) => {
             listbox.selectedIndex = idx;
             listbox.ensureIndexIsVisible(listbox.selectedIndex);
+/* Error: TypeError: listbox.ensureIndexIsVisible is not a function */
             event.preventDefault();
         };
 
@@ -1066,6 +1067,7 @@ var rob = {};
         var idx = _this.selection.currentIndex;
         if (idx === -1) idx = 0;
         var curItem = _this.visibleData[idx].origItem;
+        /* Error: TypeError: _this.visibleData[idx] is undefined */
         var parentObject = curItem.parentObject;
         if (!parentObject) return 0;
         var siblings = parentObject.children ? parentObject.children : parentObject;

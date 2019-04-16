@@ -6,9 +6,9 @@
 @import url("chrome://komodor/skin/komodor-common.less");
 
 ko-pane tab[widget="robViewbox"].tab-icon {
-  list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?@{widget-svg-icon-suffix}");
+  .icon(R_browser, '?@{widget-svg-icon-suffix}');
 }
 
 ko-pane[type="icons"] tab[widget="robViewbox"][selected] .tab-icon {
-  list-style-image: url("koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?@{widget-selected-svg-icon-suffix}");
+    .icon(R_browser, '?@{widget-selected-svg-icon-suffix}');
 }

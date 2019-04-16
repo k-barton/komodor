@@ -92,6 +92,10 @@ var kor = {};
             shQuote(rCommand), "", "", (exitCode, output) => resolve(output, exitCode)));
     
     this.checkRVersion = (fileName) => _this.rCliExec(fileName, "cat(R.version.string)");
+    this.checkRVersion2 = (fileName) => _this.rCliExec(fileName, "do.call(cat,c(R.version[c('major','minor','svn rev')],sep='.'))");
+    
+    
+    
 //     var r = require("kor/fileutils").whereIs("R")   
 //     for(let i = 0; i < r.length; ++i) kor.checkRVersion(r[i]).then((function(j, val) this[j] = val).bind(res, i));
 

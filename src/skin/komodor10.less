@@ -6,7 +6,6 @@
 
 @import url("chrome://komodor/skin/komodor-common.less");
 
-
 ko-pane
 tab[widget="robViewbox"] .tab-icon { 
   list-style-image: none;
@@ -18,11 +17,10 @@ tab[widget="robViewbox"] .tab-icon {
   width: @widget-icon-size;
   height: @widget-icon-size;
   visibility: visible;
-  background-image: url("koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg?@{widget-svg-icon-suffix}");
+  background-image: url("@{@svg-images}/R_browser.svg?@{widget-svg-icon-suffix}");
   background-repeat: no-repeat;
   background-size: @widget-icon-size @widget-icon-size;
 }
-
 
 .ko-autocomplete-item description {
 	white-space: nowrap;

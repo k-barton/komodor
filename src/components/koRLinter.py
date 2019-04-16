@@ -57,7 +57,7 @@ class KoRLinter:
     def __init__(self):
         self.pattern = re.compile('^(?:.*:)?(?P<line>\d+):(?P<col>\d+):(?P<descr>.*?)(?=[\r\n])')
         ##self.pattern = re.compile('^(.*):(?P<line>\d+):(?P<col>\d+):(?P<descr>.*?)(?=[\r\n])[\s\S]*(?<=[\r\n])(?P=line): (?P<code>.*?)(?=[\r\n])')
-        self.sv_utils = components.classes["@komodor/korRConnector;1"].\
+        self.rconn = components.classes["@komodor/korRConnector;1"].\
             getService(components.interfaces.korIRConnector)
         pass
 
@@ -80,7 +80,7 @@ class KoRLinter:
         except Exception, e:
             log.exception(e)
         try:
-            lines = self.sv_utils.evalInR(command, "json h", 1.5).rstrip() \
+            lines = self.rconn.evalInR(command, "json h", 1.5).rstrip() \
                 .replace('\x03', '').replace('\x02', '')
             if lines.startswith('\x15'): # connection error
                 pass

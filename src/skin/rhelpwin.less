@@ -1,0 +1,105 @@
+@svg-images: "koicon://ko-svg/chrome/komodor/skin/images/browser";
+@ko-images: "chrome://komodo/skin/images";
+@toolbar-svg-icon-suffix: "preset=toolbar";
+
+.icon (@image, @suffix: '') {
+  list-style-image: url("@{svg-images}/@{image}.svg@{suffix}");
+}
+
+.tbicon (@image) {
+  .icon(@image, "?@{toolbar-svg-icon-suffix}");
+}
+
+.toolbox-top {
+    border: none;
+    margin: 0px;
+    margin-bottom: 1px;
+    padding: 0px;
+}
+
+/* fixup the hight of toolbar menu buttons */
+hbox > toolbar > toolbarbutton[type="menu-button"] {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+
+toolbar {
+    border-right: 1px outset ThreeDHighlight;
+    border-left: 1px outset ThreeDHighlight;
+}
+
+toolbarbutton {
+    /*-moz-box-orient: vertical;*/
+    padding-top: 4px;
+    padding-bottom: 4px;
+    -moz-user-focus: normal;
+}
+
+.toolbarbutton-text[buttonstyle="pictures"],
+.toolbarbutton-icon[buttonstyle="text"] {
+    display: none;
+}
+
+toolbarbutton.toolbar-portrait-page .toolbarbutton-text,
+toolbarbutton.toolbar-landscape-page .toolbarbutton-text {
+    display: none;
+}
+
+.reload-icon {
+    .tbicon(refresh);
+}
+
+.find-icon {
+	.tbicon(doc);
+}
+
+.home-icon {
+	.tbicon(home);
+}
+
+.r-web-icon {
+	.tbicon(web);
+}
+
+.go-icon {
+    .tbicon(go);
+}
+
+.stop-icon {
+    .tbicon(stop);
+}
+
+.search-icon {
+	.tbicon(search);
+}
+
+.history-back-icon {
+  .tbicon(back);
+}
+
+.history-forward-icon {
+  .tbicon(forward);
+}
+
+
+.print-icon {
+  .tbicon(print);
+}
+
+.open-in-mainwin-icon {
+    .tbicon(open-in-browser);
+}
+
+
+[class$="-icon"][disabled="true"] image,
+image[class$="-icon"][disabled="true"] {
+	opacity: 0.5;
+    filter: grayscale(50%);
+}
+
+[class$="-icon"]:not([disabled="true"]) image:hover,
+[class$="-icon"]:not([disabled="true"]) image:hover:active,
+[class$="-icon"]:not([disabled="true"]):hover,
+[class$="-icon"]:not([disabled="true"]):hover:active {
+	filter: brightness(1.7) contrast(150%) drop-shadow(1px 1px 2px #000000aa);
+}

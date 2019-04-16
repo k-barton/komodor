@@ -9,6 +9,7 @@
 
 <!ENTITY rSendLineOrSelection "Run line/selection">
 <!ENTITY rSendLineOrSelection.key "C">
+<!ENTITY rSendLineOrSelectionX "Run line/selection with R">
 <!ENTITY rSrcLineOrSelection "Source line/selection">
 <!ENTITY rSrcLineOrSelection.key "T">
 
@@ -16,9 +17,11 @@
 <!ENTITY rSendPara.key "G">
 <!ENTITY rSendSel "Run selection">
 <!ENTITY rSendSel.key "S">
+
 <!ENTITY rSrcBlock "Source marked block">
 <!ENTITY rSrcBlock.key "O">
-<!ENTITY rSrcFile "Source all file">
+<!ENTITY rSrcFile "Source file">
+<!ENTITY rSrcFileX "Source file to R">
 <!ENTITY rSrcFile.key "I">
 <!ENTITY rSrcFun "Source function">
 <!ENTITY rSrcFun.key "U">
