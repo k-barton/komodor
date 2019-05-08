@@ -51,12 +51,12 @@ See also _Known issues_ below.
       select a command from the context menu.
 * *R browser*:
     * drag an item to the editor to insert R objects' names,
-        * hold "Shift" key during the drag start to drop quoted names,  
-        * hold "Ctrl" key during the drag start to drop full object names
-          (e.g. `list$data$column`. Non-syntactic names will be
-          backtick-quoted).
-		* hold both to insert “name()” for functions, “name=” for function 
-		  arguments.
+          * hold "Shift" key during the drag start to drop quoted names,  
+          * hold "Ctrl" key during the drag start to drop full object names
+            (e.g. `list$data$column`. Non-syntactic names will be
+            backtick-quoted).
+          * hold "Ctrl+Shift" to insert “name()” for functions, “name=” for function
+            arguments.
     * filter items either by object name or class name (toggle the "filter by"
       button next to the search box), using regular expressions. Prefix the
       search term with "~" to filter *out* matching names.
@@ -97,25 +97,21 @@ The extension provides some code debugging capabilities, see
    callback)` is the most useful.
 
 **Known issues:**
-
 * Output from R is displayed in the command output pane only __at the end of
   operation__ (real-time output will be introduced in version 0.4)
+* Connection timeout on longer operations: a prompt is shown as if the
+  calculation in R has finished and no output is shown (version < 0.4)
 * Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape
   key in RGui)
-* On MAC OS X, problems with starting R.app and connection (__Mac testers wanted__)
-* Executing Rgui's command “Stop all computations” will also stop R's socket
-  server and hence break the connection with Komodo. It may also cause R crash
-  (it happens sometimes on Windows).
-* On Linux, Tk-Gui sometimes does not close properly. It is not recommended to
-  use it with this add-on.
-* Problems with connection with Komodo server in R may cause R not exit properly
-  and need to kill the R process (it happens rarely - perhaps a Windows-specific
-  problem).
-* Connection timeout on longer operations: a prompt is shown as if the
-  calculation in R has finished and no output is shown. (version < 0.4)
+* __On MAC OS X__: problems with starting R.app and connection with R 
+  (__Mac developers/testers wanted!__)
+* __On Windows__: Executing Rgui's command “Stop all computations” will also stop R's socket
+  server and hence break the connection with Komodo. In rare cases, tt may also cause R to crash.
+* __On Linux__: Tk-Gui sometimes does not close properly. It is not recommended to
+  use Tk-Gui with this add-on.
+* In rare cases, there may be problems with connection between R and Komodo server
+  which cause R not to exit properly and it is necessary to manually kill the R process.
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the
   colouring dissappears occassionally. There is also some flickering inside
   Roxygen comments. This is due to a bug in Komodo related to brace counting.
 
-
-**[Hacks for classic Windows styling in Komodo Edit](improveKo9.md)**
