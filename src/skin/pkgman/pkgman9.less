@@ -4,11 +4,10 @@
 
 @item-repository-checked-bg: ButtonHighlight;
 
-@topbuttons-hover-bg: @button-background-hover;
-@topbuttons-hover-fg: @button-color-hover;
+@topbuttons-hover-bg: rgba(128, 128, 128, 0.5); // @button-background-hover;
+@topbuttons-hover-fg: @statusbar-button-color-hover; // @button-color-hover;
 
-
-@topbuttons-selected-bg: @button-background-active;
+@topbuttons-selected-bg: rgba(143, 143, 143, 0.2); // @button-background-active
 @topbuttons-selected-fg: @button-color-active;
 
 @navButton-fg: @window-color;
@@ -31,8 +30,10 @@
 @svg-icon-suffix: "size=16&color=@{list-listbox-item-color}";
 @selected-svg-icon-suffix: "size=16&color=@{list-listbox-item-color-selected}";
 
-@import url("chrome://komodor/skin/pkgman/common.less");
+@large-svg-icon-suffix: "size=32&color=@{list-listbox-item-color}";
+@large-selected-svg-icon-suffix: "size=32&color=@{list-listbox-item-color-selected}";
 
+@import url("chrome://komodor/skin/pkgman/common.less");
 
 /*
 var colorToRGBString = (color) => {

@@ -1,0 +1,32 @@
+{
+  "keyboard_shortcut": "", 
+  "name": "Restore missing R toolbar", 
+  "language": "JavaScript", 
+  "trigger_enabled": false, 
+  "value": [
+    "var id = \"RToolbar\";", 
+    "try {", 
+    "var toolbar = document.getElementById(id);", 
+    "if(toolbar === null) throw(\"Toolbar element not found\");", 
+    "toolbar.setAttribute(\"kohidden\", \"true\");", 
+    "ko.uilayout.toggleToolbarVisibility(id);", 
+    "var tbrow = document.getElementById(\"second-toolboxrow\");", 
+    "if(tbrow === null)", 
+    "    tbrow = document.getElementById(\"main-toolboxrow\");", 
+    "if(tbrow === null)", 
+    "    throw(\"Toolbars not found\");", 
+    "var found = false;", 
+    "for(let node of tbrow.childNodes)", 
+    "    if((found = node.id == id)) break;", 
+    "if(!found) tbrow.appendChild(toolbar);", 
+    "} catch(e) {", 
+    "    ko.dialogs.alert(e);", 
+    "}"
+  ], 
+  "trigger": "trigger_postopen", 
+  "rank": 100, 
+  "version": "1.0.12", 
+  "async": false, 
+  "type": "macro", 
+  "icon": "koicon://ko-svg/chrome/icomoon/skin/tools.svg"
+}

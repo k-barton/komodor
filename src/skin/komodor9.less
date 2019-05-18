@@ -1,14 +1,13 @@
-
 @toolbar-svg-icon-suffix: "preset=toolbar";
 @widget-svg-icon-suffix: "size=16&preset=widgets";
 @widget-selected-svg-icon-suffix: "size=16&preset=selected";
 
-@import url("chrome://komodor/skin/komodor-common.less");
+@import url("chrome://komodor/skin/common.less");
 
 ko-pane tab[widget="robViewbox"].tab-icon {
-  .icon(R_browser, '?@{widget-svg-icon-suffix}');
+	.icon(R_browser, '?@{widget-svg-icon-suffix}');
 }
 
 ko-pane[type="icons"] tab[widget="robViewbox"][selected] .tab-icon {
-    .icon(R_browser, '?@{widget-selected-svg-icon-suffix}');
+	.icon(R_browser, '?@{widget-selected-svg-icon-suffix}');
 }

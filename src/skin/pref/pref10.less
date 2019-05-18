@@ -1,11 +1,18 @@
-
 @import url("chrome://komodo/skin/global/colors.less");
 @import url("resource://profile/colors.less");
 
-@import url("chrome://komodor/skin/pref/pref-common.css");
-
+@import url("chrome://komodor/skin/pref/common.css");
 
 .menulist-editable-input {
-    color: @foreground;
-    background: @textbox;
+	color: @foreground;
+	background: @textbox;
+}
+
+menulist:not(:first-child) {
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+.button-toolbar-a {
+	margin-left: 6px;
 }

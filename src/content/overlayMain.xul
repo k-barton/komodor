@@ -264,7 +264,7 @@
 					   observes="cmd_REscape"
 					   id="RToolbarEscape"
 					   label="&rEscape;" />
-        <toolbarbutton buttonstyle="pictures"
+		<toolbarbutton buttonstyle="pictures"
 					   tooltiptext="&rEndBrowseFrame;"
 					   persist="buttonstyle kohidden"
 					   class="end-browse-icon"
@@ -365,15 +365,15 @@
 </menupopup>
 
 <menupopup id="tabContextMenu">
-    <menuseparator id="buffertab-context-sep-r"/>
-    <menuitem id="buffertab-context-r-source" observes="cmd_RSourceAll"
-    label="&rSrcFileX;" />
+	<menuseparator id="buffertab-context-sep-r"/>
+	<menuitem id="buffertab-context-r-source" observes="cmd_RSourceAll"
+	label="&rSrcFileX;" />
 </menupopup>
 
 <menupopup id="editorContextMenu">
-    <menuseparator id="editor-context-sep-r"/>
-    <menuitem id="editor-context-r-selection-send" 
-    observes="cmd_RRunLineOrSelection" label="&rSendLineOrSelectionX;" />
+	<menuseparator id="editor-context-sep-r"/>
+	<menuitem id="editor-context-r-selection-send" 
+	observes="cmd_RRunLineOrSelection" label="&rSendLineOrSelectionX;" />
 </menupopup>
 
 <ko-pane id="workspace_left_area">
@@ -382,17 +382,8 @@
 	label="&rBrowser.tab;"
 	tab_onfocus="require('kor/main').rbrowser.focus();"
 	src="chrome://komodor/content/rob/rbrowser-pane.xul"
-    icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg" 
-	style="list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg)"
+	icon="koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg" 
 	/>
 </ko-pane>
-
-<ko-pane id="workspace_bottom_area">
-<browser type="ko-widget"
-	id="errorconsole_tabpanel"
-	label="&errorConsole.title;"
-	src="chrome://global/content/console.xul"
-	/>
-</ko-pane>
-
+<!--style="list-style-image: url(koicon://ko-svg/chrome/komodor/skin/images/R_browser.svg)"-->
 </overlay>

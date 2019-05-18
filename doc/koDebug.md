@@ -1,7 +1,7 @@
 ---
 title: "Debugging R code in Komodo"
 output: html_document
-css: chrome://komodor/skin/doc.css
+css: doc.css
 ---
 
 R's debugging functions like `debug`, `browser` or `recover` cannot be used from
@@ -13,8 +13,9 @@ manner similar to `browser()`. It interrupts R code execution and changes the
 current execution environment to where it was called from. Afterwards, sending
 `koBrowseEnd()` command sets the current environment back to `.GlobalEnv`. 
 
-Note that the original call stack is not preserved (so `sys.frames()` or `sys.calls()` _et al._ will not
-work as expected), and the execution of the function will not be resumed.
+Note that the original call stack is not preserved (so `sys.frames()` or
+`sys.calls()` _et al._ will not work as expected), and the execution of the
+function will not be resumed.
 
 __Example:__
 
@@ -71,14 +72,14 @@ Evaluating in '.GlobalEnv'
 
 Alternatively, delete the respective
 <img src="chrome://komodor/skin/images/environment.svg" class="inline" /> item 
-in the R Object Browser (Shift+Delete) or in the "R Search path" panel (Delete).
+in the R Object Browser or in the "R Search path" panel (press Delete).
 
-
-The function `koDebug` allows debugging a function when it produces an 
-error. This is not equivalent to `debug`, but rather more similar to `recover`.
-Browsing mode using `koDebug` differs from `recover` in that it does not allow 
-to resume the execution of the code, and the recovered frame is the one of the 
-debugged function, not the one where the error occurred (see second example below).
+The function `koDebug` allows debugging a function when it produces an error.
+This is not equivalent to `debug`, but rather more similar to `recover`.
+Browsing mode using `koDebug` differs from `recover` in that it does not allow
+to resume the execution of the code, and the recovered frame is the one of the
+debugged function, not the one where the error occurred (see the second example
+below).
 
 Example:
   

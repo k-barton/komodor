@@ -7,13 +7,12 @@
 
 @icon-size: "14";
 
-@import url("chrome://komodor/skin/rbrowser/rbrowser-common.less");
-
+@import url("chrome://komodor/skin/rbrowser/common.less");
 
 // Workaround for a bug (komodo>=10), in which richlistbox scrollbar does not
 // appear to respond to any combination of CSS selectors.
-// Komodo developers' brilliant idea to put scrollbars on top of the content
-// cause the vertical scrollbar cover the checkboxes.
+// The brilliant idea to put scrollbars on top of the content causes the 
+// checkboxes on the far right to be invisible.
 .rsearchpath > scrollbox > box {
 	padding-right: 19px;
 }

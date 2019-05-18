@@ -3,54 +3,59 @@
 @toolbar-svg-icon-suffix: "preset=toolbar";
 
 .icon (@image, @suffix: '') {
-  list-style-image: url("@{svg-images}/@{image}.svg@{suffix}");
+	list-style-image: url("@{svg-images}/@{image}.svg@{suffix}");
 }
 
 .tbicon (@image) {
-  .icon(@image, "?@{toolbar-svg-icon-suffix}");
+	.icon(@image, "?@{toolbar-svg-icon-suffix}");
 }
 
 .toolbox-top {
-    border: none;
-    margin: 0px;
-    margin-bottom: 1px;
-    padding: 0px;
+	border: none;
+	margin: 0px;
+	margin-bottom: 1px;
+	padding: 0px;
 }
 
 /* fixup the hight of toolbar menu buttons */
-hbox > toolbar > toolbarbutton[type="menu-button"] {
-  padding-top: 0px;
-  padding-bottom: 0px;
+hbox>toolbar>toolbarbutton[type="menu-button"] {
+	padding-top: 0px;
+	padding-bottom: 0px;
 }
 
 toolbar {
-    border-right: 1px outset ThreeDHighlight;
-    border-left: 1px outset ThreeDHighlight;
+	border-right: 1px outset ThreeDHighlight;
+	border-left: 1px outset ThreeDHighlight;
 }
 
 toolbarbutton {
-    /*-moz-box-orient: vertical;*/
-    padding-top: 4px;
-    padding-bottom: 4px;
-    -moz-user-focus: normal;
+	/*-moz-box-orient: vertical;*/
+	padding-top: 4px;
+	padding-bottom: 4px;
+	-moz-user-focus: normal;
+	min-width: 28px;
+}
+
+toolbarbutton[buttonstyle="pictures"]>image {
+	-moz-margin-end: 0;
 }
 
 .toolbarbutton-text[buttonstyle="pictures"],
 .toolbarbutton-icon[buttonstyle="text"] {
-    display: none;
+	display: none;
 }
 
 toolbarbutton.toolbar-portrait-page .toolbarbutton-text,
 toolbarbutton.toolbar-landscape-page .toolbarbutton-text {
-    display: none;
+	display: none;
 }
 
 .reload-icon {
-    .tbicon(refresh);
+	.tbicon(refresh);
 }
 
 .find-icon {
-	.tbicon(doc);
+	.tbicon(find-on-page);
 }
 
 .home-icon {
@@ -61,12 +66,16 @@ toolbarbutton.toolbar-landscape-page .toolbarbutton-text {
 	.tbicon(web);
 }
 
+.doc-icon {
+	.tbicon(doc);
+}
+
 .go-icon {
-    .tbicon(go);
+	.tbicon(go);
 }
 
 .stop-icon {
-    .tbicon(stop);
+	.tbicon(stop);
 }
 
 .search-icon {
@@ -74,32 +83,35 @@ toolbarbutton.toolbar-landscape-page .toolbarbutton-text {
 }
 
 .history-back-icon {
-  .tbicon(back);
+	.tbicon(back);
 }
 
 .history-forward-icon {
-  .tbicon(forward);
+	.tbicon(forward);
 }
 
 
 .print-icon {
-  .tbicon(print);
+	.tbicon(print);
 }
 
 .open-in-mainwin-icon {
-    .tbicon(open-in-browser);
+	.tbicon(open-in-browser);
 }
-
 
 [class$="-icon"][disabled="true"] image,
 image[class$="-icon"][disabled="true"] {
 	opacity: 0.5;
-    filter: grayscale(50%);
+	filter: grayscale(50%);
 }
 
 [class$="-icon"]:not([disabled="true"]) image:hover,
 [class$="-icon"]:not([disabled="true"]) image:hover:active,
 [class$="-icon"]:not([disabled="true"]):hover,
 [class$="-icon"]:not([disabled="true"]):hover:active {
-	filter: brightness(1.7) contrast(150%) drop-shadow(1px 1px 2px #000000aa);
+	filter: brightness(1.7) contrast(150%) drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.66));
+}
+
+#rhelp-topic.addressIsURL {
+	color: #0000ff;
 }

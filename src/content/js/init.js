@@ -234,7 +234,7 @@
         	var filename = fileUtils.path("PrefD", "extensions",
         		kor.extensionId, "R", "~ports");
         	if (fileUtils.exists(filename) !== fileUtils.TYPE_FILE) {
-        		logger.info("~ports file not found.");
+        		logger.info("~ports file not found");
         		return;
         	}
         	var s = fileUtils.read(filename).trim();
@@ -291,17 +291,23 @@
 //    else imgsrc = document.getAnonymousElementByAttribute(button, "class", "toolbarbutton-icon").src;
 //    return imgsrc;
 //};
- 
-    var onKomodoRUpdateRestart = function () {
-        if (!kor.command.isRRunning) return true;
-        //if (topic != "quit-application-requested") return;
 
-        let staged = fileUtils.exists2(fileUtils.path("ProfD", "extensions", "staged",
-            kor.extensionId)) == fileUtils.TYPE_DIRECTORY;
-        if (staged) {
+    var onKomodoRUpdateRestart = function _koRestartHandler() {
+        if (!kor.command.isRRunning) return;
+
+        if (fileUtils.exists2(fileUtils.path("ProfD", "extensions", "staged",
+            kor.extensionId)) === fileUtils.TYPE_DIRECTORY) {
+            // For some reason, this function is run twice, we need to prevent 
+            // it. Flag variables do not seem to work, so here we create a flag 
+            // file in the soon-to-be-removed package directory:
+            let flagFile = fileUtils.path("ProfD", "extensions", kor.extensionId, "~updating");
+        	if (fileUtils.exists2(flagFile) === fileUtils.TYPE_FILE)
+        		return;
+            fileUtils.write(flagFile, "updating", "ascii", false);
+            
             let result = ko.dialogs.yesNoCancel(
-                "In order to complete the update of \"R Interface\" add-on, " +
-                "the connected R session must be closed. Do you want to save your R workspace? " +
+                "To complete the update of \"R Interface\" add-on, " +
+                "the current R session must be closed. Do you want to save your R workspace? " +
                 "Click \"Cancel\" to leave R open " +
                 "(the add-on will not be updated until you restart Komodo" +
                 " with R unconnected).", null, null,
@@ -317,11 +323,8 @@
             default:
             }
         }
-        //cancelQuit.data = true;
-        return true;
+        return;
     };
-
-    //Services.obs.addObserver(onKomodoRUpdateRestart, "quit-application-requested", false);
 
     // Just in case, run a clean-up before quitting Komodo:
 	// Note: do not unload kor on Komodo exit "base::detach(\"package:kor\",unload=TRUE)"

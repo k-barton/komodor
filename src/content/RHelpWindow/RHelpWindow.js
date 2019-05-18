@@ -1,66 +1,85 @@
 
 /* globals require, self, Components, KeyEvent, internalSave, goUpdateCommand */
 
-var rHelpBrowser, rHelpTopic;
-var isUrl = (s) => s.search(/^((f|ht)tps?|chrome|resource|koicon|about|file):\/{0,3}/) === 0;
-
 var _w = Components.classes["@mozilla.org/appshell/window-mediator;1"]
 	.getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("Komodo");
+
+var gBrowser, gAddressBar, gButtons = {};
+
+var rxHelpTopic_ = /^ *[\w\.\-]+ *$/,
+	rxURL_ = /^(((f|ht)tps?|chrome|resource|koicon|file|less):\/\/|about:)/,
+	rxMaybeURI_ = new RegExp(
+   "(((f|ht)tps?|chrome|resource|koicon|file|less)://|about:)?" +  // SCHEME
+	"([a-z0-9+!*(),;?&=$_\\.-]+(:[a-z0-9+!*(),;?&=$_\\.-]+)?@)?" + // User and Pass
+	"([a-z0-9\\-\\.]*)\\.(([a-z]{2,4})|([0-9]{1,3}\\.([0-9]{1,3})\\.([0-9]{1,3})))" + // Host or IP
+	"(:[0-9]{2,5})?");
+var isURL = (s) => rxURL_.test(s);
+var mayBeURI = (s) => rxMaybeURI_.test(s);
+var isHelpTopic = (s) => rxHelpTopic_.test(s);
+var isLocalFile = (s) => _w.Services.koOsPath.isfile(s);
 
 if(typeof require === "undefined")
 	var require = _w.require;
 
-const R = require("kor/r");
-const UI = require("kor/ui");
-const Fu = require("kor/fileutils");
+const R = require("kor/r"), UI = require("kor/ui"), Fu = require("kor/fileutils");
 
 var logger = require("ko/logging").getLogger("komodoR");
 
 var loadURI = (uri, browser, flags) => {
 	var wn = browser.webNavigation;
 	if(!flags) flags = wn.LOAD_FLAGS_NONE;
+    browser.stop(wn.STOP_ALL);
 	if(uri === wn.currentURI.spec) wn.reload(flags);
 	else wn.loadURI(uri, flags, null, null, null);
 };
 
+function openCurrentURInMainWindow() {
+	UI.openBrowser(gBrowser.webNavigation.document.location);
+}
+
+// TODO: implement protocols: rdoc & rdoc-search
 function go(uri, loadFlags) {
 	logger.debug("RHelpWindow:go " + uri);
 
 	// These are still undefined when calling 'go' on load event,
-	// so define them here
-	rHelpBrowser = document.getElementById("rhelp-browser");
-	switch (uri) {
-	 case  "":
-	 case "@home@":
-		rHelpBrowser.goHome();
-		return;
-	 case "@CRAN@":
-		uri = require("kor/prefs").getPref("CRANMirror");
-		if (!uri || uri.indexOf("ftp:/") === 0)
-			uri = "http://cran.r-project.org/";
-	}
-
-	rHelpTopic = document.getElementById("rhelp-topic");
+	// so define them here:
+	gAddressBar = document.getElementById("rhelp-topic");
 	// In case the window was not yet fully loaded.
-	if (!rHelpTopic) {
+	if (!gAddressBar) {
 		self.addEventListener("load", (event) => { go(uri); }, false);
 		return;
 	}
+	if(!gBrowser) gBrowser = document.getElementById("rhelp-browser");
 
-	if (uri) rHelpTopic.value = uri;
-        else uri = rHelpTopic.value;
+	if(!uri) uri = gAddressBar.value.trim();
+	
+	switch (uri) {
+	 case  "":
+	 case "@home@":
+		gBrowser.goHome();
+		return;
+	 case "@CRAN@":
+		uri = require("kor/prefs").getPref("CRANMirror");
+		if (!uri || uri.startsWith("ftp:/"))
+			uri = require("kor/prefs").defaults["CRANMirror"];
+	}
 
-	rHelpTopic.select();
+	gAddressBar.value = uri;
+	gAddressBar.select();
  
-    if(Fu.exists2(uri) !== 0) uri = Fu.toFileURI(uri);
-    if (isUrl(uri))  // This looks like a URL
-		loadURI(uri, rHelpBrowser, loadFlags);
-	else // Look for this 'topic' web page
+    if(isLocalFile(uri)) uri = Fu.toFileURI(uri);
+    if (isURL(uri))  // This looks like a URL
+		loadURI(uri, gBrowser, loadFlags);
+    else if (mayBeURI(uri))  // This looks like a URL without protocol
+		loadURI("https://" + uri, gBrowser, loadFlags);
+	else if(isHelpTopic(uri)) // Look for this 'topic' web page
 		R.help(uri);
+	else
+		search(uri);
 }
 
 // viewZoomOverlay.js uses this
-function getBrowser() rHelpBrowser
+function getBrowser() gBrowser
 
 
 // display formatted search results in a help window
@@ -77,38 +96,44 @@ function rHelpSearch(topic) {
 				s.toLowerCase()) + "=" + 
 				encodeURIComponent(queryObj[i]).trim());
 	  
-    loadURI(rHelpBrowser.homePage.replace(/index.html$/,
+    loadURI(gBrowser.homePage.replace(/index.html$/,
 		"Search?" + queryArr.join("&")),
-			rHelpBrowser, null);
+			gBrowser, null);
 }
+
 
 function txtInput(aEvent) {
 	if (aEvent.keyCode === KeyEvent.DOM_VK_RETURN) {
 		if (aEvent.ctrlKey)
-			rHelpSearch(rHelpTopic.value);
+			rHelpSearch(gAddressBar.value);
 		else
 			go();
 	} else {
-		let value = rHelpTopic.value;
-		let isTopic = value.search(/[^\w\.\-]/) === -1;
-		let valueIsUrl = isUrl(value);
-		rHelpTopic.style.color = valueIsUrl ? "#000000" : "#8080ff";
-		document.getElementById("rhelp-go").disabled = !valueIsUrl || !isTopic;
+		let value = gAddressBar.value;
+		let valueIsTopic = isHelpTopic(value);
+		let valueIsFullURL = isURL(value); 
+        let valueIsURI = valueIsFullURL || mayBeURI(value); // match without protocol,
+        let valueIsFileName = !valueIsURI && isLocalFile(value);
+        
+		gButtons.go.disabled = !valueIsURI && !valueIsFileName;
+        gButtons.doc.disabled = !valueIsTopic || valueIsFullURL || valueIsFileName;
+        gButtons.search.disabled = !valueIsTopic || valueIsFullURL || valueIsFileName;
+		gAddressBar.classList[valueIsURI ? "add" : "remove" ]("addressIsURL");
 	}
 }
 
 function search(topic) {
 	if (!topic) return;
-	rHelpTopic.select();
+	gAddressBar.select();
 	R.search(topic);
 }
 
 function find(next, backwards) {
-	//rHelpTopic.select();
+	//gAddressBar.select();
 	var findToolbar = document.getElementById("FindToolbar");
 	if (!next) {
 		findToolbar.open(0); //  aMode = 0 : full search
-		findToolbar._findField.value = rHelpBrowser.contentWindow.getSelection();
+		findToolbar._findField.value = gBrowser.contentWindow.getSelection();
 		findToolbar._find(findToolbar._findField.value);
 		findToolbar._findField.focus();
 	} else
@@ -150,15 +175,15 @@ var progressListener = {
 		if (aFlag & Components.interfaces.nsIWebProgressListener.STATE_STOP) {
 			// This fires when the load finishes
 			self.document.title = aWebProgress.DOMWindow.document.title;
-			rHelpTopic.value = aWebProgress.DOMWindow.document.location;
+			gAddressBar.value = aWebProgress.DOMWindow.document.location;
 
 			document.getElementById("cmd_stop").setAttribute("disabled", true);
 			document.getElementById("cmd_stop").hidden = true;
 			document.getElementById("cmd_reload").hidden = false;
 			document.getElementById("cmd_go_back")
-				.setAttribute("disabled", !rHelpBrowser.webNavigation.canGoBack);
+				.setAttribute("disabled", !gBrowser.webNavigation.canGoBack);
 			document.getElementById("cmd_go_forward")
-				.setAttribute("disabled", !rHelpBrowser.webNavigation.canGoForward);
+				.setAttribute("disabled", !gBrowser.webNavigation.canGoForward);
 		}
 	},
 
@@ -185,9 +210,7 @@ var progressListener = {
 	onSecurityChange: function(aWebProgress, aRequest, aState) { }
 };
 
-
 var getSelection = () => window.content.getSelection().toString().trim(); 
-
 
 function rHelpBrowserContextOnShow(event) {
 	var selText = getSelection();
@@ -257,9 +280,9 @@ this.purgeCache = function() {
 };
 
 this.purgeHistory = function() {
-	if (rHelpBrowser.docShell.sessionHistory.count)
-		rHelpBrowser.docShell
-			.sessionHistory.PurgeHistory(rHelpBrowser.docShell.sessionHistory.count);
+	if (gBrowser.docShell.sessionHistory.count)
+		gBrowser.docShell
+			.sessionHistory.PurgeHistory(gBrowser.docShell.sessionHistory.count);
 };
 
 }).apply(browserUtils);
@@ -272,51 +295,59 @@ this.purgeHistory = function() {
 //	}
 //}
 
-function OnLoad (event) {
-	try {
-    logger.debug("RHelpWindow:onLoad");
+function OnLoad(event) {
+    try {
+        logger.debug("RHelpWindow:onLoad");
 
+        // DOMContentLoaded is fired also for HTML content
+        if (event.target !== self.document) return;
+        var page;
+        if (window.arguments) {
+            let args = window.arguments;
+            if (typeof args[1] !== "undefined") page = args[1];
+        }
 
-	// DOMContentLoaded is fired also for HTML content
-	if (event.target !== self.document) return;
-	var page;
-	if (window.arguments) {
-		let args = window.arguments;
-		if (typeof args[1] !== "undefined") page = args[1];
-	} 
+        gAddressBar = document.getElementById("rhelp-topic");
+        gAddressBar.clickSelectsAll = true;
+        gBrowser = document.getElementById("rhelp-browser");
+        gBrowser.addProgressListener(progressListener,
+            Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+		
+		gButtons.go = document.getElementById("rhelp-navigate-go");
+		gButtons.doc = document.getElementById("rhelp-navigate-doc");
+        gButtons.search = document.getElementById("rhelp-navigate-search");
 
-	rHelpTopic = document.getElementById("rhelp-topic");
-	rHelpTopic.clickSelectsAll = true;
-	rHelpBrowser = document.getElementById("rhelp-browser");
-	rHelpBrowser.addProgressListener(progressListener,
-	    Components.interfaces.nsIWebProgress.NOTIFY_STATE_DOCUMENT);
+        var findToolbar = document.getElementById("FindToolbar");
 
-	var findToolbar = document.getElementById("FindToolbar");
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach((mutation) => {
+                if (findToolbar == mutation.target && mutation.attributeName ==
+                    "hidden") {
+                    document.getElementById("rhelp-find").checked =
+						!mutation.target.hidden;
+                }
+            });
+        });
 
-	var observer = new MutationObserver(function(mutations) {
-	   mutations.forEach((mutation) => {
-		 if (findToolbar == mutation.target && mutation.attributeName == "hidden") {
-			document.getElementById("rhelp-find").checked = !mutation.target.hidden;
-		   }
-	  });    
-	});
+        observer.observe(findToolbar, {
+            attributes: true,
+            childList: false,
+            characterData: false
+        });
 
-	observer.observe(findToolbar, { attributes: true, 
-	     childList: false, characterData: false });
+        go(page ? page : "about:blank");
+        _getHomePage(gBrowser, !page);
 
-	go(page ? page : "about:blank");
-	_getHomePage(rHelpBrowser, !page);
+        // Print preview does not work on a Mac, disable that command then
+        //var isMac = navigator.platform.search(/Mac/) === 0;
+        //document.getElementById("cmd_print_preview")
+        //   .setAttribute("disabled", isMac);
+        //document.getElementById("rhelp-print-preview").hidden = isMac;
 
-	// Print preview does not work on a Mac, disable that command then
-	var isMac = navigator.platform.search(/Mac/) === 0;
-	document.getElementById("cmd_print_preview")
-		.setAttribute("disabled", isMac);
-	document.getElementById("rhelp-print-preview").hidden = isMac;
-	
-	} catch(ex) {
-		logger.exception(ex, "RHelpWindow:onLoad");
-	}
-	
+    } catch (ex) {
+        logger.exception(ex, "RHelpWindow:onLoad");
+    }
+
 }
 
 // this is fired earlier than load event, so all required variables
@@ -325,9 +356,9 @@ self.addEventListener("DOMContentLoaded", OnLoad, false);
 
 
 // required by PrintUtils.printPreview()
-//function getWebNavigation() rHelpBrowser.webNavigation;
+//function getWebNavigation() gBrowser.webNavigation;
 //function getNavToolbox() document.getElementById("nav-toolbar");
-//function getPPBrowser() rHelpBrowser;
+//function getPPBrowser() gBrowser;
 
 function printPage() {
 	//PrintUtils.print();
@@ -339,8 +370,8 @@ function printPreview() {
 	//PrintUtils.printPreview(enterPP, exitPP);
 	/*
 	callback = {
-		getSourceBrowser() => rHelpBrowser,
-		getPrintPreviewBrowser() => rHelpBrowser,
+		getSourceBrowser() => gBrowser,
+		getPrintPreviewBrowser() => gBrowser,
 		getNavToolbox() => ... //document.getElementById("nav-toolbar")
 	};
 	PrintUtils.printPreview(callback);

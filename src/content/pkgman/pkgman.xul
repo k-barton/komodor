@@ -38,10 +38,9 @@
 <window id="RPackageManager" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     width="400" height="300" screenX="20" screenY="20"
     persist="screenX screenY width height"
-    title="R package manager" >
+    title="R package manager">
 
 <script type="application/x-javascript" src="chrome://komodor/content/pkgman/pkgman.js"/>
-
 
 <hbox id="topStackBar">
 	<radiogroup id="viewGroup" orient="horizontal" flex="2">
@@ -63,9 +62,9 @@
 			label="Tools"
 			orient="horizontal" class="tools-icon">
 		<menupopup>
-			<menuitem label="Install package from local file" />
+			<menuitem label="Install package from local file" disabled="true" />
 			<menuitem label="Set repositories" oncommand="openRepositoriesWindow()" />
-			<menuitem label="Attach workspace" />
+			<menuitem label="Attach workspace"  disabled="true" />
 		</menupopup>
 
 		</toolbarbutton>
@@ -141,7 +140,6 @@
 			<listcol flex="1"/>
 		</listcols>
 	</listbox>
-
 </loadbox>
 </hbox>
 </vbox>

@@ -279,33 +279,31 @@ var getSelectedCranMirror = () => {
 	return cranMirrors[j];
 };
 
-var formatR_checkIfAvailable = (pathToR) => {
+var formatter_checkIfAvailable = (pathToR) => {
 	var callback = (ok) => {
-		document.getElementById("no-avail-formatR-message").style.visibility = (ok === true) ? "collapse" : "visible";
+		document.getElementById("no-avail-formatter-message").style.visibility = (ok === true) ? "collapse" : "visible";
 	};
-    require("kor/main").rCliExec(pathToR, "cat(length(find.package('formatR',quiet=TRUE)))").then(x => {
+    require("kor/main").rCliExec(pathToR, "cat(length(find.package('styler',quiet=TRUE)))").then(x => {
         if (/^\d+$/.test(x)) callback(parseInt(x) > 0);
         else throw new Error("Response not recognized");
     }).catch(callback);
 };
 
-var formatR_install = () => {
-	let cmd = `install.packages('formatR',repos='${getSelectedCranMirror()[3L]}');cat(length(find.package('formatR',quiet=TRUE)))`;
+var formatter_install = () => {
+	let cmd = `install.packages('styler',repos='${getSelectedCranMirror()[3]}');cat(length(find.package('styler',quiet=TRUE)))`;
 	let pathToR = getSelectedInterpreterPath();
 	require("kor/main").rCliExec(pathToR, cmd).then(str => {
         let success = str.endsWith("1");
-        getDialogs().alert(`R ${success ? "has installed" : "could not install"} package 'formatR'.`,
+        getDialogs().alert(`R ${success ? "has installed" : "could not install"} package 'styler'.`,
             str.substr(0, str.length - 1).trim(), "R interface preferences");
-        document.getElementById("no-avail-formatR-message").style.visibility = success ? "collapse" : "visible";
+        document.getElementById("no-avail-formatter-message").style.visibility = success ? "collapse" : "visible";
 	});
 };
 
 
 //TODO: check if there is new R version installed and ask whether to switch to it.
 function populatePathToR() {
-
     var prefExecutable = currentPrefset.getStringPref('RInterface.pathToR');
-
     var rs;
     const os = Services.koOs;
     var menu = document.getElementById("RInterface.pathToR");
@@ -353,9 +351,9 @@ function populatePathToR() {
     
 	document.getElementById("no-avail-interps-message").hidden = rFound;
 	//if (require("kor/command").isRRunning)
-	document.getElementById("formatR-install-offer").style.visibility = "visible";
+	document.getElementById("formatter-install-offer").style.visibility = "visible";
 	
-	formatR_checkIfAvailable(prefExecutable);
+	formatter_checkIfAvailable(prefExecutable);
 }
 
 var resetToDefault = (prefName) => {
@@ -622,7 +620,6 @@ function OnPreferencePageOK(prefset) {
         var newServerPort = parseInt(document.getElementById('RInterface.RPort').value);
 		var newClientPort = parseInt(document.getElementById('RInterface.koPort').value);
 		
-		
 		if(newClientPort === newServerPort) {
 			parent.switchToPanel("svPrefRItem");
 			document.getElementById("RInterface.RPort").focus();
@@ -679,7 +676,7 @@ function rInterpreterOnSelect(/*event*/) {
 
     updateRCommand(true);
 	updateRVersionLabel(value);
-	formatR_checkIfAvailable(value);
+	formatter_checkIfAvailable(value);
 
 	var el = document.getElementById("CRANMirror");
 	el.tooltipText = "";
@@ -727,7 +724,7 @@ function setCranMirrorsSecure(secure) {
 	require("kor/command").fireEvent(self, "r_cran_mirrors_updated");
 }
 
-function OnCranMirrorChange() {
+function onCranMirrorChange() {
 	require("kor/command").fireEvent(self, "r_cran_mirrors_updated");
 }
 
@@ -802,16 +799,24 @@ function onCranMirrorListUpdated() {
     }
 }
 
-
-// TODO
 function onStylesheetSelect() {
-    var uri = control.value.trim();
-    const fu = require("kor/fileutils");
-    
-    fu.pathFromURI(uri);
-    
-    var file = require("kor/ui").browseForFile(path, filename, null, "Stylesheets|*.css", false, false);
-    control.value = fu.toFileURI(file);
+	var control = document.getElementById("RInterface.viewTableCSSURI");
+    var s = control.value.trim();
+    const url = require("sdk/url");
+    var path, dirName = "", fileName = "";
+    if(url.isValidURI(s)) {
+        try {
+            path = url.toFilename(s);
+            fileName = Services.koOsPath.basename(path);
+            dirName = Services.koOsPath.dirname(path);
+        } catch(e) { }
+    }
+    var file = require("kor/ui").browseForFile(dirName, fileName, null,
+        "Stylesheets|*.css", false, false);
+    if(file === null) return;
+    try {
+        control.value = url.fromFilename(file);
+    } catch(e) {}
 }
 
 

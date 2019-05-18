@@ -67,7 +67,6 @@ class KoRLinter:
     def lint(self, request):
         text = request.content.encode("utf-8")
         tabWidth = request.koDoc.tabWidth
-        log.debug("linting %s" % text[1:15])
 
         results = koLintResults()
         try:
@@ -86,30 +85,27 @@ class KoRLinter:
                 pass
                 #raise ServerException(nsError.NS_ERROR_NOT_AVAILABLE)
 
-            log.debug('lint: ' + lines)
+            # log.debug('lint: ' + lines)
             ma = self.pattern.match(lines)
             if (ma):
                 lineNo = int(ma.group('line'))
                 datalines = re.split('\r\n|\r|\n', request.content, lineNo) # must not to be encoded
                 columnNo = int(ma.group("col"))
                 description = ma.group("descr")
-                #code = ma.group("code")
-
+                
+                if len(datalines) < lineNo:
+                    lineNo = len(datalines)
+                    columnNo = len(datalines[-1])
+                    if columnNo > 0:
+                        ma1 = re.search( '\S\s+$', datalines[-1])
+                        columnNo = 1 if ma1 is None else ma1.start(0) + 1
                 result = KoLintResult()
                 result.severity = result.SEV_ERROR
                 result.lineStart = result.lineEnd = lineNo
                 l1 = datalines[lineNo - 1][:columnNo]
-# TODO: [ERROR] RLinter: list index out of range
-# Traceback (most recent call last):
-# File "koRLinter.py", line 101, in lint
-# l1 = datalines[lineNo - 1][:columnNo]
-# IndexError: list index out of range
-                
-                
                 ntabs = l1.count("\t")
                 result.columnStart = columnNo - (ntabs * 7)
                 result.columnEnd = len(datalines[lineNo - 1]) + 1
-                log.debug("tabWidth = %d" % tabWidth)
 
                 result.description = "Syntax error: %s (on column %d)" % \
                     (description, columnNo - (ntabs * (8 - tabWidth)))

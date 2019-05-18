@@ -14,8 +14,7 @@
 <?xml-stylesheet href="chrome://komodo/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/global/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodo/skin/toolbar.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodor/skin/komodor.css" type="text/css"?>
-<?xml-stylesheet href="chrome://komodor/skin/rhelpwin.css" type="text/css"?>
+<?xml-stylesheet href="less://komodor/skin/rhelpwin.less" type="text/css"?>
 
 <window
     id="rHelpWindow" title="R Help"
@@ -45,50 +44,45 @@
 </keyset>
 
 <commandset id="commandset_main">
-  <command id="cmd_find" oncommand="find(false);" />
-  <command id="cmd_find_next" oncommand="find(true, event.shiftKey)" />
-  <command id="cmd_find_previous" oncommand="find(true, event.shiftKey)" />
-  <command id="cmd_go" oncommand="go()" disabled="false"
-		   label="Go" tooltiptext="Show topic or web page" />
-  <command id="cmd_search" oncommand="rHelpSearch(document.getElementById('rhelp-topic').value)"
-		   disabled="false" label="Search"
-		   tooltiptext="Search expression in R help" />
-  <command id="cmd_go_back" oncommand="rHelpBrowser.goBack()" disabled="true"
-		   label="Back" tooltiptext="Back" />
-  <command id="cmd_go_forward" oncommand="rHelpBrowser.goForward()" disabled="true"
-		   label="Forward" tooltiptext="Forward" />
-  <command id="cmd_go_home" oncommand="rHelpBrowser.goHome()"
-		    label="Home" tooltiptext="R help index" />
-  <command id="cmd_stop" oncommand="rHelpBrowser.stop(rHelpBrowser.webNavigation.STOP_ALL)"
-		    label="Stop" tooltiptext="Stop" />
-  <command id="cmd_reload" oncommand="rHelpBrowser.reload()"
-		    label="Reload page" tooltiptext="Reload page" />
-  <command id="cmd_print" oncommand="printPage()" label="Print" desc="Print this page" />
-  <command id="cmd_print_preview" oncommand="printPreview()"
-		   label="Print preview" desc="Display page print preview" accesskey="r"
-		   disabled="true" />
-  <command id="cmd_print_setup" oncommand="PrintUtils.showPageSetup()"
-		   label="Page setup" desc="Page setup" disabled="true" />
-  <command id="cmd_save_page" oncommand="savePage()"
-		   label="Save page" desc="Save page" accesskey="s"
-		   disabled="true"  />
-  <command id="cmd_run_r_code" oncommand="runSelAsRCode()"
-		   label="Run as R code" desc="Execute selected text in R" accesskey="r" />
-  <command id="cmd_rsearch_for" oncommand="rHelpSearch(getSelection());"
-		   label="Search R for selection" desc="Search R for selected text" accesskey="S" />
-   <command id="cmd_rhelp_for" oncommand="R.help(getSelection());"
-		   label="R Help for selection" desc="Display R help for selected text" accesskey="H" />
-
-  <command id="cmd_copy" oncommand="goDoCommand('cmd_copy')" disabled="true"/>
-  <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')"/>
-
-  <command id="cmd_textZoomReduce" oncommand="ZoomManager.reduce();"/>
-  <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.enlarge();"/>
-  <command id="cmd_textZoomReset" oncommand="ZoomManager.reset();"/>
-  
-  
+    <command id="cmd_find" oncommand="find(false);" />
+    <command id="cmd_find_next" oncommand="find(true, event.shiftKey)" />
+    <command id="cmd_find_previous" oncommand="find(true, event.shiftKey)" />
+    <command id="cmd_go" oncommand="go()" disabled="false" tooltiptext="Go to web page" />
+    <command id="cmd_doc" oncommand="go()" disabled="false" tooltiptext="Show topic" />
+    
+    <command id="cmd_search" oncommand="rHelpSearch(document.getElementById('rhelp-topic').value)"
+        disabled="false" tooltiptext="Search expression in R Help" />
+    <command id="cmd_go_back" oncommand="gBrowser.goBack()" disabled="true"
+        tooltiptext="Back" />
+    <command id="cmd_go_forward" oncommand="gBrowser.goForward()" disabled="true"
+        tooltiptext="Forward" />
+    <command id="cmd_go_home" oncommand="gBrowser.goHome()" tooltiptext="Go to R help index" />
+    <command id="cmd_stop" oncommand="gBrowser.stop(gBrowser.webNavigation.STOP_ALL)"
+        disabled="true" tooltiptext="Stop loading current page" />
+    <command id="cmd_reload" oncommand="gBrowser.reload()" tooltiptext="Reload page" />
+    <command id="cmd_print" oncommand="printPage()" label="Print" desc="Print this page" />
+    <command id="cmd_print_preview" oncommand="printPreview()" label="Print preview"
+        desc="Display page print preview" accesskey="r" disabled="true" />
+    <command id="cmd_print_setup" oncommand="PrintUtils.showPageSetup()" label="Page setup"
+        desc="Page setup" disabled="true" />
+    <command id="cmd_save_page" oncommand="savePage()" label="Save page" desc="Save page"
+        accesskey="s" disabled="true" />
+    <command id="cmd_run_r_code" oncommand="runSelAsRCode()" label="Run as R code"
+        desc="Execute selected text in R" accesskey="r" />
+    <command id="cmd_rsearch_for" oncommand="rHelpSearch(getSelection());"
+        label="Search R Help for selection" 
+        desc="Search R Help for selected text"
+        accesskey="S" />
+    <command id="cmd_rhelp_for" oncommand="R.help(getSelection());" 
+        label="R Help for selection"
+        desc="Display R Help for selected text" accesskey="H" />
+    <command id="cmd_copy" oncommand="goDoCommand('cmd_copy')" disabled="true" />
+    <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')" />
+    <command id="cmd_textZoomReduce" oncommand="ZoomManager.reduce();" />
+    <command id="cmd_textZoomEnlarge" oncommand="ZoomManager.enlarge();" />
+    <command id="cmd_textZoomReset" oncommand="ZoomManager.reset();" />
+    <command id="cmd_openInMainWindow" oncommand="openCurrentURInMainWindow()" />
 </commandset>
-
 <popupset>
 	<menupopup id="rHelpBrowserContext"
 			   onpopupshowing="rHelpBrowserContextOnShow(event);">
@@ -128,46 +122,54 @@ orient="horizontal">
 		    command="cmd_go_forward" buttonstyle="pictures"/>
 		<toolbarbutton id="rhelp-home" class="home-icon"
 		    command="cmd_go_home" buttonstyle="pictures"/>
-		<toolbarbutton id="rhelp-stop-button" class="stop-icon"
-		    command="cmd_stop" buttonstyle="pictures"/>
-		<toolbarbutton id="rhelp-reload-button" class="reload-icon"
-		    command="cmd_reload" buttonstyle="pictures"/>
 		<toolbarbutton id="rhelp-web" type="menu" class="r-web-icon"
 		    disabled="false" label="Web" orient="horizontal"
 			tooltiptext="R help on the web" buttonstyle="pictures">
 			<menupopup>
 				<menuitem id="rhelp-menu-sitesearch" label="R Site Search"
 					accesskey="s"
-					oncommand="go('http://finzi.psych.upenn.edu/search.html');"/>
+					oncommand="go('http://finzi.psych.upenn.edu/search.html')"/>
 <!--	 TODO: if CRAN mirror was set in R, go directly there, eg.	go('@CRAN@')		-->
 				<menuitem id="rhelp-menu-cran" label="CRAN"
 					accesskey="c"
-					oncommand="go('@CRAN@');"/>
+					oncommand="go('@CRAN@')"/>
 				<menuitem id="rhelp-menu-vignettes" label="Browse vignettes"
 					accesskey="v"
-					oncommand="require('kor/connector').evalAsync('browseVignettes()');"/>
+					oncommand="require('kor/connector').evalAsync('browseVignettes()')"/>
 				<menuitem id="rhelp-menu-bioconductor" label="Bioconductor"
 					accesskey="b"
-					oncommand="go('http://www.bioconductor.org/');"/>
+					oncommand="go('http://www.bioconductor.org/')"/>
 				<menuitem id="rhelp-menu-forge" label="R-Forge"
 					accesskey="f"
-					oncommand="go('http://r-forge.r-project.org/');"/>
+					oncommand="go('http://r-forge.r-project.org/')"/>
 			</menupopup>
 		</toolbarbutton>
         <vbox align="stretch" flex="1">
             <textbox id="rhelp-topic" flex="1"
 				emptytext="topic or web page"
-				onkeypress="txtInput(event);"
+				onkeyup="txtInput(event)"
 				tooltiptext="Search topic or Web page"
 				/>
         </vbox>
-		<toolbarbutton id="rhelp-go" class="go-icon"
-			command="cmd_go" buttonstyle="pictures"/>
-		<toolbarbutton id="rhelp-search" class="search-icon"
+  
+		<toolbarbutton id="rhelp-navigate-doc" class="doc-icon"
+			command="cmd_doc" buttonstyle="pictures"/>
+		<toolbarbutton id="rhelp-navigate-search" class="search-icon"
 			command="cmd_search" buttonstyle="pictures"/>
+        <toolbarbutton id="rhelp-navigate-go" class="go-icon"
+			command="cmd_go" buttonstyle="pictures"/>
+		<toolbarbutton id="rhelp-navigate-stop" class="stop-icon"
+		    command="cmd_stop" buttonstyle="pictures"/>
+		<toolbarbutton id="rhelp-navigate-reload" class="reload-icon"
+		    command="cmd_reload" buttonstyle="pictures"/>
+
 		<spacer flex="1"/>
+        
+		<toolbarbutton id="rhelp-open-in-mainwin" class="open-in-mainwin-icon"
+			command="cmd_openInMainWindow" buttonstyle="pictures"/>
+		
 		<toolbarbutton id="rhelp-find" class="find-icon"
-		    oncommand="onFindCommand(event);" disabled="false" label="Search in page"
+		    oncommand="onFindCommand(event)" disabled="false"
 			tooltiptext="Search this page (Ctrl-F/F3)"
 			buttonstyle="pictures"/>
 	</toolbar>
@@ -189,17 +191,18 @@ orient="horizontal">
 				<menuseparator />
 				<menuitem id="rhelp-menu-purge-history"
 						  label="Purge history"	accesskey="h"
-						  oncommand="browserUtils.purgeHistory();"/>
+						  oncommand="browserUtils.purgeHistory()"/>
 				<menuitem id="rhelp-menu-purge-cache"
 						  label="Purge browser cache" accesskey="c"
-						  oncommand="browserUtils.purgeCache();"/>
+						  oncommand="browserUtils.purgeCache()"/>
 			</menupopup>
 		</toolbarbutton>
 	</toolbar>
 </toolbox>
     <vbox flex="1">
         <hbox flex="1">
-            <browser id="rhelp-browser" type="content-primary"
+            <browser id="rhelp-browser" 
+                type="content-primary"
                 src="about:blank" flex="1"
 				context="rHelpBrowserContext"
 				/>

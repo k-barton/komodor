@@ -14,8 +14,7 @@ pkgManSetCRANMirror, pkgManGetMirrors, pkgManGetInstalled,
 pkgManGetAvailable, pkgManGetRepositories,
 
 stringize, getHelpURL, sourceTemp,
-qParse, formatCode,
-
+qParse, 
 setEvalEnv, getEvalEnv,
 isInstalledPkg,
 

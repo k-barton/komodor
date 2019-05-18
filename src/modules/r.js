@@ -505,7 +505,7 @@ if (!Object.values)
     this.formatRCodeInView = function () {
         var view = require("ko/views").current();
         if (!view) return;
-        var pkgName = "formatR";
+        var pkgName = "styler";
 
         _this.isPackageInstalled(pkgName, (yes) => {
             if (yes) 
@@ -528,94 +528,87 @@ if (!Object.values)
             }
         });
     };
-
-    this.doFormatCode = function (view) {
+    
+    this.doFormatCode = function(view) {
         if (!view) return;
         var scimoz = view.scimoz; /* var not let */
-        let inFile, firstLine = 0;
-        var isTmp = true;
-        var extent, encoding;
-        if (scimoz.selectionEmpty) {
+        var content, inFile, firstLine = 0,
+            encoding = "UTF-8",
+            baseIndentation = 0,
             extent = null;
-            let isTempFile = {};
-            inFile = ui.pathWithCurrentViewContent(view, isTempFile);
-            isTmp = isTempFile.value;
-            encoding = isTmp ? "UTF-8" : view.koDoc.encoding.short_encoding_name;
+        inFile = fu.temp("kor_tidyin.R");
+        if (scimoz.selectionEmpty) {
+            content = scimoz.text;
         } else {
             extent = {
-                start: scimoz.positionFromLine(scimoz.lineFromPosition(scimoz.selectionStart)),
-                end: scimoz.getLineEndPosition(scimoz.lineFromPosition(scimoz.selectionEnd))
+                start: scimoz.positionFromLine(scimoz.lineFromPosition(
+                    scimoz.selectionStart)),
+                end: scimoz.getLineEndPosition(scimoz.lineFromPosition(
+                    scimoz.selectionEnd))
             };
-            let content = scimoz.getTextRange(extent.start, extent.end); // scimoz.selText;
-            inFile = fu.temp("kor_tidyin");
-            fu.write(inFile, content, 'utf-8');
-            firstLine = scimoz.lineFromPosition(extent.start);
-            encoding = "UTF-8";
+            content = scimoz.getTextRange(extent.start, extent.end); // scimoz.selText;
+            // baseIndentation is in character units
+            baseIndentation = scimoz.getLineIndentation(scimoz.lineFromPosition(
+                extent.start)); /* var not let */
         }
-
-        // baseIndentation is in character units
-        var baseIndentation = scimoz.getLineIndentation(firstLine); /* var not let */
-        var outFile = fu.temp("kor_tidyout");
-
+        fu.write(inFile, content, 'utf-8');
         let formatOpt = {
-            keepBlankLines: true,
-            replaceAssign: false,
-            newlineBeforeBrace: false, //indentBy: view.koDoc.indentWidth
-            indentBy: scimoz.indent, //width: view.koDoc.getEffectivePrefs().getLongPref("editAutoWrapColumn") 
-            width: scimoz.edgeColumn
+            //replaceAssign: false,
+            //newlineBeforeBrace: false, //indentBy: view.koDoc.indentWidth
+            indentBy: scimoz.indent, 
+            width: scimoz.edgeColumn //width: view.koDoc.getEffectivePrefs().getLongPref("editAutoWrapColumn")
         };
         for (let i in formatOpt)
             if (formatOpt.hasOwnProperty(i)) {
-                let prefVal = require("kor/prefs").getPref("RInterface.format." + i);
-                if (prefVal !== undefined) formatOpt[i] = prefVal;
+                let prefVal = require("kor/prefs").getPref(
+                    "RInterface.format." + i);
+                if (prefVal !== undefined) formatOpt[i] =
+                    prefVal;
             }
         let rArg = _this.arg;
         let cmd =
-            `kor::formatCode(${rArg(inFile)},\
-blank = ${rArg(formatOpt.keepBlankLines)}, arrow = ${rArg(formatOpt.replaceAssign)}, \
-brace.newline = ${rArg(formatOpt.newlineBeforeBrace)}, indent = ${formatOpt.indentBy}, \
-width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encoding}")`;
+            `base::cat(styler::style_file(path=${rArg(inFile)},transformers=styler::tidyverse_style(indent_by=${formatOpt.indentBy}))$changed[1L])`;
 
         rConn.evalAsync(cmd, (result) => {
             if (!scimoz) return;
-            if (parseInt(result) == 0) {
-                ui.addNotification("R code not formatted, possibly because of syntax errors.", "R-formatter");
+            if (result.endsWith("NA")) {
+                ui.addNotification(
+                    "R code not formatted, possibly because of syntax errors.",
+                    "R-formatter");
                 return;
-            }
-        
+            } else if (result.endsWith("FALSE")) return;
             let code;
             try {
-                code = fu.read(outFile, 'utf-8');
-                let fout = fu.getLocalFile(outFile);
+                code = fu.read(inFile, 'utf-8');
+                let fout = fu.getLocalFile(inFile);
                 if (fout.exists()) fout.remove(false);
-                if (isTmp) {
-                    let fin = fu.getLocalFile(inFile);
-                    if (fin.exists()) fin.remove(false);
-                }
             } catch (e) {
-                logger.exception(e, "reading formatted R code from " + outFile);
+                logger.exception(e,
+                    "reading formatted R code from " +
+                    inFile);
                 return;
             }
-            if (!code) return;
-            // SC_EOL_CRLF (0), SC_EOL_CR (1), or SC_EOL_LF (2)
+            if (!code) return; // SC_EOL_CRLF (0), SC_EOL_CR (1), or SC_EOL_LF (2)
             let eolChar = ui.eOLChar(scimoz);
             code = code.replace(/(\r?\n|\r)/g, eolChar);
-
             if (extent === null) {
                 scimoz.targetWholeDocument();
                 scimoz.replaceTarget(code);
             } else {
-                if (baseIndentation > 0) {
-                    // TODO: if selection does not start at first column...
+                if (baseIndentation > 0) { // TODO: if selection does not start at first column...
                     let nSpaces, nTabs;
                     if (scimoz.useTabs) {
-                        nTabs = Math.floor(baseIndentation / scimoz.tabWidth);
-                        nSpaces = baseIndentation % scimoz.tabWidth;
-                    } else
-                        nSpaces = baseIndentation;
-                    let rx = new RegExp("(^|" + eolChar + ")", "g");
-                    code = code.replace(rx, "$1" + "\t".repeat(nTabs) + " ".repeat(
-                        nSpaces));
+                        nTabs = Math.floor(
+                            baseIndentation /
+                            scimoz.tabWidth);
+                        nSpaces = baseIndentation %
+                            scimoz.tabWidth;
+                    } else nSpaces = baseIndentation;
+                    let rx = new RegExp("(^|" + eolChar +
+                        ")", "g");
+                    code = code.replace(rx, "$1" + "\t"
+                        .repeat(nTabs) + " "
+                        .repeat(nSpaces));
                 }
                 scimoz.targetStart = extent.start;
                 scimoz.targetEnd = extent.end;
@@ -623,10 +616,10 @@ width.cutoff = ${formatOpt.width}, file = ${rArg(outFile)}, encoding = "${encodi
                 scimoz.selectionStart = scimoz.targetStart;
                 scimoz.selectionEnd = scimoz.targetEnd;
             }
-            ui.addNotification("R code formatted.", "R-formatter");
+            ui.addNotification("R code formatted.",
+                "R-formatter");
         }, true, true);
     }; // end doFormatCode
-
     this.isPackageInstalled = function (pkgName, callback) {
         // TODO use system command R CMD --slave --vanilla -e "find.package(...)"
         if (!require("kor/command").isRRunning) {

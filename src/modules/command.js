@@ -141,7 +141,7 @@
             return;
         }
 
-		if(!ko.places.manager) { // Komodo is not ready
+		if(!ko.places || !ko.places.manager) { // Komodo is not ready
 			require("sdk/timers").setTimeout(() => startR(), 512);
 			return;
 		}

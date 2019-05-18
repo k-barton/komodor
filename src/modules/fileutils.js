@@ -134,7 +134,7 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
     };
 
     // Creates unique temporary file, accessible by all users; returns its name
-    this.temp = function (prefix) {
+    this.temp = function (prefix, ext = null) {
         var nsIFile = Ci.nsIFile;
         var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
             .getService(Ci.nsIProperties);
@@ -143,7 +143,7 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
         var tmpfile = Cc["@mozilla.org/file/local;1"]
             .createInstance(Ci.nsILocalFile);
 
-        if (!prefix) prefix = "svtmp";
+        if (!prefix) prefix = "~kor";
 
         tmpfile.initWithPath(tempDir);
         tmpfile.append(prefix);
@@ -215,7 +215,6 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
         return IO.newFileURI(file).spec;
     };
 	
-	    // Read data from an URI
     this.pathFromURI = (uri) => FileService.getFileFromURI(uri).path;
 
     // Read data from an URI

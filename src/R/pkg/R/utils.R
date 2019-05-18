@@ -12,19 +12,4 @@ function(pkgName, json = TRUE) {
    invisible(rval)
 }
 
-#' @rdname kor-internal
-#' @export
-#' @md
-#' @param \dots arguments passed to `formatR::tidy_source`.
-## @param encoding the name of the encoding to be assumed.
-formatCode <-
-function(..., encoding = "UTF-8") {
-   oo <- options(encoding = encoding)
-   on.exit(options(oo))
-   result <- tryCatch(get("tidy_source", asNamespace("formatR"))(...), error = function(e) e)
-   cat(if (inherits(result, "condition")) 
-      0 else 1)
-   invisible()
-}
-
 

@@ -1,25 +1,22 @@
-
 @widget-icon-size: 14px;
 @toolbar-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=icons-special";
 @widget-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=foreground";
 @widget-selected-svg-icon-suffix: "size=16&scheme-name=interface&scheme-color=foreground";
 
-@import url("chrome://komodor/skin/komodor-common.less");
+@import url("chrome://komodor/skin/common.less");
 
-ko-pane
-tab[widget="robViewbox"] .tab-icon { 
-  list-style-image: none;
-  width: 0;
+ko-pane tab[widget="robViewbox"] .tab-icon {
+	list-style-image: none;
+	width: 0;
 }
 
-ko-pane[type="icons"]
-tab[widget="robViewbox"] .tab-icon { 
-  width: @widget-icon-size;
-  height: @widget-icon-size;
-  visibility: visible;
-  background-image: url("@{@svg-images}/R_browser.svg?@{widget-svg-icon-suffix}");
-  background-repeat: no-repeat;
-  background-size: @widget-icon-size @widget-icon-size;
+ko-pane[type="icons"] tab[widget="robViewbox"] .tab-icon {
+	width: @widget-icon-size;
+	height: @widget-icon-size;
+	visibility: visible;
+	background-image: url("@{svg-images}/R_browser.svg?@{widget-svg-icon-suffix}");
+	background-repeat: no-repeat;
+	background-size: @widget-icon-size @widget-icon-size;
 }
 
 .ko-autocomplete-item description {

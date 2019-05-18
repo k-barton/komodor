@@ -120,9 +120,6 @@ PrefsetExt.prototype = {
         'CRANMirrorSecure': true,
         'RInterface.rRemoteHelpURL': 'http://finzi.psych.upenn.edu/R/', // TODO update URL
         'RInterface.marginClick': true,
-        'RInterface.format.keepBlankLines': true,
-        'RInterface.format.replaceAssign': false,
-        'RInterface.format.newlineBeforeBrace': false,
         'RInterface.viewTableMaxRows': 512,
         'RInterface.viewTableCSSURI': "resource://kor-doc/viewTable.css"
     };
@@ -144,8 +141,6 @@ PrefsetExt.prototype = {
             null, null,
             "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
             "rRemoteHelpURL", "sciviews.margin.click",
-            "RInterface.tidy.keepBlankLines", "RInterface.tidy.replaceAssign",
-            "RInterface.tidy.newlineBeforeBrace",
             null, null,
             "R_extendedHelpCommand",
         ];

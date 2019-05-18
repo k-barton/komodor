@@ -1,24 +1,41 @@
 ---
 title: "What's new in R Interface for Komodo?"
 output: html_document
-css: chrome://komodor/skin/doc.css
+css: doc.css
 ---
 
 (Version #VERSION#)
 
-* Preferences: Startup options get new checkboxes to edit command line
-* Codeintel: fixed problems with non-ascii names in code completion.
+* __Note:__ if the R Toolbar dissappears (due to a bug in Komodo), it can be 
+   restored with a new tool:
+  `Toolbox -> R Tools -> Troubleshooting -> Restore missing R toolbar`
+* `data.frame`s content can be shown in a browser window. Access the command 
+  from the R Object Browser item context menu ("View") or use an R command:
+  `view(<data.frame object>)`.
+* Preferences: Startup options get new checkboxes to edit command line.
+* Codeintel: fixed problems with non-ascii names in code completion. Still, 
+  the issue with completions being left-trimmed when there are multibyte 
+  characters in the completed line remains (issue #26).
 * Improved output from R (in some special cases errors or warnings were not 
-  printed correctly or were omitted. For example if error occurred both in the 
+  printed correctly or were omitted. For example when error occurred both in the 
   function and in its `on.exit` code) (issue #12)
-* Added option for browsing R function body's code (activated with the 
+* Added option for browsing R function body code (activated with the 
   Object Browser toolbar's cog menu item).
-* Added "Stop browsing current frame" button. It is active if the current R
-  evaluation environment (frame) is not the Global Environment 
-  (R user's workspace).
-* Improved detection of the R application at startup (when previously 
+* New button on R Toolbar to switch back to evaluation in `.GlobalEnv` 
+  (globe icon). It becomes active when the current R evaluation environment 
+  (frame) is not the Global Environment (the "R user's workspace").
+  Use `setEvalEnv(new.env(())` R command to temporarily switch to a local
+  environment (new variables and assigned values will not go into `.GlobalEnv`).
+  See [here](./koDebug.html) for more info on debugging R code in Komodo.
+* Improved detection of the R application at startup (when the previously 
   connected R session had been open when Komodo was re/started the R Object 
-  Browser sometimes failed to activate)
+  Browser sometimes failed to activate). In the Toolbox, there is also a tool 
+  that reconnects with R session in case of a disruption 
+  (`Toolbox -> R Tools -> Troubleshooting -> Fix R Connection settings`). 
+* R code formatting now calls `style_file` from R package `styler` with hardcoded 
+  `tidyverse_style` formatting options. Ultimately, the code formatter will be 
+  implemented internally in JS.
+* Slightly refurbished "R Help window" and "R Package Manager" (SVG icons etc.)
   
 (Version 0.3.52)
 
