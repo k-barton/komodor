@@ -86,7 +86,7 @@ if (!Object.values)
                 break;
             case "current":
                 getDirFromR = "base::getwd()";
-                ask = true; // Assume ask is always true in this case
+                ask = true; // Assume 'ask' is always true in this case
                 break;
             case "file":
                 var view = require("ko/views").current();
@@ -458,6 +458,7 @@ if (!Object.values)
 
     
     this.arg = function r_arg(...args) {
+        
         return args.map((a) => {
             switch (typeof a) {
             case "object":
@@ -467,12 +468,15 @@ if (!Object.values)
                 } else if (a === null)
                     return "NULL";
                 else {
-                    let entries = Object.entries(a),
-                        i = 0;
+                    let rxValidName = /^(?:\.(?:[a-zA-Z\.][a-zA-Z0-9_]*)?|[a-zA-Z][a-zA-Z0-9_]*)$/;
+                    let entries = Object.entries(a), i = 0;
                     named = true;
                     rval = new Array(entries.length);
-                    for (let [key, value] of entries) rval[i++] =
-                        `${su.addslashes(key)}=${r_arg(value)}`;
+                    for (let [key, value] of entries) {
+                        if(!rxValidName.test(key))
+                            key = "'" + su.addslashes(key) + "'";
+                        rval[i++] = `${key}=${r_arg(value)}`;
+                    }
                     a = Object.values(a);
                 }
                 let t1 = typeof a[0];

@@ -216,7 +216,6 @@ function getUpdateable() {
 	rconn.evalAsync(cmd, populateUpdateablePkgs, true, true);
 }
 
-
 function populateInstalledPkgs(rOutput) {
 	if (!rOutput || rOutput == 'NULL') return;
 
@@ -263,7 +262,6 @@ function getInstalledPkgs() {
 	logger.debug(cmd);
 	rconn.evalAsync(cmd, populateInstalledPkgs, true, true);
 }
-
 
 function updateInfo(res, what) {
 // add to installed / reload installed

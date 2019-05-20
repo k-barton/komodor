@@ -25,8 +25,7 @@ var rob = {};
 (function () {
 
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.DEBUG);
-    
+   
     const { /*arr: ArrayUtils, */ str: StringUtils } = require("kor/utils");
     const fileUtils = require("kor/fileutils");
     const RConn = require("kor/connector");
@@ -39,6 +38,7 @@ var rob = {};
     const sep = "\x1f", recordSep = "\x1e";
     var _listAllNames = false, _listAttributes = false, _listFuncBody = false;
     var dQuote = s => "\"" + s + "\"";
+    var imagePrefix = "koicon://ko-svg/chrome/komodor/skin/images/rob/";
     var svgParams = "?size=16&color=" + encodeURIComponent("#004fd2");
 
     // XXX make internal
@@ -1177,7 +1177,7 @@ var rob = {};
     this.getImageSrc = function (row, col) {
         if (col.index === 0) {
             let name = _this.visibleData[row].imageName;
-            return "koicon://ko-svg/chrome/komodor/skin/images/" + name + ".svg" + svgParams;
+            return imagePrefix + name + ".svg" + svgParams;
         } else return "";
     };
     

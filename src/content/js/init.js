@@ -5,8 +5,7 @@
 (function () {
     //var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
-    logger.setLevel(logger.INFO);
-    
+
     logger.debug("initialization started");
 
     const { classes: Cc, interfaces: Ci, utils: Cu } = Components;

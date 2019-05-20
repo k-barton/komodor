@@ -1,108 +1,15 @@
 <?xml version="1.0"?>
-
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://komodor/skin/pkgman/pkgman.css" type="text/css"?>
-
 <window id="korRepositories" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
 	title="Set R repositories" persist="screenX screenY width height">
-<script type="application/x-javascript">
-<![CDATA[
-
-/* globals Components, window, document */
-
-var _w = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-	.getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow("Komodo");
-
-if (typeof require === "undefined") var require = _w.require;
-var logger = require("ko/logging").getLogger("komodoR");
-if (typeof ko === "undefined") var ko = _w.ko;
-
-//var repositories = {};
-
-function pkgManGetRepositories() {
-	try {
-		let cmd = "kor::pkgManGetRepositories()";
-		logger.debug(cmd);
-		let res = JSON.parse(require("kor/connector").eval(cmd));
-		let ret = {};
-		for(let i in res)
-			if(res.hasOwnProperty(i))
-				ret[i] = res[i]['Contrib.URL'];
-		return ret;		
-	} catch(e) {
-		return null;
-	}
-}
-
-
-function createDOMElement(tagName, obj) {
-	let item = document.createElement(tagName), keys = Object.keys(obj);
-	for(let i = 0; i < keys.length; ++i) item.setAttribute(keys[i], obj[keys[i]]);
-	return item;
-}
-
-function onLoad() {
-	try {
-		let cmd = "kor::pkgManGetRepositories()";
-		logger.debug(cmd);
-		let res = JSON.parse(require("kor/connector").eval(cmd, 2));
-		let list = document.getElementById("rRepositoryList");
-		list.parentNode.selectedIndex = 1;
-		let keys = Object.keys(res), reposObj;
-		for(let i = 0; i < keys.length; ++i) {
-				reposObj = res[keys[i]];
-				//item = document.createElement("richlistitem");
-				//item.id = keys[i];
-				list.appendChild(createDOMElement("richlistitem", {
-					id: keys[i],
-					checked: reposObj.default.indexOf("TRUE") != -1,
-				    label: reposObj.menu_name,
-					url: reposObj.URL,
-					contribUrl: reposObj['Contrib.URL']
-					
-				}));
-				//repositories[i] = reposObj['Contrib.URL'];
-			}
-	} catch(e) {
-		logger.exception(e, "repositories::onLoad");
-		return;
-	}
-}
-
-function applyRepositories() {
-	var list = document.getElementById("rRepositoryList");
-	require("kor/cmdout").clear();
-	var res = {}, count = 0, item, n = list.itemCount;
-	for(let i = 0, l = n; i < l; ++i) {
-		item = list.getItemAtIndex(i);
-		if(item.checked) {
-			res[item.id] = item.reposUrl;
-			++count;
-		}
-	}
-	if(count === 0)
-		ko.dialogs.alert("At least one repository must be selected.", null, "R package manager");
-	else
-		require("kor/connector").evalAsync('base::options(repos=' + require("kor/r").arg(res) + ')', null, false);
-}
-
-//function onListSelect(el) {
-//	//alert(el.target.id);
-//	var list = document.getElementById("rRepositoryList");
-//	document.getElementById(list.selectedItem.getAttribute("control")).focus();
-//	require("kor/cmdout").append(list.selectedItem.id);
-//	require("kor/cmdout").append(list.selectedItem.getAttribute("control"));
-//
-//}
-
-window.addEventListener("load", onLoad, false);
-
-// ]]>
-</script>
+	
+<script type="application/x-javascript" src="chrome://komodor/content/pkgman/repositories.js"/>
 
 <hbox>
-<button label="Apply changes" oncommand="applyRepositories()" />
+<button id="ApplyButton" label="Apply changes" oncommand="applyRepositories()"
+		disabled="true" />
 </hbox>
 <deck selectedIndex="0" flex="1">
 <box flex="1" pack="center">

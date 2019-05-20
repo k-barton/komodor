@@ -6,6 +6,14 @@ css: doc.css
 
 (Version #VERSION#)
 
+* Fixed 0.3.210b regression that caused the item icons in the R Object Browser 
+  dissappeared.
+* R Package Manager -> Set Repositories: checking/unchecking additional 
+  repository now triggers an update of the available packages list.
+  Improved keyboard/mouse navigation over the repository list.
+
+(Version 0.3.210b)
+
 * __Note:__ if the R Toolbar dissappears (due to a bug in Komodo), it can be 
    restored with a new tool:
   `Toolbox -> R Tools -> Troubleshooting -> Restore missing R toolbar`

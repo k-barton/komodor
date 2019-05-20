@@ -1,12 +1,12 @@
 Package: kor
 Type: Package
 Title: Connects R with Komodo Editor
-Version: 0.3.210
-Date: 2019-05-18
+Version: 0.3.216
+Date: 2019-05-20
 Encoding: UTF-8
 Author: Kamil Bartoń
 Maintainer: Kamil Bartoń <kamil.barton@go2.pl>
-Description: A part of the "R Interface (KomodoR)" add-on for
+Description: A part of the "R Interface (Komodo.R)" add-on for
     Komodo editor. Provides communication between R and Komodo.
 License: GPL-2
 Depends:

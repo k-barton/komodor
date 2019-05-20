@@ -92,32 +92,35 @@
 	<implementation>
 	   	<constructor>
 		<![CDATA[
-			this.setAttribute("searchLabel", this.label);
+			//this.setAttribute("searchLabel", this.label);
+			this.searchLabel = this.label;
 			this._checkbox = document.getAnonymousElementByAttribute(this,
 				"anonid", "default");
 			//this._checkbox.id = this.id + "-checkbox";
 			//this.setAttribute("control", this._checkbox.id);
 			document.getAnonymousElementByAttribute(this, "anonid", "itemBox")
 				.control = this._checkbox;
-			if(this.id == "CRAN") {
+			if(this.id === "CRAN") {
 				this._checkbox.style.visibility = "hidden";
 			} else {
 				this.addEventListener("dblclick", this.check, false);
 			}
-		]]>
+			this.defaultValue = this.checked;
+			//]]>
 		</constructor>
 		<field name="_checkbox">null</field>
+		<field name="defaultValue">false</field>
 		<property name="checked">
 			<getter>
 			  <![CDATA[
 				return this._checkbox.checked;
-			  ]]>
+			  //]]>
 			</getter>
 			<setter>
 			  <![CDATA[
-					this._checkbox.checked = val;
-					this.setAttribute("checked", val);
-					return val;
+				this._checkbox.checked = val;
+				this.setAttribute("checked", val);
+				return val;
 			  ]]>
 			</setter>
 		</property>
@@ -129,26 +132,24 @@
 			</getter>
 			<setter>
 			  <![CDATA[
-					this.setAttribute("url", val);
-					return val;
+				this.setAttribute("url", val);
+				return val;
 			  ]]>
 			</setter>
 		</property>
-
 		<method name="check">
 			<parameter name="event" />
 		   <body>
 				<![CDATA[
 					this.checked = !this.checked;
-				]]>
+				//]]>
 		   </body>
 		</method>
-
 		<method name="_select">
 		   <body>
 				<![CDATA[
 					this.parentNode.selectItem(this);
-				]]>
+				//]]>
 		   </body>
 		</method>
 	</implementation>
@@ -223,7 +224,7 @@
 					this.setAttribute("required", true);
 				this.setAttribute("searchLabel", this.label);
 
-		]]>
+		//]]>
 		</constructor>
 		<field name="_title">
 				document.getAnonymousElementByAttribute(this, "anonid", "title");
@@ -238,7 +239,7 @@
 					this._title.setAttribute("value", val);
 					this.setAttribute("searchLabel", this.label);
 					return val;
-			  ]]>
+			  //]]>
 			</setter>
 		</property>
 		<property name="desc">
@@ -256,7 +257,7 @@
 							"getDescriptionPkgButton");
 					getDescriptionPkgButton.hidden = true;
 					return val;
-			  ]]>
+			  //]]>
 			</setter>
 		</property>
 		<method name="setVersion">
@@ -272,48 +273,50 @@
 				if (version == installedVersion) installedVersion = '';
 				elInstalledVersion.value = installedVersion;
 				elVersion.value = "(" + version + ")";
-		]]>
+		//]]>
 			</body>
 		</method>
         <method name="buildDescription">
             <parameter name="text"/>
             <body>
-		<![CDATA[
-					const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-					let lines = text.split(/[\r\n]+/);
-					let grid = document.createElementNS(XUL_NS, 'grid');
-					grid.className = "description-full";
-
-					var cols = grid.appendChild(document.createElementNS(XUL_NS, 'columns'));
-					for (let i = 0; i < 2; ++i) {
-						let c = cols.appendChild(document.createElementNS(XUL_NS, 'column'));
-						c.setAttribute("flex", i);
-					}
-					var rows = grid.appendChild(document.createElementNS(XUL_NS, 'rows'));
-					for (let i = 0; i < lines.length; ++i) {
-						let strs = lines[i].match(/^([^:]+): *(.*)$/);
-						let fieldName = strs[1].trim().replace(/_/g, " ");
-						let rowClassName;
-						let fieldVal = strs[2].trim();
-						if (fieldName === "Depends")
-							fieldVal = fieldVal.replace(/\s*,?R\s*\([^\)]+\),?\s*/, ""); // remove R
-						else if (fieldName.startsWith("[reverse]")) {
-							fieldName = fieldName.substr(9);
-							rowClassName = "reverseDep";
-						}
-						if (!fieldVal) continue;
-
-						let row = rows.appendChild(document.createElementNS(XUL_NS, 'row'));
-						let label = row.appendChild(document.createElementNS(XUL_NS, 'label'));
-						label.setAttribute("value", fieldName);
-						let desc = row.appendChild(document.createElementNS(XUL_NS, 'description'));
-						desc.textContent = fieldVal;
-						if(rowClassName) row.className = rowClassName;
-						label.className = "DescriptionField"; // + className;
-						desc.className = "DescriptionText"; // + className;
-					}
-					return grid;
-		]]>
+			<![CDATA[
+			const XUL_NS =
+				"http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+			let lines = text.split(/[\r\n]+/);
+			let grid = document.createElementNS(XUL_NS, 'grid');
+			grid.className = "description-full";
+		
+			var cols = grid.appendChild(document.createElementNS(XUL_NS, 'columns'));
+			for (let i = 0; i < 2; ++i) {
+				let c = cols.appendChild(document.createElementNS(XUL_NS, 'column'));
+				c.setAttribute("flex", i);
+			}
+			var rows = grid.appendChild(document.createElementNS(XUL_NS, 'rows'));
+			for (let i = 0; i < lines.length; ++i) {
+				let strs = lines[i].match(/^([^:]+): *(.*)$/);
+				let fieldName = strs[1].trim().replace(/_/g, " ");
+				let rowClassName;
+				let fieldVal = strs[2].trim();
+				if (fieldName === "Depends")
+					fieldVal = fieldVal.replace(/\s*,?R\s*\([^\)]+\),?\s*/, ""); // remove R
+				else if (fieldName.startsWith("[reverse]")) {
+					fieldName = fieldName.substr(9);
+					rowClassName = "reverseDep";
+				}
+				if (!fieldVal) continue;
+		
+				let row = rows.appendChild(document.createElementNS(XUL_NS, 'row'));
+				let label = row.appendChild(document.createElementNS(XUL_NS, 'label'));
+				label.setAttribute("value", fieldName);
+				let desc = row.appendChild(document.createElementNS(XUL_NS,
+					'description'));
+				desc.textContent = fieldVal;
+				if (rowClassName) row.className = rowClassName;
+				label.className = "DescriptionField"; // + className;
+				desc.className = "DescriptionText"; // + className;
+			}
+			return grid;
+		//]]>
 			</body>
 		</method>
 	</implementation>
@@ -330,96 +333,95 @@
 		<xul:vbox flex="1">
 			<xul:hbox flex="1">
 				<xul:label anonid="next" class="navigButton text-link" value=""
-					xbl:inherits="onclick=oncommand"
-					/>
+					xbl:inherits="onclick=oncommand" />
 			</xul:hbox>
 		</xul:vbox>
 	</content>
 	<implementation>
 	    <constructor>
 		<![CDATA[
-				var button = document.getAnonymousElementByAttribute(this, "anonid", "next");
-				var listItem = document.getBindingParent(button);
-				var listBox = listItem.parentNode;
-				var idx = listBox.getIndexOfItem(listItem);
-				var isLast = idx == listBox.itemCount - 1;
-				var isFirst = idx == 0;
-				button.value = isFirst? "Previous page" : isLast? "Next page" : "WTF?";
-				//button.addEventListener("click", function(event) {alert(idx  )}, false);
-
-		]]>
+			var button = document.getAnonymousElementByAttribute(this, "anonid", "next");
+			var listItem = document.getBindingParent(button);
+			var listBox = listItem.parentNode;
+			var idx = listBox.getIndexOfItem(listItem);
+			var isLast = idx == listBox.itemCount - 1;
+			var isFirst = idx == 0;
+			button.value = isFirst ? "Previous page" :
+				isLast ? "Next page" : "WTF?";
+			//button.addEventListener("click", function(event) {alert(idx  )}, false);
+		//]]>
 		</constructor>
 	</implementation>
 </binding>
 
 <binding id="loadbox">
     <resources>
-      <stylesheet src="chrome://komodor/content/skin/loadbox.css"/>
+        <stylesheet src="chrome://komodor/content/skin/loadbox.css" />
     </resources>
     <content>
-		<xul:box align="center" flex="1" class="content-loading" />
-		<xul:box class="loadbox-body" xbl:inherits="orient,align,pack,flex">
-			<children/>
-		</xul:box>
-	</content>
-	<implementation>
-		<constructor>
-		<![CDATA[
-				this._waitImage = document.getAnonymousElementByAttribute(this, "class", "content-loading");
-				var loaded = this.loaded;
-				this._waitImage.hidden = loaded;
+        <xul:box align="center" flex="1" class="content-loading" />
+        <xul:box class="loadbox-body" xbl:inherits="orient,align,pack,flex">
+            <children />
+        </xul:box>
+    </content>
+    <implementation>
+        <constructor>
+            <![CDATA[
+			this._waitImage = document.getAnonymousElementByAttribute(
+			    this, "class", "content-loading");
+			var loaded = this.loaded;
+			this._waitImage.hidden = loaded;
+			this.content.hidden = !loaded;
+            //]]>
+        </constructor>
+        <field name="_content">null</field>
+        <field name="_waitImage">null</field>
+
+        <property name="content" readonly="true">
+            <getter>
+                <![CDATA[
+				if (!this._content)
+					this._content = document.getAnonymousElementByAttribute(this,
+						"class", "loadbox-body");
+				return this._content;
+				//]]>
+            </getter>
+        </property>
+        <property name="loaded">
+            <getter>
+                var loaded = this.getAttribute("loaded");
+                return loaded == "true" || loaded == "1" || loaded == "yes";
+            </getter>
+            <setter>
+                <![CDATA[
+				loaded = val == "true" || val == "1" || val == "yes";
+				this.setAttribute("loaded", loaded);
 				this.content.hidden = !loaded;
-
-		]]>
-		</constructor>
-		<field name="_content">null</field>
-		<field name="_waitImage">null</field>
-
-		<property name="content" readonly="true">
-			<getter>
-			<![CDATA[
-					  if (!this._content)
-					  this._content = document.getAnonymousElementByAttribute(this, "class", "loadbox-body");
-					  return this._content;
+				this._waitImage.hidden = loaded;
+				return val;
 			]]>
-			</getter>
-		</property>
-		<property name="loaded">
-			<getter>
-					var loaded = this.getAttribute("loaded");
-					return loaded == "true" || loaded == "1" || loaded == "yes";
-			</getter>
-			<setter>
-			<![CDATA[
-					loaded = val == "true" || val == "1" || val == "yes";
-					this.setAttribute("loaded", loaded);
-					this.content.hidden = !loaded;
-					this._waitImage.hidden = loaded;
-					return val;
-			]]>
-			</setter>
-		</property>
-	</implementation>
+            </setter>
+        </property>
+    </implementation>
 </binding>
 
 <!-- based on preferences.xml paneButton -->
 <binding id="viewbutton" extends="chrome://global/content/bindings/radio.xml#radio">
     <resources>
-      <stylesheet src="chrome://komodor/skin/pkgman.css"/>
+        <stylesheet src="chrome://komodor/skin/pkgman.css" />
     </resources>
     <content>
-      <xul:image class="viewButtonIcon" xbl:inherits="src"/>
-      <xul:label class="viewButtonLabel" xbl:inherits="value=label"/>
+        <xul:image class="viewButtonIcon" xbl:inherits="src" />
+        <xul:label class="viewButtonLabel" xbl:inherits="value=label" />
     </content>
     <implementation implements="nsIAccessibleProvider">
-      <property name="accessibleType" readonly="true">
-        <getter>
-          <![CDATA[
+        <property name="accessibleType" readonly="true">
+			<getter>
+				<![CDATA[
 					return Components.interfaces.nsIAccessibleProvider.XULListitem;
-          ]]>
-        </getter>
-      </property>
+				//]]>
+			</getter>
+        </property>
     </implementation>
-  </binding>
-
+</binding>
 </bindings>
