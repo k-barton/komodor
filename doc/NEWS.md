@@ -6,30 +6,27 @@ css: doc.css
 
 (Version #VERSION#)
 
-* Fixed 0.3.210b regression that caused the item icons in the R Object Browser 
-  dissappeared.
-* R Package Manager -> Set Repositories: checking/unchecking additional 
-  repository now triggers an update of the available packages list.
-  Improved keyboard/mouse navigation over the repository list.
+* Fixed 0.3.210b regression that caused the item icons in the R Object Browser to disappear.
+* R Package Manager -> Set Repositories: checking/unchecking additional repository now triggers an update of the available packages list.
+  Improved keyboard/mouse navigation in the repository list.
 
 (Version 0.3.210b)
 
-* __Note:__ if the R Toolbar dissappears (due to a bug in Komodo), it can be 
+* __Note:__ if the R Toolbar disappears (due to a bug in Komodo), it can be 
    restored with a new tool:
   `Toolbox -> R Tools -> Troubleshooting -> Restore missing R toolbar`
 * `data.frame`s content can be shown in a browser window. Access the command 
   from the R Object Browser item context menu ("View") or use an R command:
   `view(<data.frame object>)`.
-* Preferences: Startup options get new checkboxes to edit command line.
-* Codeintel: fixed problems with non-ascii names in code completion. Still, 
-  the issue with completions being left-trimmed when there are multibyte 
-  characters in the completed line remains (issue #26).
+* Preferences: Startup options get new checkboxes to edit the command line.
+* Codeintel: fixed problems with non-ASCII names in code completion. Still, 
+  the issue with completions being left-trimmed when there are multibyte characters in the completed line remains (issue #26).
 * Improved output from R (in some special cases errors or warnings were not 
-  printed correctly or were omitted. For example when error occurred both in the 
+  printed correctly or were omitted. For example when an error occurred both in the 
   function and in its `on.exit` code) (issue #12)
 * Added option for browsing R function body code (activated with the 
   Object Browser toolbar's cog menu item).
-* New button on R Toolbar to switch back to evaluation in `.GlobalEnv` 
+* New button on R Toolbar to switch back to the evaluation in `.GlobalEnv` 
   (globe icon). It becomes active when the current R evaluation environment 
   (frame) is not the Global Environment (the "R user's workspace").
   Use `setEvalEnv(new.env(())` R command to temporarily switch to a local
@@ -41,8 +38,7 @@ css: doc.css
   that reconnects with R session in case of a disruption 
   (`Toolbox -> R Tools -> Troubleshooting -> Fix R Connection settings`). 
 * R code formatting now calls `style_file` from R package `styler` with hardcoded 
-  `tidyverse_style` formatting options. Ultimately, the code formatter will be 
-  implemented internally in JS.
+  `tidyverse_style` formatting options. Ultimately, the code formatter will be implemented internally in JS.
 * Slightly refurbished "R Help window" and "R Package Manager" (SVG icons etc.)
   
 (Version 0.3.52)
@@ -62,7 +58,7 @@ css: doc.css
 
 * Code completion: repaired wrapped argument rows, SVG images replace old
   PNG icons.
-* R Search Path panel: is updated on successful drop.
+* R Search Path panel: is updated on a successful drop.
 * original R window title is restored when package "kor" is detached.
 
 (Version 0.3.22b)
@@ -70,11 +66,8 @@ css: doc.css
 * Fixed (?) R object tree panel not being activated at startup.
 * Improved socket server restarting procedure.
 * Fixed broken R object removal (from R object browser).
-* Dropping a package name or workspace file name (*.RData) on the "search path" 
-  panel now attaches the package/workspace at the position where it was dropped 
-  (previously it was always right after `.GlobalEnv`).
-* R Preferences panel: icons visibility in menu lists (country flags should now 
-  be visible in the dropdown menu, application type icons added 
+* Dropping a package name or workspace file name (*.RData) on the "search path" panel now attaches the package/workspace at the position where it was dropped (previously, it was always immediately following `.GlobalEnv`).
+* R Preferences panel: icons visibility in menu lists (country flags should now be visible in the dropdown menu; application type has got icons 
   /gui or console/).
 * Updated __R Tools__
 
@@ -82,25 +75,17 @@ css: doc.css
 
 * R object browser:
 
-    - large "start R session" button is displayed in place of the R objects tree 
-      if no R session is connected.
-    - "R Search Path" panel has been refurbished. It displays dependences for each
-      item and packages which depend on the item. Items (with dependencies) can 
-	  be detached via command buttons or by pressing Delete (or Shift+Delete).
-    - object list is being automatically updated after a command is executed by
-      R. To use manual refresh uncheck the option in "R Preferences".
+    - large "start R session" button is displayed in place of the R objects tree if no R session is connected.
+    - "R Search Path" panel has been refurbished. It displays dependences for each item and packages which depend on the item. Items (with dependencies) can be detached via command buttons or by pressing Delete (or Shift+Delete).
+    - object list is being automatically updated after a command is executed by R. To use manual refresh uncheck the option in "R Preferences".
 
 * "R preferences" page:
 
     - User can edit the command to start R.
-    - Information about R version string is shown upon choosing the R 
-	  application path.
-    - Package `formatR` is detected (and installed) via command line, so also 
-      when no R session is connected. 
-    - On Linux, some additional terminal emulators to run R within have been 
-      added.
-    - On Mac, added option to use `xterm` (this has not been tested and is 
-      likely not to work).
+    - Information about R version string is shown upon choosing the R application path.
+    - Package `formatR` is detected (and installed) via command line, so also when no R session is connected. 
+    - On Linux, some additional terminal emulators to run R within have been added.
+    - On Mac, added an option to use `xterm` (this has not been tested and is likely not to work).
     
 * "R Tools" toolbox has a new folder "Troubleshooting" with some tools that may 
   come in handy when things when something breaks.
@@ -108,10 +93,9 @@ css: doc.css
 * Command Output panel:
   
     - Large outputs from R no longer cause Komodo freeze.
-    - R output's printing width is set to match the width of the Command Output 
-	  panel. 
+    - R output's printing width is set to match the width of the Command Output panel. 
 
-* R Package Manager has new style that matches application theme.
+* R Package Manager has a new style that matches application theme.
 
 * A number of bug fixes and stability improvements.
 
@@ -119,35 +103,32 @@ css: doc.css
   modules. 
   The global `sv` object is replaced by `kor`. For example:
 
-	```r    
-	kor.r.evalUserCmd("runif(10)")
-	```
+    ```r    
+    kor.r.evalUserCmd("runif(10)")
+    ```
     or (outside the main `window`)
-	```r 
-	require("kor/r").evalUserCmd("runif(10)")
-	```
+    ```r 
+    require("kor/r").evalUserCmd("runif(10)")
+    ```
 
-* Most internal R commands is executed asynchronously.
+* Most internal R commands are executed asynchronously.
 
 
 
-(previous Version)
+(Previous Version)
 
 * Much improved "R object browser" widget:
 
     - browsing within R expression tree (e.g. `parse`d code, function `body`, 
-	  or `formula`)
+      or `formula`)
     - listing of objects' attributes (menu under 
-	  <img src="chrome://komodor/skin/images/cog.svg" width="16" 
-	  style="vertical-align: middle;" alt="cog" /> button on the widget's 
-	  toolbar)
-    - removal of formal function arguments (only non-package functions) and 
-	  objects' attributes (Shift+Del)
+      <img src="chrome://komodor/skin/images/cog.svg" width="16" 
+      style="vertical-align: middle;" alt="cog" /> button on the widget's toolbar)
+    - removal of formal function arguments (only non-package functions) and objects' attributes (Shift+Del)
     - listing of the current evaluation environment in the 
-	  [debugging mode](chrome://komodor/content/doc/koDebug.html)
+      [debugging mode](chrome://komodor/content/doc/koDebug.html)
     - new SVG icons, simplified style
-    - "Group" column is removed (which has been present only for historical 
-	  reasons)
+    - "Group" column is removed (which has been present for historical reasons)
     - "R search path" panel: restored keyboard navigation
     
 *  Large number of bug fixes and stability improvements.

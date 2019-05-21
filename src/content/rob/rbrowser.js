@@ -372,9 +372,13 @@ var rob = {};
 
     var parseRObjectName = (name, posObj) => {
     	var parents = [name], pos = 0, m, endpos, guard = 0;
+        var rxattr = /^attr\((.+), "(?:[^"\\]|\\.)*"\)$/,
+            rxqname = /(?:[@$]|^)`((?:[^`\\]|\\.)*)`$/,
+            rxdblbrkt = /\[\[\d+\]\]$/,
+            rx = /(?:[@$]|^)[a-zA-Z\u00c0-\uffef\.][\w\u00c0-\uffef\._]*$/;
     	while (name && ++guard < 64) {
     		if (name.startsWith("attr(") && name.endsWith(")")) {
-    			m = name.match(/^attr\((.+), "(?:[^"\\]|\\.)*"\)$/);
+    			m = name.match(rxattr);
     			if (Array.isArray(m)) {
     				name = m[1];
     				pos += 5;
@@ -385,18 +389,18 @@ var rob = {};
     		} else { // remove last [@$]`?element`?
     			if (name.endsWith("`")) {
     				// match final `quoted name`
-    				endpos = name.search(/(?:[@$]|^)`((?:[^`\\]|\\.)*)`$/);
+    				endpos = name.search(rxqname);
     				if (endpos > 0) {
     					name = name.substr(0, endpos);
     				} else name = "";
     			} else if (name.endsWith("]]")) { // match final syntactic.name
-    				endpos = name.search(/\[\[\d+\]\]?$/); // [[n]]
+    				endpos = name.search(rxdblbrkt); // [[n]]
     				if (endpos > 0) {
     					name = name.substr(0, endpos);
     				} else name = "";
     			} else {
     				// Note: inline rx is faster than rx as variable. ???
-    				endpos = name.search(/(?:[@$]|^)[a-zA-Z\u00c0-\uffef\.][\w\u00c0-\uffef\._]*$/);
+    				endpos = name.search(rx);
     				if (endpos > 0) {
     					name = name.substr(0, endpos);
     				} else name = "";
@@ -1655,6 +1659,20 @@ var rob = {};
     const clipboardHelper = 
         Components.classes['@mozilla.org/widget/clipboardhelper;1']
             .getService(Components.interfaces.nsIClipboardHelper);
+
+    // XXX: map keys are numeric, dims property is string 
+    var rEnvir = (n, prefix = "") => {
+        switch(String(n)) {
+            case "0":
+                return "";
+            case "1": 
+                if(_this.evalEnv.name) 
+                    return prefix + rGlobalEnvStr; 
+                /* falls through */
+            default:
+                return prefix + "base::as.environment(" + n + ")";
+        };
+    };    
     
     this.treeItemCommand = function (action) {
         var items = Array.from(_this.selectedItemsOrd);
@@ -1663,7 +1681,7 @@ var rob = {};
         case 'save':
             // Select only objects:
             items = items.filter(x => {
-                if (x.type != "object") {
+                if (x.type !== "object") {
                     _this.selection.toggleSelect(x.index);
                     return false;
                 } else return true;
@@ -1674,8 +1692,9 @@ var rob = {};
             
             let robj = new Map();
             let posoff = _this.evalEnv.name ? 0 : 1;
+            let key;
             for (let it of items) {
-                let key = parseInt(it.getTopParent.parentObject.dims) + posoff;
+                key = parseInt(it.getTopParent.parentObject.dims) + posoff;
                 if (!robj.has(key)) robj.set(key, []);
                 robj.get(key).push(it);
             }
@@ -1704,13 +1723,14 @@ var rob = {};
                 if (!fileName) return;
                 
                 var rCommand;
+                                
                 if(moreEnvironments) {
                    let rCommands = []; 
                    for (let [key, value] of robj) rCommands.push(
                         "base::save(list=" +
                         R.arg(value.map(x => x.name)) +
-                        ", envir=base::as.environment(" + key +
-                        "), file=" + R.arg(fileName.replace(/(\.([^\.]+)|)$/,
+                        rEnvir(key, ", envir=") +
+                        ", file=" + R.arg(fileName.replace(/(\.([^\.]+)|)$/,
                             "[" + key + "]$1")) +
                         ")");
                     rCommand = rCommands.join("\n");
@@ -1718,7 +1738,8 @@ var rob = {};
                     let [key, value] = robj.entries().next().value;
                     rCommand = "base::save(list=" +
                           R.arg(value.map(x => x.name)) +
-                          ", envir=base::as.environment(" + key + "), file=" + R.arg(fileName) + ")";
+                          rEnvir(key, ", envir=") +
+                          ", file=" + R.arg(fileName) + ")";
                 } 
                 RConn.evalAsync(rCommand, null, false);
             }, true, true, fileName, robj);
