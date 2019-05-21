@@ -60,6 +60,13 @@ See also _Known issues_ below.
     * filter items either by object name or class name (toggle the "filter by"
       button next to the search box), using regular expressions. Prefix the
       search term with "~" to filter *out* matching names.
+    * modify the function code or R `expression` by deleting its elements. 
+      Enable browsing of a function body (Depress the _Eye button_
+      and check the option under the _cog_ menu), and navigate to 
+      the `<function body>` item located after the function arguments (an argument can 
+      be removed as well). It is not possible to modify functions inside packages
+      or locked environments.
+    
 * *R search path* box:
     * drop a package name onto it to load the package;
     * press "delete" to unload the selected package; 
@@ -67,7 +74,8 @@ See also _Known issues_ below.
 * *R help* window:
     * press Ctrl+R to run selected text in R (or choose the command from the 
 	  context menu).
-* R language help:
+* Editor:
+    * Make code blocks foldable by putting `#{{` and `#}}` around them (at the beginning of a line);
     * While in an *R_extended* document, press Shift+F1 once to search for the 
       selected keyword in the __loaded__ packages.
       Press Shift+F1 again to search in __all__ packages.
