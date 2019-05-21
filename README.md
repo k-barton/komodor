@@ -27,8 +27,9 @@ Philippe Grosjean, and since then has been largely rewritten.
      (*.Rmd* files, partially implemented)
 * Code completion (objects, argument names, list items)
 * Syntax checking
-* R object browser pane with fully expandable tree allows for inspecting
-  objects' structure including attributes and hidden objects.
+* R object browser pane with fully expandable tree for inspecting
+  user workspace and packages, objects' structure, including hidden objects, 
+  attributes, and function body.
 * Toolbar with commonly used commands
 * R help window
 * R package manager
@@ -55,11 +56,10 @@ See also _Known issues_ below.
           * hold "Ctrl" key during the drag start to drop full object names
             (e.g. `list$data$column`. Non-syntactic names will be
             backtick-quoted).
-          * hold "Ctrl+Shift" to insert “name()” for functions, “name=” for function
+          * hold "Ctrl+Shift" to insert “name()” for functions or “name=” for function
             arguments.
-    * filter items either by object name or class name (toggle the "filter by"
-      button next to the search box), using regular expressions. Prefix the
-      search term with "~" to filter *out* matching names.
+    * filter items either by object name or class name (toggle the ![filter by](https://raw.githubusercontent.com/k-barton/komodor/master/img/filter-class.png) button), using regular expressions. Prefix the search term with "~" to 
+    filter *out* matching names.
     * modify the function code or R `expression` by deleting its elements. 
       Enable browsing of a function body (Depress the ![eye](https://raw.githubusercontent.com/k-barton/komodor/master/img/eye-red.png) button and check the option under the ![cog](https://raw.githubusercontent.com/k-barton/komodor/master/img/cog.png) menu), and navigate to 
       the `<function body>` item located after the function arguments (an argument can 
