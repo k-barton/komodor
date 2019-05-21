@@ -61,9 +61,7 @@ See also _Known issues_ below.
       button next to the search box), using regular expressions. Prefix the
       search term with "~" to filter *out* matching names.
     * modify the function code or R `expression` by deleting its elements. 
-      Enable browsing of a function body (Depress the _Eye button_ 
-<img src="https://raw.githubusercontent.com/k-barton/komodor/master/img/eye-red.svg"
-width="16" height="16" alt="eye button" /> and check the option under the _cog_ menu), and navigate to 
+      Enable browsing of a function body (Depress the ![eye](https://raw.githubusercontent.com/k-barton/komodor/master/img/eye-red.png) button and check the option under the ![cog](https://raw.githubusercontent.com/k-barton/komodor/master/img/cog.png) menu), and navigate to 
       the `<function body>` item located after the function arguments (an argument can 
       be removed as well). It is not possible to modify functions inside packages
       or locked environments.
