@@ -2,16 +2,16 @@ Debugging R code in Komodo
 ======
 
 R's debugging functions like `debug`, `browser` or `recover` cannot be used from
-within Komodo since they interrupt its communication with R. Any R code
+within Komodo since they rely on a user interaction with R console. Any R code
 containing `browser` calls should be only executed directly in the R console. 
 
 'KomodoR' provides a function `koBrowseHere` which can be used in a
-manner similar to `browser()`. It interrupts R code execution and changes the 
-current execution environment to where it was called from. Afterwards, sending
+manner similar to `browser()`. It interrupts the execution of R code and changes the 
+current execution environment to where it was called from. Sending
 `koBrowseEnd()` command sets the current environment back to `.GlobalEnv`. 
 
-Note that the original call stack is not preserved (so `sys.frames()` or `sys.calls()` _et al._ will not
-work as expected), and the execution of the function will not be resumed.
+Note that the original call stack is not preserved (so `sys.frames()` or `sys.calls()` 
+_et al._ will not work as expected), and the execution of the function cannot be resumed.
 
 __Example:__
 
@@ -19,14 +19,13 @@ Put `koBrowseHere()` call inside a function.
 
 ```r
 testFun <- function(x,y,z) {
-    insideTestFun2 <- TRUE
+    insideTestFun <- TRUE
     koBrowseHere()
 }
-
 ```
 
-Now, execution stops in `testFun` and the subsequent commands sent from the
-editor will be executed by R inside `testFun2`'s environment.
+Now, the execution stops inside `testFun`, and the subsequent commands sent from the
+editor will be executed by R inside `testFun`'s environment.
 Note the prompt changes from `:>` to `~>` while in "browser" mode.
 
 ```r
@@ -46,10 +45,10 @@ Use 'koBrowseEnd()' to return to '.GlobalEnv'.
 ```
 
 A new branch is added to the top of the R Object Browser tree, which lists 
-contents of the current environment. It is named after the last function call, 
-in this case <img src="img/environment.svg" width="16" height="16" style="vertical-align: middle;" />`testFun2(x, z, y)`.
+the contents of the current environment. It is named after the last function call, 
+in this case <img src="img/environment.png" style="vertical-align: middle;" />`testFun2(x, z, y)`.
 
-Afterwards, send `koBrowseEnd()` to go back to global environment. 
+Afterwards, send `koBrowseEnd()` to end the go back to the global environment. 
 
 ```r
 koBrowseEnd()
@@ -64,11 +63,10 @@ Evaluating in '.GlobalEnv'
 
 :>
 ```
-
-Alternatively, delete the respective
-<img src="img/environment.svg" width="16" height="16" style="vertical-align: middle;" /> item 
-in the R Object Browser (Shift+Delete) or in the "R Search path" panel (Delete).
-
+You can also click the <img src="img/GlobalEnv.png" style="vertical-align: middle;" /> button 
+on the R Toolbar, or delete the respective
+<img src="img/environment.png" style="vertical-align: middle;" /> item 
+in the R Object Browser or in the "R Search path" panel (Delete key).
 
 The function `koDebug` allows debugging a function when it produces an 
 error. This is not equivalent to `debug`, but rather more similar to `recover`.
