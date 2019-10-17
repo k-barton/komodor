@@ -83,7 +83,7 @@
 		<command id="cmd_RBrowseFrame" key="key_cmd_RBrowseFrame"
 			oncommand="ko.commands.doCommand('cmd_RBrowseFrame');"
 			desc="R: &rEndBrowseFrame;" label="&rEndBrowseFrame;"
-		    disabled="true"
+		    disabled="true" autoCheck="true"
 			accesskey="&rEndBrowseFrame.key;"/>			
 	</commandset>
 

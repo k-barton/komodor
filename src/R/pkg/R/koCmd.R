@@ -17,11 +17,6 @@
 
 	if(!is.numeric(port)) stop("Invalid port: ", port)
 
-    cmd <- paste0(gsub("\f", "\\f", gsub("\r", "\\r", gsub("\n", "\\n",
-				gsub("\\", "\\\\", cmd, fixed = TRUE), fixed = TRUE),
-				fixed = TRUE), fixed = TRUE), collapse = "\\n")
-
-	#set command [string map [list "\\" {\\} "\n" {\n} "\r" {\r} "\f" {\f}] $command]
     prevopt <- options(timeout = max(1, floor(timeout)))
 
 	con <- NULL
@@ -35,7 +30,8 @@
 		warning = function(e) stop(simpleError(paste("timeout on ", host, ":",
 		    port, sep = ""))))
 
-    writeLines(paste0("{js}", cmd), con)
+	# kor/connector defaultRequestHandler uses decodeURI 
+    writeLines(paste0("{js}", utils::URLencode(cmd)), con)
     res <- readLines(con)
     return(res)
 }

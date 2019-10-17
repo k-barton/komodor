@@ -11,6 +11,7 @@ function(envir = .GlobalEnv, envName = deparse(substitute(envir), control = NULL
 	envName # force evaluation
     envir <- as.environment(envir)
 	
+
     korenv <- as.environment(paste0("package:", .packageName))
     empty <- emptyenv()
     curEvalEnv <- getTemp(".EvalEnv", .GlobalEnv)
@@ -49,10 +50,9 @@ function(envir = .GlobalEnv, envName = deparse(substitute(envir), control = NULL
     
     assignTemp(".EvalEnv", envir)
     if (is.null(envName)) return()
-# XXX: [1] "illegal character"
-#      [1] "missing ) after argument list"
-    koCmd(paste0("kor.envChangeEvent(", deparse(envName, control = NULL), ")"))
-    if (quiet) return()
+	koCmd(paste0("kor.envChangeEvent(", deparse(envName, control = NULL), ")"))
+    
+	if (quiet) return()
     if (identical(envir, .GlobalEnv)) 
         message("Evaluating in the global environment")
     else stop(simpleMessage(paste0("Current evaluation environment is now inside\n\t", 

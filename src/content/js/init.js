@@ -153,8 +153,6 @@
         return true;
     } // _setKeybindings
 
-    //this.setKeybindings = function (clearOnly) _setKeybindings(clearOnly);
-   
     var onLoad = function korOnLoadObserver( /*win, topic, ...data */ ) {
         logger.debug("initialization - onLoad started (on komodo-ui-started event)");
         Services.obs.removeObserver(korOnLoadObserver, "komodo-ui-started");
@@ -185,10 +183,32 @@
 			}
 			
             // Open NEWS:
-			if(!firstInstall) {
+			if (!firstInstall) {
 				let doc = Services.koDocSvc.createDocumentFromURI("resource://kor-doc/NEWS.html");
 				require("ko/views").manager.topView.createViewFromDocument(doc, 'browser', -1);
 			} // TODO: else open intro.html
+                   
+            // restore missing R toolbar (workaround for a bug in Komodo 11):
+            let id = "RToolbar";
+            try {
+                let toolbar = document.getElementById(id);
+                if (toolbar === null) throw "Toolbar element not found";
+                toolbar.setAttribute("kohidden", "true");
+                ko.uilayout.toggleToolbarVisibility(id);
+                let tbrow = document.getElementById("second-toolboxrow");
+                if (tbrow === null)
+                    tbrow = document.getElementById("main-toolboxrow");
+                if (tbrow === null)
+                    throw "Toolbars not found";
+                let found = false;
+                for (let node of tbrow.childNodes)
+                    if ((found = node.id === id)) break;
+                if (!found) tbrow.appendChild(toolbar);
+            } catch (e) {
+                logger.warning("while restoring " + id + ": " + e);
+            }         
+            
+            
         } // end first run
 
         require("kor/prefs").setDefaults(false);
@@ -231,30 +251,40 @@
 // store path to "~ports" in tempEnv
         var setUpPorts = () => {
         	var filename = fileUtils.path("PrefD", "extensions",
-        		kor.extensionId, "R", "~ports");
+        		kor.extensionId, "R", "~session");
         	if (fileUtils.exists(filename) !== fileUtils.TYPE_FILE) {
-        		logger.info("~ports file not found");
+        		logger.info("~session file not found");
         		return;
         	}
         	var s = fileUtils.read(filename).trim();
         	if (!s) {
-        		logger.warning("~ports file is empty");
+        		logger.warning("~session file is empty");
         		return;
         	}
-        	var a = s.split(/\s+/).map(x => parseInt(x));
-        	if (a.length < 2) {
-        		logger.warning("~ports content is not valid");
+        	var a = s.split(/\s+/);
+            if (a.length < 3) {
+        		logger.warning("~session content is not valid");
         		return;
         	}
         	var prefs = require("ko/prefs");
-        	prefNames = ['RInterface.RPort', 'RInterface.koPort'];
-        	for (let i = 0; i < 2; ++i) {
-        		prefs.deletePref(prefNames[i]);
-        		prefs.setLongPref(prefNames[i], a[i]);
+        	var prefType = {
+                'RInterface.RPort': "Long", 
+                'RInterface.koPort': "Long",
+                'RInterface.charSet': "String"
+                };
+            
+            let i = 0, info = [];
+            for(let prefName in prefType) if(prefType.hasOwnProperty(prefName)) {
+        		prefs.deletePref(prefName);
+        		prefs['set' + prefType[prefName] + 'Pref'](prefName, 
+                    (prefType[prefName] === "Long") ? parseInt(a[i]) : a[i]
+                );
+                info.push(prefName + ": " + a[i]);
+                ++i;
         	}
-            logger.debug("initialization - connection ports updated: " +
-                         prefNames[0] + ": " + a[0] + "," +
-                         prefNames[1] + ": " + a[1] + ".");
+            
+            logger.debug("initialization - connection ports updated: " + 
+                info.join(", "));
         };
  	
         setTimeout(() => {
@@ -296,9 +326,9 @@
 
         if (fileUtils.exists2(fileUtils.path("ProfD", "extensions", "staged",
             kor.extensionId)) === fileUtils.TYPE_DIRECTORY) {
-            // For some reason, this function is run twice, we need to prevent 
-            // it. Flag variables do not seem to work, so here we create a flag 
-            // file in the soon-to-be-removed package directory:
+            // For unknown reason this function is run twice, so here we prevent 
+            // it. Flag variables are not preserved until the second run (???),
+            // so here we create a flag file in the package directory:
             let flagFile = fileUtils.path("ProfD", "extensions", kor.extensionId, "~updating");
         	if (fileUtils.exists2(flagFile) === fileUtils.TYPE_FILE)
         		return;
@@ -328,8 +358,6 @@
     // Just in case, run a clean-up before quitting Komodo:
 	// Note: do not unload kor on Komodo exit "base::detach(\"package:kor\",unload=TRUE)"
     ko.main.addWillCloseHandler(() => require("kor/connector").stopSocketServer(), null);
-    
-    //Notwork: ko.main.addWillCloseHandler(sv.rconn.stopSocketServer, sv.rconn);
     ko.main.addWillCloseHandler(onKomodoRUpdateRestart, null);
 
     //var rStatusChangeObserver = function (event) {
@@ -346,12 +374,17 @@
     
     // TODO: use commandupdater?
     window.addEventListener("r-evalenv-change", function (event) {
-        let evalEnvName  = event.detail.evalEnvName;
+        let evalEnvName = event.detail.evalEnvName;
         if (typeof evalEnvName === "undefined")
             logger.warning("'r-evalenv-change' event did not provide the expected data");
         let el = document.getElementById('cmd_RBrowseFrame');
-        if (evalEnvName === ".GlobalEnv") el.setAttribute("disabled", "true");
-            else el.removeAttribute("disabled");
+        if (evalEnvName === ".GlobalEnv") {
+            el.setAttribute("disabled", "true");
+            el.removeAttribute("checked");
+        } else {
+            el.removeAttribute("disabled");
+            el.setAttribute("checked", "true")
+        }
     }, false);
    
     

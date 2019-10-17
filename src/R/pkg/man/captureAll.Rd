@@ -5,7 +5,7 @@
 \title{Send output and error stream to a character string or connection.}
 \usage{
 captureAll(expr, conn = NULL, markStdErr = FALSE,
-  envir = getEvalEnv(), doTraceback = TRUE)
+  envir = getEvalEnv(), doTraceback = TRUE, encoding = NULL)
 }
 \arguments{
 \item{expr}{a single \code{expression} to be evaluated.}
@@ -21,6 +21,8 @@ ETX (#003)}
 \item{doTraceback}{logical, should traceback data be constructed in case of error? If \code{FALSE} no
 \code{traceback} would be possible for the captured computations. Set \code{doTraceback=FALSE} for internal commands
 to avoid overwriting of most recent user's errors and \code{warnings}.}
+
+\item{encoding}{used as argument both for \code{parse} and \code{textConnection}.}
 }
 \description{
 Send output and error stream to a character string or connection.

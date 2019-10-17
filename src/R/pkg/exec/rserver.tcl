@@ -64,7 +64,8 @@ proc ConnectionAccept {sock addr port} {
 
     # Ensure that each "puts" by the server
     # results in a network transmission
-    fconfigure $sock -buffering line -blocking 0
+    fconfigure $sock -buffering line -blocking 0 -encoding "utf-8" 
+    # -translation {auto lf} # XXX: Setting this breaks the completion 
 
     # Set up a callback for when the client sends data
     fileevent $sock readable [list Rserver::DoServe $sock]
@@ -107,7 +108,7 @@ proc DoServe {sock} {
 		if [catch {
 			regexp  {(?s)\A\x01([a-z]*)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
 			
-			Rprint "line is: '$line', mode: $r_mode" 1
+			Rprint "command line was '$line', mode: $r_mode" 1
 			
 			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
 

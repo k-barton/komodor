@@ -4,12 +4,19 @@
 \alias{parseText}
 \title{Parse expressions}
 \usage{
-parseText(text)
+parseText(text, encoding = getOption("encoding"), enc.conn = NULL)
 }
 \arguments{
-\item{text}{character vector. The text to parse. Elements are treated as if they were lines of a file.}
+\item{text}{character vector. The text to parse. Elements are treated as if
+they were lines of a file.}
+
+\item{encoding}{encoding to be assumed for input strings (passed to \code{parse})}
+
+\item{`enc.conn`}{encoding to re-encode the input (used as \code{encoding}
+argument for \code{textConnection}).}
 }
 \description{
-Parses a string and returns an unevaluated expression, an \code{"error"} object in case of
-invalid code, or \code{NA} if the (most recent) expression is incomplete.
+Parses a string and returns an unevaluated expression, an
+\code{"error"} object in case of ' invalid code, or \code{NA} if the (most recent)
+expression is incomplete.
 }

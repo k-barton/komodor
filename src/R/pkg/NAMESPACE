@@ -4,26 +4,18 @@ enumConnections, enumServers, startServer, stopAllConnections, stopAllServers,
 koCmd, koBrowseHere, koBrowseEnd, koPager, koBrowser,
 koDebug,
 completion, completeSpecial, completeArgs,
-
 startup,
 objls, write.objList, objSearch,
-
 pkgManInstallPackages, pkgManRemovePackage, pkgManDetachPackage, 
 pkgManLoadPackage, pkgManGetUpdateable, pkgManGetDescription, 
 pkgManSetCRANMirror, pkgManGetMirrors, pkgManGetInstalled,
 pkgManGetAvailable, pkgManGetRepositories,
-
 stringize, getHelpURL, sourceTemp,
 qParse, 
 setEvalEnv, getEvalEnv,
-isInstalledPkg,
-
+isInstalledPkg, .instapack,
 rmElement, doCommand,
-
-view, rmdToHtml
- 
-# TclReval, TclReval2, tclfun,
-
+view, View, rmdToHtml
 )
 
 importFrom("tcltk", ".Tcl.callback", ".Tcl", "tcl")

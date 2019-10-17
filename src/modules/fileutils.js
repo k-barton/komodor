@@ -44,7 +44,8 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
     });
     
     // Read a file with encoding
-    this.read = function (filename, encoding = _this.defaultEncoding) {
+    this.read = function (filename, encoding = _this.defaultEncoding,
+        position = 0, out = null) {
 
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         var fis = Cc["@mozilla.org/network/file-input-stream;1"]
@@ -57,6 +58,9 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
             file.initWithPath(filename);
             fis.init(file, -1, -1, 0);
             is.init(fis, encoding, 1024, 0xFFFD);
+            
+            fis.seek(fis.NS_SEEK_SET, position); /*NS_SEEK_SET = 0*/
+            //fis.available()
 
             ret = "";
             if (is instanceof Ci.nsIUnicharLineInputStream) {
@@ -64,11 +68,13 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
                 do {
                     cont = is.readString(4096, str);
                     ret += str.value;
-                } while (cont);
+                } while (cont !== 0);
             }
         } catch (e) {
             Cu.reportError("While trying to read \"" + filename + "\": " + e);
         } finally {
+            if(out && typeof out === "object")
+                out.value = fis.tell();
             is.close();
             fis.close();
         }

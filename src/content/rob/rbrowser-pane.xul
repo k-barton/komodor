@@ -346,6 +346,7 @@ Contributors:
 					<menulist id="robInstalledPackagesList" flex="1"
 						tooltiptext="&rob.instapack.tip;" disabled="true"
                         onkeypress="rob.instaPackListKeyEvent(event)"
+                        label="Select package..."
                         />
 					<toolbarbutton id="robInstalledPackagesLoadButton" 
                         label="&rob.instapack.load.label;"

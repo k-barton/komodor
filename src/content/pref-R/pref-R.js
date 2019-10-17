@@ -1,4 +1,5 @@
 /*  
+/*  
  *  This file is a part of "R Interface (KomodoR)" add-on for Komodo Edit/IDE.
  *  Copyright (c) 2011-2017 Kamil Barton
  *  
@@ -428,7 +429,6 @@ function menuListGetValues(attribute) {
 			for (let k = 0; k < el.itemCount; ++k) {
 				values.push(escape(el.getItemAtIndex(k).value));
 			}
-
 			values = ArrayUtils.unique(values);
 			var nMax = parseInt(el.getAttribute('maxValues'));
 			if(nMax > 0) values = values.slice(0, nMax);

@@ -4,8 +4,9 @@
 \alias{view}
 \title{View data.frame as HTML}
 \usage{
-view(x, max.rows = 256, filename = tempfile("view", fileext = ".html"),
-  cssfile = "", copy.css = FALSE)
+view(x, max.rows = 512L, filename = file.path(tempdir(),
+  "viewTable.html"), cssfile = "resource:kor-doc/viewTable.css",
+  copy.css = FALSE)
 }
 \arguments{
 \item{x}{a \code{data.frame} (or an objects inheriting from it)}
@@ -20,6 +21,8 @@ If the file exists, the contents will be overwritten.}
 
 \item{copy.css}{If \code{cssfile} is a local file, should it be copied to the
 same directory as \code{filename}?}
+
+\item{title}{Currently not used.}
 }
 \value{
 Returns the name of the file invisibly.

@@ -103,7 +103,7 @@ PrefsetExt.prototype = {
         setDefaults : { value(revert) _pref.setDefaults.bind(_pref)(revert, _this.defaults), enumerable: true }
     }); 
     
-    // when changing this, update oldNames below accordingly
+    // when changing this, update oldNames below accordingly!
     this.defaults = { 
         'RInterface.koPort': 7052,
         'RInterface.RPort': 8888,
@@ -121,7 +121,8 @@ PrefsetExt.prototype = {
         'RInterface.rRemoteHelpURL': 'http://finzi.psych.upenn.edu/R/', // TODO update URL
         'RInterface.marginClick': true,
         'RInterface.viewTableMaxRows': 512,
-        'RInterface.viewTableCSSURI': "resource://kor-doc/viewTable.css"
+        'RInterface.viewTableCSSURI': "resource://kor-doc/viewTable.css",
+        'RInterface.charSet': 'CP1250',
     };
 
     this.defaults[require("kor/main").langName + "HelpCommand"] =
@@ -141,7 +142,7 @@ PrefsetExt.prototype = {
             null, null,
             "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
             "rRemoteHelpURL", "sciviews.margin.click",
-            null, null,
+            null, null, null,
             "R_extendedHelpCommand",
         ];
         let newNames = Object.keys(_this.defaults);

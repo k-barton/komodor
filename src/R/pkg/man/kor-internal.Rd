@@ -8,7 +8,6 @@
 \alias{koBrowser}
 \alias{qParse}
 \alias{isInstalledPkg}
-\alias{formatCode}
 \title{Internal package functions}
 \usage{
 getHelpURL(topic, package = NULL)
@@ -20,8 +19,6 @@ koBrowser(url)
 qParse(filename, encoding = "UTF-8")
 
 isInstalledPkg(pkgName, json = TRUE)
-
-formatCode(..., encoding = "UTF-8")
 }
 \arguments{
 \item{topic, package}{see \code{help}}
@@ -43,8 +40,6 @@ formatCode(..., encoding = "UTF-8")
 \item{pkgName}{the name of the package.}
 
 \item{json}{logical, if \code{TRUE} prints result in JSON format.}
-
-\item{\dots}{arguments passed to \code{formatR::tidy_source}.}
 }
 \description{
 \code{getHelpURL} gets the URL of an R help page.

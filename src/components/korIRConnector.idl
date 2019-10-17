@@ -18,18 +18,16 @@ interface korICommandInfo: nsISupports {
     readonly attribute boolean browserMode;
 	attribute AUTF8String message;
 	attribute AUTF8String result;
-	//ACString styledResult();
 };
 
 [scriptable, uuid(a8495e7c-4a1a-4d44-a872-4b25abd2c417)]
 interface korIRConnector : nsISupports {
-    //nsISimpleEnumerator getproc(in string propertyName);
-	//AUTF8String platform();
-    AUTF8String evalInR(in AUTF8String command, in ACString mode, in double timeout);
-	void evalInRNotify(in AUTF8String command, in ACString mode, in ACString uid);
+    AUTF8String evalInR(in AUTF8String text, in ACString mode, in double timeout);
+	void evalInRNotify(in AUTF8String text, in ACString mode, in ACString uid);
 	long startSocketServer(in korIGenericListener requestHandler);
 	void stopSocketServer();
 	void setSocketInfo(in ACString host, in long port, in boolean outgoing);
+    void setCharCode(in ACString charcode);
 	readonly attribute AUTF8String lastCommand;
 	readonly attribute AUTF8String lastResult;
 	readonly attribute AUTF8String lastMessage;

@@ -1,15 +1,22 @@
 #' @title Parse expressions
 #' @md
-#' @description Parses a string and returns an unevaluated expression, an `"error"` object in case of 
-#' invalid code, or `NA` if the (most recent) expression is incomplete.
-#' @param text character vector. The text to parse. Elements are treated as if they were lines of a file.
+#' @description Parses a string and returns an unevaluated expression, an
+#'    `"error"` object in case of ' invalid code, or `NA` if the (most recent)
+#'     expression is incomplete.
+#' @param text character vector. The text to parse. Elements are treated as if
+#'     they were lines of a file.
+#' @param encoding encoding to be assumed for input strings (passed to `parse`)
+#' @param `enc.conn` encoding to re-encode the input (used as `encoding` 
+#'     argument for `textConnection`).
 #' @export
 `parseText` <-
-function (text) {
-	res <- tryCatch(parse(text = text), error = identity)
+function (text, encoding = getOption("encoding"), enc.conn = NULL) {
+	
+	inpcon <- textConnection(text, encoding = enc.conn)
+	res <- tryCatch(parse(inpcon, encoding = encoding), error = identity)
+	close(inpcon)
 
 	if(inherits(res, "error")) {
-
 		# Check if this is incomplete code
 		msg <- conditionMessage(res)
 		
@@ -30,7 +37,7 @@ function (text) {
 		# res$message <- paste0("(parser) ", res$message)
 		res$call <- NULL
 	}
-    return(res)
+	return(res)
 }
 
 .regcaptures <- function (x, m, ...) {

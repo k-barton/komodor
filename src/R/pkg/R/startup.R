@@ -50,19 +50,22 @@ function (verbose = FALSE) {
     if(length(Rservers) > 0L) {
         portstr <- tail(Rservers, 1L)
         options(ko.R.port = as.integer(portstr))
-        writeLines(text = portstr, con = file.path(cwd0, "~port")) # for rconnect.py
     } else portstr <- NULL
 	
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
-	    writeLines(text = paste(portstr, getOption("ko.port")), con = file.path(cwd0, "~ports"))
+	    writeLines(text = paste(portstr, getOption("ko.port"), 
+            utils::localeToCharset()), con = file.path(cwd0, "~session"))
 	
 		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
-				"cannot connect to Komodo. Try restarting the application (or KomodoR socket server)."
+				"cannot connect to Komodo. Run",
+				sQuote("Troubleshooting->Fix R connection"),
+				"from the", sQuote("R Tools"), "toolbox, or",
+				"restart Komodo."
 				#"This problem may also be caused by a previous R",
 				#"session that was improperly closed. Quit R, kill any running",
 				#"ghost R processes, then start R again."
-				), 
+				),
 				prefix = "  ", initial = ""), 
 				collapse = "\n"), title))
 		})
@@ -84,7 +87,7 @@ function (verbose = FALSE) {
 			},
 			sep = ";")))
 		
-		ver <- koCmd("kor.version + '\n' + _W.ko.version")
+		ver <- koCmd("kor.version + '\\n' + _W.ko.version")
 		if(length(ver) == 2L) {
 			msg("Using R interface ", ver[1L], " on Komodo ", ver[2L], sep = "")
 			#if(.Platform$GUI == "Rgui") {

@@ -32,25 +32,27 @@
 
 import os, re, sys
 import socket
-# import logging
 
-#log = logging.getLogger("RConn")
-#log.setLevel(logging.INFO)
-
+#log.debug("defaultencoding=%s" % sys.getdefaultencoding()) == "ascii" !
 
 class RConn(object):
     port = None
     default_port = 8888
-    def __init__(self, port):
-        self.port = port if port > 0 else self.default_port
+    def __init__(self, port = None):
+        if port is None:
+             self.port = self.get_port_num()
+        elif port > 0:
+            self.port = port
+        else:
+            self.port = self.default_port
+
      
-    # XXX: couldn't find any other way to access port from R   
-    def read_port_no(self):
-        filename = os.path.realpath(os.path.join(__file__, '..', '..', 'R', '~port'))
+    def get_port_num(self):
+        filename = os.path.realpath(os.path.join(__file__, '..', '..', 'R', '~session'))
         if os.path.exists(filename):
             try:
                 fi = open(filename, 'r')
-                portno = fi.read().strip()
+                portno = fi.read().strip().split(' ', 1)[0]
                 fi.close()
                 return int(portno)
             except:
@@ -75,9 +77,10 @@ class RConn(object):
                                     replace("\n", "\\n").replace("\r", "\\r"). \
                                     replace("\f", "\\f"), os.linesep))
         # command must end with newline
-        # mode = 'hax' # hidden + encoded + returnASCII
         try:
             s.send(''.join(('\x01', 'hax', encoded_command.encode('utf-8'))))
+			# XXX: NO encode("cp1250", 'backslashreplace')
+        
         # except UnicodeEncodeError, e:
         except Exception, e:
            return u''
@@ -97,12 +100,13 @@ class RConn(object):
         all_data = "".join(all_data).rstrip()
 
         result = all_data.split("\x1f")
+        
         if(len(result) >= 3):
             result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
                             re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result[2]) \
                             .decode('string_escape')) \
-            .decode("utf-8") \
-            .replace('\x02\x03', '')
+                .decode("utf-8") \
+                .replace('\x02\x03', '')
         else:
             result = u'';
         

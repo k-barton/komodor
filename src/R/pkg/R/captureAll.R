@@ -10,11 +10,13 @@
 #' @param doTraceback logical, should traceback data be constructed in case of error? If `FALSE` no
 #'        `traceback` would be possible for the captured computations. Set `doTraceback=FALSE` for internal commands
 #'        to avoid overwriting of most recent user's errors and `warnings`.
+#' @param encoding used as argument both for `parse` and `textConnection`.
 #' @note The code is based on functions `capture.output` and `.try_silent` from package \pkg{utils}.
 #' @export
 `captureAll` <-
 function (expr, conn = NULL, markStdErr = FALSE,
-		envir = getEvalEnv(), doTraceback = TRUE) {
+		envir = getEvalEnv(), doTraceback = TRUE,
+		encoding = NULL) {
 	# TODO: support for 'file' and 'split'
 	## FIXME "./TODO.error.traceback.RData"
 
@@ -28,7 +30,9 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	.getWarnLevel <- function () getOption("warn")
 
 	rval <- NULL
-	conn <- textConnection("rval", "w", local = TRUE)
+	if(is.null(conn))
+		conn <- textConnection("rval", "w", local = TRUE, encoding = encoding)
+		
 	sink(conn, type = "output"); sink(conn, type = "message")
 	#sink(stdout(), type = "output"); sink(stderr(), type = "message")
 	on.exit({

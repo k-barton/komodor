@@ -8,7 +8,7 @@ interface korIScimozUtils : nsISupports {
 	void printResult(in korICommandInfo cmdinfo);
 	long UTF8Length(in AUTF8String s);
 	void appendText(in AUTF8String s);
-	void printWithMarks(in AUTF8String s);
+	void printWithMarks(in AUTF8String s, in boolean replace, in long lineNum);
     wstring encodeString(in AUTF8String s, in ACString encoding, in ACString errors);
     //ACString uid();
     wstring pushLeft(in AUTF8String text, in ACString eol, in long indent, in long tabwidth);

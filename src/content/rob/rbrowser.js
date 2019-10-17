@@ -176,16 +176,18 @@ var rob = {};
         return rval;
     };
 
-    // This should be changed if new icons are added
+    // This should be updated if new icons are added
     var iconTypes = [
 	    "S3", "S4", "missing-arg", "attrib", "function",
-		"standardGeneric", "environment", "GlobalEnv", "package", "character",
-		"integer", "numeric", "logical", "list", "factor", "NULL", "DateTime",
-		"hexmode", "octmode",
+		"standardGeneric", "environment", "GlobalEnv", "package", 
+        "character", "integer", "numeric", "logical", "hexmode", "octmode", 
+        "list", "factor", "NULL", "DateTime",
 		"array", "matrix", "data.frame", "Matrix4", "expression", "language",
-		"histogram",
-		"name", "srcfilecopy", "srcref", "dist", "_lm", "_lme", "_glmm",
-		"lm", "lme", "gam", "glm", "gls", "merMod", "formula", "family", "terms",
+		"histogram", "dist",
+		"name", "srcfilecopy", "srcref", 
+        "lm", "lme", "gam", "glm", "gls", "merMod", 
+        "_lm", "_lme", "_glmm",
+        "formula", "family", "terms",
 		"logLik", "connection", "htest", "ts", "nls",
 		"Raster", "RasterBrick", "SpatialLine_", "SpatialPoint_", "SpatialPolygon_", "Spatial_",
 		"gg_"
@@ -193,7 +195,6 @@ var rob = {};
 
     var hasIcon = (name) => iconTypes.indexOf(name) !== -1;
 
-    // Reference to parent object for private functions
     var filterBy = 0; // Filter by name by default
     var isInitialized = false;
 
@@ -202,15 +203,17 @@ var rob = {};
 
     this.treeBox = null;
     this.selection = null;
-
-    Object.defineProperty(this, "rowCount", {
+    
+    Object.defineProperties(this, {
+        'rowCount' : {
         get: function () this.visibleData.length,
         enumerable: true
-    });
+       }, 
+       'toString' : { 
+       value: () => "[object RObjectBrowser]" 
+    }});
+  
 
-     Object.defineProperty(this, "toString", 
-		{ value: () => "[object RObjectBrowser]" });
-    
     function VisibleItem(obj, index, level, first, last, parentIndex) {
         if ((this.isList = obj.isRecursive)) {
             this.isContainer = true;
@@ -220,7 +223,7 @@ var rob = {};
         } else {
             this.isContainer = typeof obj.children !== "undefined";
             this.isContainerEmpty = this.isContainer &&
-                obj.children.length == 0;
+                obj.children.length === 0;
             this.childrenLength = this.isContainer ? obj.children.length : 0;
         }
         this.isOpen = typeof obj.isOpen !== "undefined" && obj.isOpen;
@@ -279,7 +282,7 @@ var rob = {};
             if (this.origItem.isTopLevelItem)
                 name = this.origItem.isPackage ? "package" :
                     this.origItem.name === rGlobalEnvStr ? "GlobalEnv" : "environment";
-            else if (name.endsWith("merMod") && name.search(/(^|\w)merMod$/) !== -1)
+            else if (name.endsWith("merMod") && /(^|\w)merMod$/.test(name))
                 name = "merMod";
             else if (name.endsWith("Matrix"))
                 name = "Matrix4";
@@ -803,17 +806,15 @@ var rob = {};
                 _this.refresh();
             },
             enumerable: true
-        },
-        
+        },  
     });
     
     // begin instaPack
-    
     this.instaPackRefresh = function(state) {
         logger.debug("Rbrowser.instaPackRefresh");
     	if (state) {
             // skip loaded packages, update on searchPath refresh
-    		RConn.evalAsync("base::cat(utils::installed.packages()[,1L])",
+    		RConn.evalAsync("kor::.instapack()",
     			(output) => {
     				var pkgNames = output.split(" ");
     				var list = document.getElementById("robInstalledPackagesList");
@@ -1306,10 +1307,7 @@ var rob = {};
                     filePath = null;
                 }
             } /// else  if (data.contains("Files")) {
-				
-			//let el = .getElementsByAttribute("id", event.target.id)[0];
-			
-			//let el = event.target;
+            
 			try {
 				if(el._isEvalEnv) el = el.nextElementSibling;
 				if(el.label === rGlobalEnvStr) el = el.nextElementSibling;
@@ -1319,7 +1317,7 @@ var rob = {};
 			var pos = el && el.label ? el.label : 2;
 
             // Attach the file if it is an R workspace
-            if (filePath && filePath.search(/\.RData$/i) > 0) {
+            if (filePath && /\.RData$/i.test(filePath)) {
                 R.loadWorkspace(filePath, (message) => {
                     _this.searchPath.refresh();
                     UI.addNotification("Upon attaching the workspace \"" + filePath +
@@ -1327,6 +1325,7 @@ var rob = {};
                 }, pos);
 				
 				event.preventDefault();
+                event.stopPropagation();
 				
             } else if (text) {
                 if (!/^(package:)?[a-zA-Z0-9\._]+$/.test(text))
@@ -1485,7 +1484,7 @@ var rob = {};
 
         if (doRemove) {
             // Remove immediately
-            RConn.evalAsync(cmd.join("\n"), (res) => {
+            RConn.evalAsync(cmd.join("\n"), (/*res*/) => {
                 if (cmdDetach.length) _this.refresh();
             }, false, false); // XXX RConn.AUTOUPDATE
         } else {
@@ -1530,7 +1529,7 @@ var rob = {};
         return namesArr;
     };
 
-    this.insertName = function (fullNames, extended) {
+    this.insertName = function(fullNames, extended) {
         // TODO: `quote` non-syntactic names of 1st level (.type = 'object')
         // extended mode: object[c('sub1', 'sub2', 'sub3')]
         var view = require("ko/views").current();
@@ -1539,14 +1538,14 @@ var rob = {};
         var scimoz = view.scimoz;
         if (!scimoz) return;
         var length = scimoz.length;
-
-        if (scimoz.getWCharAt(scimoz.selectionStart - 1)
-            .search(/^[\w\.\u00C0-\uFFFF"'`,\.;:=]$/) !== -1)
+    
+        if (/^[\w\.\u00C0-\uFFFF"'`,\.;:=]$/
+            .test(scimoz.getWCharAt(scimoz.selectionStart - 1)))
             text = " " + text;
-        if (scimoz.getWCharAt(scimoz.selectionEnd)
-            .search(/^[\w\.\u00C0-\uFFFF"'`]$/) !== -1)
+        if (/^[\w\.\u00C0-\uFFFF"'`]$/
+            .test(scimoz.getWCharAt(scimoz.selectionEnd)))
             text += " ";
-
+    
         scimoz.insertText(scimoz.currentPos, text);
         scimoz.currentPos += scimoz.length - length;
         scimoz.charRight();
@@ -1556,20 +1555,11 @@ var rob = {};
         var newFilterBy = ['name', 'dims', 'class', 'group', 'fullName']
             .indexOf(column);
         if (newFilterBy === -1) return;
-
         if (newFilterBy !== filterBy) {
-            //var items = menuItem.parentNode.getElementsByTagName("menuitem");
-            //for (var i = 0; i < items.length; i++)
-            //items[i].setAttribute("checked", items[i] == menuItem);
-
             filterBy = newFilterBy;
             this.applyFilter();
-        } /*else {
-            //menuItem.setAttribute("checked", true);
-        }*/
-
+        }
         var filterBox = document.getElementById("rob_filterbox");
-
         filterBox.emptyText = menuItem.getAttribute("label") + "...";
         filterBox.focus();
 
@@ -1578,17 +1568,17 @@ var rob = {};
 
     this.contextOnShow = function (event) {
         var currentIndex = _this.selection.currentIndex;
-        if (currentIndex == -1) return;
+        if (currentIndex === -1) return;
 
         var item = _this.visibleData[currentIndex].origItem;
         
         // Help can be shown only for one object:
-        let menuItems = event.target.childNodes;
-
+        var menuItems = event.target.childNodes;
+        var testDisableIf, disable;
         for (let i = 0; i < menuItems.length; ++i) {
             if (!menuItems[i].hasAttribute('testDisableIf')) continue;
-            let testDisableIf = menuItems[i].getAttribute('testDisableIf').split(/\s+/);
-            let disable = false;
+            testDisableIf = menuItems[i].getAttribute('testDisableIf').split(/\s+/);
+            disable = false;
             for (let j = 0; j < testDisableIf.length && !disable; ++j) {
                 switch (testDisableIf[j]) {
                 case 't:multipleSelection':
@@ -1609,9 +1599,6 @@ var rob = {};
                 case 't:noDelete':
                     disable = (item.isTopLevelItem && R.nonDetachable.has(item.fullName)) || item.isInPackage;
                     break;
-                /*case 't:isGlobalEnv':
-                    disable = item.fullName == rGlobalEnvStr && item.isTopLevelItem;
-                    break;*/
                 case 't:noHelp':
                     disable = !(item.isPackage || (item.isInPackage && item.type === "object" && !item.isHidden));
                     break;
@@ -1633,7 +1620,6 @@ var rob = {};
             }
             menuItems[i].setAttribute('disabled', disable);
         }
-
     };
     
     this.loadSelectedPackage = function() {
@@ -1660,18 +1646,19 @@ var rob = {};
         Components.classes['@mozilla.org/widget/clipboardhelper;1']
             .getService(Components.interfaces.nsIClipboardHelper);
 
-    // XXX: map keys are numeric, dims property is string 
+    // XXX: dims property is a string 
     var rEnvir = (n, prefix = "") => {
+        var off = _this.evalEnv.name ? 0 : 1;
         switch(String(n)) {
             case "0":
-                return "";
+                return ""; // current environment, no need to specify
             case "1": 
-                if(_this.evalEnv.name) 
-                    return prefix + rGlobalEnvStr; 
+                if(!off) return prefix + rGlobalEnvStr; 
                 /* falls through */
             default:
-                return prefix + "base::as.environment(" + n + ")";
-        };
+                return prefix + "base::as.environment(" + 
+                    (parseInt(n) + off) + ")";
+        }
     };    
     
     this.treeItemCommand = function (action) {
@@ -1691,10 +1678,11 @@ var rob = {};
                 .replace(/[\/\\:\*\?"<>\|]/g, '_') : '';
             
             let robj = new Map();
-            let posoff = _this.evalEnv.name ? 0 : 1;
+            //let posoff = _this.evalEnv.name ? 0 : 1;
             let key;
             for (let it of items) {
-                key = parseInt(it.getTopParent.parentObject.dims) + posoff;
+                // key = parseInt(it.getTopParent.parentObject.dims) + posoff;
+                key = it.getTopParent.parentObject.dims;
                 if (!robj.has(key)) robj.set(key, []);
                 robj.get(key).push(it);
             }
@@ -2086,7 +2074,7 @@ var rob = {};
             autoUpdate = prefset.getBooleanPref(prefName);
         }
     };
-    var onREvalEnvChange = (event) => {
+    var onREvalEnvChange = (/*event*/) => {
         needUpdating = true;
     };
     var onAutoUpdate = (event) => {
@@ -2150,6 +2138,5 @@ var rob = {};
         cleanupObjectLists: cleanupObjectLists,
         getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "robViewbox")
     };
-    
 
 }).apply(rob);

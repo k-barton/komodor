@@ -1,6 +1,10 @@
 @rsearchpath-xbl: "chrome://komodor/content/rob/rsearchpath.xbl";
 @svg-images: "koicon://ko-svg/chrome/komodor/skin/images";
 
+#robInstalledPackagesList:not([value]) {
+    color: GrayText;
+}
+
 .rsearchpath {
 	-moz-binding: url("@{rsearchpath-xbl}#r-search-path-list");
 
@@ -18,17 +22,17 @@
 		.searchpath-item-name {
 			padding-left: 20px;
 			min-height: 16px;
-			background-image: url('@{svg-images}/environment.svg?size=16');
+			background-image: url('@{svg-images}/rob/environment.svg?size=16');
 			background-size: 16px 16px;
 			background-position: left center;
 			background-repeat: no-repeat;
 
 			&[value^="package:"] {
-				background-image: url("@{svg-images}/package.svg?size=16");
+				background-image: url("@{svg-images}/rob/package.svg?size=16");
 			}
 
 			&[value=".GlobalEnv"] {
-				background-image: url("@{svg-images}/GlobalEnv.svg?size=16");
+				background-image: url("@{svg-images}/rob/GlobalEnv.svg?size=16");
 			}
 		}
 

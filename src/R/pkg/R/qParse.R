@@ -9,7 +9,7 @@
 		on.exit(close(fconn))
 		fconn <- file(filename, open = "r", encoding = encoding)
 		x <- tryCatch({
-			parse(file = fconn)
+			parse(file = fconn, encoding = encoding)
 			NA
 		}, error = function(e) e)
 		return(invisible(if(is.na(x[1L])) "" else conditionMessage(x)))

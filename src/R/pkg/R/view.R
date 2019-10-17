@@ -14,13 +14,8 @@
 #     path to a local file. 
 #' @param copy.css If `cssfile` is a local file, should it be copied to the 
 #'    same directory as `filename`?
+#' @param title Currently not used.
 #' @return Returns the name of the file invisibly.
-
-View <- function (x, title) {
-    
-}
-
-
 view <-
 function(x, max.rows = 512L,
    filename =  file.path(tempdir(), "viewTable.html"),
@@ -126,3 +121,9 @@ function(x, max.rows = 512L,
     #cat("file:///", gsub("\\", "/", filename, fixed = TRUE), sep = "")
     invisible(filename)
 }
+
+
+View <- function (x, title) {
+    view(x)
+}
+

@@ -6,13 +6,14 @@
  */
 
 /*
- *  'connector' module implements an interface to R. The workhorse is 'korRConnector' with XPCOM interface.
+ *  'connector' module implements an interface to R. The workhorse is
+ *      'korRConnector' with XPCOM interface.
  * .command (Read only) last command evaluated
  * .result (Read only) last result returned
  * .evalAsync(command, ...) evaluate in R, optional further arguments
  * .eval(command) - do synchronous evaluation in R, return the result
- * .startSocketServer(requestHandler) - optional 'requestHandler' is a function that
- * 		handles the received data and returns a string
+ * .startSocketServer(requestHandler) - optional 'requestHandler' is a function
+ *      that handles the received data and returns a string
  * .stopSocketServer()
  * .isRConnectionUp() - test whether R is available and check connection.
  */
@@ -199,10 +200,11 @@ var kor = {
     // handles koCmd requests:
     var defaultRequestHandler = function (str) {
         str = String(str).trim();
+        var geval = eval; // equivalent to calling 'eval' in the global scope
+        
         try {
             if (str.startsWith("{js}")) {
-                let geval = eval; // equivalent to calling eval in the global scope
-                return String(geval(str.substring(4)));
+                return String(geval(decodeURI(str.substring(4))));
             }
         } catch (e) {
             logger.info("Error while evaluating koCmd request: \n\"" +

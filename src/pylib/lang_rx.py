@@ -45,8 +45,6 @@ from codeintel2.langintel import ParenStyleCalltipIntelMixin, ProgLangTriggerInt
 from codeintel2.udl import UDLLexer, UDLBuffer, UDLCILEDriver
 from codeintel2.util import CompareNPunctLast
 # from codeintel2.accessor import AccessorCache, Accessor
-
-
 #from SilverCity import find_lexer_module_by_id, PropertySet, WordList
 
 from SilverCity.ScintillaConstants import (
@@ -156,33 +154,12 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
     pathsep = os.sep + ("" if(os.altsep is None) else os.altsep)
 
     _rconn = None
-    def _rconn_set_r_port(self, env, pref_name):
-        # TODO: put this together with RConn.read_port_no'
-        port = None
-        if _xpcom_:
-            koPrefs = components.classes["@activestate.com/koPrefService;1"] \
-                .getService(components.interfaces.koIPrefService).prefs
-            if koPrefs.hasPref(pref_name):
-                try: port = int(koPrefs.getDouble(pref_name))
-                except: port = int(koPrefs.getLong(pref_name))
-                finally: port = None if port == 0 else port
-        if port is None:
-            try:
-                # XXX: this does not work: how to access the preferences without xpcom?
-                port = int(env.get_pref(pref_name))
-            except:
-                port = self._rconn.read_port_no()
-        if port is not None:
-            self._rconn.port = port
-
 
     def _eval_in_r(self, cmd, env):
         """evaluate cmd in R.
         """
         if self._rconn is None:
-            self._rconn = RConn(-1)
-            self._rconn_set_r_port(env, "RInterface.RPort")
-            # env.add_pref_observer("RInterface.RPort", self._rconn_set_r_port)
+            self._rconn = RConn()
         return self._rconn.eval_in_r(cmd)
 
     ##
@@ -261,10 +238,6 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         ch = acc.char_at_pos(pos)
         prv_ch = acc.char_at_pos(last_pos)
         
-        
-        self._eval_in_r("# [codeintel] buf=%s pos=%d " % (buf, pos), buf.env)
-        
-        # log.debug('[preceding_trg_from_pos] \n buf = %s' % (buf, ))
         # log.debug('w = "%s", ch = "%s", prv_ch = "%s", pos = %d, curr_pos = %d ' \
                 # % (w, ch, prv_ch, pos, curr_pos, ))
         if style in self.word_styles:
@@ -301,7 +274,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             infun = self._in_func(pos, acc)
             if infun is not None:
                 s2, e2, funcname, nargs, argnames, firstarg = infun
-                print 'arguments for "%s"' % ( infun[2], )
+                # print 'arguments for "%s"' % ( infun[2], )
                 return Trigger(self.lang, TRG_FORM_CPLN, "args", \
                     pos, False, funcname = funcname, firstarg = firstarg, \
                     nargs = nargs, argnames = argnames)
@@ -310,7 +283,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
             vr = self._get_var_back(last_pos, acc)
             if vr is not None:
                 v = ''.join(vr[2])
-                print 'complete "%s"' % ( v, )
+                # print 'complete "%s"' % ( v, )
                 return Trigger(self.lang, TRG_FORM_CPLN, "variable", vr[4], ### pos + 1
                     False, obj_name = v, cutoff = vr[3])
         elif w in ('[', '[['):
@@ -561,8 +534,9 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         print s, s0
 
         token.reverse()
-        return (s0, e0, token, reduce(lambda v, x: v + len(x), token, 0) - cutoff,
-                trg_pos)
+        # XXX: or len(''.join(token).decode("utf-8"))
+        len_tok = sum(map(lambda x: len(x.decode("utf-8")), token))
+        return (s0, e0, token, len_tok - cutoff, trg_pos)
     
     def _brace_match(self, position, acc):
         """ 'SilverCityAccessor' does not have 'scimoz' element which provides

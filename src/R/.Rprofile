@@ -10,7 +10,7 @@ if(file.exists(".komodor_version"))
 komodor_version <- sub("^\\D*((\\d+\\.){2}\\d+)\\D*$", "\\1", komodor_version)
 	
 if(!identical(komodor_version, "") && (
-        length(find.package("kor", quiet=TRUE)) == 0L ||
+        length(find.package("kor", quiet = TRUE)) == 0L ||
         komodor_version != utils::packageVersion("kor")
     )) {
     fi <- paste0("kor_", komodor_version, ".tar.gz")
@@ -23,7 +23,7 @@ if(!identical(komodor_version, "") && (
     tmppath <- tempdir()
     odir <- setwd(tmppath)
     cat("installing KomodoR ...\n")
-    utils::install.packages(file.path(odir, fi), repos=NULL, type="src")
+    utils::install.packages(file.path(odir, fi), repos = NULL, type = "src")
     setwd(odir)
 }
 

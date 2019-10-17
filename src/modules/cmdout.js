@@ -42,7 +42,8 @@
             enumerable: true
         },
         // TODO: wrap at 'edgeColumn'
-        width: { get() {
+        width: {
+            get() {
             let w = _this.outputWindow.clientWidth - 25 /* ~scrollbar*/;
             if (_this.scimoz.getMarginWidthN(2) > 0)
                 w -= _this.scimoz.textWidth(_this.scimoz.STYLE_LINENUMBER, "9999");
@@ -54,13 +55,12 @@
         toString: { value() "[object KorCmdout]" }
     });
     
-    
     var fixEOL = str => String(str).replace(/(\r?\n|\r)/g, _this.eOLChar);
 
 	Object.defineProperties(this, {
           STYLE_STDIN: { value: 22, enumerable: true }, 
           STYLE_STDOUT: { value: 0, enumerable: true }, 
-          STYLE_STDERR: { value: 23, enumerable: true }
+          STYLE_STDERR: { value: 1, enumerable: true } // was 23
     });
 
 
@@ -94,21 +94,49 @@
         this.clear();
         this.append(str, true, false);
     };
+    
+    
+    this.printStyled = function (str, newline = true, replace = false, lineNum = -1) {
+        if (newline) str += this.eOLChar;
+        svc.SmX.scimoz = this.scimoz;
+        svc.SmX.printWithMarks(str, replace, lineNum); //(s, replace = False, lineNum = None)
+    };
 
     this.ensureShown = function () {
         ko.widgets.getPaneAt('workspace_bottom_area').collapsed = false;
         ko.uilayout.ensureTabShown("runoutput-desc-tabpanel", false);
     };
     
-    this.replaceLine = function (lineNum, text, eol) {
+    
+    this.replaceLine = function (text, lineNum = null, eol = true) {
         var scimoz = this.scimoz;
         text = text.toString();
-
-        scimoz.targetStart = scimoz.positionFromLine(lineNum);
-        scimoz.targetEnd = scimoz.getLineEndPosition(lineNum) +
-            (eol ? this.eOLChar.length : 0);
-        scimoz.replaceTarget(text.length, text);
+        if(lineNum === null)
+            lineNum = scimoz.lineCount - 1;
+        
+        var readOnly = scimoz.readOnly;
+        try {
+            scimoz.targetStart = scimoz.positionFromLine(lineNum);
+            scimoz.targetEnd = scimoz.getLineEndPosition(lineNum) +
+                (eol ? this.eOLChar.length : 0);
+            scimoz.replaceTarget(text.length, text);
+        } catch (e) {
+            Cu.reportError("in CmdOut.replaceLine(...): \n" + e);
+        } finally {
+            scimoz.readOnly = readOnly;
+        }
     };
+
+    this.replace = function (text, lineNum = null) {
+        var p0;
+        if(lineNum === null) lineNum = scimoz.lineCount - 1;
+        scimoz.targetStart = p0 = scimoz.positionFromLine(lineNum);
+        scimoz.targetEnd = p0 + text.length;
+        scimoz.replaceTarget(text.length, text);
+    };    
+
+    
+    
 
     this.append = function (str, newline = true, scrollToStart = false) {
         var scimoz = this.scimoz;

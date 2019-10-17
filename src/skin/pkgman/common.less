@@ -92,14 +92,12 @@ richlistbox richlistitem {
 .largebutton(installs-view, installs);
 .largebutton(search-view, search);
 
-
 #pkgPanels richlistbox[empty] {
     visibility: hidden;
 }
 
 richlistbox {
     richlistitem {
-        
         &[required] button[anonid],
         &[installed] button[anonid="installPkgButton"],
         &:not([old]) button[anonid="upgradePkgButton"],
@@ -110,15 +108,12 @@ richlistbox {
         &[loaded] button[anonid="loadPkgButton"] {
             visibility: collapse;
         }
-        
         description.title {
             font-weight: bold;
         } 
-     
         &.navButton {
             color: @navButton-fg;
             background-color: @navButton-bg;
-            
             &[selected] {
                 color: @navButton-selected-fg;
                 background-attachment: scroll;
@@ -126,40 +121,30 @@ richlistbox {
                 background-image: none;
             }
         }
-
         label.title {
             font-weight: bold;
         }
-        
         .description-full {
             white-space: pre-wrap;
             overflow: auto;
         }
-        
         grid.description-full {
             overflow: visible !important;
             max-height: none;
         }
-        
         .description-full,
         hbox.buttons {
             visibility: collapse;
         }
-        
         .DescriptionField {
             font-weight: bold;
         }
-        
         .reverseDep > * {
             color: @item-highlight-fg;
         }
-        
         .text-link {
             color: @text-link-fg;
         }
-  
-        //&[old]:not([selected]) .addon-name-version > label:nth-child(2) {
-        
         & .addon-name-version >* {
           min-height: 18px;
           padding: 1px 2px 1px 2px;
@@ -167,7 +152,6 @@ richlistbox {
         }
  
         &[selected] {
-      
             .description {
                 visibility: collapse;
             }
@@ -221,5 +205,8 @@ richlistitem:not([selected]):not([loaded]) {
 }
 
 #rPkgManButton-RefreshAvailable {
-    list-style-image: url("chrome://fugue/skin/icons/arrow-circle-double-135.png");
+    list-style-image: url("@{svg-images}/refresh.svg?size=24&preset=widgets");
+    label {
+      margin-left: 3px;
+    }
 }

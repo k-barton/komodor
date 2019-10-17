@@ -92,7 +92,7 @@
         } else {
             let uri;
             // XXX JavaScript Error: "ko.places.manager is undefined" 
-            if (ko.places.manager.currentPlaceIsLocal) {
+            if (ko.places.manager.currentPlaceIsLocal && ko.places.manager.currentPlace) {
                 uri = ko.places.getDirectory();
             } else {
                 uri = ko.places.manager.lastLocalDirectoryChoice;
@@ -140,7 +140,18 @@
                 _this.openRPreferences();
             return;
         }
-
+        
+        var pathToR = Prefs.getPref("RInterface.pathToR");
+        if (!pathToR ||
+            !((fu.exists2(pathToR) === fu.TYPE_FILE) || 
+            (fu.whereIs(pathToR).length !== 0))) {
+            if (ko.dialogs.okCancel(
+                    UI.translate("R interpreter set in Preferences is not found." +
+                        "Would you like to edit R Preferences now?"),
+                    "OK", null, "R interface") == "OK")
+                _this.openRPreferences();
+            return;
+        }
 		if(!ko.places || !ko.places.manager) { // Komodo is not ready
 			require("sdk/timers").setTimeout(() => startR(), 512);
 			return;
@@ -151,10 +162,19 @@
 			RConn.restartSocketServer(null, startR);
 			return;
 		}
+        
+        var cwd = _this.getCwd(false);
+        if(fu.exists2(cwd) !== fu.TYPE_DIRECTORY) {
+                UI.addNotification(
+                        "Cannot start R: current working directory does not exist.",
+                        "r-interface", true)
+                    
+             return;
+        }
 
         var rDir = fu.path("ProfD", "extensions", "komodor@komodor", "R");
         fu.write(fu.path(rDir, "_init.R"),
-            "base::setwd('" + su.addslashes(_this.getCwd(false)) +
+            "base::setwd('" + su.addslashes(cwd) +
             "')\n" + "options(" +
             "ko.port=" + Prefs.getPref("RInterface.koPort", Prefs.defaults[
                 "RInterface.koPort"]) +

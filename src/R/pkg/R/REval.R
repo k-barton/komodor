@@ -21,8 +21,6 @@
 function(x, id, mode) .Reval(x, id, mode)
 
 
-
-
 `.Reval` <- 
 function(x, id, mode) {
 	if (identical(x, "")) {
@@ -30,32 +28,39 @@ function(x, id, mode) {
 	    return(invisible())
 	}
 
+    # Note:
+    # iconv(sub="byte") replaces high chars with <hh>, so to distinguish from a
+    # literal string "<hh>", all "<" are first substituted for "<3c>" 
 	.encodeResult <- function(text)
-		iconv(gsub("(<[0-9a-f]{2}>)", "\x1a{\\1}", encodeString(enc2utf8(text))), "UTF-8", "ASCII", "byte")
+		#iconv(gsub("(<[0-9a-f]{2}>)", "\x1a{\\1}", encodeString(enc2utf8(text))), "UTF-8", "ASCII", "byte")
+	    iconv(encodeString(enc2utf8(gsub("<", "<3c>", text))), "UTF-8", "ASCII", "byte")
 
-	
-	evalShown <- ! grepl("h", mode, fixed = TRUE)
-	isEncoded <- grepl("x", mode, fixed = TRUE)
 
-	if(isEncoded) x <- iconv(x, from = "UTF-8")
+    # XXX currently hidden eval mode implies: no continuation, no traceback, 
+    # no width option set, evaluation in .GlobalEnv. These should eventually 
+    # become separate options.
+
+	visible <- ! grepl("h", mode, fixed = TRUE)
+	#isEncoded <- grepl("x", mode, fixed = TRUE)
+	#if(isEncoded) x <- iconv(x, from = "UTF-8")
 	Encoding(x) <- "UTF-8"
 
-	markStdErr <- TRUE  # XXX FALSE in hidden mode ?
+	markStdErr <- TRUE  # XXX FALSE in hidden mode or separate option ?
 	
-	optWidth <- 0L
-	if (evalShown) {
+	width <- 0L
+	if (visible) {
 	    prevcodeVarName <- paste0("part.", id)
 	    prevcode <- getTemp(prevcodeVarName)
 	    
 	    if (substr(x, 1L, 1L) == "\033") {
-	        cat("<interrupted>\n")
+	        cat("<interrupted> \n")
 	        x <- substr(x, 2L, nchar(x))
 	        prevcode <- NULL
 	    } else if(substr(x, 1L, 1L) == "\005" &&
 			(pos <- regexpr(";", x, fixed = TRUE)) > 0L) {
 			opt <- substr(x, 2L, pos - 1L)
-			optWidth <- as.integer(opt)[1L]
-			if(!is.finite(optWidth)) optWidth <- 0L
+			width <- as.integer(opt)[1L]
+			if(!is.finite(width)) width <- 0L
 			x <- substr(x, pos + 1L, nchar(x))
 		}
 	    cat(":> ", c(prevcode, x), "\n")  # if mode in [e,u]
@@ -71,28 +76,25 @@ function(x, id, mode) {
 	    if (inherits(expr, "error")) {
 	        rval <- c("\x03", .encodeResult(as.character.error(expr)), "\x02")
 	        msg <- "parse-error"
-	    } else {
-			# XXX currently hidden eval mode implies: no traceback, evaluation in .GlobalEnv.
-			# These should become separate options.
-			
-			oop <- if(optWidth > 0)
-				options(width = optWidth) else NULL
+	    } else {			
+			oop <- if(width > 0)
+				options(width = width) else NULL
 	        rval <- captureAll(expr, markStdErr = markStdErr,
-					envir = if(evalShown) getEvalEnv() else .GlobalEnv,
-					doTraceback = evalShown)
+					envir = if(visible) getEvalEnv() else .GlobalEnv,
+					doTraceback = visible)
 			
-			rval <- iconv(gsub("(<[0-9a-f]{2}>)", "\x1a{\\1}", encodeString(enc2utf8(rval))), "UTF-8", "ASCII", "byte")
-
+			rval <- .encodeResult(rval)
 			if(!is.null(oop)) options(oop)
 	        msg <- "done"
 	    }
 	}
 	
-	if (evalShown)
+	if (visible)
 		if (msg == "more") assignTemp(prevcodeVarName, c(prevcode, x)) else
 			rmTemp(prevcodeVarName)
 			
 	tcl("set", "retval", paste(msg,
-		 evalShown && identical(msg, "done") && !identical(.GlobalEnv, getEvalEnv()), # = browserMode
+		 visible && identical(msg, "done") && !identical(.GlobalEnv, getEvalEnv()), # == browserMode
 		 paste0(rval, collapse = "\n"), sep = "\x1f", collapse = ""))
+
 }

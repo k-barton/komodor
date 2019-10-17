@@ -16,7 +16,7 @@ function(FUN, refresh = TRUE) {
 		cat("in: ", deparse(conditionCall(e), control = NULL), sep = "\n", "\n")
 		nframe <- sys.nframe() - 4L
 		envName <- format(sys.call(nframe))[1L]
-        setEvalEnv(sys.frame(nframe), deparse(envName, control = NULL))
+        setEvalEnv(sys.frame(nframe), envName, FALSE)
 		env <- getEvalEnv()
 		attr(env, "name") <- envName
 	}))
