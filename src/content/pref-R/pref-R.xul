@@ -173,16 +173,16 @@ the terms of any one of the MPL, the GPL or the LGPL.
 		</groupbox>
 		
 		<separator class="thin" />
-		<groupbox orient="vertical">
+		<groupbox orient="vertical" hidden="true" id="console-output-groupbox">
 			<caption label="Console output" />
 			<vbox>
 				<description>
 					In single-byte character locales ("LC_CTYPE"), Unicode
 					characters not belonging to the current locale are
-					either represented as a closest matching character or 
+					either become transliterated or are represented
 					as &lt;U+NNNN&gt;.
 
-					As a crude workaround, Komodo can replace the latter codes
+					As a crude workaround, Komodo can replace the codes
 					with their respective characters. However, <span style="font-weight:
 					bold;">this will also replace literal
 					&quot;&lt;U+NNNN&gt;&quot; sequences</span>. Check this

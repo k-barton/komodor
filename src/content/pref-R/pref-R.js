@@ -531,6 +531,11 @@ function OnPreferencePageLoading(prefset) {
     logger.debug("OnPreferencePageLoading");
     currentPrefset = prefset;
 
+    if(Services.koOs.name === "nt") {  
+        document.getElementById("console-output-groupbox")
+            .removeAttribute("hidden");b
+    }
+
 //    let boolPrefs = ['CRANMirrorSecure', 'RInterface.format.keepBlankLines',
 //					 'RInterface.format.replaceAssign', 'RInterface.format.newlineBeforeBrace'];
 //
@@ -555,7 +560,7 @@ function OnPreferencePageLoading(prefset) {
 	//for (let i = 0; i < prefElements.length; ++i)
 		//prefElements[i].value = prefs.getPref(prefElements[i].id);
 
-    let cmdLabel = document.getElementById('RInterface.RCommand');
+    var cmdLabel = document.getElementById('RInterface.RCommand');
     cmdLabel.setAttribute("defaultValue", updateRCommand(false));
 
     var cmdArgs = document.getElementById("RInterface.cmdArgs").value;
