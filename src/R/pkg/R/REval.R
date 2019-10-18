@@ -64,9 +64,9 @@ function(x, id, mode) {
 			x <- substr(x, pos + 1L, nchar(x))
 		}
 	    cat(":> ", c(prevcode, x), "\n")  # if mode in [e,u]
-	    expr <- parseText(c(prevcode, x))
+	    expr <- parseText(c(prevcode, x), encoding = "native.enc")
 	} else {
-	    expr <- parseText(x)
+	    expr <- parseText(x, encoding = "native.enc")
 	}
 	
 	if (!is.expression(expr) && is.na(expr)) {
