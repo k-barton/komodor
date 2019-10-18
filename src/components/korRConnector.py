@@ -80,7 +80,7 @@ class korRConnector:
         self.outScimoz = None
         self.charCode = 'CP1250'
         self.proc_out_str = None
-        self.setCharCode(self.charCode)
+        self.setCharSet(self.charCode)
         pass
 
     def setSocketInfo(self, host, port, outgoing):
@@ -90,8 +90,8 @@ class korRConnector:
         else: self.socketIn = (host, port)
         pass
 
-    def setCharCode(self, charcode):
-        log.debug("setCharCode: %s" % (charcode))
+    def setCharSet(self, charcode):
+        log.debug("setCharSet: %s" % (charcode))
         self.charCode = charcode
         if charcode.lower() == 'utf-8':
              self.proc_out_str = lambda s: \
