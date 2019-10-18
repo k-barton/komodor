@@ -174,13 +174,39 @@ the terms of any one of the MPL, the GPL or the LGPL.
 		
 		<separator class="thin" />
 		<groupbox orient="vertical">
+			<caption label="Console output" />
+			<vbox>
+				<description>
+					In single-byte character locales ("LC_CTYPE"), Unicode
+					characters not belonging to the current locale are
+					represented in R output as &lt;U+NNNN&gt;.
+
+					As a workaround, Komodo can replace these codes with
+					respective characters. However, <span style="font-weight:
+					bold;">this will also replace literal
+					&quot;&lt;U+NNNN&gt;&quot; sequences</span>. Check this
+					option only if you use characters from outside of your
+					locale and you do not expect to have such literal sequences
+					in your R output.
+				</description>
+			</vbox>
+			<hbox align="center">
+				<checkbox id="RInterface.unicodeUnescape"
+					label="Replace &lt;U+NNNN&gt; in R output"
+					accesskey="U" pref="true"
+					prefattribute="checked" />
+			</hbox>
+		</groupbox>
+		<groupbox orient="vertical">
 			<caption label="Data input and output" />
+
 			<grid flex="1">
 				<columns>
 					<column flex="0" />
 					<column flex="1" />
 				</columns>
 				<rows>
+					
 					<row align="center">
 						<label value="Default separators for data frame export:" />
 						<hbox align="center">
@@ -204,7 +230,7 @@ the terms of any one of the MPL, the GPL or the LGPL.
 						</hbox>
 					</row>
 					<row align="center">
-						<label value="URI of a CSS stylesheet to use for data frame view:"
+						<label value="URI of the CSS stylesheet for data frame view:"
                                accesskey="S"
 							   control="RInterface.viewTableCSSURI" />
 						<hbox align="center">

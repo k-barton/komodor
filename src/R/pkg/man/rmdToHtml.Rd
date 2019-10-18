@@ -9,8 +9,8 @@ rmdToHtml(file, pandoc = NULL, verbose = FALSE, ...)
 \arguments{
 \item{file}{the path to the Rmarkdown input file.}
 
-\item{pandoc}{character string. Path to 'pandoc' executable or `NULL` in which case `pandoc` is searched
-for on the system path.}
+\item{pandoc}{character string. Path to 'pandoc' executable or `NULL` in
+which case `pandoc` is searched for on the system path.}
 
 \item{verbose}{if `TRUE`, messages from `knitr` and `pandoc` are printed.}
 

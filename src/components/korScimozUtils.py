@@ -38,16 +38,16 @@ class korScimozUtils:
         # # except UnicodeError, e:
         #     return u''
     
-    def printResult(self, cmdinfo):
-        self.printWithMarks(cmdinfo.result)
-    
     def UTF8Length(self, s):
         return len(s.encode('utf-8'))
+    
+    def unicodeUnescape(self, s):
+        return re.sub("<U\\+([0-9A-F]{4})>",
+            lambda m: unichr(int(m.group(1), 16)), s)
     
     def appendText(self, s):
         self.scimoz.appendText(self.UTF8Length(s), s);
         pass
-       
         
     def printWithMarks(self, s, replace = False, lineNum = 0):
         if self.scimoz is None:
@@ -114,22 +114,25 @@ class korScimozUtils:
                 scimoz.setStyling(1, s)
         scimoz.readOnly = readOnly
         
-
+    def printResult(self, cmdinfo, unnnUnescape = False):
+        self.printWithMarks(self.unicodeUnescape(cmdinfo.result) \
+            if unnnUnescape else cmdinfo.result)
+  
     #XXX use pushLeft to make pretty command at printing time
-    def pushLeft(self, text, eol = os.linesep, indent = 0, tabwidth = 4):
-        text = text.lstrip("\r\n\f")
-        if not text: return ''
-        re_line = re.compile('(^[\t ]*)(?=\S)(.*$)', re.MULTILINE)
-        if type(indent) in (str, unicode):
-           indentstr = indent
-           indent = len(indentstr)
-        else:
-           indentstr = ' ' * indent
-        lines = re.findall(re_line, text)
-        indent_len = map(lambda line: len(string.expandtabs(line[0], tabwidth)), lines)
-        ## XXX: indent_len = [ len(string.expandtabs(line[0], tabwidth)) for line in lines ]
-        baseind = min(indent_len)
-        if (baseind == 0 and indent == 0): return text
-        return eol.join(map(lambda nspaces, line: \
-                indentstr + (' ' * (nspaces - baseind)) + \
-                line[1], indent_len, lines))
+    # def pushLeft(self, text, eol = os.linesep, indent = 0, tabwidth = 4):
+    #     text = text.lstrip("\r\n\f")
+    #     if not text: return ''
+    #     re_line = re.compile('(^[\t ]*)(?=\S)(.*$)', re.MULTILINE)
+    #     if type(indent) in (str, unicode):
+    #        indentstr = indent
+    #        indent = len(indentstr)
+    #     else:
+    #        indentstr = ' ' * indent
+    #     lines = re.findall(re_line, text)
+    #     indent_len = map(lambda line: len(string.expandtabs(line[0], tabwidth)), lines)
+    #     ## XXX: indent_len = [ len(string.expandtabs(line[0], tabwidth)) for line in lines ]
+    #     baseind = min(indent_len)
+    #     if (baseind == 0 and indent == 0): return text
+    #     return eol.join(map(lambda nspaces, line: \
+    #             indentstr + (' ' * (nspaces - baseind)) + \
+    #             line[1], indent_len, lines))

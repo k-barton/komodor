@@ -1,7 +1,7 @@
 Package: kor
 Type: Package
 Title: Connects R with Komodo Editor
-Version: 0.3.264
+Version: 0.3.265
 Date: 2019-10-17
 Encoding: UTF-8
 Author: Kamil Bartoń

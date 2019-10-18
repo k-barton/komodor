@@ -7,6 +7,9 @@
     var _W = require("ko/windows").getMain();
     const { Cc, Ci, Cu } = require('chrome');
     
+    var logger = require("ko/logging").getLogger("kor/cmdout");
+    logger.setLevel(logger.DEBUG);
+    
     var XPCOMUtils = Cu.import("resource://gre/modules/XPCOMUtils.jsm").XPCOMUtils;
     var lazySvcGetter = XPCOMUtils.defineLazyServiceGetter.bind(XPCOMUtils);
     
@@ -15,9 +18,40 @@
     //lazySvcGetter(svc, "SysUtils", "@activestate.com/koSysUtils;1", "koISysUtils");
     lazySvcGetter(svc, "SmX", "@komodor/korScimozUtils;1", "korIScimozUtils");
 
+    const timers = require("sdk/timers"), prefs = require("ko/prefs");
+    
     var _this = this, ko = _W.ko, _scimoz, _outputWindow;
     var getEOLChar = (scimoz) => ["\r\n", "\r", "\n"][scimoz.eOLMode];
     var _init;
+    const promptStr = { normal: ":>", continued: ":+", browse: "~>", busy: "..." };
+
+	Object.defineProperties(this, {
+          STYLE_STDIN: { value: 22, enumerable: true }, 
+          STYLE_STDOUT: { value: 0, enumerable: true }, 
+          STYLE_STDERR: { value: 1, enumerable: true } // was 23
+    });
+    
+    _init = () => {
+        var scimoz = _this.scimoz;
+
+        //Get color from the color scheme: stdin, stdout, stderr
+        //var prefset = Cc["@activestate.com/koPrefService;1"].getService(Ci.koIPrefService).prefs;
+        var schemeName = prefs.getStringPref('editor-scheme');
+        var currentScheme = Cc['@activestate.com/koScintillaSchemeService;1']
+            .getService().getScheme(schemeName);
+
+        var _hexstr2rgb = (hex)  => {
+            var colorref = parseInt(hex.substr(1), 16);
+            return (colorref >> 16 & 255) | (colorref & 65280) | ((colorref & 255) << 16);
+        };
+        var styleSetFore = (style, clr) => {
+            scimoz.styleSetFore(_this[style], _hexstr2rgb(currentScheme.getFore("", clr)));
+        };
+
+        styleSetFore("STYLE_STDIN", "stdin");
+        styleSetFore("STYLE_STDERR", "stderr");
+        styleSetFore("STYLE_STDOUT", "stdout");
+    };
     
     Object.defineProperties(this, {
         outputWindow: {
@@ -57,35 +91,6 @@
     
     var fixEOL = str => String(str).replace(/(\r?\n|\r)/g, _this.eOLChar);
 
-	Object.defineProperties(this, {
-          STYLE_STDIN: { value: 22, enumerable: true }, 
-          STYLE_STDOUT: { value: 0, enumerable: true }, 
-          STYLE_STDERR: { value: 1, enumerable: true } // was 23
-    });
-
-
-    _init = () => {
-        var scimoz = _this.scimoz;
-
-        //Get color from the color scheme: stdin, stdout, stderr
-        let prefset = Cc["@activestate.com/koPrefService;1"].getService(Ci.koIPrefService).prefs;
-        let schemeName = prefset.getStringPref('editor-scheme');
-        let currentScheme = Cc['@activestate.com/koScintillaSchemeService;1']
-            .getService().getScheme(schemeName);
-
-        let _hexstr2rgb = (hex)  => {
-            let colorref = parseInt(hex.substr(1), 16);
-            return (colorref >> 16 & 255) | (colorref & 65280) | ((colorref & 255) << 16);
-        };
-        let styleSetFore = (style, clr) => {
-            scimoz.styleSetFore(_this[style], _hexstr2rgb(currentScheme.getFore("", clr)));
-        };
-
-        styleSetFore("STYLE_STDIN", "stdin");
-        styleSetFore("STYLE_STDERR", "stderr");
-        styleSetFore("STYLE_STDOUT", "stdout");
-    };
-
     svc.Obs.addObserver({
         observe: _init
     }, 'scheme-changed', false);
@@ -94,7 +99,6 @@
         this.clear();
         this.append(str, true, false);
     };
-    
     
     this.printStyled = function (str, newline = true, replace = false, lineNum = -1) {
         if (newline) str += this.eOLChar;
@@ -107,7 +111,6 @@
         ko.uilayout.ensureTabShown("runoutput-desc-tabpanel", false);
     };
     
-    
     this.replaceLine = function (text, lineNum = null, eol = true) {
         var scimoz = this.scimoz;
         text = text.toString();
@@ -118,7 +121,7 @@
         try {
             scimoz.targetStart = scimoz.positionFromLine(lineNum);
             scimoz.targetEnd = scimoz.getLineEndPosition(lineNum) +
-                (eol ? this.eOLChar.length : 0);
+                (eol ? _this.eOLChar.length : 0);
             scimoz.replaceTarget(text.length, text);
         } catch (e) {
             Cu.reportError("in CmdOut.replaceLine(...): \n" + e);
@@ -134,9 +137,6 @@
         scimoz.targetEnd = p0 + text.length;
         scimoz.replaceTarget(text.length, text);
     };    
-
-    
-    
 
     this.append = function (str, newline = true, scrollToStart = false) {
         var scimoz = this.scimoz;
@@ -203,8 +203,7 @@
         }
     };
 
-    var timers = require("sdk/timers");
- 
+
     // Display message on the status bar (default) or command output bar
     this.statusBarMessage = function cmdout_sbmsg(msg, timeout, highlight) {
 		_this.ensureShown();
@@ -219,16 +218,30 @@
         if (timeout > 0) runoutputDesc.timeout =
             timers.setTimeout(() => cmdout_sbmsg('', 0), timeout);
     };
-    
-    var promptStr = { normal: ":>", continued: ":+", browse: "~>", busy: "..." };
-	
 
-    this.printResult = function (command, finalPrompt, done, commandInfo) {
+    const uuePrefName = "RInterface.unicodeUnescape";
+    if(!prefs.hasBooleanPref(uuePrefName))
+        prefs.setBooleanPref(uuePrefName, false);
+    var unicodeUnescape = prefs.getBooleanPref(uuePrefName);
+    var unicodeUnescapeObserver = {
+        observe(prefset, prefName, data) {
+            unicodeUnescape = prefset.getBooleanPref(prefName);
+            //logger.debug("Preference observer: '" + prefName + "' set to " + unicodeUnescape);
+        }
+    };
+    prefs.prefObserverService.addObserver(unicodeUnescapeObserver, uuePrefName, true);
+
+	
+    this.printResult = function(command, finalPrompt, done, commandInfo/*,
+        unnnUnescape = false*/) {
+        
+        logger.debug("cmdout.printResult: unicodeUnescape is " + unicodeUnescape);
+        
         var scimoz = _this.scimoz;
         svc.SmX.scimoz = scimoz;
         var eOLChar = _this.eOLChar;
         _this.ensureShown();
-
+    
         finalPrompt = fixEOL(finalPrompt);
         var readOnly = scimoz.readOnly;
         scimoz.readOnly = false;
@@ -243,19 +256,20 @@
                 scimoz.targetStart = scimoz.positionFromLine(lineNum);
                 scimoz.targetEnd = scimoz.positionAtChar(scimoz.textLength - 1, {});
                 scimoz.replaceTarget(0, "");
-                svc.SmX.printResult(commandInfo);
+                svc.SmX.printResult(commandInfo, unicodeUnescape);
             }
         }
         svc.SmX.appendText(finalPrompt);
         let lineCount = scimoz.lineCount;
         _this.styleLines(lineCount - 1, lineCount, _this.STYLE_STDIN);
-        let firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen - 1, 0);
+        let firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen -
+            1, 0);
         scimoz.firstVisibleLine = firstVisibleLine;
         scimoz.readOnly = readOnly;
     };
     
-    let _curPrompt = promptStr.normal, _command = [];
-    let _waitMessageTimeout;
+    var _curPrompt = promptStr.normal, _command = [];
+    var _waitMessageTimeout;
 	
 	_W.addEventListener('r-evalenv-change', (event) => {
 		if(!event.detail.evalEnvName) return;
@@ -263,15 +277,16 @@
 			promptStr.normal : promptStr.browse;
 	}, false);
     
-    this.displayResults = function (result, commandInfo, executed, wantMore) {
+    this.displayResults = function (result, commandInfo, executed, wantMore,
+        unnnUnescape) {
         timers.clearTimeout(_waitMessageTimeout);
 
-        let msg, print_command, finalPrompt = "";
+        var msg, print_command, finalPrompt = "";
         if(!executed)
             _command.push(commandInfo.command.trim().replace(/(\r?\n|\r)/g, "$1   "));
  
  // XXX: lastNormalPrompt i.e. not "continue"
-        let prePrompt = _curPrompt === promptStr.continued ? 
+        var prePrompt = _curPrompt === promptStr.continued ? 
 			promptStr.normal : _curPrompt; //commandInfo.browserMode ? promptStr.browse : promptStr.normal;
         
         print_command = prePrompt + " " +
@@ -293,7 +308,8 @@
             // display 'wait message' only for longer operations
             _waitMessageTimeout = timers.setTimeout(_this.statusBarMessage, 750, msg, 0, false);
         }
-        _this.printResult(print_command, finalPrompt, executed, commandInfo);
+        _this.printResult(print_command, finalPrompt, executed, commandInfo/*,
+            unnnUnescape*/);
     };
     
 }).apply(module.exports);

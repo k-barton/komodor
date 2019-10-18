@@ -25,6 +25,8 @@ write.objList(x, file = "", sep = " ", eol = "\\n",
 
 \item{attrib}{logical. If \code{TRUE} and \code{expr} is not missing, lists object's \code{attributes} after object's elements.}
 
+\item{funcBody}{logical. Whether to treat a function body as an additional, recursive element.}
+
 \item{\dots}{additional arguments. Ignored.}
 
 \item{x}{an object of class \code{objList}}
@@ -40,6 +42,5 @@ Internal functions for Komodo's R object browser.
 if(require(datasets)) {
    write.objList(objls(npk))
    objls(Loblolly)
-
 }
 }

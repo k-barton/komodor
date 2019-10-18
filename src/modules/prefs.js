@@ -123,9 +123,12 @@ PrefsetExt.prototype = {
         'RInterface.viewTableMaxRows': 512,
         'RInterface.viewTableCSSURI': "resource://kor-doc/viewTable.css",
         'RInterface.charSet': 'CP1250',
+        'RInterface.unicodeUnescape': false,
     };
+    
+    var langName = require("kor/main").langName;
 
-    this.defaults[require("kor/main").langName + "HelpCommand"] =
+    this.defaults[langName + "HelpCommand"] =
         'javascript:kor.r.help(\"%W\")'; // jshint ignore: line
   
     // this.reset = (prefName) => {
@@ -142,8 +145,8 @@ PrefsetExt.prototype = {
             null, null,
             "r.csv.dec", "r.csv.sep", "CRANMirror", "CRANMirrorSecure",
             "rRemoteHelpURL", "sciviews.margin.click",
-            null, null, null,
-            "R_extendedHelpCommand",
+            null, null, null, null,
+            langName + "HelpCommand",
         ];
         let newNames = Object.keys(_this.defaults);
         for (let i = 0; i < newNames.length; ++i) {
