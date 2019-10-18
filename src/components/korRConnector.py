@@ -172,6 +172,7 @@ class korRConnector:
                 replace("\r", "\\r"). \
                 replace("\f", "\\f"). \
                 encode(self.charCode, 'backslashreplace'). \
+                replace('\\x', '\\u00'). \
                 encode("utf-8")
         # encode('utf-8') must be matched by R/pkg/exec/rserver.tcl:
         # fconfigure $sock ... -encoding "utf-8"
