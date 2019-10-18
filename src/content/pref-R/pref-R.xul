@@ -179,10 +179,11 @@ the terms of any one of the MPL, the GPL or the LGPL.
 				<description>
 					In single-byte character locales ("LC_CTYPE"), Unicode
 					characters not belonging to the current locale are
-					represented in R output as &lt;U+NNNN&gt;.
+					either represented as a closest matching character or 
+					as &lt;U+NNNN&gt;.
 
-					As a workaround, Komodo can replace these codes with
-					respective characters. However, <span style="font-weight:
+					As a crude workaround, Komodo can replace the latter codes
+					with their respective characters. However, <span style="font-weight:
 					bold;">this will also replace literal
 					&quot;&lt;U+NNNN&gt;&quot; sequences</span>. Check this
 					option only if you use characters from outside of your

@@ -35,7 +35,6 @@ function(x, id, mode) {
 		#iconv(gsub("(<[0-9a-f]{2}>)", "\x1a{\\1}", encodeString(enc2utf8(text))), "UTF-8", "ASCII", "byte")
 	    iconv(encodeString(enc2utf8(gsub("<", "<3c>", text))), "UTF-8", "ASCII", "byte")
 
-
     # XXX currently hidden eval mode implies: no continuation, no traceback, 
     # no width option set, evaluation in .GlobalEnv. These should eventually 
     # become separate options.

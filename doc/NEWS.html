@@ -51,7 +51,37 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <p>(Version #VERSION#)</p>
 <ul>
-<li>Fixed 0.3.210b regression that caused the item icons in the R Object Browser to disappear.</li>
+<li><p>better handling of different encodings in non-Unicode systems (Windows). However, unlike in the R console, Unicode characters from outside of the current set are displayed as <U+NNNN>. Example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="st">&quot;* Initial locale: &quot;</span>, <span class="kw">Sys.getlocale</span>(<span class="st">&quot;LC_CTYPE&quot;</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+<span class="kw">cat</span>(<span class="st">&quot;* locale set to&quot;</span>, <span class="kw">Sys.setlocale</span>(<span class="st">&quot;LC_CTYPE&quot;</span>, <span class="st">&quot;Scottish Gaelic&quot;</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+<span class="st">&quot;Cyryllic text: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;</span>
+<span class="st">&quot;Gaelic text: Mus d&#39;fhàg Cè ròp Ì le aon tiùb.&quot;</span>
+<span class="kw">cat</span>(<span class="st">&quot;* locale set to&quot;</span>, <span class="kw">Sys.setlocale</span>(<span class="st">&quot;LC_CTYPE&quot;</span>, <span class="st">&quot;Ukrainian&quot;</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
+<span class="st">&quot;Cyryllic text: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;</span>
+<span class="st">&quot;Gaelic text: Mus d&#39;fhàg Cè ròp Ì le aon tiùb.&quot;</span></code></pre></div>
+<p>Was:</p>
+<pre class="no-highlight"><code>* Initial locale: Ukrainian_Ukraine.1251 
+* locale set to Scottish Gaelic_United Kingdom.1252 
+[1] &quot;Cyryllic text: ??????? ????? ?? ??????-???????? ?&#39;????? ????????? ?????? ? ????.&quot;
+[1] &quot;Gaelic text: Mus d&#39;fhag Ce rop I le aon tiub.&quot;
+* locale set to Ukrainian_Ukraine.1251 
+[1] &quot;Cyryllic text: ??????? ????? ?? ??????-???????? ?&#39;????? ????????? ?????? ? ????.&quot;
+[1] &quot;Gaelic text: Mus d&#39;fhag Ce rop I le aon tiub.&quot;</code></pre>
+<p>Now:</p>
+<pre><code>* Initial locale:  Scottish Gaelic_United Kingdom.1252 
+* locale set to Scottish Gaelic_United Kingdom.1252 
+[1] &quot;Cyryllic text: &lt;U+0429&gt;&lt;U+0443&gt;&lt;U+0440&gt;&lt;U+044F&gt;&lt;U+0447&gt;&lt;U+0438&gt;&lt;U+0439&gt; &lt;U+0431&gt;...
+[1] &quot;Gaelic text: Mus d&#39;fhàg Cè ròp Ì le aon tiùb.&quot;
+* locale set to Ukrainian_Ukraine.1251 
+[1] &quot;Cyryllic text: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;
+[1] &quot;Gaelic text: Mus d&#39;fhag Ce rop I le aon tiub.&quot; </code></pre></li>
+<li><p>stderr is correctly styled in Command Output console (although it appears clickable it does not take to the error line).</p></li>
+</ul>
+<p>(Version 0.3.232b)</p>
+<ul>
+<li>Fixed: dropping an &quot;*.RData&quot; file path onto Attached Packages list (R Browser widget) no longer opens the file in the editor.</li>
+<li>After installation/update, the R toolbar is restored if needed (workaround for a bug in Komodo 11).</li>
+<li>Fixed 0.3.210b regression that caused some item icons in the R Browser to disappear.</li>
 <li>R Package Manager -&gt; Set Repositories: checking/unchecking additional repository now triggers an update of the available packages list. Improved keyboard/mouse navigation in the repository list.</li>
 </ul>
 <p>(Version 0.3.210b)</p>
@@ -59,7 +89,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <li><strong>Note:</strong> if the R Toolbar disappears (due to a bug in Komodo), it can be restored with a new tool: <code>Toolbox -&gt; R Tools -&gt; Troubleshooting -&gt; Restore missing R toolbar</code></li>
 <li><code>data.frame</code>s content can be shown in a browser window. Access the command from the R Object Browser item context menu (&quot;View&quot;) or use an R command: <code>view(&lt;data.frame object&gt;)</code>.</li>
 <li>Preferences: Startup options get new checkboxes to edit the command line.</li>
-<li>Codeintel: fixed problems with non-ASCII names in code completion. Still, the issue with completions being left-trimmed when there are multibyte characters in the completed line remains (issue #26).</li>
+<li>Codeintel: fixed problems with non-ASCII names in code completion. <em>Still, the issue with completions being left-trimmed when there are multibyte characters in the completed line remains (issue #26)</em>.</li>
 <li>Improved output from R (in some special cases errors or warnings were not printed correctly or were omitted. For example when an error occurred both in the function and in its <code>on.exit</code> code) (issue #12)</li>
 <li>Added option for browsing R function body code (activated with the Object Browser toolbar's cog menu item).</li>
 <li>New button on R Toolbar to switch back to the evaluation in <code>.GlobalEnv</code> (globe icon). It becomes active when the current R evaluation environment (frame) is not the Global Environment (the &quot;R user's workspace&quot;). Use <code>setEvalEnv(new.env(())</code> R command to temporarily switch to a local environment (new variables and assigned values will not go into <code>.GlobalEnv</code>). See <a href="./koDebug.html">here</a> for more info on debugging R code in Komodo.</li>

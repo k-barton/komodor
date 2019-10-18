@@ -79,6 +79,8 @@ class korRConnector:
         self.lastCommandInfo = None
         self.outScimoz = None
         self.charCode = 'CP1250'
+        self.proc_out_str = None
+        self.setCharCode(self.charCode)
         pass
 
     def setSocketInfo(self, host, port, outgoing):
@@ -91,6 +93,14 @@ class korRConnector:
     def setCharCode(self, charcode):
         log.debug("setCharCode: %s" % (charcode))
         self.charCode = charcode
+        if charcode.lower() == 'utf-8':
+             self.proc_out_str = lambda s: \
+                s.encode(self.charCode, "ignore")     
+        else:
+             self.proc_out_str = lambda s: \
+                re.sub("\\\\x([0-9a-f]{2})", "\\u00\\1",
+                s.encode(self.charCode, "backslashreplace").
+                replace("\\\\", "\\u005c")).encode("utf-8")       
         pass
 
     def _asSString(self, s):
@@ -162,18 +172,14 @@ class korRConnector:
         
 
         rMode = 'h' if modeArr.count('h') else 'e'
-        # if isinstance(text, unicode):
-            # text = text.encode("UTF-8")
+            
         full_command = '\x01a' \
             + rMode \
             + '<' + uid + '>' \
-            + text.replace("\\", "\\\\"). \
-                replace("\n", "\\n"). \
-                replace("\r", "\\r"). \
-                replace("\f", "\\f"). \
-                encode(self.charCode, 'backslashreplace'). \
-                replace('\\x', '\\u00'). \
-                encode("utf-8")
+            + self.proc_out_str(text). \
+              replace("\n", "\\n").replace("\r", "\\r").replace("\f", "\\f")
+
+
         # encode('utf-8') must be matched by R/pkg/exec/rserver.tcl:
         # fconfigure $sock ... -encoding "utf-8"
 
@@ -204,7 +210,7 @@ class korRConnector:
             # 3. to UTF-8
             result = re.sub('<([0-9a-f]{2})>', '\\x\\1', result_arr[2]) \
                     .decode('string_escape') \
-                    .decode("utf-8") \
+                    .decode('utf-8', 'ignore') \
                     .replace('\x02\x03', '') # XXX: temporary? fix
         else:
             result_arr = [ 'empty', 'FALSE', u'' ]

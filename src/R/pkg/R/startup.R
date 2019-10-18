@@ -53,8 +53,8 @@ function (verbose = FALSE) {
     } else portstr <- NULL
 	
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
-	    writeLines(text = paste(portstr, getOption("ko.port"), 
-            utils::localeToCharset()), con = file.path(cwd0, "~session"))
+	    writeLines(text = paste(c(portstr, getOption("ko.port"), 
+            utils::localeToCharset())), con = file.path(cwd0, "~session"))
 	
 		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(

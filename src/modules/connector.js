@@ -269,7 +269,8 @@ var kor = {
     var _socketPrefs = {
         "RInterface.RPort": null,
         "RInterface.RHost": null,
-        "RInterface.koPort": null
+        "RInterface.koPort": null,
+        "RInterface.charSet": null
     };
 
     this.getSocketPref = (name) => _socketPrefs[name];
@@ -279,6 +280,7 @@ var kor = {
             parseInt(_socketPrefs["RInterface.koPort"]), false);
         svc.RConnector.setSocketInfo(_socketPrefs["RInterface.RHost"],
             parseInt(_socketPrefs["RInterface.RPort"]), true);
+        svc.RConnector.setCharSet(_socketPrefs["RInterface.charSet"]);
     }
 
     var _prefObserver = {

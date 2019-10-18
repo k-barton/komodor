@@ -270,8 +270,9 @@
         	var prefType = {
                 'RInterface.RPort': "Long", 
                 'RInterface.koPort': "Long",
-                'RInterface.charSet': "String"
+                'RInterface.charSet': "String" 
                 };
+            // Note: ~session will have a fallback charset on Linux
             
             let i = 0, info = [];
             for(let prefName in prefType) if(prefType.hasOwnProperty(prefName)) {

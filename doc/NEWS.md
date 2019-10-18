@@ -6,8 +6,58 @@ css: doc.css
 
 (Version #VERSION#)
 
-* Fixed 0.3.210b regression that caused the item icons in the R Object Browser to disappear.
-* R Package Manager -> Set Repositories: checking/unchecking additional repository now triggers an update of the available packages list.
+
+* better handling of different encodings in non-Unicode systems (Windows). 
+  However, unlike in the R console, Unicode characters from outside of the 
+  current set are either displayed as a closest matching character or as
+  <U+NNNN> (this is a shortcoming of R's `sink` / `format`).
+
+  Example (assuming Latin2 character locale in R):
+  
+  __R code in Komodo (UTF-8)__
+  ```{r}
+    "Cyryllic: Щурячий бугай із їжаком-харцизом в\'ючись підписали ґешефт у єнах."
+    "Gaelic: Mus d\'fhàg Cè ròp Ì le aon tiùb."
+  ```
+  
+  __R output__
+  
+  Previous version:
+    ```no-highlight
+    [1] "Cyryllic: ??????? ????? ?? ??????-???????? ?'????? ????????? ?????? ? ????."
+    [1] "Gaelic: Mus d'fhag Ce rop I le aon tiub."
+    ```
+   Current version:
+    ```no-highlight
+    [1] "Cyryllic: <U+0429><U+0443><U+0440><U+044F><U+0447><U+0438><U+0439>
+    <U+0431><U+0443><U+0433><U+0430><U+0439> <U+0456><U+0437> [...]"
+    [1] "Gaelic: Mus d'fhag Ce rop I le aon tiub."
+    ```
+   Using &lt;U+NNNN&gt; replacement workaround: 
+    ```no-highlight
+    [1] "Cyryllic: Щурячий бугай із їжаком-харцизом в'ючись підписали ґешефт у єнах."
+    [1] "Gaelic: Mus d'fhag Ce rop I le aon tiub."
+    ```
+  Note that the substitution is in the display only, the strings are correctly
+  interpreted in R as UTF-8 strings.
+
+* stderr is correctly styled in Command Output console (although it appears 
+  clickable it does not take to the error line). 
+* fixed a problem with "Back to GlobalEnv" button not being activated in some 
+  cases.
+
+
+
+(Version 0.3.232b)
+
+* Fixed: dropping an "*.RData" file path onto Attached Packages list (R Browser 
+  widget) no longer opens the file in the editor.
+* After installation/update, the R toolbar is restored if needed (workaround 
+  for a bug in Komodo 11).
+* Fixed 0.3.210b regression that caused some item icons in the R Browser 
+  to disappear.
+* R Package Manager -> Set Repositories: checking/unchecking additional 
+  repository now triggers an update of the available packages list.
   Improved keyboard/mouse navigation in the repository list.
 
 (Version 0.3.210b)
@@ -19,8 +69,9 @@ css: doc.css
   from the R Object Browser item context menu ("View") or use an R command:
   `view(<data.frame object>)`.
 * Preferences: Startup options get new checkboxes to edit the command line.
-* Codeintel: fixed problems with non-ASCII names in code completion. Still, 
-  the issue with completions being left-trimmed when there are multibyte characters in the completed line remains (issue #26).
+* Codeintel: fixed problems with non-ASCII names in code completion. _Still, 
+  the issue with completions being left-trimmed when there are multibyte 
+  characters in the completed line remains (issue #26)_.
 * Improved output from R (in some special cases errors or warnings were not 
   printed correctly or were omitted. For example when an error occurred both in the 
   function and in its `on.exit` code) (issue #12)

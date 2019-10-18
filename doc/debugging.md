@@ -1,9 +1,12 @@
-Debugging R code in Komodo
-======
+---
+title: "Debugging R code in Komodo"
+output: html_document
+css: doc.css
+---
 
 R's debugging functions like `debug`, `browser` or `recover` cannot be used from
 within Komodo since they rely on a user interaction with R console. Any R code
-containing `browser` calls should be only executed directly in the R console. 
+containing calls to `browser` should be only executed directly in the R console. 
 
 'KomodoR' provides a function `koBrowseHere` which can be used in a
 manner similar to `browser()`. It interrupts the execution of R code and changes the 
@@ -48,13 +51,18 @@ A new branch is added to the top of the R Object Browser tree, which lists
 the contents of the current environment. It is named after the last function call, 
 in this case <img src="img/environment.png" style="vertical-align: middle;" />`testFun2(x, z, y)`.
 
-Afterwards, send `koBrowseEnd()` to end the go back to the global environment. 
+To go back to `.GlobalEnv`, either:
+
+*  send `koBrowseEnd()` command to R
+*  Click the Environment button <img src="img/GlobalEnv.png" style="vertical-align: middle;" /> on the R toolbar. 
+*  Delete the relevant <img src="img/environment.png" style="vertical-align: middle;" /> item in the R Object Browser or in the Attached R Packages panel.
+
 
 ```r
 koBrowseEnd()
 ```
 
-It outputs:
+The console shows:
 
 ```no-highlight
 ~> koBrowseEnd()
@@ -63,10 +71,6 @@ Evaluating in '.GlobalEnv'
 
 :>
 ```
-You can also click the <img src="img/GlobalEnv.png" style="vertical-align: middle;" /> button 
-on the R Toolbar, or delete the respective
-<img src="img/environment.png" style="vertical-align: middle;" /> item 
-in the R Object Browser or in the "R Search path" panel (Delete key).
 
 The function `koDebug` allows debugging a function when it produces an 
 error. This is not equivalent to `debug`, but rather more similar to `recover`.
@@ -96,8 +100,7 @@ ls() # we are now working inside `test`
 ~> [1] "inside.test", "x" "y"
 ```
 
-When finished, use `koBrowseEnd()` to go back to `.GlobalEnv`.
-
+Another example:
 
 ```r
 
