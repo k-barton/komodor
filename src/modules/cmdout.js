@@ -357,6 +357,7 @@
             } else {
                 //_this.printResult2(event.detail.info.result, event.detail.wantMore, true);
                 _this.printResult2(event.detail.info, event.detail.wantMore, true);
+                timers.clearTimeout(_waitMessageTimeout);
                 _this.statusBarMessage(null);
             }
         }
