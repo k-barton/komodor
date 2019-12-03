@@ -32,7 +32,7 @@ Philippe Grosjean, and since then has been largely rewritten.
   user workspace and packages, objects' structure, including hidden objects, 
   attributes, and function body.
 * Toolbar with commonly used commands
-* R help window
+* R help window (and simple web browser with and option to run selected text as R code)
 * R package manager
 * R working directory can be changed from _Places_ pane (in the context menu)
 
