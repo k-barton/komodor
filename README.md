@@ -17,9 +17,10 @@ Philippe Grosjean, and since then has been largely rewritten.
 
 * Connect to “R” session from Komodo (R application runs independently)
 * Execution of R code directly from within editor:
-   + output from R is shown in the _Command Output_ pane
+   + output from R is shown in the _Command Output_ pane 
+     (_new_: real-time output in version 0.4)
    + execute (or `source`) the current line or selection, bookmark-delimited 
-     block, function at cursor, or a whole file.
+     block, function under the cursor, or a whole file.
 * Syntax highlighting:
    + R language including [Roxygen](http://roxygen.org/) tags
    + R documentation (*.Rd* files, partially implemented)
@@ -105,11 +106,9 @@ The extension provides some code debugging capabilities, see
 
 **Known issues:**
 
-* Output from R is displayed in the command output pane only __at the end of
-  operation__ (real-time output will be introduced in version 0.4)
-* Connection timeout on longer operations: a prompt is shown as if the
-  calculation in R has finished and no output is shown (version < 0.4)
-* Calculation can be interrupted only in R window (Ctrl+C in R terminal, Escape
+* Using `browser` and `recover` R commands causes a break in the transfer of output from R to Komodo. 
+  See [Debugging R code](debugging.md).
+* Calculation can be interrupted only in the R window (Ctrl+C in R terminal, Escape
   key in RGui)
 * __On MAC OS X__: problems with starting R.app and connection with R 
 * __On Windows__: Executing Rgui's command “Stop all computations” will also stop R's socket
@@ -121,4 +120,3 @@ The extension provides some code debugging capabilities, see
 * Syntax highlighting: when R is a sub-language (in Rd or Rmarkdown files), the
   colouring dissappears occassionally. There is also some flickering inside
   Roxygen comments. This is due to a bug in Komodo related to brace counting.
-
