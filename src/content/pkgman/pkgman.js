@@ -57,7 +57,7 @@ function pkgManInstall(pkg, ask) {
 	var cmd = "cat(kor::stringize(kor::pkgManInstallPackages" +
 		'("' + pkg + '"' + ask + ')))';
 	logger.debug(cmd);
-	rconn.evalPredefined(cmd, "pkgman-install", true, pkg);
+	rconn.evalAsync(cmd, "pkgman-install", true, pkg);
 }
 
 function _installHandler(res, pkg) {
@@ -74,11 +74,11 @@ function _installHandler(res, pkg) {
 				let cmd = 'cat(kor::stringize(kor::pkgManInstallPackages("' + pkg +
 					'", ask=FALSE, installDeps=TRUE)))';
 				logger.debug(cmd);
-				rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
+				rconn.evalAsync(cmd, "pkgman-update-info", true, "installed");
 				_notify('R is now busy installing the requested packages. ' +
 						'No output will be shown in Komodo before the operation finishes.',
 						'r-is-busy', 'info');
-				//rconn.evalAsync(cmd, updateInfo, true, true, "installed");
+				//rconn.evalAsync(cmd, updateInfo, rconn.HIDDEN | rconn.STDOUT, "installed");
 				n.close();
 			}
 		}, {
@@ -93,23 +93,23 @@ function _installHandler(res, pkg) {
 
 function pkgManRemove(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManRemovePackage("' + pkg + '")))';
-	//rconn.evalAsync(cmd, updateInfo, true, true, "removed");
+	//rconn.evalAsync(cmd, updateInfo, rconn.HIDDEN | rconn.STDOUT, "removed");
 	logger.debug(cmd);
-	rconn.evalPredefined(cmd, "pkgman-update-info", true, "removed");
+	rconn.evalAsync(cmd, "pkgman-update-info", true, "removed");
 }
 
 function pkgManDetach(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManDetachPackage("' + pkg + '")))';
-	//rconn.evalAsync(cmd, updateInfo, true, true, "detached");
+	//rconn.evalAsync(cmd, updateInfo, rconn.HIDDEN | rconn.STDOUT, "detached");
 	logger.debug(cmd);
-	rconn.evalPredefined(cmd, "pkgman-update-info", true, "detached");
+	rconn.evalAsync(cmd, "pkgman-update-info", true, "detached");
 
 }
 
 function pkgManUpgrade(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManInstallPackages("' + pkg + '", ask=FALSE)))';
 	logger.debug(cmd);
-	rconn.evalPredefined(cmd, "pkgman-update-info", true, "installed");
+	rconn.evalAsync(cmd, "pkgman-update-info", true, "installed");
 	_notify('R is now busy installing the requested packages. ' +
 		'No output will be shown in Komodo before the operation finishes.',
 		'r-is-busy', 'info');
@@ -118,7 +118,7 @@ function pkgManUpgrade(pkg) {
 function getDescriptionFor(el) {
 	var cmd = 'kor::pkgManGetDescription(' + R.arg(el.label) + ')';
 	logger.debug(cmd);
-	rconn.evalAsync(cmd, (desc, el) => { el.desc = desc; }, true, true, el);
+	rconn.evalAsync(cmd, (desc, el) => { el.desc = desc; }, rconn.HIDDEN | rconn.STDOUT, el);
 }
 
 function setCranMirror(url) {
@@ -174,7 +174,7 @@ function populateCranMirrorsList(rOutput) {
 function getCranMirrors() {
 	var cmd = "kor::pkgManGetMirrors()";
 	logger.debug(cmd);
-	rconn.evalAsync(cmd, populateCranMirrorsList, true, true);
+	rconn.evalAsync(cmd, populateCranMirrorsList, rconn.HIDDEN | rconn.STDOUT);
 }
 
 function makePkgItem(name, version, repositoryName, installedVersion, status, installed, old,
@@ -213,7 +213,7 @@ function populateUpdateablePkgs(rOutput) {
 function getUpdateable() {
 	var cmd = "kor::pkgManGetUpdateable()";
 	logger.debug(cmd);
-	rconn.evalAsync(cmd, populateUpdateablePkgs, true, true);
+	rconn.evalAsync(cmd, populateUpdateablePkgs, rconn.HIDDEN | rconn.STDOUT);
 }
 
 function populateInstalledPkgs(rOutput) {
@@ -260,7 +260,7 @@ function populateInstalledPkgs(rOutput) {
 function getInstalledPkgs() {
 	var cmd = "kor::pkgManGetInstalled(sep='\\x1e')";
 	logger.debug(cmd);
-	rconn.evalAsync(cmd, populateInstalledPkgs, true, true);
+	rconn.evalAsync(cmd, populateInstalledPkgs, rconn.HIDDEN | rconn.STDOUT);
 }
 
 function updateInfo(res, what) {
@@ -387,7 +387,7 @@ function updateInfo(res, what) {
 function pkgManLoad(pkg) {
 	var cmd = 'cat(kor::stringize(kor::pkgManLoadPackage(' + R.arg(pkg) + ')))';
 	logger.debug(cmd);
-	rconn.evalAsync(cmd, updateInfo, true, true, "loaded");
+	rconn.evalAsync(cmd, updateInfo, rconn.HIDDEN | rconn.STDOUT, "loaded");
 }
 
 function populateAvailablePkgs(rOutput) {
@@ -493,8 +493,8 @@ function openRepositoriesWindow() {
 }
 
 function init() {
-	rconn.defineResultHandler("pkgman-install", _installHandler, false, false);
-	rconn.defineResultHandler("pkgman-update-info", updateInfo, false, false);
+	rconn.defineResultHandler("pkgman-install", _installHandler, false, false, false);
+	rconn.defineResultHandler("pkgman-update-info", updateInfo, false, false, false);
 
 	setCranMirror();
 	//getCranMirrors();

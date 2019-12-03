@@ -15,7 +15,8 @@ qParse,
 setEvalEnv, getEvalEnv,
 isInstalledPkg, .instapack,
 rmElement, doCommand,
-view, View, rmdToHtml
+view, View, rmdToHtml,
+koProgressBar, setKoProgressBar, getKoProgressBar
 )
 
 importFrom("tcltk", ".Tcl.callback", ".Tcl", "tcl")
@@ -25,6 +26,8 @@ importFrom("utils", "compareVersion", "contrib.url", "getCRANmirrors",
            "install.packages", "installed.packages", "old.packages",
            "packageDescription", "remove.packages", "write.table",
 		   "getSrcFilename", "getS3method", "tail", "data", 
-		   "available.packages", "loadhistory", "browseURL", "isS3stdGeneric")
+		   "available.packages", "loadhistory", "browseURL", "isS3stdGeneric",
+           "capture.output", "help")
 		   
 S3method(print, objList)
+S3method(close, koProgressBar)

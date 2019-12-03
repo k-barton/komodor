@@ -8,10 +8,11 @@ variable Connection; array set Connection {}
 
 namespace export Start Stop CloseAllConnections Rprint
 
-# This code relies on functions defined from R: 'Rprint' and 'Reval'
-# Just to avoid errors, define dummy functions here
+# This code relies on functions defined from R: 'Rprint', 'Reval' and 'Reval2'
+# Just to avoid errors, let's define dummy functions here
 proc Rprint {args} {}
 proc Reval {args} {}
+proc Reval2 {args} {}
 
 #proc bgerror {err} { Rprint "$err \n" }
 
@@ -88,7 +89,7 @@ proc DoServe {sock} {
 
     if {[eof $sock] || [catch {gets $sock line}]} {
 		if [catch { close $sock } err1] {
-			Rprint "Error: in 'Rserver::DoServe': $err1" 1
+			Rprint "Error: in 'Rserver::DoServe' #1: $err1" 1
 		}
 		#close $sock
 		#set x Connection(addr,$sock)
@@ -112,18 +113,36 @@ proc DoServe {sock} {
 			
 			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
 
-			#set line [Reval $line "addr,$sock"]
-			set line [Reval "$r_command" $r_sid $r_mode]
-			# XXX Here Raccept "$r_command" $r_sid $r_mode
-			#          assign command to tempEnv$commands$r_sid
-			if [catch { puts $sock $line } err1] {
-				Rprint "Error: in 'Rserver::DoServe': $err1" 1
-				close $sock
-				unset Connection(addr,$sock)
+			if [catch {
+			set result [Reval "$r_command" $r_sid $r_mode]
+			} err4] {
+				Rprint "Error: in 'Rserver::DoServe' Reval: $err4" 1
+				set result ""
 			}
-			# XXX Here Reval $r_sid -> start connection with ko-server -> sink output thereinto
+
+			set realtime [expr {[string first "file" $result] == 0}]
+
+			
+			if [catch { puts $sock $result } err1] {
+				Rprint "Error: in 'Rserver::DoServe' #2: $err1" 1
+			}
+			
+			# Reval assigns expression to 'expr.id' in tempEnv if the code has
+			# parsed succesfully. Reval2 does nothing if 'expr.id' is not found
+			# in tempEnv.
+			if $realtime {
+				close $sock
+				Rprint "result is $result" 0
+
+				#unset Connection(addr,$sock)
+				if [catch { Reval2 $r_sid } err5] {
+					Rprint "Error: in 'Rserver::DoServe' Reval2: $err5" 1
+				}
+				
+				Rprint "Real-time mode: done" 1
+			}
 		} err2] {
-			Rprint "Error: in 'Rserver::DoServe': $err2" 1
+			Rprint "Error: in 'Rserver::DoServe' #3: $err2" 1
 		}
 	}
 }

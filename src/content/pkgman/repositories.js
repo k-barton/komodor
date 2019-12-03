@@ -44,8 +44,10 @@ var changed = () => {
 
 function onLoad() {
     var list = document.getElementById("rRepositoryList");
+	
+	const rConn = require("kor/connector");
 
-    require("kor/connector").evalAsync("kor::pkgManGetRepositories()",
+    rConn.evalAsync("kor::pkgManGetRepositories()",
 		(output) => {
         try {
             let res = JSON.parse(output);
@@ -67,7 +69,7 @@ function onLoad() {
         } catch (e) {
             logger.exception(e, "repositories::onLoad");
         }
-    }, true, true);
+    }, rConn.HIDDEN | rConn.STDOUT);
 
 	list.onclick = (event) => {
 		itemFocus(event.target);
@@ -101,8 +103,7 @@ function applyRepositories() {
     else
         require("kor/connector")
         .evalAsync('base::options(repos=' + require("kor/r").arg(res) + ')',
-            null,
-            true);
+            null, true);
 
     var pmWindow = self.opener;
     var pmDeck = pmWindow.pmDeck;

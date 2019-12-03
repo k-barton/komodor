@@ -32,7 +32,7 @@ PrefsetExt.prototype = {
             prefType = this._prefset.getPrefType(prefName);
 
             if (prefType !== valueType) {
-                if (exists !== "convert") { // fix | replace
+                if (exists !== "convert") { // fix or replace
                     this._prefset.deletePref(prefName);
                     prefType = valueType;
                 }

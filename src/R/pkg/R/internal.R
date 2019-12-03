@@ -52,10 +52,13 @@ function(x, path = ".",
 	save(list = nm, file = file.path(path, sprintf("%s.RData", nm)), ...)
 }
 
-
-.RInternal <- function (name, ...) {
-    cl <- sys.call()[-1L]
-    cl[[1L]] <- as.name(cl[[1L]])
-    eval.parent(as.call(c(as.name(".Internal"), cl)))
+assignLocked <- 
+function(x, value, envir) {
+    tryCatch({
+	if(bindingIsLocked(x, envir)) { 
+		unlockBinding(x, envir)
+		on.exit(lockBinding(x, envir))
+	}
+	assign(x, value, envir = envir)
+    }, error = function(e) NULL)
 }
-

@@ -37,13 +37,11 @@ from xpcom.server import WrapObject #, UnwrapObject
 import os, sys, re
 import string
 from xpcom.server.enumerator import SimpleEnumerator
-import socket
-import threading
+import socket, threading, json
 from uuid import uuid1
 
 import logging
 log = logging.getLogger('korRConnector')
-#log.setLevel(logging.DEBUG)
 
 class korRConnector:
     _com_interfaces_ = [components.interfaces.korIRConnector]
@@ -54,7 +52,7 @@ class korRConnector:
     class CommandInfo:
         _com_interfaces_ = components.interfaces.korICommandInfo
         def __init__(self, cmd_id, cmd, mode, browserMode = False, message = '', result = ''):
-            self.commandId = cmd_id
+            self.id = cmd_id
             self.command = cmd
             self.mode = mode
             self.browserMode = browserMode
@@ -82,45 +80,37 @@ class korRConnector:
         self.proc_out_str = None
         self.setCharSet(self.charCode)
         pass
-
-    def setSocketInfo(self, host, port, outgoing):
-        log.debug("setSocketInfo (%s): %s:%d" % ('outgoing' if outgoing else
-                                                 'incoming', host, port))
-        if outgoing: self.socketOut = (host, port)
-        else: self.socketIn = (host, port)
+    
+    def setSocketInfo(self, host, port_in, port_out):
+        log.debug("setSocketInfo (in: %s,%d, out: %s,%d)" % ('127.0.0.1', port_in, host, port_out))
+        self.socketOut = (host, port_out)
+        self.socketIn = ('127.0.0.1', port_in)
         pass
 
     def setCharSet(self, charcode):
-        log.debug("setCharSet: %s" % (charcode))
+        log.debug("setCharSet: %s" % charcode)
+        if charcode is None:
+            return
         self.charCode = charcode
         if charcode.lower() == 'utf-8':
-             self.proc_out_str = lambda s: \
-                s.encode(self.charCode, "ignore")     
+            self.proc_out_str = lambda s: \
+                s.replace('<', '<3c>').replace('\\', '<5c>'). \
+                encode(self.charCode, "ignore")
+                # .replace("\\", "\\\\")
         else:
-             self.proc_out_str = lambda s: \
-                re.sub("\\\\x([0-9a-f]{2})", "\\u00\\1",
-                s.encode(self.charCode, "backslashreplace").
-                replace("\\\\", "\\u005c")).encode("utf-8")       
+            self.proc_out_str = lambda s: \
+                re.sub("\\\\x([0-9a-f]{2})", "\\u00\\1", \
+                    s.replace('<', '<3c>').replace('\\', '<5c>'). \
+                    encode(self.charCode, "backslashreplace")). \
+                encode("utf-8")
         pass
-
-    def _asSString(self, s):
-        ret = components.classes["@mozilla.org/supports-string;1"] \
-            .createInstance(components.interfaces.nsISupportsString)
-        ret.data = unicode(s)
-        return(ret)
-
-    def _asSInt(self, n):
-        ret = components.classes["@mozilla.org/supports-PRInt32;1"] \
-            .createInstance(components.interfaces.nsISupportsPRInt32);
-        ret.data = long(n)
-        return(ret)
 
     def evalInR(self, text, mode, timeout = .5):
         return self.connect(text, mode, False, timeout, self.uid())
 
     def evalInRNotify(self, text, mode, uid):
         log.debug("evalInRNotify: text=%s ..." % text[0:10])
-        t = threading.Thread(target=self.connect, args=(text, mode, True, None, uid))
+        t = threading.Thread(target = self.connect, args = (text, mode, True, None, uid))
         t.daemon = True
         t.start()
         
@@ -129,26 +119,20 @@ class korRConnector:
         obsSvc = components.classes["@mozilla.org/observer-service;1"]. \
                  getService(components.interfaces.nsIObserverService)
         obsSvc.notifyObservers(subject, topic, data)
-        
 
     @components.ProxyToMainThread
     def requestHandlerEvent(self, requestHandler, data):
         return requestHandler.onDone(data)
 
     def connect(self, text, mode, notify, timeout, uid):
-        # pretty_command = self.pushLeft(text, indent=3L, eol='\n', tabwidth=4)[3:]
-        
         if text.startswith("\x05"):
             rcommand = text[text.find(";") + 1:]
         else:
             rcommand = text
  
-        
         self.lastCommand = unicode(rcommand)
-        ssLastCmd = self._asSString(rcommand)
-        log.debug("connect: 'text' was \n%s ... \n(notify=%d)" % (rcommand[0:36], notify))
-
-        modeArr = mode.split(' ')
+        log.debug("connect: 'text' was \n%s ... \n(notify=%d, mode=%s)" %
+                  (rcommand[0:36], notify, mode))
 
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(timeout)
@@ -157,21 +141,18 @@ class korRConnector:
             # Windows: timeout('timed out',)
             # Linux: error(111, '... rejected')
             # e.message or e.strerror
-            return unicode('\x15' + (e.args[0] if (e.errno == None) else e.strerror))
+            return unicode('\x15\x15' + (e.args[0] if (e.errno == None) else e.strerror))
 
         cmdInfo = self.CommandInfo(uid, rcommand, mode, False, 'Not ready')
 
-        #wrappedCmdInfo = WrapObject(cmdInfo, components.interfaces.korICommandInfo)
         if notify:
-            # self._proxiedObsSvc.notifyObservers(
-                # WrapObject(cmdInfo, components.interfaces.korICommandInfo),
-                # 'r-command-sent', None)
-            self.notifyObservers(WrapObject(cmdInfo, 
-                components.interfaces.korICommandInfo),
+            self.notifyObservers(WrapObject(cmdInfo, components.interfaces.korICommandInfo),
                 'r-command-sent', None)
         
-
+        modeArr = mode.split(' ')
         rMode = 'h' if modeArr.count('h') else 'e'
+        if modeArr.count('r'):
+            rMode += 'r'
             
         full_command = '\x01a' \
             + rMode \
@@ -179,17 +160,19 @@ class korRConnector:
             + self.proc_out_str(text). \
               replace("\n", "\\n").replace("\r", "\\r").replace("\f", "\\f")
 
+        # command syntax:
+        # \x01 {mode byte} \x0b uid or filename \x0b command \n
 
         # encode('utf-8') must be matched by R/pkg/exec/rserver.tcl:
         # fconfigure $sock ... -encoding "utf-8"
-
-        s.send(full_command + os.linesep)
-        ## text must end with newline
+        
+        # XXX os.linesep or \n ?
+        s.send(full_command + os.linesep) ## text must end with newline
         s.shutdown(socket.SHUT_WR)
         all_data = []
         try:
             while True:
-                data = s.recv(1024L)
+                data = s.recv(4096L)
                 if not data: break
                 all_data.append(data)
         except Exception, e:
@@ -208,10 +191,13 @@ class korRConnector:
             # 1. <hh> => \\xhh # <hh> sequences generated by R's iconv(sub = "bytes") 
             # 2. \\ => \ # decode("string_escape")
             # 3. to UTF-8
-            result = re.sub('<([0-9a-f]{2})>', '\\x\\1', result_arr[2]) \
-                    .decode('string_escape') \
-                    .decode('utf-8', 'ignore') \
-                    .replace('\x02\x03', '') # XXX: temporary? fix
+            result = \
+                re.sub('<([0-9a-f]{2})>', '\\x\\1', result_arr[2]) \
+                .decode('string_escape') \
+                .decode('utf-8', 'ignore')
+            # re.sub('\x1b[\x02\x03];', '', # XXX: temporary? fix
+            # )
+                     
         else:
             result_arr = [ 'empty', 'FALSE', u'' ]
             log.info("Malformed result received. Contents:\n%s", result_arr)
@@ -225,15 +211,13 @@ class korRConnector:
         self.lastCommandInfo = WrapObject(cmdInfo, components.interfaces.korICommandInfo)
         if notify:
             self.notifyObservers(
-                # XXX self.lastCommandInfo
                 WrapObject(cmdInfo, components.interfaces.korICommandInfo),
-                'r-command-executed',
-                result)
-            log.debug("connect notify: %s..." % result[0:50])
+                'r-command-executed', None)
+            log.debug("connect notify:\n%s[...]" % result[0:256])
             return
 
-        log.debug("connect return: %s..." % result[0:50])
-        return unicode(result)
+        log.debug("connect return:\n%s[...]" % result[0:256])
+        return cmdInfo.result
 
     def __del__(self):
         try:
@@ -261,7 +245,7 @@ class korRConnector:
                 self.serverConn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.serverConn.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 0)
                 self.serverConn.settimeout(5)
-                log.debug('trying socket (%s, %d) ', host, port)
+                log.debug('trying socket (%s, %d) ' % (host, port))
                 self.serverConn.bind((host, port))
                 break
             except Exception, e:
@@ -275,7 +259,8 @@ class korRConnector:
                              kwargs={ 'requestHandler': requestHandler })
         t.start()
         log.debug('Serving on port %d' % port)
-        self.notifyObservers(self._asSInt(port), 'r-server-started', None)
+        self.notifyObservers(None, 'r-server-started',
+            json.dumps({'port': port}))
         return port
 
     def stopSocketServer(self):
@@ -292,7 +277,7 @@ class korRConnector:
         # a string
         try:
             self.serverConn.listen(1)
-            log.debug('Socket server listening at %d', self.socketIn[1])
+            log.debug('Socket server listening at %d' % self.socketIn[1])
             count = 0
             connected = False
             while self.runServer:
@@ -307,13 +292,13 @@ class korRConnector:
                         break
                     except Exception: continue
                 if not connected: continue
-                data_all = u''
+                data = u''
                 try:
                     while connected:
-                        log.debug('Connected by %s : %d', addr)
-                        data = conn.recv(1024L)   # XXX: error: [Errno 10054]
-                        data_all += unicode(data) # XXX , encoding?
-                        if (not data) or (data[-1] == '\n'): break
+                        log.debug('Connected by %s : %d' % addr)
+                        data_chunk = conn.recv(1024L)   # XXX: error: [Errno 10054]
+                        data += unicode(data_chunk) # XXX , encoding?
+                        if (not data_chunk) or (data_chunk[-1] == '\n'): break
                 except Exception, e:
                     log.error(e.args)
                     conn.close()
@@ -321,10 +306,12 @@ class korRConnector:
                 conn.shutdown(socket.SHUT_RD)
                 log.debug('conn finished reading')
                 try:
-                    result = self.requestHandlerEvent(requestHandler, data_all)
+                    data = re.sub('<([0-9a-f]{2})>', '\\x\\1', data) \
+                        .decode('string_escape').decode('utf-8', 'ignore')
+                    result = self.requestHandlerEvent(requestHandler, data)
                 except Exception, e:
                     result = e.args[0]
-                    log.debug('JS request exception: %s', result)
+                    log.debug('JS request exception: %s' % result)
                 if (result == None): conn.send('\n')
                 else: conn.send(result + '\n')
             
@@ -335,7 +322,7 @@ class korRConnector:
             log.debug(e.args)
         self.stopSocketServer()
 
-        log.debug("Exiting after %d connections", count)
+        log.debug("Exiting after %d connections" % count)
         try:
             self.notifyObservers(None, 'r-server-stopped', None)
         except Exception, e:

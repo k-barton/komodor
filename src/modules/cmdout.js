@@ -8,7 +8,6 @@
     const { Cc, Ci, Cu } = require('chrome');
     
     var logger = require("ko/logging").getLogger("kor/cmdout");
-    logger.setLevel(logger.DEBUG);
     
     var XPCOMUtils = Cu.import("resource://gre/modules/XPCOMUtils.jsm").XPCOMUtils;
     var lazySvcGetter = XPCOMUtils.defineLazyServiceGetter.bind(XPCOMUtils);
@@ -18,12 +17,16 @@
     //lazySvcGetter(svc, "SysUtils", "@activestate.com/koSysUtils;1", "koISysUtils");
     lazySvcGetter(svc, "SmX", "@komodor/korScimozUtils;1", "korIScimozUtils");
 
+    //Cc["@komodor/korScimozUtils;1"].getService(Ci.korIScimozUtils);
+
+    
     const timers = require("sdk/timers"), prefs = require("ko/prefs");
     
     var _this = this, ko = _W.ko, _scimoz, _outputWindow;
     var getEOLChar = (scimoz) => ["\r\n", "\r", "\n"][scimoz.eOLMode];
     var _init;
     const promptStr = { normal: ":>", continued: ":+", browse: "~>", busy: "..." };
+    /// XXX remove 'busy'
 
 	Object.defineProperties(this, {
           STYLE_STDIN: { value: 22, enumerable: true }, 
@@ -100,12 +103,6 @@
         this.append(str, true, false);
     };
     
-    this.printStyled = function (str, newline = true, replace = false, lineNum = -1) {
-        if (newline) str += this.eOLChar;
-        svc.SmX.scimoz = this.scimoz;
-        svc.SmX.printWithMarks(str, replace, lineNum); //(s, replace = False, lineNum = None)
-    };
-
     this.ensureShown = function () {
         ko.widgets.getPaneAt('workspace_bottom_area').collapsed = false;
         ko.uilayout.ensureTabShown("runoutput-desc-tabpanel", false);
@@ -203,7 +200,52 @@
         }
     };
 
+    this.printStyled = function (str, newline = true, replace = false, lineNum = -1) {
+        if (newline) str += _this.eOLChar;
+        svc.SmX.printWithMarks(str, replace, lineNum); //(s, replace = False, lineNum = None)
+    };
+     
+    this.printLines = function (text, nl = true) {
+        svc.SmX.scimoz = _this.scimoz;
+        const rx = /(\r\n|\r|\n)/g;
+        var p = 0, pend, line, a;
+        while ((a = rx.exec(text)) !== null) {
+            pend = rx.lastIndex;
+            line = text.substring(p, pend - a[0].length);
+            //print((nl ? "LF" : "CR") + ": " + line);
+            _this.printStyled(line, nl, !nl, nl ? null : -2);
+            p = pend;
+            nl = a[0] !== "\r";
+        }
+        if(p < text.length) {
+            line = text.substring(p, text.length);
+            _this.printStyled(line, false, !nl, nl ? null : -2);
+        }
+        return nl;
+    };
+    
+    var _waitMessageTimeout;
+        
+    svc.Obs.addObserver({
+        observe: (subject, topic, data) => {
+            logger.debug("finished monitoring of " + data);
+            try {
+                var file = require("kor/fileutils").getLocalFile(data);
+                if(file.exists()) file.fileSize = 0; //remove(true);
+            } catch(e) {
+            }
+            _this.printResult2(false, false, true);
+            timers.clearTimeout(_waitMessageTimeout);
+            _this.statusBarMessage(null);
+        }
+    }, "file-reading-finished", false);
 
+    this.monitorFile = function(filename, encoding) {
+        if(svc.SmX.scimoz === null) svc.SmX.scimoz = _this.scimoz;
+        logger.debug("[monitorFile] filename=" + filename + ", encoding=" + encoding);
+        svc.SmX.fileToConsole(filename, encoding, /*notify=*/ true);
+    };
+    
     // Display message on the status bar (default) or command output bar
     this.statusBarMessage = function cmdout_sbmsg(msg, timeout, highlight) {
 		_this.ensureShown();
@@ -230,86 +272,97 @@
         }
     };
     prefs.prefObserverService.addObserver(unicodeUnescapeObserver, uuePrefName, true);
-
-	
-    this.printResult = function(command, finalPrompt, done, commandInfo/*,
-        unnnUnescape = false*/) {
-        
-        logger.debug("cmdout.printResult: unicodeUnescape is " + unicodeUnescape);
-        
-        var scimoz = _this.scimoz;
-        svc.SmX.scimoz = scimoz;
-        var eOLChar = _this.eOLChar;
-        _this.ensureShown();
     
-        finalPrompt = fixEOL(finalPrompt);
+    var currentPrompt = promptStr.normal, _command = [];
+    var browserMode = false, newCommand = true;
+
+    this.onEvalEnvChange = function(event) {
+		if(!event.detail.evalEnvName) return;
+        browserMode = event.detail.evalEnvName !== ".GlobalEnv";
+		currentPrompt = browserMode ? promptStr.normal : promptStr.browse;
+        logger.debug("[onEvalEnvChange]" + "currentPrompt=" + currentPrompt);
+	};
+	
+    // XXX append '+> ' without newline
+    this.printCommand2 = function(text) {
+        if(svc.SmX.scimoz === null) svc.SmX.scimoz = _this.scimoz;
+        var readOnly = _this.scimoz.readOnly;
+        _this.scimoz.readOnly = false;
+        _this.ensureShown();
+        if(newCommand) _this.clear();
+        var prettyText =
+        (newCommand ? (browserMode ? promptStr.browse : promptStr.normal) + " " : "") +
+        text.trim().replace(/(\r?\n|\r)/g, _this.eOLChar + "   ") +
+        _this.eOLChar;
+        var lastLineBefore = _this.scimoz.lineFromPosition(_this.scimoz.length);
+        _this.scimoz.appendText(prettyText);
+        _this.styleLines(lastLineBefore,
+            _this.scimoz.lineFromPosition(_this.scimoz.length),
+            _this.STYLE_STDIN);
+        _this.scimoz.readOnly = readOnly;
+
+    };
+    
+    // text or commandInfo object
+    this.printResult2 = function(info, wantMore, done) {
+        var scimoz = _this.scimoz;
+        if(svc.SmX.scimoz === null) svc.SmX.scimoz = scimoz;
         var readOnly = scimoz.readOnly;
         scimoz.readOnly = false;
-        if (!done) {
-            _this.clear();
-            finalPrompt += eOLChar;
-            svc.SmX.appendText(fixEOL(command));
-            _this.styleLines(0, scimoz.lineCount, _this.STYLE_STDIN);
+        _this.ensureShown();
+
+        var lastLineBefore;
+        if(wantMore) {
+            lastLineBefore = scimoz.lineFromPosition(scimoz.length);
+            scimoz.appendText(promptStr.continued + " ");
+            _this.styleLines(lastLineBefore, lastLineBefore + 1,
+                _this.STYLE_STDIN);
         } else {
-            let lineNum = scimoz.lineCount - 2;
-            if (_this.getLine(lineNum) === promptStr.busy + eOLChar) {
-                scimoz.targetStart = scimoz.positionFromLine(lineNum);
-                scimoz.targetEnd = scimoz.positionAtChar(scimoz.textLength - 1, {});
-                scimoz.replaceTarget(0, "");
-                svc.SmX.printResult(commandInfo, unicodeUnescape);
+            //scimoz.appendText(text);
+            if(info) svc.SmX.printResult(info, unicodeUnescape); // NB only .result is needed
+            if (done) {
+                lastLineBefore = scimoz.lineFromPosition(scimoz.length);
+                let column = scimoz.length - scimoz.positionFromLine(scimoz.lineFromPosition(scimoz.length));
+                let endsWithNL = column === 0;
+                if(!endsWithNL) ++lastLineBefore;
+                scimoz.appendText(
+                    (!endsWithNL ? _this.eOLChar : "") +
+                    (browserMode ? promptStr.browse : promptStr.normal) +
+                    _this.eOLChar);
+                _this.styleLines(lastLineBefore,
+                    scimoz.lineFromPosition(scimoz.length),
+                    _this.STYLE_STDIN);
             }
         }
-        svc.SmX.appendText(finalPrompt);
-        let lineCount = scimoz.lineCount;
-        _this.styleLines(lineCount - 1, lineCount, _this.STYLE_STDIN);
-        let firstVisibleLine = Math.max(scimoz.lineCount - scimoz.linesOnScreen -
-            1, 0);
-        scimoz.firstVisibleLine = firstVisibleLine;
         scimoz.readOnly = readOnly;
     };
-    
-    var _curPrompt = promptStr.normal, _command = [];
-    var _waitMessageTimeout;
-	
-	_W.addEventListener('r-evalenv-change', (event) => {
-		if(!event.detail.evalEnvName) return;
-		_curPrompt = (event.detail.evalEnvName === ".GlobalEnv") ? 
-			promptStr.normal : promptStr.browse;
-	}, false);
-    
-    this.displayResults = function (result, commandInfo, executed, wantMore,
-        unnnUnescape) {
-        timers.clearTimeout(_waitMessageTimeout);
-
-        var msg, print_command, finalPrompt = "";
-        if(!executed)
-            _command.push(commandInfo.command.trim().replace(/(\r?\n|\r)/g, "$1   "));
- 
- // XXX: lastNormalPrompt i.e. not "continue"
-        var prePrompt = _curPrompt === promptStr.continued ? 
-			promptStr.normal : _curPrompt; //commandInfo.browserMode ? promptStr.browse : promptStr.normal;
-        
-        print_command = prePrompt + " " +
-            _command.join(_this.eOLChar + promptStr.continued + " ") +
-            _this.eOLChar;
-
-        if (executed) {
-            let newPrompt = wantMore ? promptStr.continued :
-                commandInfo.browserMode ? promptStr.browse : promptStr.normal;
-            
-            finalPrompt = _this.eOLChar + newPrompt;
-            if(!wantMore) _command.splice(0);
-            _curPrompt = newPrompt;
-            _this.statusBarMessage(null);
-        } else {
-            result = "";
-            finalPrompt = promptStr.busy;
-            msg = "R is working...";
+   
+    this.onRCommandSubmitted = function(event) {
+        logger.debug("[onRCommandSubmitted]");
+        if(!event.detail.hidden) {
+            _this.printCommand2(event.detail.command);
             // display 'wait message' only for longer operations
-            _waitMessageTimeout = timers.setTimeout(_this.statusBarMessage, 750, msg, 0, false);
+            timers.clearTimeout(_waitMessageTimeout);
+            _waitMessageTimeout = timers.setTimeout(_this.statusBarMessage, 750,
+                "R is working...", 0, false);   
         }
-        _this.printResult(print_command, finalPrompt, executed, commandInfo/*,
-            unnnUnescape*/);
     };
+    
+    this.onRResultReturned = function(event) {
+        logger.debug("[onRResultReturned]");
+        if(!event.detail.hidden) {
+            newCommand = ! event.detail.wantMore;
+            if(event.detail.isOutputFile) {
+                _this.monitorFile(event.detail.info.result.trim(), event.detail.fileEncoding);
+            } else {
+                //_this.printResult2(event.detail.info.result, event.detail.wantMore, true);
+                _this.printResult2(event.detail.info, event.detail.wantMore, true);
+                _this.statusBarMessage(null);
+            }
+        }
+        //browserMode = event.detail.browserMode;
+    };
+
+    // Note: the listeners are added in init.js    
     
 }).apply(module.exports);

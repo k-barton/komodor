@@ -45,9 +45,13 @@ pkgManDetachPackage(pkgName)
 
 \item{print}{logical, if \code{TRUE} the result is printed in DCF format.}
 
+\item{omitFields}{optionally, a character vector giving the tags of fields to be omitted.}
+
 \item{revDep}{logical, should reverse dependencies (only within installed packages) be added to standard fields?}
 
-\item{\dots}{optional, additional arguments passed to \code{pkgReverseDependencies}. Possible arguments are:}
+\item{\dots}{optional, additional arguments passed to \code{pkgReverseDependencies}. Possible arguments are:
+\code{revFields} (a character vector of fields to examine for reverse dependencies, must be one/some of
+\code{"Depends"}, \code{"Imports"}, \code{"Suggests"} and \code{"Enhances"}.}
 
 \item{page}{character string. Either "prev", "next" (default), "first", "last" or "current".}
 
@@ -68,8 +72,6 @@ pkgManDetachPackage(pkgName)
 \item{ask}{if \code{TRUE}, asks for confirmation first.}
 
 \item{json}{logical. Should the result be stringized in JSON format?}
-
-\item{fields}{a character vector giving the tags of fields to be omitted.}
 }
 \description{
 These functions are used by the R package manager.

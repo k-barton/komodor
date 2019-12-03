@@ -33,6 +33,10 @@
 import os, re, sys
 import socket
 
+import logging
+log = logging.getLogger('RConn')
+
+
 #log.debug("defaultencoding=%s" % sys.getdefaultencoding()) == "ascii" !
 
 class RConn(object):
@@ -52,7 +56,7 @@ class RConn(object):
         if os.path.exists(filename):
             try:
                 fi = open(filename, 'r')
-                portno = fi.read().strip().split(' ', 1)[0]
+                portno = re.split(r'\s+', fi.read().strip(), 1)[0]
                 fi.close()
                 return int(portno)
             except:
@@ -60,6 +64,7 @@ class RConn(object):
         return self.default_port
     
     def eval_in_r(self, command, timeout=0.5):
+        log.debug("command=%s, port=%d", command, self.port)
         rval = self.connect(command, self.port, timeout)
         if len(rval) == 0 or rval[0] == u'\x15':
             return u''
@@ -79,7 +84,7 @@ class RConn(object):
         # command must end with newline
         try:
             s.send(''.join(('\x01', 'hax', encoded_command.encode('utf-8'))))
-			# XXX: NO encode("cp1250", 'backslashreplace')
+            # XXX: NO encode("cp1250", 'backslashreplace')
         
         # except UnicodeEncodeError, e:
         except Exception, e:
@@ -102,11 +107,12 @@ class RConn(object):
         result = all_data.split("\x1f")
         
         if(len(result) >= 3):
-            result = re.sub("\x1a\{(\x1a|<[0-9a-f]{2}>)\}", "\\1",
-                            re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result[2]) \
-                            .decode('string_escape')) \
-                .decode("utf-8") \
-                .replace('\x02\x03', '')
+            result = re.sub('\x1b[\x02\x03];', '',
+                     re.sub('\x1a\{(\x1a|<[0-9a-f]{2}>)\}', '\\1',
+                     re.sub('(?<!\x1a\{)<([0-9a-f]{2})>', '\\x\\1', result[2]) \
+                        .decode('string_escape')) \
+                        .decode("utf-8"))
+                # .replace('\x02\x03', '')
         else:
             result = u'';
         

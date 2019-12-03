@@ -173,31 +173,6 @@ the terms of any one of the MPL, the GPL or the LGPL.
 		</groupbox>
 		
 		<separator class="thin" />
-		<groupbox orient="vertical" hidden="true" id="console-output-groupbox">
-			<caption label="Console output" />
-			<vbox>
-				<description>
-					In single-byte character locales ("LC_CTYPE"), Unicode
-					characters not belonging to the current locale are
-					either become transliterated or are represented
-					as &lt;U+NNNN&gt;.
-
-					As a crude workaround, Komodo can replace the codes
-					with their respective characters. However, <span style="font-weight:
-					bold;">this will also replace literal
-					&quot;&lt;U+NNNN&gt;&quot; sequences</span>. Check this
-					option only if you use characters from outside of your
-					locale and you do not expect to have such literal sequences
-					in your R output.
-				</description>
-			</vbox>
-			<hbox align="center">
-				<checkbox id="RInterface.unicodeUnescape"
-					label="Replace &lt;U+NNNN&gt; in R output"
-					accesskey="U" pref="true"
-					prefattribute="checked" />
-			</hbox>
-		</groupbox>
 		<groupbox orient="vertical">
 			<caption label="Data input and output" />
 
@@ -307,7 +282,7 @@ the terms of any one of the MPL, the GPL or the LGPL.
 				</rows>
 			</grid>
 		</groupbox>
-		<hbox hiddenPre9="false" hidden="true">
+<!--		<hbox hiddenPre9="false" hidden="true">
 			<button label="Show advanced settings (rarely need to be changed)"
                     accesskey="G"
 					oncommand="document.getElementById('pref-R-advanced').hidden=false; this.hidden=true;"
@@ -338,7 +313,7 @@ the terms of any one of the MPL, the GPL or the LGPL.
 					</row>
 				</rows>
 			</grid>
-		</groupbox>
+		</groupbox>-->
 		<groupbox orient="vertical">
 			<caption label="Code formatting" />
 			<vbox id="no-avail-formatter-message" flex="1" align="center">
@@ -368,5 +343,33 @@ the terms of any one of the MPL, the GPL or the LGPL.
 						  pref="true" prefattribute="checked" />
 			</vbox> -->
 		</groupbox>
+		<groupbox orient="vertical" hidden="true" id="console-output-groupbox">
+			<caption label="Console output" />
+			<vbox>
+				<description>
+					In single-byte character locales ("LC_CTYPE"), Unicode
+					characters not belonging to the current locale 
+					either become transliterated or are represented
+					as &lt;U+NNNN&gt;.
+
+					As a crude workaround, Komodo can replace the codes
+					with their respective characters. However, <span style="font-weight:
+					bold;">this will also replace literal
+					&quot;&lt;U+NNNN&gt;&quot; sequences</span>. Check this
+					option only if you use characters from outside of your
+					locale and you do not expect to have such literal sequences
+					in your R output.
+				</description>
+			</vbox>
+			<hbox align="center">
+				<checkbox id="RInterface.unicodeUnescape"
+					label="Replace &lt;U+NNNN&gt; in R output"
+					accesskey="U" pref="true"
+					prefattribute="checked" />
+			</hbox>
+		</groupbox>
+
+
+
 	</vbox>
 </window>

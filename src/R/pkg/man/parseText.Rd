@@ -12,7 +12,7 @@ they were lines of a file.}
 
 \item{encoding}{encoding to be assumed for input strings (passed to \code{parse})}
 
-\item{`enc.conn`}{encoding to re-encode the input (used as \code{encoding}
+\item{enc.conn}{encoding to re-encode the input (used as \code{encoding}
 argument for \code{textConnection}).}
 }
 \description{

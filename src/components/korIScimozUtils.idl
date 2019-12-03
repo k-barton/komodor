@@ -5,12 +5,21 @@
 [scriptable, uuid(c0111de2-19d6-44ee-9ce9-a410796f3528)]
 interface korIScimozUtils : nsISupports {
     attribute ISciMoz scimoz;
-	void printResult(in korICommandInfo cmdinfo, in boolean unnnUnescape);
+	void printResult(in korICommandInfo cmdinfo,
+        [optional] in boolean unnnUnescape);
 	long UTF8Length(in AUTF8String s);
     wstring unicodeUnescape(in AUTF8String s);
 	void appendText(in AUTF8String s);
-	void printWithMarks(in AUTF8String s, in boolean replace, in long lineNum);
-    wstring encodeString(in AUTF8String s, in ACString encoding, in ACString errors);
+	long printWithMarks(in AUTF8String s, in boolean replace,
+        [optional] in long lineNum, [optional] in long colNum);
+    wstring encodeString(in AUTF8String s, in ACString encoding,
+        in ACString errors);
+    void fileToConsole(in AUTF8String filename, in ACString encoding,
+        [optional] in boolean notify);
+    long printLine(in AUTF8String text, [optional] in long pos);
+
+    // [array, size_is(count)] out koIFileEx files, out unsigned long count
+            //in unsigned long langCount, [array, size_is(langCount)] in wstring langs,
     //ACString uid();
     //wstring pushLeft(in AUTF8String text, in ACString eol, in long indent, in long tabwidth);
 };

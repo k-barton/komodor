@@ -8,6 +8,7 @@
 \alias{koBrowser}
 \alias{qParse}
 \alias{isInstalledPkg}
+\alias{.instapack}
 \title{Internal package functions}
 \usage{
 getHelpURL(topic, package = NULL)
@@ -19,6 +20,8 @@ koBrowser(url)
 qParse(filename, encoding = "UTF-8")
 
 isInstalledPkg(pkgName, json = TRUE)
+
+.instapack()
 }
 \arguments{
 \item{topic, package}{see \code{help}}
@@ -51,4 +54,6 @@ Various internal function. They are not to be called directly.
 \code{qParse} parses R code in a file and returns error message in case of error or an empty string. Used by Komodo's R-linter.
 
 \code{isInstalledPkg} checks if a package is installed.
+
+\code{.instapack} lists the installed, but not loaded, packages.
 }

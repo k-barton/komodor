@@ -12,7 +12,7 @@ interface korIGenericListener: nsISupports {
 
 [scriptable, uuid(22D0115A-0BC6-609F-194A-6F79EEA56633)]
 interface korICommandInfo: nsISupports {
-    readonly attribute ACString commandId;
+    readonly attribute ACString id;
     readonly attribute AUTF8String command;
     readonly attribute ACString mode;
     readonly attribute boolean browserMode;
@@ -26,7 +26,8 @@ interface korIRConnector : nsISupports {
 	void evalInRNotify(in AUTF8String text, in ACString mode, in ACString uid);
 	long startSocketServer(in korIGenericListener requestHandler);
 	void stopSocketServer();
-	void setSocketInfo(in ACString host, in long port, in boolean outgoing);
+	//void setSocketInfo(in ACString host, in long port, in boolean outgoing);
+	void setSocketInfo(in ACString host, in long port_in, in long port_out);
     void setCharSet(in ACString charcode);
 	readonly attribute AUTF8String lastCommand;
 	readonly attribute AUTF8String lastResult;

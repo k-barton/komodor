@@ -89,7 +89,7 @@
 
 	<commandset id="cmdset_rApp" commandupdater="true"
 		oncommandupdate="ko.commands.updateCommandset(this);"
-		events="r_status_changed">
+		events="r_status_changed,r_is_busy_changed">
 	
 		<commandset id="cmdset_rCommand" commandupdater="true"
 			oncommandupdate="ko.commands.updateCommandset(this);"
@@ -125,7 +125,7 @@
 	</commandset>
 
 <commandset id="cmdset_r_control" commandupdater="true"
-  events="language_changed,current_view_changed,r_status_changed"
+  events="language_changed,current_view_changed,r_status_changed,r_is_busy_changed"
   oncommandupdate="ko.commands.updateCommandset(this);">
 	<command id="cmd_RRunAll" key="key_cmd_RRunAll"
 		oncommand="ko.commands.doCommand('cmd_RRunAll')"

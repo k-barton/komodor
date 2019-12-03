@@ -18,13 +18,16 @@
     var logger = require("ko/logging").getLogger("komodoR");
     
     const { /*arr: ArrayUtils,*/ str: su } = require("kor/utils");
-    const fu = require("kor/fileutils"), UI = require("kor/ui"), Prefs = require("kor/prefs"),
-          RConn = require("kor/connector");
+    const fu = require("kor/fileutils"), 
+        UI = require("kor/ui"), 
+        Prefs = require("kor/prefs"),
+        RConn = require("kor/connector");
     
-    var _W = require("kor/main").mainWin;
+    const _W = require("kor/main").mainWin;
     var ko = _W.ko;
     var rHelpWin = null, // A reference to the R Help Window
-        _this = this, RProcess = null, _RIsRunning;
+        _this = this, RProcess = null, 
+        _RIsRunning, _RIsIdle = true;
     // read only command.isRRunning
     // set via command.setRStatus - TODO merge?
     Object.defineProperties(this, {
@@ -104,22 +107,24 @@
 
     this.openRPreferences = function () {
 		logger.debug("openRPreferences: start");
-        let item = "svPrefRItem";
+        let item = "PrefRItem";
         require("sdk/timers").setImmediate(() => _W.prefs_doGlobalPrefs(item, true /*=modal*/));
-         // // workaround the bug with switching to the right panel:
-         // var prefFrameLoadEvent = function _prefFrameLoadEvent(event) {
-         	// try {
-         		// let prefWin = event.detail.parent;
-         		// //prefWin.hPrefWindow.contentFrame.contentDocument.location !== "chrome://komodor/content/pref-R/pref-R.xul";
-         		// if (prefWin.hPrefWindow.filteredTreeView.getCurrentSelectedId() !== item)
-         			// prefWin.switchToPanel(item);
-         	// } catch (e) {
-         		// logger.exception(e, "while switching to 'svPrefRItem' in openRPreferences->on interval");
-         	// } finally {
-         		// _W.removeEventListener("pref-frame-load", _prefFrameLoadEvent, true);
-         	// }
-         // };
-         // _W.addEventListener("pref-frame-load", prefFrameLoadEvent, true);
+/*
+         // workaround the bug with switching to the right panel:
+         var prefFrameLoadEvent = function _prefFrameLoadEvent(event) {
+         	try {
+         		let prefWin = event.detail.parent;
+         		//prefWin.hPrefWindow.contentFrame.contentDocument.location !== "chrome://komodor/content/pref-R/pref-R.xul";
+         		if (prefWin.hPrefWindow.filteredTreeView.getCurrentSelectedId() !== item)
+         			prefWin.switchToPanel(item);
+         	} catch (e) {
+         		logger.exception(e, "while switching to 'PrefRItem' in openRPreferences->on interval");
+         	} finally {
+         		_W.removeEventListener("pref-frame-load", _prefFrameLoadEvent, true);
+         	}
+         };
+         _W.addEventListener("pref-frame-load", prefFrameLoadEvent, true);
+*/
     };
 
     var _RTerminationCallback = (exitCode) => {
@@ -176,11 +181,9 @@
         fu.write(fu.path(rDir, "_init.R"),
             "base::setwd('" + su.addslashes(cwd) +
             "')\n" + "options(" +
-            "ko.port=" + Prefs.getPref("RInterface.koPort", Prefs.defaults[
-                "RInterface.koPort"]) +
+            "ko.port=" + RConn.getProp("koPort") +
             ", " +
-            "ko.R.port=" + Prefs.getPref("RInterface.RPort", Prefs.defaults[
-                "RInterface.RPort"]) +
+            "ko.R.port=" + RConn.getProp("rPort") +
             ", " +
             "ko.host=\"localhost\")\n" +
             "..ko.repos.. <- base::getOption(\"repos\"); ..ko.repos..[[\"CRAN\"]] <- \"" +
@@ -238,18 +241,28 @@
     };
 
     this.setRStatus = function (running, quiet) {
-        // Toggle status if no argument
         if (arguments.length === 0)
             throw("Error in setRStatus: argument 'running' is required");
         running = Boolean(running);
 
         if (running != _RIsRunning) {
             _RIsRunning = running;
-            _this.fireEvent(_W, 'r-status-change', { running: running, 
+            _this.fireEvent(_W, 'r-status-change', { running: running,
                                                      quiet: Boolean(quiet) });
 			logger.debug("R status changed to " + running);
             // buttons/menu items (except toolbar R button) respond to:
             _W.updateCommands('r_status_changed');
+        }
+    };
+    
+    this.setRBusy = function(busy) {
+        var idle = !Boolean(busy);
+        if (idle != _RIsIdle) {
+            _RIsIdle = idle;
+            _this.fireEvent(_W, 'r-busy-change', { idle: idle });
+			logger.debug("R status changed to " + (idle ? "idle" : "busy"));
+            // buttons/menu items (except toolbar R button) respond to:
+            _W.updateCommands('r_is_busy_changed');
         }
     };
 
@@ -313,7 +326,6 @@
         return rHelpWin;
     };
 
-    //var  _isRRunning = () => _RIsRunning;
     var koViews = require("ko/views");
     
     var _isRCurLanguage = () => true;
@@ -345,38 +357,38 @@
         var xtk = _W.xtk;
         xtk.include("controller");
 
-        const ifRRunning = 1, ifRStopped = 2, ifIsRDoc = 4, ifHasSelection = 8,
+        const ifRRunning = 1, ifRIdle = 2, ifIsRDoc = 4, ifHasSelection = 8,
             ifIsRmdDoc = 16;
         const R = require("kor/r");
         var handlers = {
-            'cmd_RPkgManagerOpen': [_this.openPkgManager, ifRRunning],
-            'cmd_RHelpOpen': [_this.openHelp, ifRRunning],
+            'cmd_RPkgManagerOpen': [_this.openPkgManager, ifRIdle],
+            'cmd_RHelpOpen': [_this.openHelp, ifRIdle],
             'cmd_RPreferencesOpen': [_this.openRPreferences, -1],
-            'cmd_RRmdPreview': [_this.rmdPreview, ifIsRmdDoc | ifRRunning],
+            'cmd_RRmdPreview': [_this.rmdPreview, ifIsRmdDoc | ifRIdle],
             
-            'cmd_RFormatCodeInView': [R.formatRCodeInView, ifIsRDoc | ifRRunning],
+            'cmd_RFormatCodeInView': [R.formatRCodeInView, ifIsRDoc | ifRIdle],
 
-            'cmd_RStart': [_this.startR, ifRStopped],
+            'cmd_RStart': [_this.startR, () => !_RIsRunning],
             'cmd_RQuit': [R.quit, ifRRunning],
 
             'cmd_REscape': [R.escape, () => _RIsRunning && rWantsMore],
             'cmd_RBrowseFrame': [R.endBrowse, () => _RIsRunning && rBrowsingFrame],
-            'cmd_RRunAll': [() => R.send("all"), ifIsRDoc | ifRRunning],
-            'cmd_RSourceAll': [() => R.source("all"), ifIsRDoc | ifRRunning],
-            'cmd_RRunBlock': [() => R.send("block"), ifIsRDoc | ifRRunning],
-            'cmd_RRunFunction': [() => R.send("function"), ifIsRDoc | ifRRunning],
-            'cmd_RRunLine': [() => R.send("line"), ifIsRDoc | ifRRunning],
-            'cmd_RRunPara': [() => R.send("para"), ifIsRDoc | ifRRunning],
-            'cmd_RSourceBlock': [() => R.source("block"), ifIsRDoc | ifRRunning],
-            'cmd_RSourceFunction': [() => R.source("function"), ifIsRDoc | ifRRunning],
-            'cmd_RSourcePara': [() => R.source("para"), ifIsRDoc | ifRRunning],
-            'cmd_RRunLineOrSelection': [R.run, ifIsRDoc | ifRRunning],
+            'cmd_RRunAll': [() => R.send("all"), ifIsRDoc | ifRIdle],
+            'cmd_RSourceAll': [() => R.source("all"), ifIsRDoc | ifRIdle],
+            'cmd_RRunBlock': [() => R.send("block"), ifIsRDoc | ifRIdle],
+            'cmd_RRunFunction': [() => R.send("function"), ifIsRDoc | ifRIdle],
+            'cmd_RRunLine': [() => R.send("line"), ifIsRDoc | ifRIdle],
+            'cmd_RRunPara': [() => R.send("para"), ifIsRDoc | ifRIdle],
+            'cmd_RSourceBlock': [() => R.source("block"), ifIsRDoc | ifRIdle],
+            'cmd_RSourceFunction': [() => R.source("function"), ifIsRDoc | ifRIdle],
+            'cmd_RSourcePara': [() => R.source("para"), ifIsRDoc | ifRIdle],
+            'cmd_RRunLineOrSelection': [R.run, ifIsRDoc | ifRIdle],
             'cmd_RSourceLineOrSelection': [() => R.source("lineorsel"),
-                ifIsRDoc | ifRRunning ],
+                ifIsRDoc | ifRIdle ],
             'cmd_RRunSelection': [() => R.send("sel"),
-                ifIsRDoc | ifRRunning | ifHasSelection ],
+                ifIsRDoc | ifRIdle | ifHasSelection ],
             'cmd_RSourceSelection': [() => R.source("sel"),
-                ifIsRDoc | ifRRunning | ifHasSelection ],
+                ifIsRDoc | ifRIdle | ifHasSelection ],
             'cmd_viewrtoolbar': [() => ko.uilayout.toggleToolbarVisibility("RToolbar"), -1]
         };
 
@@ -392,7 +404,7 @@
             if (typeof test === "function") return test();
             return (
                 (((test & ifRRunning) !== ifRRunning) || _RIsRunning) &&
-                (((test & ifRStopped) !== ifRStopped) || !_RIsRunning) &&
+                (((test & ifRIdle) !== ifRIdle) || (_RIsRunning && _RIsIdle)) &&
                 (((test & ifIsRDoc) !== ifIsRDoc) || _isRCurLanguage()) &&
                 (((test & ifIsRmdDoc) !== ifIsRmdDoc) || _isRmdCurLanguage()) &&
                 (((test & ifHasSelection) !== ifHasSelection) || _hasSelection())

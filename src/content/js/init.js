@@ -6,7 +6,7 @@
     //var _this = this;
     var logger = require("ko/logging").getLogger("komodoR");
 
-    logger.debug("initialization started");
+    logger.debug("initialization: started");
 
     const { classes: Cc, interfaces: Ci, utils: Cu } = Components;
     
@@ -154,7 +154,7 @@
     } // _setKeybindings
 
     var onLoad = function korOnLoadObserver( /*win, topic, ...data */ ) {
-        logger.debug("initialization - onLoad started (on komodo-ui-started event)");
+        logger.debug("initialization: onLoad started (on komodo-ui-started event)");
         Services.obs.removeObserver(korOnLoadObserver, "komodo-ui-started");
         
         //topic="komodo-ui-started"
@@ -205,7 +205,7 @@
                     if ((found = node.id === id)) break;
                 if (!found) tbrow.appendChild(toolbar);
             } catch (e) {
-                logger.warning("while restoring " + id + ": " + e);
+                logger.warn("while restoring " + id + ": " + e);
             }         
             
             
@@ -247,8 +247,8 @@
                 buttonSetImageAttribute(button);
         }
         
-// TODO: update ~ports file upon change of port in R (on `startServer`)
-// store path to "~ports" in tempEnv
+// TODO: update ~session file upon change of port in R (on `startServer`)
+// ??? store path to "~session" in tempEnv
         var setUpPorts = () => {
         	var filename = fileUtils.path("PrefD", "extensions",
         		kor.extensionId, "R", "~session");
@@ -258,37 +258,23 @@
         	}
         	var s = fileUtils.read(filename).trim();
         	if (!s) {
-        		logger.warning("~session file is empty");
+        		logger.warn("~session file is empty");
         		return;
         	}
         	var a = s.split(/\s+/);
             if (a.length < 3) {
-        		logger.warning("~session content is not valid");
+        		logger.warn("~session content is not valid");
         		return;
         	}
-        	var prefs = require("ko/prefs");
-        	var prefType = {
-                'RInterface.RPort': "Long", 
-                'RInterface.koPort': "Long",
-                'RInterface.charSet': "String" 
-                };
-            // Note: ~session will have a fallback charset on Linux
             
-            let i = 0, info = [];
-            for(let prefName in prefType) if(prefType.hasOwnProperty(prefName)) {
-        		prefs.deletePref(prefName);
-        		prefs['set' + prefType[prefName] + 'Pref'](prefName, 
-                    (prefType[prefName] === "Long") ? parseInt(a[i]) : a[i]
-                );
-                info.push(prefName + ": " + a[i]);
-                ++i;
-        	}
+            //koPort, rHost, rPort, charSet
+            kor.rconn.updateProps(parseInt(a[1]), null, parseInt(a[0]), a[2]);
             
-            logger.debug("initialization - connection ports updated: " + 
-                info.join(", "));
+            logger.debug("initialization: setUpPorts() done");
         };
  	
         setTimeout(() => {
+            logger.debug("initialization: delayed tasks started");
             kor.command.setControllers();
             setUpPorts();
             kor.command.setRStatus(false, /*quiet=*/ true);
@@ -299,16 +285,16 @@
                     kor.rconn.evalAsync(cmd, (x) => {
                         if(x === "TRUE") return;
                         kor.fireEvent("r-evalenv-change", {evalEnvName: "<environment>"});
-                        }, true, true);
+                        }, kor.rconn.HIDDEN | kor.rconn.STDOUT);
                 }
         	});
             ko.commands.updateCommand("cmd_REscape"); // ?
-            logger.debug("initialization - delayed tasks end");
+            logger.debug("initialization: delayed tasks completed");
 
         }, 1000);
 
         
-        logger.debug("initialization - onLoad done");
+        logger.debug("initialization: onLoad done");
     }; // onLoad
 
     // "komodo-post-startup" event in Komodo 9 only.
@@ -362,22 +348,38 @@
     ko.main.addWillCloseHandler(onKomodoRUpdateRestart, null);
 
     //var rStatusChangeObserver = function (event) {
+    var rToolbarButton;
     window.addEventListener("r-status-change", function (event) {
         let running = event.detail.running;
         if (typeof event.detail.running === "undefined")
-            logger.warning("'r-status-change' event did not provide the expected data");
-        let el = document.getElementById('cmd_RStarted');
-        if (running) el.setAttribute("checked", "true");
-            else el.removeAttribute("checked");
+            logger.warn("'r-status-change' event did not provide the expected data");
+        if(!rToolbarButton) rToolbarButton = document.getElementById('cmd_RStarted');
+        if (running) rToolbarButton.setAttribute("checked", "true");
+            else rToolbarButton.removeAttribute("checked");
         if(event.detail.quiet) return;
         require("kor/ui").addNotification(running ? "R session is connected" : "R is not running");
     }, false);
+
+    window.addEventListener('r-command-executed', require("kor/cmdout").onRResultReturned, false);
+    window.addEventListener('r-command-sent', require("kor/cmdout").onRCommandSubmitted, false);
+    
+    window.addEventListener('r-command-sent', (event) => {
+        require("kor/command").setRBusy(!event.detail.hidden);
+    }, false);
+    window.addEventListener('r-command-executed', (event) => {
+        require("kor/command").setRBusy(event.detail.isOutputFile);
+    }, false);
+    window.addEventListener('r-command-executed2', (event) => {
+        require("kor/command").setRBusy(false);
+    }, false);
+    
+    
     
     // TODO: use commandupdater?
     window.addEventListener("r-evalenv-change", function (event) {
         let evalEnvName = event.detail.evalEnvName;
         if (typeof evalEnvName === "undefined")
-            logger.warning("'r-evalenv-change' event did not provide the expected data");
+            logger.warn("'r-evalenv-change' event did not provide the expected data");
         let el = document.getElementById('cmd_RBrowseFrame');
         if (evalEnvName === ".GlobalEnv") {
             el.setAttribute("disabled", "true");
@@ -386,9 +388,12 @@
             el.removeAttribute("disabled");
             el.setAttribute("checked", "true")
         }
+        
+        require("kor/cmdout").onEvalEnvChange(event);
+        
     }, false);
    
     
-    logger.debug("initialization (main thread) completed");
+    logger.debug("initialization: main thread completed");
 
 }).apply(null);

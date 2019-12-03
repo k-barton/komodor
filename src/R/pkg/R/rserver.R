@@ -2,7 +2,7 @@
 #' @rdname rserver
 #' @name rserver
 #' @aliases startServer enumServers stopAllServers enumConnections stopAllConnections
-# @keywords internal
+## @keywords internal
 #' @encoding utf-8
 #' @md
 #' @description
@@ -65,21 +65,12 @@ function() as.character(.Tcl("array names Rserver::Connection"))
 	return(num)
 }
 
-## tcl-based JSON - not working properly so far.
-#tclJSON <- function(x, msg = "Done") {
-#	.Tcl("set result {}")
-#	tcl(if(length(x) == 1) "lappend" else "set", "result", x)
-#	.Tcl("set retval [dict create]")
-#	.Tcl("dict set retval result $result")
-#	tcl("dict", "set", "retval", "message", msg)
-#	.Tcl("set retval [compile_json {dict result list message string} $retval]")
-#}
-
 init.Rserver <- function() {
 	tclscripts <- dir(path <- system.file(package = .packageName, "exec"), 
 		full.names = TRUE)
 	for(script in tclscripts) tcl('source', script)
 	tclfun(TclReval, "Rserver::Reval", retval = "retval")
+	tclfun(TclReval2, "Rserver::Reval2", retval = "retval")
 	tclfun(TclRprint, 'Rserver::Rprint')
 	# tclfun(tcJSON, "TestJSON", retval = "retval")
 	# message("R server tcl functions defined.")

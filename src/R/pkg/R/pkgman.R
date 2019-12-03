@@ -6,11 +6,11 @@
 #' @rdname pkgMan
 #' @md
 #' @param print logical, if `TRUE` the result is printed in DCF format.
-#' @param fields a character vector giving the tags of fields to be omitted.
+#' @param omitFields optionally, a character vector giving the tags of fields to be omitted.
 #' @param revDep logical, should reverse dependencies (only within installed packages) be added to standard fields?
 #' @param \dots optional, additional arguments passed to `pkgReverseDependencies`. Possible arguments are:
-#      `revFields` (a character vector of fields to examine for reverse dependencies, must be one/some of
-#      `"Depends"`, `"Imports"`, `"Suggests"` and `"Enhances"`.
+#'      `revFields` (a character vector of fields to examine for reverse dependencies, must be one/some of
+#'      `"Depends"`, `"Imports"`, `"Suggests"` and `"Enhances"`.
 #' @export
 
 pkgManGetDescription <-

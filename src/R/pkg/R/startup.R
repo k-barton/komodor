@@ -53,8 +53,11 @@ function (verbose = FALSE) {
     } else portstr <- NULL
 	
 	if(is.numeric(getOption("ko.port")) && !is.null(portstr)) {
-	    writeLines(text = paste(c(portstr, getOption("ko.port"), 
-            utils::localeToCharset())), con = file.path(cwd0, "~session"))
+		
+		charSet = utils::localeToCharset()[1L]
+		
+	    writeLines(text = paste(c(portstr, getOption("ko.port"), charSet)),
+			con = file.path(cwd0, "~session"))
 	
 		hello <- tryCatch(koCmd("'hello'"), error = function(e) {
 			stop(simpleError(paste0(strwrap(paste(
@@ -62,9 +65,6 @@ function (verbose = FALSE) {
 				sQuote("Troubleshooting->Fix R connection"),
 				"from the", sQuote("R Tools"), "toolbox, or",
 				"restart Komodo."
-				#"This problem may also be caused by a previous R",
-				#"session that was improperly closed. Quit R, kill any running",
-				#"ghost R processes, then start R again."
 				),
 				prefix = "  ", initial = ""), 
 				collapse = "\n"), title))
@@ -78,8 +78,7 @@ function (verbose = FALSE) {
 			"kor.cmdout.clear()",
 			sprintf("kor.cmdout.append('%s is started')", R.version.string),
 			"kor.command.setRStatus(true)",
-			# "kor.rbrowser.refresh(true)", # not before workspace is loaded
-			sprintf("kor.prefs.setPref('RInterface.RPort', %s)", portstr),
+			sprintf("kor.setRProps(%s, '%s')", portstr, charSet),
 			if(!any(c("--vanilla", "--no-restore", "--no-restore-data") %in% commandArgs())
 				&& file.exists(".RData")) {
 				sprintf("kor.cmdout.append('%s')",
@@ -109,7 +108,52 @@ function (verbose = FALSE) {
 			invisible(koCmd("kor.fireEvent(\"r-environment-change\")"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct
 		}, .GlobalEnv)
-	
+
+    # evil replacements:
+    assignTemp("__base_readline", base::readline)
+    assignLocked("readline", koReadLine, baseenv())
+
+
+    .replaceUtils <- 
+    function(...) {
+        if(exists("winProgressBar", "package:utils")) {
+            assignTemp("__utils_winProgressBar", utils::winProgressBar)
+            assignTemp("__utils_setWinProgressBar", utils::setWinProgressBar)
+            assignTemp("__utils_getWinProgressBar", utils::getWinProgressBar)
+            for(env in list(asNamespace("utils"), as.environment("package:utils"))) {
+                assignLocked("winProgressBar", koProgressBar, envir = env)
+                assignLocked("setWinProgressBar", setKoProgressBar, envir = env)
+                assignLocked("getWinProgressBar", getKoProgressBar, envir = env)
+            }
+        }
+    }
+    
+    if(length(find.package("utils", quiet = TRUE)) == 1L) {
+        if("package:utils" %in% search()) 
+            .replaceUtils() else 
+			setHook(packageEvent("utils", "attach"), .replaceUtils)
+        
+    }
 	vmsg("Done.")
 	invisible()
 }
+
+.onDetach <- function(libpath) {
+    .restore <- function(tempName, name, envir) {
+        x <- getTemp(tempName)
+        if(!is.null(x)) assignLocked(name, x, envir)
+    }
+     
+    .restore("__base_readline", "readline", baseenv())
+    if("package:utils" %in% search()) {
+        if(exists("winProgressBar", "package:utils")) {
+            for(env in list(asNamespace("utils"), as.environment("package:utils"))) {
+                .restore("__utils_winProgressBar", "winProgressBar", env)
+                assignLocked("__utils_setWinProgressBar", "setWinProgressBar", env)
+                assignLocked("__utils_getWinProgressBar","getWinProgressBar", env)
+            }
+        }
+    }
+}
+
+

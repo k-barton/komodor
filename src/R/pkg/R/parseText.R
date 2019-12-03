@@ -6,7 +6,7 @@
 #' @param text character vector. The text to parse. Elements are treated as if
 #'     they were lines of a file.
 #' @param encoding encoding to be assumed for input strings (passed to `parse`)
-#' @param `enc.conn` encoding to re-encode the input (used as `encoding` 
+#' @param enc.conn encoding to re-encode the input (used as `encoding` 
 #'     argument for `textConnection`).
 #' @export
 `parseText` <-
@@ -22,7 +22,7 @@ function (text, encoding = getOption("encoding"), enc.conn = NULL) {
 		
 		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)",  msg, perl = TRUE)
 		#m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: *([^\n]+)\n", msg, perl = TRUE)
-		m <- regexpr("^<text>:\\d+:\\d+: ([^\n]+)\n\\d+: ", msg, perl = TRUE)
+		m <- regexpr("^\\d+:\\d+: ([^\n]+)\n\\d+: ", msg, perl = TRUE)
 		if(m != -1) {
 			err <- .regcaptures(msg, m)[1L]
 			

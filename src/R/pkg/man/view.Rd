@@ -2,11 +2,14 @@
 % Please edit documentation in R/view.R
 \name{view}
 \alias{view}
+\alias{View}
 \title{View data.frame as HTML}
 \usage{
 view(x, max.rows = 512L, filename = file.path(tempdir(),
   "viewTable.html"), cssfile = "resource:kor-doc/viewTable.css",
   copy.css = FALSE)
+
+View(x, title)
 }
 \arguments{
 \item{x}{a \code{data.frame} (or an objects inheriting from it)}
@@ -17,7 +20,7 @@ for no truncation (however, some reasonable limit is recommended).}
 \item{filename}{optionally, the name of the html file (with write access).
 If the file exists, the contents will be overwritten.}
 
-\item{cssfile, }{optional URI of the CSS file to use. Either an URL or a}
+\item{cssfile}{optional URI of the CSS file to use. Either an URL or a}
 
 \item{copy.css}{If \code{cssfile} is a local file, should it be copied to the
 same directory as \code{filename}?}

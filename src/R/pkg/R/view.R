@@ -1,5 +1,6 @@
 #' @rdname view
 #' @name view
+#' @aliases View
 #' @title View data.frame as HTML 
 #' @md
 #' @export
@@ -10,7 +11,7 @@
 #'    for no truncation (however, some reasonable limit is recommended). 
 #' @param filename optionally, the name of the html file (with write access).
 #'    If the file exists, the contents will be overwritten. 
-#' @param cssfile, optional URI of the CSS file to use. Either an URL or a 
+#' @param cssfile optional URI of the CSS file to use. Either an URL or a 
 #     path to a local file. 
 #' @param copy.css If `cssfile` is a local file, should it be copied to the 
 #'    same directory as `filename`?
@@ -122,7 +123,8 @@ function(x, max.rows = 512L,
     invisible(filename)
 }
 
-
+#' @rdname view
+#' @export
 View <- function (x, title) {
     view(x)
 }

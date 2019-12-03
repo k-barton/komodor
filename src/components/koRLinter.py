@@ -79,8 +79,9 @@ class KoRLinter:
         except Exception, e:
             log.exception(e)
         try:
-            lines = self.rconn.evalInR(command, "json h", 1.5).rstrip() \
-                .replace('\x03', '').replace('\x02', '')
+            lines = re.sub('\x1b[\x02\x03];', '', \
+                self.rconn.evalInR(command, "h", 1.5).rstrip() \
+                )
             if lines.startswith('\x15'): # connection error
                 pass
                 #raise ServerException(nsError.NS_ERROR_NOT_AVAILABLE)

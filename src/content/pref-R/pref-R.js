@@ -80,7 +80,7 @@ function PrefR_OnLoad(/*event*/) {
             let langTreeItemIdx = ftv.getIndexById("languagesItem");
             let n = 1 + ftv.isContainerOpen(langTreeItemIdx);
             for(let i = 0; i < n; ++i) ftv.toggleOpenState(langTreeItemIdx, true);
-            parent.switchToPanel("svPrefRItem");
+            parent.switchToPanel("PrefRItem");
         }
     } catch(e) {
         logger.exception(e, "PrefR_OnLoad");
@@ -284,14 +284,14 @@ var formatter_checkIfAvailable = (pathToR) => {
 	var callback = (ok) => {
 		document.getElementById("no-avail-formatter-message").style.visibility = (ok === true) ? "collapse" : "visible";
 	};
-    require("kor/main").rCliExec(pathToR, "cat(length(find.package('styler',quiet=TRUE)))").then(x => {
+    require("kor/main").rCliExec(pathToR, "base::cat(base::length(base::find.package('styler',quiet=TRUE)))").then(x => {
         if (/^\d+$/.test(x)) callback(parseInt(x) > 0);
         else throw new Error("Response not recognized");
     }).catch(callback);
 };
 
 var formatter_install = () => {
-	let cmd = `install.packages('styler',repos='${getSelectedCranMirror()[3]}');cat(length(find.package('styler',quiet=TRUE)))`;
+	let cmd = `utils::install.packages('styler',repos='${getSelectedCranMirror()[3]}');base::cat(base::length(base::find.package('styler',quiet=TRUE)))`;
 	let pathToR = getSelectedInterpreterPath();
 	require("kor/main").rCliExec(pathToR, cmd).then(str => {
         let success = str.endsWith("1");
@@ -533,7 +533,7 @@ function OnPreferencePageLoading(prefset) {
 
     if(Services.koOs.name === "nt") {  
         document.getElementById("console-output-groupbox")
-            .removeAttribute("hidden");b
+            .removeAttribute("hidden");
     }
 
 //    let boolPrefs = ['CRANMirrorSecure', 'RInterface.format.keepBlankLines',
@@ -603,7 +603,7 @@ function OnPreferencePageOK(prefset) {
         prefset.setStringPref("RInterface.CSVSep", outSep);
     
         if (outDec === outSep) {
-            parent.switchToPanel("svPrefRItem");
+            parent.switchToPanel("PrefRItem");
 			document.getElementById("RInterface.CSVSep").focus();
             getDialogs().alert(
                 "Decimal separator cannot be the same as field separator.", null,
@@ -622,33 +622,6 @@ function OnPreferencePageOK(prefset) {
             'OutSep=' + r.arg(outSep) + ')', null, true);
         }
     
-        var newServerPort = parseInt(document.getElementById('RInterface.RPort').value);
-		var newClientPort = parseInt(document.getElementById('RInterface.koPort').value);
-		
-		if(newClientPort === newServerPort) {
-			parent.switchToPanel("svPrefRItem");
-			document.getElementById("RInterface.RPort").focus();
-            getDialogs().alert(
-                "Server and client port numbers cannot be equal.", null,
-                "R interface preferences");
-            return false;
-		}
-		
-        var currentClientPort = rConn.getSocketPref("RInterface.koPort");
-        
-        if (rConn.serverIsUp &&
-            newClientPort != currentClientPort) {
-            let connected = rConn.isRConnectionUp(true);
-    
-            if(getDialogs().yesNo("Server port changed (from " + currentClientPort +
-                                " to " + newClientPort + "), would you like to " +
-                                "restart it now?" +
-                (connected? "You will lose the current connection to R." : ""),
-                connected? "No" : "Yes",
-                null, "R interface preferences") == "Yes") {
-                    rConn.restartSocketServer();
-            }
-        }
         menuListGetValues();
         
     } catch(ex) {

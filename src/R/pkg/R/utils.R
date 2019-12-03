@@ -12,6 +12,7 @@ function(pkgName, json = TRUE) {
 }
 
 #' @md
+#' @rdname kor-internal
 #' @description `.instapack` lists the installed, but not loaded, packages. 
 #' @export
 .instapack <- function() {

@@ -30,15 +30,15 @@ function (expr, conn = NULL, markStdErr = FALSE,
 	.getWarnLevel <- function () getOption("warn")
 
 	rval <- NULL
-	if(is.null(conn))
+	if(internalConn <- is.null(conn)) {
 		conn <- textConnection("rval", "w", local = TRUE, encoding = encoding)
-		
+	}
 	sink(conn, type = "output"); sink(conn, type = "message")
 	#sink(stdout(), type = "output"); sink(stderr(), type = "message")
 	on.exit({
 		sink(type = "message")
 		sink(type = "output")
-		close(conn)
+		if(internalConn) close(conn)
 	})
 	
 	inStdOut <- TRUE
@@ -47,16 +47,15 @@ function (expr, conn = NULL, markStdErr = FALSE,
 			#cat("<", if(to.stdout) "OUT" else "ERR", ">", sep = "")
 			if (inStdOut) {
 				if (!to.stdout) {
-					cat("\x03")
+					cat("\033\003;")
 					inStdOut <<- FALSE
 			}} else { # in StdErr stream
 				if (to.stdout) {
-					cat("\x02")
+					cat("\033\002;")
 					inStdOut <<- TRUE
 			}}
 		}
 	} else mark <- function (to.stdout, id) {}
-	
 	
 	printWarnings <-
 		function() {
@@ -257,7 +256,7 @@ function (expr, conn = NULL, markStdErr = FALSE,
 
 	sink(type = "message")
 	sink(type = "output")
-	close(conn)
+	if(internalConn) close(conn)
 	on.exit()
 
 	# allow for tracebacks of this call stack:
@@ -331,6 +330,13 @@ function (x, ...) {
 ..korInternal <- .Internal
 
 
+.RInternal <- function (name, ...) {
+    cl <- sys.call()[-1L]
+    cl[[1L]] <- as.name(cl[[1L]])
+    eval.parent(as.call(c(as.name(".Internal"), cl)))
+}
+
+
 # use ngettext instead of gettext, which fails to translate many strings in "R" domain
 # bug in R or a weird feature?
 `.gettextfx` <- function (fmt, ..., domain = "R")
@@ -341,15 +347,6 @@ function (..., domain = "R") {
     args <- lapply(list(...), as.character)
 	unlist(lapply(unlist(args), function (x) .RInternal("ngettext", 1, x, "", domain)))
 }
-
-assignLocked <- function(x, value, envir) {
-	if(bindingIsLocked(x, envir)) { 
-		unlockBinding(x, envir)
-		on.exit(lockBinding(x, envir))
-	}
-	assign(x, value, envir = envir)
-}
-
 
 unsink <- function () {
     sink(type = "message")

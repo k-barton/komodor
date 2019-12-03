@@ -31,7 +31,7 @@
 		    port, sep = ""))))
 
 	# kor/connector defaultRequestHandler uses decodeURI 
-    writeLines(paste0("{js}", utils::URLencode(cmd)), con)
+    writeLines(paste0("{js}", .encodeResult(cmd)), con)
     res <- readLines(con)
     return(res)
 }

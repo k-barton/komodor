@@ -68,16 +68,52 @@ function (code, field.sep = "\x1e", sep = "\n",
 		dblBrackets <- TRUE
 	} else dblBrackets <- FALSE
 	
-	
 	## Save funarg.suffix and use " = " locally
 	ComplEnv <- getFrom("utils", ".CompletionEnv")
 	## Calculate completion with standard R completion tools
+	
 	cplutils$.assignLinebuffer(code)
 	cplutils$.assignEnd(pos)
 	cplutils$.guessTokenFromLine()
 	cplutils$.completeToken()
 	completions <- cplutils$.retrieveCompletions()
 	#triggerPos <- pos - ComplEnv[["start"]]
+	
+#	linebuffer <- substr(linebuffer, 1L, end)
+#    
+#	insideQuotes <- {
+#        lbss <- utils:::head.default(unlist(strsplit(linebuffer, "")), end)
+#        ((sum(lbss == "'")%%2 == 1) || (sum(lbss == "\"")%%2 == 
+#            1))
+#    }
+#	#insideQuotes
+#	
+#    start <- if (insideQuotes) 
+#        suppressWarnings(gregexpr("['\"]", linebuffer, perl = TRUE))[[1L]] else
+#		suppressWarnings(gregexpr("[^\\.\\w:?$@[\\]]+", linebuffer, 
+#        perl = TRUE))[[1L]]
+#    
+#	
+#	start
+#	
+#    gsub("[^\\.\\w:?$@[\\]]+", "*", linebuffer, perl = TRUE)
+#    gsub("[^\\w]", "*", linebuffer, perl = TRUE)
+#    gsub("\\w", "*", linebuffer)
+#	
+#	start <- if (all(start < 0L)) 
+#        0L else tail.default(start + attr(start, "match.length"), 1L) - 
+#        1L
+#	
+#	start	
+#	
+#    token <- substr(linebuffer, start + 1L, end)
+#    if (update) {
+#        .CompletionEnv[["start"]] <- start
+#        .CompletionEnv[["token"]] <- token
+#        .CompletionEnv[["token"]]
+#    }
+#    else list(start = start, token = token)
+
 	
 	## For tokens like "a[m", the actual token should be "m"
     ## completions are modified accordingly
@@ -257,7 +293,7 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 			type <- "namespace"
 			res <- search()
 			res[!(res %in% c(".GlobalEnv", "package:tcltk", "package:utils",
-				"komodoConnection", "package:methods", "tempEnv", "Autoloads",
+				"komodoConnection", "package:methods", "Autoloads",
 				"package:base"))]
 	   }, library = {
 			type <- "module"
@@ -280,15 +316,18 @@ function(FUNC.NAME, ..., field.sep = "\x1e") {
 		    type <- "$variable"
 			tryCatch(paste0("\"", names(attributes(x)), "\""),
 				error = function(e) "")
-	   },
-		return(invisible())
+	   }, demo = {
+    	    type <- "demo"
+	        demo()$results[, "Item"]
+       }, # default:
+            return(invisible())
 	   )
 	cat(paste(type, res, sep = field.sep), sep = "\n")
 	invisible()
 }
 
-
-getFrom <- function (pkg, name) {
+getFrom <- 
+function (pkg, name) {
     get(name, envir = asNamespace(pkg), inherits = FALSE)
 }
 
@@ -312,7 +351,8 @@ for(i in c(".assignLinebuffer", ".assignEnd", ".guessTokenFromLine",
 rm(i)
 
 
-.reserved.words <- c("if", "else", "repeat", "while", "function", "for", "in",
+.reserved.words <- 
+    c("if", "else", "repeat", "while", "function", "for", "in",
 	"next", "break", "TRUE", "FALSE", "NULL", "Inf", "NaN", "NA", "NA_integer_",
 	"NA_real_", "NA_complex_", "NA_character_")
 

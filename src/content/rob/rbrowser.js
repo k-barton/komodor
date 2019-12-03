@@ -46,7 +46,7 @@ var rob = {};
     const evalEnvLabel = "<Current evaluation frame>",
           functionBodyLabel = "<function body>";
     var copyToClipboardSep = ", ";
-   
+    
     this.searchPath = {
         _data: [],
         getListBox() document.getElementById("rob_searchpath_listbox"),
@@ -121,6 +121,14 @@ var rob = {};
             this._data.splice(0);
             Array.prototype.push.apply(this._data, result);
         },
+        _refreshCallback(result, resolve){
+            if (!result) this.clear();
+            else {
+                this.parseString(result);
+                this.display();
+            }
+            resolve();
+        },
         refresh(focus = false) { // synchronous. XXX: remove?
             let data;
             try {
@@ -141,14 +149,7 @@ var rob = {};
         refreshAsync() {
              return new Promise((resolve, reject) => {
                 RConn.evalAsync('base::cat(kor::objSearch("' + sep + '", "' + recordSep  + '"))',
-                    (result) => {
-                        if (!result) this.clear();
-                        else {
-                            this.parseString(result);
-                            this.display();
-                        }
-                        resolve();
-                        }, true, false);
+                    'rob.searchPath.refreshAsync', RConn.HIDDEN, resolve);
              });
         },
         clear() {
@@ -158,6 +159,10 @@ var rob = {};
         indexOf(name) this._data.findIndex(x => x.name === name),
         getItemAtIndex(index) this._data[index]
     };
+    
+    RConn.defineResultHandler('rob.searchPath.refreshAsync',
+        this.searchPath._refreshCallback.bind(this.searchPath));
+
     
     var makeObjListCommand = (env, obj) => {
         env = !env ? "\"\"" : (_this.evalEnv.name &&
@@ -240,6 +245,8 @@ var rob = {};
         this.imageName = this.getImage();
     }
     
+    var imageMap = new Map();
+    
     VisibleItem.prototype = {
         isList: false,
         isContainer: false,
@@ -277,7 +284,10 @@ var rob = {};
         },
         
         getImage() {
-            let name = this.origItem.className;
+            let origName = this.origItem.className;
+            if (imageMap.has(origName))
+                return imageMap.get(origName);
+            let name = origName;
             let noicon = !hasIcon(name);
             if (this.origItem.isTopLevelItem)
                 name = this.origItem.isPackage ? "package" :
@@ -301,6 +311,8 @@ var rob = {};
 				name = "SpatialPolygon_";
 			else if (name.startsWith("gg"))
 				name = "gg_";
+			else if (name === "tbl_df")
+				name = "data.frame";
 			//.SpatialPolygons.*
 			//SpatialPoints, SpatialGrid, SpatialPointsDataFrame, SpatialGridDataFrame
 			else if (name.startsWith("Spatial") || name == "sf" || name.startsWith("sfc_"))
@@ -320,6 +332,7 @@ var rob = {};
                     name = this.origItem.group;
             }
             if (!hasIcon(name)) name = "empty";
+            imageMap.set(origName, name);
             return name;
         }
     };
@@ -768,6 +781,8 @@ var rob = {};
 		logger.debug("parseObjListResult: \n" + "treeData = " + _this.treeData.toString());
 		
     };
+    
+    RConn.defineResultHandler('rob.parseObjListResult', parseObjListResult, false, true);
 
     this.getOpenItems = function () {
         let vd = _this.visibleData;
@@ -810,21 +825,22 @@ var rob = {};
     });
     
     // begin instaPack
+    RConn.defineResultHandler("rob.instaPackRefresh", (output) => {
+        var pkgNames = output.split(" ");
+        var list = document.getElementById("robInstalledPackagesList");
+        var selectedName = list.selectedItem ? list.selectedItem.value : null;
+        list.removeAllItems();
+        for (let a of pkgNames) list.appendItem(a, a);
+        if(selectedName) list.selectedIndex = pkgNames.indexOf(selectedName);
+        var box = document.getElementById("robInstalledPackagesBox");
+        for (let el of box.childNodes) el.removeAttribute("disabled");
+    }, false, true);    
+    
     this.instaPackRefresh = function(state) {
-        logger.debug("Rbrowser.instaPackRefresh");
+        logger.debug("[Rbrowser.instaPackRefresh]");
     	if (state) {
             // skip loaded packages, update on searchPath refresh
-    		RConn.evalAsync("kor::.instapack()",
-    			(output) => {
-    				var pkgNames = output.split(" ");
-    				var list = document.getElementById("robInstalledPackagesList");
-    				var selectedName = list.selectedItem ? list.selectedItem.value : null;
-                    list.removeAllItems();
-                    for (let a of pkgNames) list.appendItem(a, a);
-                    if(selectedName) list.selectedIndex = pkgNames.indexOf(selectedName);
-    				var box = document.getElementById("robInstalledPackagesBox");
-    				for (let el of box.childNodes) el.removeAttribute("disabled");
-    			}, true, true);
+            RConn.evalAsync("kor::.instapack()", "rob.instaPackRefresh", true);
     	} else {
     		let box = document.getElementById("robInstalledPackagesBox");
     		for (let el of box.childNodes) el.setAttribute("disabled", "true");
@@ -834,7 +850,7 @@ var rob = {};
     this.instaPackLoadSelected = function() {
         var list = document.getElementById("robInstalledPackagesList");
         RConn.evalAsync("base::library(" + R.arg(list.selectedItem.value) + ")",
-            () => _this.searchPath.refreshAsync(), false);
+            () => _this.searchPath.refreshAsync());
     };
 
     this.instaPackListKeyEvent = function(event) {
@@ -880,7 +896,7 @@ var rob = {};
     // end instaPack
 
     this.refresh = function (force = false) {
-		logger.debug("Rbrowser.refresh");
+		logger.debug("[Rbrowser.refresh]");
     	if(!require("kor/command").isRRunning) return;
 
         _this.searchPath.refreshAsync().then(() => {
@@ -915,7 +931,8 @@ var rob = {};
                 thisWindow.document.getElementById("rob_objects_tree").view = _this;
             }
             
-            RConn.evalAsync(cmd, parseObjListResult, true);
+            //RConn.evalAsync(cmd, parseObjListResult, true);
+            RConn.evalAsync(cmd, 'rob.parseObjListResult', true);
             setTimeout(_this.instaPackRefresh, 2500, true); // XXX: should happen afterwards
             isInitialized = true;
         }).catch((e) => logger.exception(e));
@@ -935,13 +952,16 @@ var rob = {};
 
     var addObjectList = (env, objName = "") => {
         // if no object name - adding a package and scroll to its item
-        logger.debug(`addObjectList: ${env}, ${objName}\n${makeObjListCommand(env, objName)} \n`);
-        
+        logger.debug(`[addObjectList] ${env}, ${objName}\n${makeObjListCommand(env, objName)} \n`);
         cleanupObjectLists();
-        
-        RConn.evalAsync(makeObjListCommand(env, objName), parseObjListResult, true, true,
+        RConn.evalAsync(makeObjListCommand(env, objName), 'rob.parseObjListResult', true,
             /*args for parseObjListResult = */ false, !objName  /* = scrollToRoot*/ );
+        //RConn.evalAsync(makeObjListCommand(env, objName), parseObjListResult,
+            //RConn.HIDDEN | RConn.STDOUT,
+            ///*args for parseObjListResult = */ false, !objName  /* = scrollToRoot*/ );
     };
+    
+    
 
     // filtering by exclusion: prepend with "~"
     var _getFilter = () => {
@@ -1486,7 +1506,7 @@ var rob = {};
             // Remove immediately
             RConn.evalAsync(cmd.join("\n"), (/*res*/) => {
                 if (cmdDetach.length) _this.refresh();
-            }, false, false); // XXX RConn.AUTOUPDATE
+            }); // XXX RConn.AUTOUPDATE
         } else {
             // Insert commands to current document
             let view = require("ko/views").current();
@@ -1729,8 +1749,8 @@ var rob = {};
                           rEnvir(key, ", envir=") +
                           ", file=" + R.arg(fileName) + ")";
                 } 
-                RConn.evalAsync(rCommand, null, false);
-            }, true, true, fileName, robj);
+                RConn.evalAsync(rCommand);
+            }, RConn.HIDDEN | RConn.STDOUT, fileName, robj);
 
             //Services.koOs.path.relpath(path, cwd)
             break;
@@ -1801,7 +1821,7 @@ var rob = {};
             
             
             // enable/disable foldAll buttons can-open, can-close
-            var test = _this.canFoldAll();
+            let test = _this.canFoldAll();
             document.getElementById("rob_foldAll_button").disabled =
                 (test & 2) === 0;
             document.getElementById("rob_ExpandAll_button").disabled =
@@ -2059,7 +2079,7 @@ var rob = {};
     
     var onREnvironmentChange = function(event) {
         logger.debug(
-        `[onREnvironmentChange] Event type: ${event.type}: R command was "${event.detail ? event.detail.command : 'no event detail'}"`
+        `[onREnvironmentChange] Event type: ${event.type}`
         );
         var panel = require("ko/windows").getMain()
             .document.getElementById("robViewbox").parentElement;
@@ -2077,12 +2097,21 @@ var rob = {};
     var onREvalEnvChange = (/*event*/) => {
         needUpdating = true;
     };
+    
     var onAutoUpdate = (event) => {
+        if(!event.detail.autoUpdate) return;
         if(autoUpdate || needUpdating)
             onREnvironmentChange(event);
         needUpdating = false;
     };
-
+    
+    Components.classes["@mozilla.org/observer-service;1"]
+        .getService(Components.interfaces.nsIObserverService)
+        .addObserver({
+            observe: (subject, topic, data) => {
+                onAutoUpdate({detail: {autoUpdate: true}});
+            }}, "file-reading-finished", false);
+        
     this.onLoad = function(/*event*/) {
         logger.debug("Rbrowser.onLoad (R is " + 
 			(require("kor/command").isRRunning ? "on" : "off") + ")");
@@ -2136,7 +2165,8 @@ var rob = {};
         },
         createVisibleData: createVisibleData,
         cleanupObjectLists: cleanupObjectLists,
-        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "robViewbox")
+        getWindow: () => require("ko/windows").getWidgetWindows().find(x => x.name === "robViewbox"),
+        imageMap: () => imageMap
     };
 
 }).apply(rob);

@@ -51,11 +51,16 @@ if (!Object.values)
     var svc = {};
     lazySvcGetter(svc, "OS", "@activestate.com/koOs;1", "koIOs");
     
-    var widthPrefix = () => "\x05" + require("kor/cmdout").width + ";";
+    var widthPrefix = () => "\x05\x12" + require("kor/cmdout").width + ";";
     this.widthPrefix = widthPrefix;
     
+    const userCommandId = "usercommand";
+    
+    rConn.defineResultHandler(userCommandId, null, rConn.AUTOUPDATE);
+    
     this.evalUserCmd = function (cmd) {
-        rConn.evalAsync.call(rConn, widthPrefix() + cmd, null, rConn.AUTOUPDATE);
+        rConn.evalAsync.call(rConn, widthPrefix() + cmd, userCommandId,
+            rConn.AUTOUPDATE | rConn.REALTIME);
     };
     
     this.nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", 
@@ -259,7 +264,7 @@ if (!Object.values)
                     result = result.substr(0, result.indexOf("<[end-of-result]>") - 1);
                     if (!result.startsWith("http")) result = null;
                     resolve(result);
-                }, true, false);
+                }, true);
                 });
     }
 
@@ -306,7 +311,7 @@ if (!Object.values)
     this.endBrowse = function() {
         rConn.evalAsync("kor::koBrowseEnd()", (data) => {
             ui.addNotification("R: " + data.trim());
-            }, 1);
+            }, rConn.AUTOUPDATE);
     };
     
     this.detach = function(names) {
@@ -323,7 +328,7 @@ if (!Object.values)
                     msg += res.success.map(x => '"' + x + '"').join(", ") + " successfully detached.\n";
                     ui.addNotification(msg);
                 }
-            }, 3 /* == AU+H */);
+            }, rConn.HIDDEN | rConn.AUTOUPDATE);
     };
     
     /*
@@ -367,7 +372,7 @@ if (!Object.values)
         topic = String(topic).trim();
         if (topic === "") return;
         rConn.evalAsync('utils::help.search(' + _this.arg(topic) + ')', null,
-            true, false);
+            true);
     };
 
     // Quit R (ask to save if 'save' is not defined)
@@ -399,7 +404,7 @@ if (!Object.values)
         // TODO: add kor::
         var cmd = 'view(' + name + ', cssfile=' + _this.arg(cssURI) +
             ', max.rows=' + _this.arg(maxRows) + ')';
-        rConn.evalAsync(cmd, null, false);
+        rConn.evalAsync(cmd);
         return cmd;
     };
     
@@ -442,7 +447,7 @@ if (!Object.values)
         var cmd = 'utils::write.table(' + name + ', file=' +
             _this.arg(fileName) +
             ', dec=' + _this.arg(dec) + ', sep=' + _this.arg(sep) + ', col.names=NA)';
-        rConn.evalAsync(cmd, null, false);
+        rConn.evalAsync(cmd);
         return cmd;
     };
 
@@ -622,7 +627,7 @@ if (!Object.values)
             }
             ui.addNotification("R code formatted.",
                 "R-formatter");
-        }, true, true);
+        }, rConn.HIDDEN | rConn.STDOUT);
     }; // end doFormatCode
     this.isPackageInstalled = function (pkgName, callback) {
         // TODO use system command R CMD --slave --vanilla -e "find.package(...)"
@@ -632,7 +637,7 @@ if (!Object.values)
         }
         rConn.evalAsync("kor::isInstalledPkg(" + _this.arg(pkgName) + ")", (result) => {
             callback(parseInt(result) > 0);
-        }, true, true);
+        }, rConn.HIDDEN | rConn.STDOUT);
     };
     
     this.installPackage = function (pkgName, callback) {

@@ -33,8 +33,7 @@
 """
 R_extended support for codeintel.
 """
-import os
-import sys
+import os, sys, re
 # import logging
 #import operator
 
@@ -414,8 +413,8 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         if len(res) == 0:
             return ('none found', 'No completions found')
 
-        if res.startswith(u'\x03'):
-            return ('error', res.strip("\x02\x03\r\n"))
+        if res.startswith(u'\x1b\x03;'):
+            return ('error', re.sub('(\x1b[\x02\x03];|[\r\n])', '', res))
         
         try:
             ret = [ tuple(x.split(self.type_sep)) for x in res.split(os.linesep) ]
@@ -452,12 +451,10 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         
         #TODO: on timeout an empty string is returned
         #u'\x03Error: could not find function "completion"\r\n\x02'
-        if res.startswith(u'\x03'):
-            return ('error', res.strip("\x02\x03\r\n"))
-        cplstr = res.replace('\x03', '').replace('\x02', '')
+        if res.startswith(u'\x1b\x03;'):
+            return ('error', re.sub('(\x1b[\x02\x03];|[\r\n])', '', res))
+        cplstr = re.sub('\x1b[\x02\x03];', '', res)
         if not cplstr: return None
-        
-        
         
         try:
             cpl = [ ( x[0], x[1][cutoff:] )
@@ -466,7 +463,7 @@ class RxLangIntel(CitadelLangIntel, ParenStyleCalltipIntelMixin,
         except:
             return ('none found', 'No completions available')
         
-        #log.warning(u"_get_completions_default: %d completion items" % (len(cpl)))
+        #log.warn(u"_get_completions_default: %d completion items" % (len(cpl)))
     
         if len(cpl):
             return ('success', cpl)

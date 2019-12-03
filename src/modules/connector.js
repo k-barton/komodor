@@ -21,7 +21,7 @@
 /* globals require */
 /* jshint evil: true */
 
-// XXX make modes: user, user-progressive (via file) and internal 
+//TODO: !!! disable all eval* commands for the time of evaluation in R
 
 var _W = require("ko/windows").getMain();
 
@@ -34,8 +34,14 @@ var kor = {
     get command() require("kor/main").command,
     get rbrowser() require("kor/main").rbrowser,
     get fireEvent() require("kor/main").fireEvent,
+    get progressBar() require("kor/main").rProgressBar,
+    get setProgressBar() require("kor/main").rSetProgressBar,
+    get closeProgressBar() require("kor/main").rcloseProgressBar,
     envChangeEvent(env) {
         require("kor/main").fireEvent("r-evalenv-change", {evalEnvName: env});
+    },
+    setRProps(port, charSet) {
+        require("kor/connector").updateProps(null, null, port, charSet);
     }
 };
 
@@ -51,11 +57,13 @@ var kor = {
 	lazySvcGetter(svc, "Obs", "@mozilla.org/observer-service;1", "nsIObserverService");
 	lazySvcGetter(svc, "RConnector", "@komodor/korRConnector;1", "korIRConnector");
 	
-    var _this = this;
-    var logger = require("ko/logging").getLogger("komodoR");
+    const fireEvent = require("kor/main").fireEvent;
+
+    const _this = this;
+    var logger = require("ko/logging").getLogger("kor/connector");
 	
 	var addNotification = kor.ui.addNotification, prefs = kor.prefs;
-
+    
     Object.defineProperties(this, {
         command: {
             get() svc.RConnector.lastCommand
@@ -67,21 +75,22 @@ var kor = {
         rConnector: { get() svc.RConnector }
         });
 
-    var rxResultStripCtrlChars = /[\x02\x03\x1b]/g,
-        rxResultStripStdErr = /\x03[^\x02]*\x02/g;
+    var rxResultStripCtrlChars = /(\x1b[\x02\x03];|\x1b)/g,
+        rxResultStripStdErr = /\x1b\x03;[\s\S]*?\x1b\x02;/g;
 
     var getUid = () => Date.now().toString(36) + Math.floor(Math.random() * 10e5).toString(36);
 
     // this ID is used to identify commands from the user
-    this.userCommandId = "usr_cmd";
+    this.userCommandId = "usercommand1";
 
-    // if stdOut, stderr is removed, else stream delimiters #002/#003 are removed   
+    // if 'stdOut', stderr is removed, else stream delimiters #002/#003 are removed   
     var REvalListener = function (callback, keep, autoUpdate, stdOut, args) {
         if (typeof callback === "function") this.callback = callback;
         this.keep = keep;
-        this.autoUpdate = autoUpdate;
-        this.stdOut = stdOut;
-        if (!Array.isArray(args)) throw new TypeError("in 'REvalListener': 'args' must be an Array");
+        this.autoUpdate = Boolean(autoUpdate);
+        this.stdOut = Boolean(stdOut);
+        if (!Array.isArray(args))
+            throw new TypeError("in 'REvalListener': 'args' must be an Array");
         this.args = args;
     };
     
@@ -99,7 +108,7 @@ var kor = {
                 // XXX: this is silent about connection errors
                 result = result.replace(this.stdOut ? rxResultStripStdErr :
                     rxResultStripCtrlChars, '');
-
+ 
                 args.unshift(result);
                 try {
                     this.callback.apply(this.thisArg, args); // XXX pass thisArg from eval*
@@ -108,7 +117,8 @@ var kor = {
                 }
             }
             logger.debug("onDone: autoUpdate=" + this.autoUpdate);
-            if(this.autoUpdate) require("kor/main").fireEvent('r-command-executed');
+            // XXX: this should fire 'r-autoupdate-needed'
+            //if(this.autoUpdate) fireEvent('r-command-executed');
             return this.keep;
         }
     };
@@ -117,29 +127,61 @@ var kor = {
     
     this.AUTOUPDATE = 1;
     this.HIDDEN = 2;
+    this.REALTIME = 4;
+    this.STDOUT = 8;
+
+    this.defineResultHandler = function (id, callback, autoUpdate, stdOut, ...args) {
+        _this.handlers.set(id, new REvalListener(callback, true /*keep*/,
+            autoUpdate, stdOut, args));
+        return id;
+    };
     
     // Evaluate in R
-    // hidden passed as a number controls both visibility and autoupdate
+    // 'hidden' passed as a number controls both visibility and autoupdate
     // 1: autoupdated, 2: hidden, 3: both, 0: none
-    this.evalAsync = function (command, callback, hidden, stdOut, ...args) { //, ...
+    // 'callback' is either a function or an id string for predefined handler
+    //            or null for user command.
+    // evalAsync(command, id, hidden, ...)
+    // evalAsync(command, null, AUTOUPDATE | REALTIME, ...)
+    // evalAsync(command, func(), true, ...)
+   
+    this.evalAsync = function (command, callback, flags, ...args) { //, ...
         if(command === undefined || command == null) 
 			throw new Error("in 'evalAsync': 'command' is null or undefined");
         
-        var autoUpdate = false;
-        if(typeof hidden === "number") {
-            autoUpdate = (hidden & _this.AUTOUPDATE) === _this.AUTOUPDATE;
-            hidden = (hidden & _this.HIDDEN) === _this.HIDDEN;
-        } else hidden = Boolean(hidden);
-        
+        var autoUpdate = false, realTime = false, stdOut = false, hidden;
+        if(typeof flags === "number") {
+            autoUpdate = (flags & _this.AUTOUPDATE) === _this.AUTOUPDATE;
+            realTime = (flags & _this.REALTIME) === _this.REALTIME;
+            stdOut = (flags & _this.STDOUT) === _this.STDOUT;
+            hidden = (flags & _this.HIDDEN) === _this.HIDDEN;
+        } else {
+            hidden = Boolean(flags);
+        }
         logger.debug("evalAsync: autoUpdate=" + autoUpdate + "\nR command: " + command);
 		
         // XXX: background calls (e.g. object browser) need to have unique id.
-        // ID for user commands should be one and fixed (to allow for multiline)
-        var id = callback ? getUid() : this.userCommandId;
-         _this.handlers.set(id, new REvalListener(callback, /*keep:*/ false,
-            /*autoUpdate*/ autoUpdate, stdOut, args));
-
-        svc.RConnector.evalInRNotify(command, /*mode:*/ "json " + (hidden ? "h " : ""), id);
+        // ID for user commands should be one and fixed (to allow for multiline)  
+        var userCommand = !callback;
+        var id = userCommand ? this.userCommandId : getUid();
+        
+        // TODO: if(userCommand) use predefined handler with callback reading
+        // the output file to console
+        if(typeof callback === "string") {
+            id = callback;
+            let handler = _this.handlers.get(id);
+            if (handler) {
+                handler.args = args;
+                //handler.autoUpdate = autoUpdate; // should autoupdate be set here?
+            } else
+                throw new Error("in 'evalAsync': no handler for id=" + id);
+        } else {
+            _this.handlers.set(id, new REvalListener(callback, /*keep:*/ false,
+                autoUpdate, stdOut, args));
+        }
+        svc.RConnector.evalInRNotify(command,
+            /*mode:*/ (hidden ? "h " : "") + (realTime ? "r " : ""),
+            id);
         return id;
     };
 
@@ -149,9 +191,9 @@ var kor = {
 		if(command === undefined || command === null) 
 			throw new Error("in 'eval': 'command' is null or undefined");
 		
-        var res = svc.RConnector.evalInR(command, 'json h', timeout);
-        if (res.startsWith('\x15')) {
-			logger.debug("in connector.eval: R returned " + res);
+        var res = svc.RConnector.evalInR(command, 'h', timeout);
+        if (res.startsWith('\x15\x15')) {
+			logger.debug("in connector.eval: R returned " + res.substr(2));
 			throw new Error("in 'eval': 'command' was \"" + command + "\"");
 		}
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
@@ -160,23 +202,11 @@ var kor = {
     // For internal use with repeated commands (result handler is defined only once)
     // reuse result handler predefined with '.defineResultHandler'
     this.evalPredefined = function (command, handlerId, hidden, ...args) {
-		if(command === undefined || command === null) 
-			throw new Error("in 'evalPredefined': 'command' is null or undefined");
-		
-        if (_this.handlers.has(handlerId))
-             _this.handlers.get(handlerId).args = args;
-        else
-            throw new Error("in 'evalPredefined': no handler for id=" + handlerId);
-        
-        svc.RConnector.evalInRNotify(command, "json " + (hidden ? "h " : ""), handlerId);
+		logger.info("'evalPredefined' is DEPRECATED. Use 'evalAsync' instead.");
+        _this.evalAsync(command, handlerId, hidden, ...args);
     };
 
-    this.defineResultHandler = function (id, callback, autoUpdate, stdOut, ...args) {
-        _this.handlers.set(id, new REvalListener(callback, true, autoUpdate, stdOut, args));
-        return id;
-    };
-
-    this.escape = function ( /*command*/ ) _this.evalAsync("\x1b");
+    this.escape = function ( /*command*/ ) _this.evalAsync("\x05\x11");
 
     // TODO: make async
     this.isRConnectionUp = function (quiet) {
@@ -196,6 +226,9 @@ var kor = {
     };
 
     //_this.setObserver(rCallback, "r-command-executed");
+    
+    //TODO: predefined handler for RLinter
+    //TODO: orphaned handlers collection
 
     // handles koCmd requests:
     var defaultRequestHandler = function (str) {
@@ -204,7 +237,7 @@ var kor = {
         
         try {
             if (str.startsWith("{js}")) {
-                return String(geval(decodeURI(str.substring(4))));
+                return String(geval(str.substring(4)));
             }
         } catch (e) {
             logger.info("Error while evaluating koCmd request: \n\"" +
@@ -231,10 +264,10 @@ var kor = {
 
 	this.restartSocketServer = function (requestHandler, callback) {
 		if (callback) {
-			svc.Obs.addObserver(function _serverStartupCallback(subject, topic) {
+			svc.Obs.addObserver(function _serverStartupCallback(subject, topic, data) {
 				if (topic !== 'r-server-started') return;
 				svc.Obs.removeObserver(_serverStartupCallback, "r-server-started", false);
-				callback.call(null, subject.QueryInterface(Ci.nsISupportsPRInt32));
+				callback.call(null, JSON.parse(data).port);
 			}, "r-server-started", false);
 		}
 		if (_this.serverIsUp) {
@@ -248,109 +281,115 @@ var kor = {
 			_this.startSocketServer(requestHandler);
 	};
 
+    var _props = { host: '127.0.0.1', rPort: 8001, koPort: 7001, charSet: 'CP1252' };
+	
+    this.getProp = (name) => _props[name];
+    
+    this.updateProps = function(koPort, rHost, rPort, charSet) {
+        logger.debug(`updateProps(${koPort}, ${rHost}, ${rPort}, ${charSet})`);
+        if(koPort) _props.koPort = koPort;
+        if(rHost) _props.host = rHost;
+        if(rPort) _props.rPort = rPort;
+        svc.RConnector.setSocketInfo(_props.host, _props.koPort, _props.rPort);
+        if(charSet) {
+            _props.charSet = charSet.toUpperCase();
+            svc.RConnector.setCharSet(_props.charSet);
+        }
+    }
+
     var serverObserver = {
         observe: function (subject, topic, data) {
             logger.info("serverObserver: " + topic);
             if (topic === 'r-server-stopped') {
                  addNotification("Server stopped");
             } else if (topic === 'r-server-started') {
-                let port = subject.QueryInterface(Ci.nsISupportsPRInt32).data;
+                let port = JSON.parse(data).port;
                 if (port > 1024) {
                     addNotification("Server started at port " + port);
-                    prefs.setPref("RInterface.koPort", port, true, true);
+                    _this.updateProps(port, null, null, null);
                     _this.evalAsync("base::options(ko.port=" + port + ")", null, true);
                 } else
                     logger.warn("serverObserver: on socket start received port #" + port);
-                
             }
         }
     };
-	
-    var _socketPrefs = {
-        "RInterface.RPort": null,
-        "RInterface.RHost": null,
-        "RInterface.koPort": null,
-        "RInterface.charSet": null
-    };
 
-    this.getSocketPref = (name) => _socketPrefs[name];
-
-    function _updateSocketInfo() {
-        svc.RConnector.setSocketInfo(_socketPrefs["RInterface.RHost"],
-            parseInt(_socketPrefs["RInterface.koPort"]), false);
-        svc.RConnector.setSocketInfo(_socketPrefs["RInterface.RHost"],
-            parseInt(_socketPrefs["RInterface.RPort"]), true);
-        svc.RConnector.setCharSet(_socketPrefs["RInterface.charSet"]);
-    }
-
-    var _prefObserver = {
-        observe: function (subject, topic, data) {
-            _socketPrefs[topic] = prefs.getPref(topic);
-            _updateSocketInfo();
+    var executeHandlerFor = (info) => {
+        var keep, autoUpdate;
+        var handler = _this.handlers.get(info.id);
+        if (handler) {
+            logger.debug("evalAsync" + (handler.callback ?
+                "callback length=" + handler.callback.length : "no callback"));
+            autoUpdate = handler.autoUpdate;
+            keep = handler.onDone.call(handler, info.result, info.command, info.mode);
+            if (!keep) _this.handlers.delete(info.id);
+            return autoUpdate;
         }
+        return null;
     };
-
+    
+    //
+    
     var rEvalObserver = {
         observe: function (subject, topic, data) {
-            logger.debug("rEvalObserver.observe - " + topic);
+            // subject is a commandInfo object
+            logger.debug("[rEvalObserver.observe] topic=" + topic);
+            logger.debug("[rEvalObserver.observe] subject.mode=" + subject.mode);
 
-            let wantMore = false, executed = false;
+            let wantMore = false, executed = false,
+                hidden = subject.mode.contains("h"), outputFile = false;
             switch (topic) {
             case 'r-command-executed':
                 executed = true;
+                let autoUpdate = false;
                 switch (subject.message) {
                 case 'more':
                     wantMore = true;
+                    executeHandlerFor(subject);
                     break;
                 case 'parse-error':
-                    break; // Currently no handlers for parse error 
+                    executeHandlerFor(subject);
+                    break; // Currently no handlers for parse error
+                case 'file':
+                    outputFile = true;
+                    /* falls through */
                 case 'done':
-                    if (_this.handlers.has(subject.commandId)) {
-
-                        let handler = _this.handlers.get(subject.commandId);
-                        
-                        //logger.debug("rEvalObserver. handler for " + subject.commandId + "=" + handler);
-
-                        let keep = _this.handlers.get(subject.commandId)
-                            .onDone.call(handler, subject.result, subject.command, subject.mode);
-                        //.onDone(data.replace(/[\x02\x03]/g, ''), // strip control characters
-                        if (!keep) _this.handlers.delete(subject.commandId);
-                    }
+                    autoUpdate = executeHandlerFor(subject);
                     break;
                  case 'empty':
-                    logger.info("Received empty string from R. Command was: " + subject.command);
+                    logger.info("Empty string received from R. Command was: " + subject.command);
                     return;
                 default:
+                    logger.error("Unknown message type received from R: " + subject.message);
+                    return;
                     /* falls through */
                 }
-                /* falls through */
-            case 'r-command-sent':
-                //_this.lastCmdInfo = subject; // object not extensible
-                if (subject.mode.search(/\bh\b/) === -1) 
-                    require("kor/cmdout").displayResults(subject.result, subject, executed, wantMore);
-                    // TODO? use subject.styledResult()
+                fireEvent(topic, {
+                    info: subject, // is a commandInfo object
+                    wantMore: wantMore,
+                    browserMode: subject.browserMode,
+                    hidden: hidden,
+                    autoUpdate: autoUpdate && !outputFile,
+                    isOutputFile: outputFile,
+                    fileEncoding: outputFile ? _this.getProp("charSet") : "",
+                    });
                 break;
-            case 'r-command-chunk':
-                //if (subject.mode == "e") require("kor/cmdout").append(subject.result, false);
+            case 'r-command-sent':
+                fireEvent(topic, {
+                    command: subject.command,
+                    hidden: hidden
+                    });
                 break;
             default:
             }
         }
-    };
+    }; // rEvalObserver
 
     //Obs.addObserver(rEvalObserver, "r-command-chunk", false);
     svc.Obs.addObserver(rEvalObserver, "r-command-sent", false);
     svc.Obs.addObserver(rEvalObserver, "r-command-executed", false);
     svc.Obs.addObserver(serverObserver, 'r-server-stopped', false);
     svc.Obs.addObserver(serverObserver, 'r-server-started', false);
-
-    for (let i in _socketPrefs)
-        if (_socketPrefs.hasOwnProperty(i)) {
-            _socketPrefs[i] = prefs.getPref(i);
-            prefs.prefset.prefObserverService.addObserver(_prefObserver, i, true);
-        }
-
-    _updateSocketInfo();
 
     this.cleanUp = function () {
         ["r-command-sent", "r-command-executed", "r-command-chunk",
@@ -365,21 +404,6 @@ var kor = {
                 }
             } catch (e) {}
         });
-
-        var prefObsSvc = prefs.prefset.prefObserverService;
-        for (let pref in _socketPrefs)
-            if (_socketPrefs.hasOwnProperty(pref)) {
-                try {
-                    let obsEnum = prefObsSvc.enumerateObservers(pref);
-                    while (obsEnum.hasMoreElements()) {
-                        let observer = obsEnum.getNext();
-                        observer.QueryInterface(Ci.nsIObserver);
-                        prefObsSvc.removeObserver(observer, pref, true);
-                    }
-                } catch (e) {
-                    logger.exception(e, "while running 'cleanUp'");
-                }
-            }
     };
 
 }).apply(module.exports);

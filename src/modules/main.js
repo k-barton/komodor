@@ -13,7 +13,7 @@
 var kor = {};
 
 (function () {
-    //var logger = require("ko/logging").getLogger("komodoR");
+    var logger = require("ko/logging").getLogger("komodoR");
     
     var _this = this;
     var _version, _w;
@@ -101,10 +101,66 @@ var kor = {};
 
 
     this.fireEvent = (eventName, detail) => {
+        logger.debug("fireEvent: " + eventName + " fired");
         require("sdk/timers").setImmediate(() => _this.command.fireEvent(_w, eventName, detail, false, false));
     };
-   
-   
+    
+    this.progressBar = (title, label = "", min = 0, max = 1, initial = 0, 
+        width = 320) => {
+        var range = max - min;
+        var realValue = initial;
+        var w = _w.openDialog("chrome://komodor/content/extra/progress.xul",
+            "_blank", "chrome,titlebar,centerscreen,outerWidth=" + width +
+            ",height=64",
+            {title: title, label: label, max: 100, initial: realValue});
+        return {
+            get window() w,
+            get value() realValue,
+            set value(v) {
+                realValue = Math.max(min, Math.min(max, v));
+                w.progressMeter.setAttribute("value", Math.round((realValue - min) / range * 100));
+            },
+            set title(v) {
+              w.document.title = v;
+            },
+            set label(v) {
+              w.document.getElementById("label").value = v;
+            },
+            close() {
+                w.close();
+            }
+        }
+    };
+    
+    var progressBars = new Map(), progressBarCounter = 0;
+    
+    this.rProgressBar = (title = "R progress bar", label = "",
+        min = 0, max = 1, initial = 0, width = 300) => {
+        var pb = _this.progressBar(title, label, min, max, initial, width);
+        progressBars.set(++progressBarCounter, pb);
+        pb.window.pbId = progressBarCounter;
+        pb.window.pbList = progressBars;
+        return progressBarCounter;
+    };
+    
+    this.rSetProgressBar = (id, value, title, label) => {
+        var pb = progressBars.get(id);
+        if(!pb) return null;
+        var prevValue = pb.value;
+        if(typeof value === "number")
+            pb.value = value;
+        if(typeof title === "string") pb.title = title;
+        if(typeof label === "string") pb.label = label;
+        return prevValue;
+    };
+    
+    this.rcloseProgressBar = (id) => {
+        var pb = progressBars.get(id);
+        if(!pb) return;
+        pb.close();
+    };
+    
+  
 }).apply(kor);
 
 // jshint ignore:start

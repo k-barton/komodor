@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window id="korProgressBar" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+        title="R progress bar"
+        style="min-width: 40em;"
+        flex="1"
+        width="640"
+        persist="width"
+        >
+<script type="text/javascript">
+<![CDATA[
+
+addEventListener("load", () => {
+    
+    var arg0 = window.arguments[0];
+    var test = (name) => (typeof arg0[name] !== "undefined" &&
+        arg0[name] !== null &&
+        arg0[name] !== "");
+    
+    if (test("title")) {
+        document.title = arg0.title;
+    }
+
+    if (test("label")) {
+        var label = document.getElementById("label");
+        label.removeAttribute("collapsed");
+        label.value = arg0.label;
+    }
+    
+    var pb = document.getElementById("progbar");
+    pb.max = arg0.max || 1;
+    pb.setAttribute("value", test("initial") ? arg0.initial : 0);
+
+    self.progressMeter = pb;
+}, false);
+
+addEventListener("unload", () => {
+    if(!self.pbList || !self.pbId) return;
+    self.pbList.delete(self.pbId);
+}, false);
+
+
+//]]>
+</script>
+<label id="label" value="" bcollapsed="true"  
+  style="height: 2em; margin: .5em 0.5em 0em .5em;"/>
+<progressmeter id="progbar" mode="determined" value="1" max="2" 
+   style="height: 2.5em; margin: .1em 1em 1em 1em;"/>
+</window>
