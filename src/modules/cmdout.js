@@ -1,6 +1,6 @@
 'use strict';
 
-/* globals require  */
+/* globals require, module  */
 
 (function () {
     
@@ -25,8 +25,7 @@
     var _this = this, ko = _W.ko, _scimoz, _outputWindow;
     var getEOLChar = (scimoz) => ["\r\n", "\r", "\n"][scimoz.eOLMode];
     var _init;
-    const promptStr = { normal: ":>", continued: ":+", browse: "~>", busy: "..." };
-    /// XXX remove 'busy'
+    const promptStr = { normal: ":>", continued: ":+", browse: "~>"};
 
 	Object.defineProperties(this, {
           STYLE_STDIN: { value: 22, enumerable: true }, 
@@ -128,7 +127,7 @@
     };
 
     this.replace = function (text, lineNum = null) {
-        var p0;
+        var p0, scimoz = this.scimoz;
         if(lineNum === null) lineNum = scimoz.lineCount - 1;
         scimoz.targetStart = p0 = scimoz.positionFromLine(lineNum);
         scimoz.targetEnd = p0 + text.length;
@@ -266,14 +265,14 @@
         prefs.setBooleanPref(uuePrefName, false);
     var unicodeUnescape = prefs.getBooleanPref(uuePrefName);
     var unicodeUnescapeObserver = {
-        observe(prefset, prefName, data) {
+        observe(prefset, prefName/*, data*/) {
             unicodeUnescape = prefset.getBooleanPref(prefName);
             //logger.debug("Preference observer: '" + prefName + "' set to " + unicodeUnescape);
         }
     };
     prefs.prefObserverService.addObserver(unicodeUnescapeObserver, uuePrefName, true);
     
-    var currentPrompt = promptStr.normal, _command = [];
+    var currentPrompt = promptStr.normal;
     var browserMode = false, newCommand = true;
 
     this.onEvalEnvChange = function(event) {

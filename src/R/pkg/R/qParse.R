@@ -7,12 +7,20 @@
 `qParse` <- function(filename, encoding = "UTF-8") {
 	if(file.exists(filename)) {
 		on.exit(close(fconn))
+		
 		fconn <- file(filename, open = "r", encoding = encoding)
 		x <- tryCatch({
 			parse(file = fconn, encoding = encoding)
-			NA
-		}, error = function(e) e)
-		return(invisible(if(is.na(x[1L])) "" else conditionMessage(x)))
+		}, error = function(e) {
+			mess <- conditionMessage(e)
+			if(startsWith(mess, "malformed raw string literal at line ")) {
+				paste0(as.integer(substr(mess, 38L, 64L)), ":",
+					-nchar(readLines(fconn, 1L)),
+					 ": malformed raw string literal\n:\n")	
+			} else mess
+		})
+		
+		return(invisible(if(is.na(x[1L])) "" else x))
 	}
 	# be quiet about errors:
 	# else stop("File ", filename, " not found")

@@ -311,8 +311,10 @@ var rob = {};
 				name = "SpatialPolygon_";
 			else if (name.startsWith("gg"))
 				name = "gg_";
-			else if (name === "tbl_df")
+			else if (name === "tbl_df" || name == "data.table")
 				name = "data.frame";
+            else if (name === "bam")
+                name = "gam";
 			//.SpatialPolygons.*
 			//SpatialPoints, SpatialGrid, SpatialPointsDataFrame, SpatialGridDataFrame
 			else if (name.startsWith("Spatial") || name == "sf" || name.startsWith("sfc_"))

@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<window id="korProgressBar" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+<window id="korProgressBar" 
+xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+xmlns:html="http://www.w3.org/1999/xhtml"
         title="R progress bar"
         style="min-width: 40em;"
         flex="1"
@@ -42,8 +44,9 @@ addEventListener("unload", () => {
 
 //]]>
 </script>
-<label id="label" value="" bcollapsed="true"  
+<label id="label" value="" collapsed="true"  
   style="height: 2em; margin: .5em 0.5em 0em .5em;"/>
-<progressmeter id="progbar" mode="determined" value="1" max="2" 
-   style="height: 2.5em; margin: .1em 1em 1em 1em;"/>
+<html:progress id="progbar" value="0" max="1" mode="determined" 
+ style="height: 2.5em; margin: .1em 1em 1em 1em;"
+ />
 </window>

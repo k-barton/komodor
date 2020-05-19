@@ -98,7 +98,8 @@ function (verbose = FALSE) {
 			vmsg("Expected \"kor.version\\nko.version\", got", deparse(ver, control = NULL))
 		}
 		
-		oldoptions <- options(browser = koBrowser, pager = koPager)
+		oldoptions <- options(browser = koBrowser, pager = koPager,
+            askYesNo = koAskYesNo)
 		assignTemp("oldoptions", oldoptions)
 	}
 	#TODO: handle case when no server is started
@@ -112,7 +113,6 @@ function (verbose = FALSE) {
     # evil replacements:
     assignTemp("__base_readline", base::readline)
     assignLocked("readline", koReadLine, baseenv())
-
 
     .replaceUtils <- 
     function(...) {
@@ -128,32 +128,13 @@ function (verbose = FALSE) {
         }
     }
     
-    if(length(find.package("utils", quiet = TRUE)) == 1L) {
-        if("package:utils" %in% search()) 
-            .replaceUtils() else 
-			setHook(packageEvent("utils", "attach"), .replaceUtils)
-        
-    }
+    if("package:utils" %in% search()) 
+        .replaceUtils() else 
+	    setHook(packageEvent("utils", "attach"), .replaceUtils)
+  
 	vmsg("Done.")
 	invisible()
 }
 
-.onDetach <- function(libpath) {
-    .restore <- function(tempName, name, envir) {
-        x <- getTemp(tempName)
-        if(!is.null(x)) assignLocked(name, x, envir)
-    }
-     
-    .restore("__base_readline", "readline", baseenv())
-    if("package:utils" %in% search()) {
-        if(exists("winProgressBar", "package:utils")) {
-            for(env in list(asNamespace("utils"), as.environment("package:utils"))) {
-                .restore("__utils_winProgressBar", "winProgressBar", env)
-                assignLocked("__utils_setWinProgressBar", "setWinProgressBar", env)
-                assignLocked("__utils_getWinProgressBar","getWinProgressBar", env)
-            }
-        }
-    }
-}
 
 

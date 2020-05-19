@@ -62,7 +62,7 @@ var kor = {
     const _this = this;
     var logger = require("ko/logging").getLogger("kor/connector");
 	
-	var addNotification = kor.ui.addNotification, prefs = kor.prefs;
+	var addNotification = kor.ui.addNotification/*, prefs = kor.prefs*/;
     
     Object.defineProperties(this, {
         command: {
@@ -116,7 +116,7 @@ var kor = {
                     logger.exception(e, "in 'REvalListener.onDone': while invoking callback");
                 }
             }
-            logger.debug("onDone: autoUpdate=" + this.autoUpdate);
+            logger.debug("[onDone] autoUpdate=" + this.autoUpdate);
             // XXX: this should fire 'r-autoupdate-needed'
             //if(this.autoUpdate) fireEvent('r-command-executed');
             return this.keep;
@@ -137,8 +137,8 @@ var kor = {
     };
     
     // Evaluate in R
-    // 'hidden' passed as a number controls both visibility and autoupdate
-    // 1: autoupdated, 2: hidden, 3: both, 0: none
+    // 'hidden' passed as a number controls visibility, autoupdate, and 
+    //    real-time mode
     // 'callback' is either a function or an id string for predefined handler
     //            or null for user command.
     // evalAsync(command, id, hidden, ...)
@@ -193,7 +193,7 @@ var kor = {
 		
         var res = svc.RConnector.evalInR(command, 'h', timeout);
         if (res.startsWith('\x15\x15')) {
-			logger.debug("in connector.eval: R returned " + res.substr(2));
+			logger.debug("[connector.eval] R returned " + res.substr(2));
 			throw new Error("in 'eval': 'command' was \"" + command + "\"");
 		}
         return res.replace(stdOut ? rxResultStripStdErr : rxResultStripCtrlChars, '');
@@ -212,7 +212,7 @@ var kor = {
     this.isRConnectionUp = function (quiet) {
         var connected;
         try {
-            let test = _this.eval("base::cat(\"nuqneH 'u'\")", 1.0);
+            let test = _this.eval("base::cat(\"nuqneH 'u'\")", 1.5);
             connected = test.contains("nuqneH 'u'");
         } catch (e) {
             connected = false;
@@ -295,7 +295,7 @@ var kor = {
             _props.charSet = charSet.toUpperCase();
             svc.RConnector.setCharSet(_props.charSet);
         }
-    }
+    };
 
     var serverObserver = {
         observe: function (subject, topic, data) {
@@ -309,7 +309,7 @@ var kor = {
                     _this.updateProps(port, null, null, null);
                     _this.evalAsync("base::options(ko.port=" + port + ")", null, true);
                 } else
-                    logger.warn("serverObserver: on socket start received port #" + port);
+                    logger.warn("[serverObserver] on socket start received port #" + port);
             }
         }
     };
@@ -318,7 +318,7 @@ var kor = {
         var keep, autoUpdate;
         var handler = _this.handlers.get(info.id);
         if (handler) {
-            logger.debug("evalAsync" + (handler.callback ?
+            logger.debug("[evalAsync] " + (handler.callback ?
                 "callback length=" + handler.callback.length : "no callback"));
             autoUpdate = handler.autoUpdate;
             keep = handler.onDone.call(handler, info.result, info.command, info.mode);
@@ -333,8 +333,8 @@ var kor = {
     var rEvalObserver = {
         observe: function (subject, topic, data) {
             // subject is a commandInfo object
-            logger.debug("[rEvalObserver.observe] topic=" + topic);
-            logger.debug("[rEvalObserver.observe] subject.mode=" + subject.mode);
+            logger.debug("[rEvalObserver.observe] topic=" + topic + 
+                " subject.mode=" + subject.mode);
 
             let wantMore = false, executed = false,
                 hidden = subject.mode.contains("h"), outputFile = false;
@@ -349,7 +349,7 @@ var kor = {
                     break;
                 case 'parse-error':
                     executeHandlerFor(subject);
-                    break; // Currently no handlers for parse error
+                    break;
                 case 'file':
                     outputFile = true;
                     /* falls through */

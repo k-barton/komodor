@@ -108,6 +108,16 @@ state IN_R_SSTRING:
 /\\./ :
 '\'' :  paint(include, SSL_STRING), => IN_R_DEFAULT
 
+state IN_R_RAWDSTRING:
+')"' :  paint(include, SSL_STRING), => IN_R_DEFAULT
+
+state IN_R_RAWSSTRING:
+')\'' :  paint(include, SSL_STRING), => IN_R_DEFAULT
+
+#  r"(...)"
+
+
+
 #=== Numbers ===================================================================
 
 state IN_R_NUMBER_1 :

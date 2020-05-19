@@ -123,13 +123,19 @@ var kor = {};
             set title(v) {
               w.document.title = v;
             },
+            get title() {
+                return w.document.title;
+            },
             set label(v) {
               w.document.getElementById("label").value = v;
+            },
+            get label() {
+                return w.document.getElementById("label").value;
             },
             close() {
                 w.close();
             }
-        }
+        };
     };
     
     var progressBars = new Map(), progressBarCounter = 0;

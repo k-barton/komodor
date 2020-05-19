@@ -35,6 +35,8 @@ delimiter : paint(upto, SSL_DEFAULT), redo, keep_delimiter => IN_RMD_R_CODE_END
 # Enter string mode
 '\'' : paint(upto, SSL_DEFAULT), paint(include, SSL_STRING), => IN_R_SSTRING
 '"' : paint(upto, SSL_DEFAULT), paint(include, SSL_STRING), => IN_R_DSTRING
+/[rR]'\(/ : paint(upto, SSL_DEFAULT), => IN_R_RAWSSTRING
+/[rR]"\(/ : paint(upto, SSL_DEFAULT), => IN_R_RAWDSTRING
 '`' : paint(upto, SSL_DEFAULT), => IN_R_BQUOTEDNAME
 
 /0[Xx][0-9a-fA-F]+[Li]?/ : paint(upto, SSL_DEFAULT), paint(include, SSL_NUMBER), => IN_R_NUMBER_DONE
@@ -81,6 +83,17 @@ state IN_R_DSTRING:
 /\\./ : paint(upto, SSL_STRING) #stay, escaped character
 /[\r\n]/ : paint(upto, SSL_STRING) #stay, R strings are multi-line
 '"' : paint(include, SSL_STRING), => IN_R_DEFAULT
+
+state IN_R_RAWDSTRING:
+/\\./ : paint(upto, SSL_STRING) #stay, escaped character
+/[\r\n]/ : paint(upto, SSL_STRING) #stay, R strings are multi-line
+')"' :  paint(include, SSL_STRING), => IN_R_DEFAULT
+
+state IN_R_RAWSSTRING:
+/\\./ : paint(upto, SSL_STRING) #stay, escaped character
+/[\r\n]/ : paint(upto, SSL_STRING) #stay, R strings are multi-line
+')\'' :  paint(include, SSL_STRING), => IN_R_DEFAULT
+
 
 state IN_R_BQUOTEDNAME:
 ## backtick quoted names are NOT strings!

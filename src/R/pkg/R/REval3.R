@@ -138,6 +138,8 @@ function(id) {
 	captureAll(expr, conn = outconn, markStdErr = markStdErr,
 		envir = if(visible) getEvalEnv() else .GlobalEnv,
 		doTraceback = visible)
+    
+    ## TODO: use on.exit() to assure this is always done:
 	cat(file = outconn, append = TRUE,
 		"\n", # final control sequences have to be in a separate line
 		if(visible && !identical(.GlobalEnv, getEvalEnv()))

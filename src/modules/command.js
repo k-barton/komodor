@@ -172,7 +172,7 @@
         if(fu.exists2(cwd) !== fu.TYPE_DIRECTORY) {
                 UI.addNotification(
                         "Cannot start R: current working directory does not exist.",
-                        "r-interface", true)
+                        "r-interface", true);
                     
              return;
         }
@@ -248,7 +248,12 @@
         if (running != _RIsRunning) {
             _RIsRunning = running;
             _this.fireEvent(_W, 'r-status-change', { running: running,
-                                                     quiet: Boolean(quiet) });
+                quiet: Boolean(quiet) 
+                });
+            
+            _this.fireEvent(_W, "r-evalenv-change", {
+                evalEnvName: ".GlobalEnv"
+                });
 			logger.debug("R status changed to " + running);
             // buttons/menu items (except toolbar R button) respond to:
             _W.updateCommands('r_status_changed');
@@ -521,7 +526,7 @@
                 if (!fu.exists(path)) {
                     UI.addNotification(
                         "Rmarkdown preview: no file produced",
-                        "r-interface", true)
+                        "r-interface", true);
                     return;
                 }
                 UI.openBrowser(fu.toFileURI(path), !showInTab);

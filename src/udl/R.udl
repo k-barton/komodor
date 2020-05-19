@@ -42,6 +42,8 @@ delimiter : paint(upto, SSL_DEFAULT), spop_check => IN_R_DEFAULT
 
 '"' : paint(upto, SSL_DEFAULT), => IN_R_DSTRING
 '\'' : paint(upto, SSL_DEFAULT), => IN_R_SSTRING
+/[rR]'\(/ : paint(upto, SSL_DEFAULT), => IN_R_RAWSSTRING
+/[rR]"\(/ : paint(upto, SSL_DEFAULT), => IN_R_RAWDSTRING
 
 /[\$@]/ : paint(upto, SSL_DEFAULT), redo, => IN_R_EXTRACTOR
 /$NAMESTART/ : paint(upto, SSL_DEFAULT), redo, => IN_R_NAME

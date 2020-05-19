@@ -14,12 +14,6 @@
     #cat("kor attached at", format(Sys.time()), "\n", file="~/kor_log.txt", append = TRUE)
 }
 
-
-.onDetach <- function(libpath) {
-    ..onUnload(libpath)
-}
-
-
 ..onUnload <- function(libpath) {
 	#message("Closing KomodoR ...")
 	fnull <- function(...) NULL
@@ -35,3 +29,23 @@
 	
 }
 
+
+.onDetach <- 
+function(libpath) {
+    ..onUnload(libpath)
+
+    .restore <- function(tempName, name, envir) {
+        x <- getTemp(tempName)
+        if(!is.null(x)) assignLocked(name, x, envir)
+    }
+    .restore("__base_readline", "readline", baseenv())
+    if("package:utils" %in% search()) {
+        if(exists("winProgressBar", "package:utils")) {
+            for(env in list(asNamespace("utils"), as.environment("package:utils"))) {
+                .restore("__utils_winProgressBar", "winProgressBar", env)
+                assignLocked("__utils_setWinProgressBar", "setWinProgressBar", env)
+                assignLocked("__utils_getWinProgressBar","getWinProgressBar", env)
+            }
+        }
+    }
+}

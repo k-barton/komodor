@@ -140,7 +140,7 @@ lazySvcGetter(this, "IO", "@mozilla.org/network/io-service;1", "nsIIOService");
     };
 
     // Creates unique temporary file, accessible by all users; returns its name
-    this.temp = function (prefix, ext = null) {
+    this.temp = function (prefix) {
         var nsIFile = Ci.nsIFile;
         var dirSvc = Cc["@mozilla.org/file/directory_service;1"]
             .getService(Ci.nsIProperties);

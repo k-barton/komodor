@@ -55,7 +55,7 @@ class KoRLinter:
          ]
 
     def __init__(self):
-        self.pattern = re.compile('^(?:.*:)?(?P<line>\d+):(?P<col>\d+):(?P<descr>.*?)(?=[\r\n])')
+        self.pattern = re.compile('^(?:.*:)?(?P<line>\d+):(?P<col>-?\d+):(?P<descr>.*?)(?=[\r\n])')
         ##self.pattern = re.compile('^(.*):(?P<line>\d+):(?P<col>\d+):(?P<descr>.*?)(?=[\r\n])[\s\S]*(?<=[\r\n])(?P=line): (?P<code>.*?)(?=[\r\n])')
         self.rconn = components.classes["@komodor/korRConnector;1"].\
             getService(components.interfaces.korIRConnector)
@@ -86,7 +86,7 @@ class KoRLinter:
                 pass
                 #raise ServerException(nsError.NS_ERROR_NOT_AVAILABLE)
 
-            # log.debug('lint: ' + lines)
+            log.debug('lint: ' + lines)
             ma = self.pattern.match(lines)
             if (ma):
                 lineNo = int(ma.group('line'))
@@ -100,6 +100,12 @@ class KoRLinter:
                     if columnNo > 0:
                         ma1 = re.search( '\S\s+$', datalines[-1])
                         columnNo = 1 if ma1 is None else ma1.start(0) + 1
+                
+                if columnNo < 0:
+                    columnNo = len(datalines[lineNo - 1]) + columnNo
+                    
+                log.debug('lint result: %d : %d : %s' % (lineNo, columnNo, description))
+                
                 result = KoLintResult()
                 result.severity = result.SEV_ERROR
                 result.lineStart = result.lineEnd = lineNo

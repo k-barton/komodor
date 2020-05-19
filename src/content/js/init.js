@@ -364,17 +364,19 @@
     window.addEventListener('r-command-sent', require("kor/cmdout").onRCommandSubmitted, false);
     
     window.addEventListener('r-command-sent', (event) => {
+        logger.debug("[Event " + event.type + "]");
         require("kor/command").setRBusy(!event.detail.hidden);
     }, false);
     window.addEventListener('r-command-executed', (event) => {
+        logger.debug("[Event " + event.type + "]");
         require("kor/command").setRBusy(event.detail.isOutputFile);
     }, false);
     window.addEventListener('r-command-executed2', (event) => {
+        logger.debug("[Event " + event.type + "]");
         require("kor/command").setRBusy(false);
     }, false);
     
-    
-    
+
     // TODO: use commandupdater?
     window.addEventListener("r-evalenv-change", function (event) {
         let evalEnvName = event.detail.evalEnvName;

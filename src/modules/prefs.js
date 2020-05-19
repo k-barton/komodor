@@ -7,6 +7,8 @@
  * 
  *  License: MPL 1.1/GPL 2.0/LGPL 2.1
  */
+/* globals exports, require, module  */
+
 
 "use strict";
 
