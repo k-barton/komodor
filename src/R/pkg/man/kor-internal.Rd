@@ -17,7 +17,7 @@ koPager(files, header, title, delete.file)
 
 koBrowser(url)
 
-qParse(filename, encoding = "UTF-8")
+qParse(filename, encoding = "UTF-8", max.errors = 8L, sep = "\\036")
 
 isInstalledPkg(pkgName, json = TRUE)
 

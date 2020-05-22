@@ -51,13 +51,16 @@ class korRConnector:
 
     class CommandInfo:
         _com_interfaces_ = components.interfaces.korICommandInfo
+        _counter = 0
         def __init__(self, cmd_id, cmd, mode, browserMode = False, message = '', result = ''):
             self.id = cmd_id
+            self.uid = korRConnector.CommandInfo._counter
             self.command = cmd
             self.mode = mode
             self.browserMode = browserMode
             self.message = message
             self.result = result
+            korRConnector.CommandInfo._counter += 1
 
     def __init__(self):
         # observerSvc = components.classes["@mozilla.org/observer-service;1"].\

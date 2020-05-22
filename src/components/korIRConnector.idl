@@ -13,6 +13,7 @@ interface korIGenericListener: nsISupports {
 [scriptable, uuid(22D0115A-0BC6-609F-194A-6F79EEA56633)]
 interface korICommandInfo: nsISupports {
     readonly attribute ACString id;
+    readonly attribute long uid;
     readonly attribute AUTF8String command;
     readonly attribute ACString mode;
     readonly attribute boolean browserMode;

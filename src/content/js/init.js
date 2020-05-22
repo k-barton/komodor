@@ -284,7 +284,7 @@
                     let cmd = "base::cat(base::identical(kor::getTemp(\".EvalEnv\", .GlobalEnv), .GlobalEnv))";
                     kor.rconn.evalAsync(cmd, (x) => {
                         if(x === "TRUE") return;
-                        kor.fireEvent("r-evalenv-change", {evalEnvName: "<environment>"});
+                        kor.fireEvent("r_evalenv_change", {evalEnvName: "<environment>"});
                         }, kor.rconn.HIDDEN | kor.rconn.STDOUT);
                 }
         	});
@@ -349,10 +349,10 @@
 
     //var rStatusChangeObserver = function (event) {
     var rToolbarButton;
-    window.addEventListener("r-status-change", function (event) {
+    window.addEventListener("r_status_change", function (event) {
         let running = event.detail.running;
         if (typeof event.detail.running === "undefined")
-            logger.warn("'r-status-change' event did not provide the expected data");
+            logger.warn("'r_status_change' event did not provide the expected data");
         if(!rToolbarButton) rToolbarButton = document.getElementById('cmd_RStarted');
         if (running) rToolbarButton.setAttribute("checked", "true");
             else rToolbarButton.removeAttribute("checked");
@@ -360,28 +360,32 @@
         require("kor/ui").addNotification(running ? "R session is connected" : "R is not running");
     }, false);
 
-    window.addEventListener('r-command-executed', require("kor/cmdout").onRResultReturned, false);
-    window.addEventListener('r-command-sent', require("kor/cmdout").onRCommandSubmitted, false);
+    //window.addEventListener('r_command_executed', require("kor/cmdout").onRResultReturned, false);
     
-    window.addEventListener('r-command-sent', (event) => {
+    //window.addEventListener('r_command_sent', require("kor/cmdout").onRCommandSubmitted, false);
+    window.addEventListener('r_command_sent', (event) => {
         logger.debug("[Event " + event.type + "]");
-        require("kor/command").setRBusy(!event.detail.hidden);
+        require("kor/cmdout").onRCommandSubmitted(event);
+        // require("kor/command").setRBusy(!event.detail.hidden);
     }, false);
-    window.addEventListener('r-command-executed', (event) => {
+    
+    window.addEventListener('r_command_executed', (event) => {
         logger.debug("[Event " + event.type + "]");
+        require("kor/cmdout").onRResultReturned(event);
         require("kor/command").setRBusy(event.detail.isOutputFile);
     }, false);
-    window.addEventListener('r-command-executed2', (event) => {
+    
+    window.addEventListener('r_command_executed2', (event) => {
         logger.debug("[Event " + event.type + "]");
         require("kor/command").setRBusy(false);
     }, false);
     
 
     // TODO: use commandupdater?
-    window.addEventListener("r-evalenv-change", function (event) {
+    window.addEventListener("r_evalenv_change", function (event) {
         let evalEnvName = event.detail.evalEnvName;
         if (typeof evalEnvName === "undefined")
-            logger.warn("'r-evalenv-change' event did not provide the expected data");
+            logger.warn("'r_evalenv_change' event did not provide the expected data");
         let el = document.getElementById('cmd_RBrowseFrame');
         if (evalEnvName === ".GlobalEnv") {
             el.setAttribute("disabled", "true");

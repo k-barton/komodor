@@ -51,31 +51,24 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 </div>
 <p>(Version #VERSION#)</p>
 <ul>
-<li><p>better handling of different encodings in non-Unicode systems (Windows). However, unlike in the R console, Unicode characters from outside of the current set are displayed as <U+NNNN>. Example:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="st">&quot;* Initial locale: &quot;</span>, <span class="kw">Sys.getlocale</span>(<span class="st">&quot;LC_CTYPE&quot;</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
-<span class="kw">cat</span>(<span class="st">&quot;* locale set to&quot;</span>, <span class="kw">Sys.setlocale</span>(<span class="st">&quot;LC_CTYPE&quot;</span>, <span class="st">&quot;Scottish Gaelic&quot;</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
-<span class="st">&quot;Cyryllic text: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;</span>
-<span class="st">&quot;Gaelic text: Mus d&#39;fhàg Cè ròp Ì le aon tiùb.&quot;</span>
-<span class="kw">cat</span>(<span class="st">&quot;* locale set to&quot;</span>, <span class="kw">Sys.setlocale</span>(<span class="st">&quot;LC_CTYPE&quot;</span>, <span class="st">&quot;Ukrainian&quot;</span>), <span class="st">&quot;</span><span class="ch">\n</span><span class="st">&quot;</span>)
-<span class="st">&quot;Cyryllic text: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;</span>
-<span class="st">&quot;Gaelic text: Mus d&#39;fhàg Cè ròp Ì le aon tiùb.&quot;</span></code></pre></div>
-<p>Was:</p>
-<pre class="no-highlight"><code>* Initial locale: Ukrainian_Ukraine.1251 
-* locale set to Scottish Gaelic_United Kingdom.1252 
-[1] &quot;Cyryllic text: ??????? ????? ?? ??????-???????? ?&#39;????? ????????? ?????? ? ????.&quot;
-[1] &quot;Gaelic text: Mus d&#39;fhag Ce rop I le aon tiub.&quot;
-* locale set to Ukrainian_Ukraine.1251 
-[1] &quot;Cyryllic text: ??????? ????? ?? ??????-???????? ?&#39;????? ????????? ?????? ? ????.&quot;
-[1] &quot;Gaelic text: Mus d&#39;fhag Ce rop I le aon tiub.&quot;</code></pre>
-<p>Now:</p>
-<pre><code>* Initial locale:  Scottish Gaelic_United Kingdom.1252 
-* locale set to Scottish Gaelic_United Kingdom.1252 
-[1] &quot;Cyryllic text: &lt;U+0429&gt;&lt;U+0443&gt;&lt;U+0440&gt;&lt;U+044F&gt;&lt;U+0447&gt;&lt;U+0438&gt;&lt;U+0439&gt; &lt;U+0431&gt;...
-[1] &quot;Gaelic text: Mus d&#39;fhàg Cè ròp Ì le aon tiùb.&quot;
-* locale set to Ukrainian_Ukraine.1251 
-[1] &quot;Cyryllic text: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;
-[1] &quot;Gaelic text: Mus d&#39;fhag Ce rop I le aon tiub.&quot; </code></pre></li>
-<li><p>stderr is correctly styled in Command Output console (although it appears clickable it does not take to the error line).</p></li>
+<li><p>Finally, the output from R is shown in Komodo Console Output pane in real time (Issue #17). This also fixes problem with timeout on longer R calculations. &quot;Animated&quot; text, such as text progress bar is now displayed as in the R console.</p></li>
+<li><p>Better handling of different encodings in non-Unicode systems (Windows). However, unlike in the R console, Unicode characters from outside of the current set are either displayed as a closest matching character or as <U+NNNN> (this is a shortcoming of R's <code>sink</code> / <code>format</code>). <br/> Example (assuming Latin2 character locale in R): <br/> <strong>R code in Komodo (UTF-8)</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="st">&quot;Cyryllic: Щурячий бугай із їжаком-харцизом в</span><span class="ch">\&#39;</span><span class="st">ючись підписали ґешефт у єнах.&quot;</span>
+<span class="st">&quot;Gaelic: Mus d</span><span class="ch">\&#39;</span><span class="st">fhàg Cè ròp Ì le aon tiùb.&quot;</span></code></pre></div>
+<p><strong>R output</strong> <br/> Previous version:</p>
+<pre class="no-highlight"><code>[1] &quot;Cyryllic: ??????? ????? ?? ??????-???????? ?&#39;????? ????????? ?????? ? ????.&quot;
+[1] &quot;Gaelic: Mus d&#39;fhag Ce rop I le aon tiub.&quot;</code></pre>
+<p>Current version:</p>
+<pre class="no-highlight"><code>[1] &quot;Cyryllic: &lt;U+0429&gt;&lt;U+0443&gt;&lt;U+0440&gt;&lt;U+044F&gt;&lt;U+0447&gt;&lt;U+0438&gt;&lt;U+0439&gt;
+&lt;U+0431&gt;&lt;U+0443&gt;&lt;U+0433&gt;&lt;U+0430&gt;&lt;U+0439&gt; &lt;U+0456&gt;&lt;U+0437&gt; [...]&quot;
+[1] &quot;Gaelic: Mus d&#39;fhag Ce rop I le aon tiub.&quot;</code></pre>
+<p>Using &lt;U+NNNN&gt; replacement workaround:</p>
+<pre class="no-highlight"><code>[1] &quot;Cyryllic: Щурячий бугай із їжаком-харцизом в&#39;ючись підписали ґешефт у єнах.&quot;
+[1] &quot;Gaelic: Mus d&#39;fhag Ce rop I le aon tiub.&quot;</code></pre>
+<p>Note that the substitution is in the display only, the strings are correctly interpreted in R as UTF-8 strings.</p></li>
+<li>stderr stream (errors, warnings, etc.) is correctly styled in the Command Output console (although it appears clickable it does not take to the error line).</li>
+<li><p>fixed a problem with &quot;Back to GlobalEnv&quot; button not being activated in some cases.</p></li>
+<li><p>New R functions for to put up a progress bar in Komodo (the usage is as other R progress bars). In R, see <code>?koProgressBar</code>.</p></li>
 </ul>
 <p>(Version 0.3.232b)</p>
 <ul>

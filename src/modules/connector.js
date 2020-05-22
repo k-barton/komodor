@@ -38,7 +38,7 @@ var kor = {
     get setProgressBar() require("kor/main").rSetProgressBar,
     get closeProgressBar() require("kor/main").rcloseProgressBar,
     envChangeEvent(env) {
-        require("kor/main").fireEvent("r-evalenv-change", {evalEnvName: env});
+        require("kor/main").fireEvent("r_evalenv_change", {evalEnvName: env});
     },
     setRProps(port, charSet) {
         require("kor/connector").updateProps(null, null, port, charSet);
@@ -81,6 +81,8 @@ var kor = {
     var getUid = () => Date.now().toString(36) + Math.floor(Math.random() * 10e5).toString(36);
 
     // this ID is used to identify commands from the user
+    // when no callback is given
+    // XXX: must be different than the one defined in kor.r
     this.userCommandId = "usercommand1";
 
     // if 'stdOut', stderr is removed, else stream delimiters #002/#003 are removed   
@@ -117,8 +119,7 @@ var kor = {
                 }
             }
             logger.debug("[onDone] autoUpdate=" + this.autoUpdate);
-            // XXX: this should fire 'r-autoupdate-needed'
-            //if(this.autoUpdate) fireEvent('r-command-executed');
+            //if(this.autoUpdate) fireEvent('r_command_executed');
             return this.keep;
         }
     };
@@ -236,9 +237,8 @@ var kor = {
         var geval = eval; // equivalent to calling 'eval' in the global scope
         
         try {
-            if (str.startsWith("{js}")) {
+            if (str.startsWith("{js}"))
                 return String(geval(str.substring(4)));
-            }
         } catch (e) {
             logger.info("Error while evaluating koCmd request: \n\"" +
                         str + "\":\n" + e);
@@ -266,14 +266,14 @@ var kor = {
 		if (callback) {
 			svc.Obs.addObserver(function _serverStartupCallback(subject, topic, data) {
 				if (topic !== 'r-server-started') return;
-				svc.Obs.removeObserver(_serverStartupCallback, "r-server-started", false);
+				svc.Obs.removeObserver(_serverStartupCallback, topic, false);
 				callback.call(null, JSON.parse(data).port);
 			}, "r-server-started", false);
 		}
 		if (_this.serverIsUp) {
 			svc.Obs.addObserver(function _serverRestarter(subject, topic) {
 				if (topic !== 'r-server-stopped') return;
-				svc.Obs.removeObserver(_serverRestarter, "r-server-stopped", false);
+				svc.Obs.removeObserver(_serverRestarter, topic, false);
 				_this.startSocketServer(requestHandler);
 			}, "r-server-stopped", false);
 			_this.stopSocketServer();
@@ -328,8 +328,7 @@ var kor = {
         return null;
     };
     
-    //
-    
+   
     var rEvalObserver = {
         observe: function (subject, topic, data) {
             // subject is a commandInfo object
@@ -360,12 +359,13 @@ var kor = {
                     logger.info("Empty string received from R. Command was: " + subject.command);
                     return;
                 default:
-                    logger.error("Unknown message type received from R: " + subject.message);
+                    logger.error("in 'rEvalObserver': Unknown message type received from R: " + subject.message);
                     return;
                     /* falls through */
                 }
-                fireEvent(topic, {
+                fireEvent('r_command_executed', { 
                     info: subject, // is a commandInfo object
+                    uid: subject.uid,
                     wantMore: wantMore,
                     browserMode: subject.browserMode,
                     hidden: hidden,
@@ -375,10 +375,14 @@ var kor = {
                     });
                 break;
             case 'r-command-sent':
-                fireEvent(topic, {
-                    command: subject.command,
-                    hidden: hidden
-                    });
+                // XXX: Upon sending a hidden commands r_command_sent event is
+                //      NOT fired
+                if(!hidden)
+                    fireEvent('r_command_sent', {
+                        uid: subject.uid,
+                        command: subject.command,
+                        // hidden: hidden
+                        });
                 break;
             default:
             }

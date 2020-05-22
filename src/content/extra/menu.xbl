@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<!DOCTYPE bindings [
+  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
+%brandDTD;
+]>
+
+<bindings id="RPkgManagerBindings"
+	xmlns="http://www.mozilla.org/xbl"
+	xmlns:xbl="http://www.mozilla.org/xbl"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<binding id="list-select-item"
+		 extends="chrome://global/content/bindings/richlistbox.xml#richlistitem">
+    <resources>
+		<stylesheet src="chrome://global/skin/"/>
+    </resources>
+	<content minheight="30">
+		<xul:hbox pack="start" align="left"
+				  anonid="item-box" flex="1"
+				  style="max-width: 100%; overflow-x: hidden;">
+			<xul:checkbox anonid="default" xbl:inherits="checked"
+				oncommand="document.getBindingParent(this).checked = this.checked;"
+				onfocus="document.getBindingParent(this)._select();"
+				/>
+			<xul:label anonid="menu_name" xbl:inherits="value=label"
+				   style="font-weight: bold;" />
+			<xul:vbox>
+				<xul:label anonid="URL" xbl:inherits="value=url"
+						   crop="end" flex="1" />
+			</xul:vbox>
+		</xul:hbox>
+	</content>
+	<implementation>
+	   	<constructor>
+		<![CDATA[
+			this.searchLabel = this.label;
+			this._checkbox = document.getAnonymousElementByAttribute(this,
+				"anonid", "default");
+			document.getAnonymousElementByAttribute(this, "anonid", "itemBox")
+				.control = this._checkbox;
+			this.defaultValue = this.checked;
+			//]]>
+		</constructor>
+		<field name="_checkbox">null</field>
+		<field name="defaultValue">false</field>
+		<property name="checked">
+			<getter>
+			  <![CDATA[
+				return this._checkbox.checked;
+			  //]]>
+			</getter>
+			<setter>
+			  <![CDATA[
+				this._checkbox.checked = val;
+				this.setAttribute("checked", val);
+				return val;
+			  ]]>
+			</setter>
+		</property>
+		<method name="check">
+			<parameter name="event" />
+		   <body>
+				<![CDATA[
+					this.checked = !this.checked;
+				//]]>
+		   </body>
+		</method>
+		<method name="_select">
+		   <body>
+				<![CDATA[
+					this.parentNode.selectItem(this);
+				//]]>
+		   </body>
+		</method>
+	</implementation>
+</binding>

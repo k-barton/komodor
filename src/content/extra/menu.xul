@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<dialog id="kor-r-menu-dialog"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        orient="vertical"
+        style="min-width: 40em;"
+        flex="1"
+        width="640"
+        persist="width"
+        buttons="accept,cancel"
+        ondialogaccept="return OK();"
+        ondialogcancel="return Cancel();">
+
+<script type="text/javascript">
+<![CDATA[
+
+var multiple = false;
+
+window.arguments = [{
+        title: "tytuł",
+        label: "co wybrać?",
+        multiple: true,
+        items: ["dąb", "dupa", "dębowa", "aumtu tumtu", "mnóstwo", "innego", "gówna", "żeby tylko", "zapełnić", "całą listę"],
+        preselect: ["dupa", "aumtu tumtu"],
+    }];
+
+function Cancel() {
+    return [];
+}
+
+function OK() {
+    if (multiple) {
+        multiple = true;
+        let items = document.getElementById("groupbox")
+            .getElementsByTagName("checkbox");
+        let rval = [];
+        for(let item of items)
+            if(item.checked) rval.push(item.value);
+        return rval;
+    } else {
+        return document.getElementById("multiple-choice")
+            .selectedItem.value;
+    }
+}
+
+addEventListener("load", () => {
+    var arg0 = window.arguments[0];
+    
+    var test = (name) => (
+        typeof arg0[name] !== "undefined" &&
+        arg0[name] !== null &&
+        arg0[name] !== "");
+    
+    if (test("title"))
+        document.title = arg0.title;
+
+    if (test("label")) {
+        var label = document.getElementById("caption");
+        label.removeAttribute("collapsed");
+        label.label = arg0.label;
+    }
+        
+    if (test("items") && Array.isArray(arg0.items)) {
+        var items = arg0.items, item, preselect;
+        if(test("preselect")) preselect = arg0.preselect;
+        if (test("multiple") && arg0.multiple) {
+            multiple = true;
+            let box = document.getElementById("groupbox");
+            let element;
+            if(!Array.isArray(preselect)) preselect = [preselect];
+            for(item of items) {
+                element = box.appendChild(document.createElement("checkbox"));
+                element.setAttribute("label", item);
+                element.value = item;
+                element.checked = preselect.indexOf(item) !== -1;
+            }
+        } else {
+            let group = document.getElementById("multiple-choice");
+            for(item of items) group.appendItem(item, item);
+            if(preselect) {
+                if(Array.isArray(preselect)) preselect = preselect[0];
+                group.selectedIndex = items.indexOf(preselect);
+            }
+            group.removeAttribute("collapsed");
+        }
+    }
+    
+}, false);
+
+//]]>
+</script>
+<hbox flex="1">
+<vbox flex="1" style="overflow-y:auto;">
+<groupbox id="groupbox" flex="1" style="vertical-align: top;">
+  <caption id="caption" collapsed="true" />
+  <radiogroup id="multiple-choice" collapsed="true" />
+<box flex="1" ></box>
+</groupbox>
+</vbox>
+</hbox>
+</dialog>

@@ -2065,7 +2065,7 @@ var rob = {};
         
     this.onRCommandRequestEvent = function(event) {
         let commandType = event.detail.type;
-        if (!commandType) throw(new Error("incomplete 'r-command-request' event"));
+        if (!commandType) throw(new Error("incomplete 'r_command_request' event"));
         logger.debug("received R command request event of type " + commandType);
 
         switch (commandType) {
@@ -2120,12 +2120,12 @@ var rob = {};
         
 		let _w = require("kor/main").mainWin;
 
-		_w.addEventListener('r-status-change', onRStatusChange, false);
-		_w.addEventListener('r-evalenv-change', onREvalEnvChange, false);
-		_w.addEventListener('r-environment-change', onREnvironmentChange, false);
-        window.addEventListener("r-command-request", _this.onRCommandRequestEvent, false);   
+		_w.addEventListener('r_status_change', onRStatusChange, false);
+		_w.addEventListener('r_evalenv_change', onREvalEnvChange, false);
+		_w.addEventListener('r_environment_change', onREnvironmentChange, false);
+        window.addEventListener("r_command_request", _this.onRCommandRequestEvent, false);   
 
-        // needed if rob widget is loaded after initial "r-status-change" event.
+        // needed if rob widget is loaded after initial "r_status_change" event.
         let checkCounter = 0;
         let intervalID = setInterval(() => {
             let rIsOn = require("kor/command").isRRunning;
@@ -2150,7 +2150,7 @@ var rob = {};
         
         if(autoUpdate) logger.debug("Rbrowser.onLoad: setting R browser autoupdate");
         
-        require("kor/main").mainWin.addEventListener('r-command-executed',
+        require("kor/main").mainWin.addEventListener('r_command_executed',
                     onAutoUpdate, false);
         
         prefs.prefObserverService.addObserver(autoUpdatePrefObserver, auPrefName, true); 

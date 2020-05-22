@@ -230,10 +230,12 @@
             logger.debug("finished monitoring of " + data);
             try {
                 var file = require("kor/fileutils").getLocalFile(data);
-                if(file.exists()) file.fileSize = 0; //remove(true);
+                //if(file.exists()) file.fileSize = 0;
+                if(file.exists()) file.remove(true);
             } catch(e) {
             }
-            _this.printResult2(false, false, true);
+            //_this.printResult2(false, false, true);
+            queuedPrint();
             timers.clearTimeout(_waitMessageTimeout);
             _this.statusBarMessage(null);
         }
@@ -335,31 +337,76 @@
         }
         scimoz.readOnly = readOnly;
     };
+
+    var consoleIdle = true;
+    var printQueue = [];
+    var queuedPrint = function(newItem) {
+        //logger.debug("[queuedPrint]" + " items in queue=" + printQueue.length);
+        //logger.debug("[queuedPrint]" + " console idle? " + consoleIdle);
+        if(newItem) {
+            printQueue.push(newItem);
+            if(!consoleIdle) return;
+        } else { // == file reading finished, continue with queue
+            //logger.debug("[queuedPrint]" + " file read.");
+            //logger.debug("[queuedPrint]" + " console is BUSY");
+            consoleIdle = false;
+            _this.printResult2(false, false, true);
+        }
+        consoleIdle = false;
+        var item;
+        while((item = printQueue.shift())) {
+             if(typeof item.wantMore === "boolean") { // test if it is a result
+                //logger.debug("[queuedPrint]" + " result: " + (item.isOutputFile? "from file" : "immediate"));
+                newCommand = ! item.wantMore;
+                if(item.isOutputFile) {
+                    _this.monitorFile(item.info.result.trim(), item.fileEncoding);
+                    return;
+                } else {
+                    _this.printResult2(item.info, item.wantMore, true);
+                    timers.clearTimeout(_waitMessageTimeout);
+                    _this.statusBarMessage(null);
+                }
+                //browserMode = event.detail.browserMode;           
+            } else { // a command
+                //logger.debug("[queuedPrint]" + " command was: "+ item.command);
+                _this.printCommand2(item.command);
+                // display 'wait message' only for longer operations
+                timers.clearTimeout(_waitMessageTimeout);
+                _waitMessageTimeout = timers.setTimeout(_this.statusBarMessage, 750,
+                   "R is working...", 0, false); 
+            }
+        }
+        //logger.debug("[queuedPrint]" + " console is IDLE");
+        consoleIdle = true;
+    };
    
+    
     this.onRCommandSubmitted = function(event) {
         logger.debug("[onRCommandSubmitted]");
-        if(!event.detail.hidden) {
-            _this.printCommand2(event.detail.command);
-            // display 'wait message' only for longer operations
-            timers.clearTimeout(_waitMessageTimeout);
-            _waitMessageTimeout = timers.setTimeout(_this.statusBarMessage, 750,
-                "R is working...", 0, false);   
-        }
+        queuedPrint(event.detail);
+        // // XXX  r_command_sent event is not fired for hidden commands
+        // //if(event.detail.hidden) return;
+        // _this.printCommand2(event.detail.command);
+        // // display 'wait message' only for longer operations
+        // timers.clearTimeout(_waitMessageTimeout);
+        // _waitMessageTimeout = timers.setTimeout(_this.statusBarMessage, 750,
+           // "R is working...", 0, false);   
     };
     
     this.onRResultReturned = function(event) {
         logger.debug("[onRResultReturned]");
-        if(!event.detail.hidden) {
-            newCommand = ! event.detail.wantMore;
-            if(event.detail.isOutputFile) {
-                _this.monitorFile(event.detail.info.result.trim(), event.detail.fileEncoding);
-            } else {
-                //_this.printResult2(event.detail.info.result, event.detail.wantMore, true);
-                _this.printResult2(event.detail.info, event.detail.wantMore, true);
-                timers.clearTimeout(_waitMessageTimeout);
-                _this.statusBarMessage(null);
-            }
-        }
+        if(event.detail.hidden) return;
+        queuedPrint(event.detail);
+        
+        // newCommand = ! event.detail.wantMore;
+        // if(event.detail.isOutputFile) {
+            // _this.monitorFile(event.detail.info.result.trim(), event.detail.fileEncoding);
+        // } else {
+            // //_this.printResult2(event.detail.info.result, event.detail.wantMore, true);
+            // _this.printResult2(event.detail.info, event.detail.wantMore, true);
+            // timers.clearTimeout(_waitMessageTimeout);
+            // _this.statusBarMessage(null);
+        // }
         //browserMode = event.detail.browserMode;
     };
 

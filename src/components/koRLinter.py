@@ -74,7 +74,7 @@ class KoRLinter:
             fout = open(tmp_filename, 'wb')
             fout.write(text)
             fout.close()
-            command = 'cat(kor::qParse(\"' + tmp_filename.replace('\\', '/') + '"))' # encoding = "UTF-8"
+            command = 'kor::qParse(\"' + tmp_filename.replace('\\', '/') + '")' # encoding = "UTF-8"
             #log.debug(command)
         except Exception, e:
             log.exception(e)
@@ -85,38 +85,40 @@ class KoRLinter:
             if lines.startswith('\x15'): # connection error
                 pass
                 #raise ServerException(nsError.NS_ERROR_NOT_AVAILABLE)
-
-            log.debug('lint: ' + lines)
-            ma = self.pattern.match(lines)
-            if (ma):
-                lineNo = int(ma.group('line'))
-                datalines = re.split('\r\n|\r|\n', request.content, lineNo) # must not to be encoded
-                columnNo = int(ma.group("col"))
-                description = ma.group("descr")
-                
-                if len(datalines) < lineNo:
-                    lineNo = len(datalines)
-                    columnNo = len(datalines[-1])
-                    if columnNo > 0:
-                        ma1 = re.search( '\S\s+$', datalines[-1])
-                        columnNo = 1 if ma1 is None else ma1.start(0) + 1
-                
-                if columnNo < 0:
-                    columnNo = len(datalines[lineNo - 1]) + columnNo
+          
+            lines.split('\x1e')
+            lineNo = 0
+            
+            for s in lines.split('\x1e'):
+                ma = self.pattern.match(s)
+                if (ma):
+                    lineNo = int(ma.group('line')) + lineNo
+                    datalines = re.split('\r\n|\r|\n', request.content, lineNo) # must not to be encoded
+                    columnNo = int(ma.group("col"))
+                    description = ma.group("descr")
                     
-                log.debug('lint result: %d : %d : %s' % (lineNo, columnNo, description))
-                
-                result = KoLintResult()
-                result.severity = result.SEV_ERROR
-                result.lineStart = result.lineEnd = lineNo
-                l1 = datalines[lineNo - 1][:columnNo]
-                ntabs = l1.count("\t")
-                result.columnStart = columnNo - (ntabs * 7)
-                result.columnEnd = len(datalines[lineNo - 1]) + 1
-
-                result.description = "Syntax error: %s (on column %d)" % \
-                    (description, columnNo - (ntabs * (8 - tabWidth)))
-                results.addResult(result)
+                    if len(datalines) < lineNo:
+                        lineNo = len(datalines)
+                        columnNo = len(datalines[-1])
+                        if columnNo > 0:
+                            ma1 = re.search( '\S\s+$', datalines[-1])
+                            columnNo = 1 if ma1 is None else ma1.start(0) + 1
+                    
+                    if columnNo < 0:
+                        columnNo = len(datalines[lineNo - 1]) + columnNo
+                        
+                    log.debug('lint result: %d : %d : %s' % (lineNo, columnNo, description))
+                    
+                    result = KoLintResult()
+                    result.severity = result.SEV_ERROR
+                    result.lineStart = result.lineEnd = lineNo
+                    l1 = datalines[lineNo - 1][:columnNo]
+                    ntabs = l1.count("\t")
+                    result.columnStart = columnNo - (ntabs * 7)
+                    result.columnEnd = len(datalines[lineNo - 1]) + 1
+                    result.description = "Syntax error: %s (on column %d)" % \
+                        (description, columnNo - (ntabs * (8 - tabWidth)))
+                    results.addResult(result)
 
         except Exception, e:
             log.exception(e)

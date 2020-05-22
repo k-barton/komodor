@@ -52,9 +52,10 @@ if (!Object.values)
     lazySvcGetter(svc, "OS", "@activestate.com/koOs;1", "koIOs");
     
     var widthPrefix = () => "\x05\x12" + require("kor/cmdout").width + ";";
-    this.widthPrefix = widthPrefix;
+    // this.widthPrefix = widthPrefix;
     
-    const userCommandId = "usercommand";
+    // const userCommandId = rConn.userCommandId;
+    const userCommandId = "usercommand2";
     
     rConn.defineResultHandler(userCommandId, null, rConn.AUTOUPDATE);
     
@@ -66,7 +67,9 @@ if (!Object.values)
     this.nonDetachable = new Set([".GlobalEnv", "package:kor", "package:utils", 
 		"package:base", "Autoloads"]); 
 
-    this.escape = function (cmd) rConn.escape(cmd);
+    // this.escape = function (cmd) rConn.escape(cmd);
+    
+    this.escape = function () rConn.evalAsync.call(rConn, "\x05\x11", userCommandId);
 
     // Set the current working directory (to current buffer dir, or ask for it)
     this.setwd = function (dir, ask, type) {

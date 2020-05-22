@@ -254,8 +254,11 @@ function (expr, conn = NULL, markStdErr = FALSE,
 		printWarnings()
 	}
 
-	sink(type = "message")
-	sink(type = "output")
+    tryCatch({
+        sink(type = "message")
+        sink(type = "output")
+    }, error = identity)
+    
 	if(internalConn) close(conn)
 	on.exit()
 

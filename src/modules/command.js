@@ -247,11 +247,11 @@
 
         if (running != _RIsRunning) {
             _RIsRunning = running;
-            _this.fireEvent(_W, 'r-status-change', { running: running,
+            _this.fireEvent(_W, 'r_status_change', { running: running,
                 quiet: Boolean(quiet) 
                 });
             
-            _this.fireEvent(_W, "r-evalenv-change", {
+            _this.fireEvent(_W, "r_evalenv_change", {
                 evalEnvName: ".GlobalEnv"
                 });
 			logger.debug("R status changed to " + running);
@@ -264,7 +264,7 @@
         var idle = !Boolean(busy);
         if (idle != _RIsIdle) {
             _RIsIdle = idle;
-            _this.fireEvent(_W, 'r-busy-change', { idle: idle });
+            _this.fireEvent(_W, 'r_busy_change', { idle: idle });
 			logger.debug("R status changed to " + (idle ? "idle" : "busy"));
             // buttons/menu items (except toolbar R button) respond to:
             _W.updateCommands('r_is_busy_changed');
@@ -346,7 +346,7 @@
             _W.updateCommands('r_command_executed');
         }}, "r-command-executed", false);
 
-    _W.addEventListener('r-evalenv-change', event => {
+    _W.addEventListener('r_evalenv_change', event => {
         rBrowsingFrame = event.detail.evalEnvName !== ".GlobalEnv";
     }, false);
      

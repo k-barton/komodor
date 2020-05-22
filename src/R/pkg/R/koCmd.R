@@ -7,7 +7,7 @@
 #' @param port integer. The TCP port number.
 #' @param timeout numeric. The timeout (in seconds) to be used for this connection. 
 #' @param \dots additional arguments. Currently ignored.
-#' @notes The JavaScript `window` object has to be referenced explicitely via 
+#' @note The JavaScript `window` object has to be referenced explicitely via 
 #'        `_W`.
 #' @export
 # from svGUI::koCmd (modified)

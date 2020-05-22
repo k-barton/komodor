@@ -6,9 +6,9 @@
 
 startup <- 
 function (verbose = FALSE) {
-	title <- "Ko/R Startup"
+	title <- "KomodoR Startup"
 	initFileName <- "_init.R"
-	vmsg <- if(verbose)	function(...) cat(title, ": ", ..., "\n")
+	vmsg <- if(verbose)	function(...) message(title, ": ", ...)
 		else function(...) {}
 	msg <- function(...) cat(..., "\n")
 	
@@ -34,13 +34,13 @@ function (verbose = FALSE) {
 	rprofile <- file.path(c(if(!isBaseDir) getwd(), Sys.getenv("R_USER")), ".Rprofile")
 	rprofile <- rprofile[file.exists(rprofile)][1L]
 	if (!is.na(rprofile)) {
-		vmsg("Loading profile ...")
+		vmsg("Loading profile...")
 		source(rprofile)
-		msg("Loaded profile:", rprofile)
+		msg("Profile loaded ", dQuote(rprofile))
 	}
 	
 	if(file.exists(".Rhistory")) {
-		vmsg("Loading command history ...")
+		vmsg("Loading command history...")
 		loadhistory(".Rhistory")
 		vmsg("Done.")
 	}
@@ -106,7 +106,7 @@ function (verbose = FALSE) {
 	
 	# if there is ".First" in the workspace to be loaded this one will be overwritten.
 	assign(".First", function() {
-			invisible(koCmd("kor.fireEvent(\"r-environment-change\")"))
+			invisible(koCmd("kor.fireEvent(\"r_environment_change\")"))
 			rm(list = ".First", envir = .GlobalEnv) # self-destruct
 		}, .GlobalEnv)
 

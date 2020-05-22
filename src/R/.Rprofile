@@ -1,5 +1,3 @@
-
-
 local({
 
 komodor_version <- Sys.getenv("KOMODOR_VER")
@@ -29,5 +27,5 @@ if(!identical(komodor_version, "") && (
 
 }) # end local
 
-library("kor")
+require("kor")
 kor::startup(verbose = FALSE)

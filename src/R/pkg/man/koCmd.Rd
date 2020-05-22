@@ -24,3 +24,7 @@ until timeout.}
 \description{
 Send JavaScript command to Komodo editor.
 }
+\note{
+The JavaScript \code{window} object has to be referenced explicitely via
+\code{_W}.
+}

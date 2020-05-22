@@ -23,7 +23,7 @@ proc Start {port} {
 	if [catch {
 		set Server($port) [socket -server Rserver::ConnectionAccept $port]
 	} err1] {
-			Rprint "Error: in 'Rserver::Start': $err1" 1
+			Rprint "Error: in 'Rserver::Start': $err1" 0
 			return 0
 		}
 	}
@@ -35,7 +35,7 @@ proc Stop {port} {
 	if {[ info exists Server($port) ]} {
 
 		if [catch { close $Server($port) } err1] {
-			Rprint "Error: in 'Rserver::Stop': $err1" 1
+			Rprint "Error: in 'Rserver::Stop': $err1" 0
 		}
 		#close $Server($port)
 		unset Server($port)
@@ -49,7 +49,7 @@ proc CloseAllConnections {} {
 	variable Connection
 	foreach {id conn} [array get Connection] {
 		if [catch { close [lindex $conn 2] } err1] {
-			Rprint "Error in 'Rserver::CloseAllConnections': $err1" 1
+			Rprint "Error in 'Rserver::CloseAllConnections': $err1" 0
 		}
 		#close [lindex $conn 2]
 		unset Connection($id)
@@ -59,7 +59,7 @@ proc CloseAllConnections {} {
 proc ConnectionAccept {sock addr port} {
 	variable Connection
 
-	Rprint "Accept $sock from $addr port $port" 0
+	Rprint "Accept $sock from $addr port $port" 1
 
     set Connection(addr,$sock) [list $addr $port $sock]
 
@@ -89,7 +89,7 @@ proc DoServe {sock} {
 
     if {[eof $sock] || [catch {gets $sock line}]} {
 		if [catch { close $sock } err1] {
-			Rprint "Error: in 'Rserver::DoServe' #1: $err1" 1
+			Rprint "Error: in 'Rserver::DoServe' #1: $err1" 0
 		}
 		#close $sock
 		#set x Connection(addr,$sock)
@@ -109,14 +109,14 @@ proc DoServe {sock} {
 		if [catch {
 			regexp  {(?s)\A\x01([a-z]*)(?:\<([^\>]+)\>|)(.*)\Z} $line ->>> r_mode r_sid r_command
 			
-			Rprint "command line was '$line', mode: $r_mode" 1
+			Rprint "command line was '$line', mode: $r_mode" 2
 			
 			#Rprint ":> $r_command [mode=$r_mode, sid=$r_sid]" 2
 
 			if [catch {
 			set result [Reval "$r_command" $r_sid $r_mode]
 			} err4] {
-				Rprint "Error: in 'Rserver::DoServe' Reval: $err4" 1
+				Rprint "Error: in 'Rserver::DoServe' Reval: $err4" 0
 				set result ""
 			}
 
@@ -124,7 +124,7 @@ proc DoServe {sock} {
 
 			
 			if [catch { puts $sock $result } err1] {
-				Rprint "Error: in 'Rserver::DoServe' #2: $err1" 1
+				Rprint "Error: in 'Rserver::DoServe' #2: $err1" 0
 			}
 			
 			# Reval assigns expression to 'expr.id' in tempEnv if the code has
@@ -132,17 +132,17 @@ proc DoServe {sock} {
 			# in tempEnv.
 			if $realtime {
 				close $sock
-				Rprint "result is $result" 0
+				Rprint "result is $result" 2
 
 				#unset Connection(addr,$sock)
 				if [catch { Reval2 $r_sid } err5] {
-					Rprint "Error: in 'Rserver::DoServe' Reval2: $err5" 1
+					Rprint "Error: in 'Rserver::DoServe' Reval2: $err5" 0
 				}
 				
-				Rprint "Real-time mode: done" 1
+				Rprint "Real-time mode: done" 2
 			}
 		} err2] {
-			Rprint "Error: in 'Rserver::DoServe' #3: $err2" 1
+			Rprint "Error: in 'Rserver::DoServe' #3: $err2" 0
 		}
 	}
 }
@@ -178,7 +178,7 @@ proc Start_TO { port {host "127.0.0.1"} {timeout 5} } {
 
 proc Start { port {host "127.0.0.1"} {timeout 5}} {
 	if [catch { set conn [socket $host $port] } err1] {
-		Rserver::Rprint "Error: in 'Rclient::Start': $err1" 1
+		Rserver::Rprint "Error: in 'Rclient::Start': $err1" 0
 		return -1
 	}
 
@@ -205,7 +205,7 @@ proc Ask {command conn {prefix "\u0001e"}} {
 }
 # END namespace Rclient
 
-## Example:
+#  Example:
 #% set s [::Rclient::Start 11111]
 #% Rclient::Ask runif(5) $s
 #% close $s

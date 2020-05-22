@@ -2,8 +2,7 @@
 .onAttach <- function(libname, pkgname) {
 	if(is.null(getOption("ko.host"))) options(ko.host = "localhost")
 	if(!is.numeric(getOption("ko.port"))) options(ko.port = 6666L)
-
-	#setEvalEnv(.GlobalEnv, NULL)
+	if(!is.numeric(getOption("ko.info.level"))) options(ko.info.level = 0L)
 
 	init.Rserver()
 	

@@ -1,5 +1,5 @@
-`TclRprint` <- function(x, debug = 0L) {
-	if(debug < getOption('ko.debug', -1L)) {
+`TclRprint` <- function(x, level = 0L) {
+	if(level < getOption('ko.info.level', -1L)) {
 		Encoding(x) <- "UTF-8"
 		cat(sprintf("[[ %s ]]", x), "\n")
 	}

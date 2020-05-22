@@ -6,34 +6,34 @@ css: doc.css
 
 (Version #VERSION#)
 
+* Finally, the output from R is shown in Komodo Console Output pane in real-time
+  (Issue #17). This also fixes the problem with timeout on longer R
+  calculations. "Animated" text, such as text progress bar is now displayed as
+  in the R console.
 
-* better handling of different encodings in non-Unicode systems (Windows). 
-  However, unlike in the R console, Unicode characters from outside of the 
-  current set are either displayed as a closest matching character or as
-  <U+NNNN> (this is a shortcoming of R's `sink` / `format`).
-
-  Example (assuming Latin2 character locale in R):
-  
+* Better handling of different encodings in non-Unicode systems (Windows).   
+  However, unlike in the R console, Unicode characters from outside of the
+  current set are either displayed as the closest matching character or as 
+  <U+NNNN> (this is a shortcoming of R's `sink` / `format`). <br/>
+  Example (assuming Latin2 character locale in R): <br/>
   __R code in Komodo (UTF-8)__
-  ```{r}
+    ```r 
     "Cyryllic: Щурячий бугай із їжаком-харцизом в\'ючись підписали ґешефт у єнах."
     "Gaelic: Mus d\'fhàg Cè ròp Ì le aon tiùb."
-  ```
-  
-  __R output__
-  
+    ```
+  __R output__ <br/>
   Previous version:
     ```no-highlight
     [1] "Cyryllic: ??????? ????? ?? ??????-???????? ?'????? ????????? ?????? ? ????."
     [1] "Gaelic: Mus d'fhag Ce rop I le aon tiub."
     ```
-   Current version:
+  Current version:
     ```no-highlight
     [1] "Cyryllic: <U+0429><U+0443><U+0440><U+044F><U+0447><U+0438><U+0439>
     <U+0431><U+0443><U+0433><U+0430><U+0439> <U+0456><U+0437> [...]"
     [1] "Gaelic: Mus d'fhag Ce rop I le aon tiub."
     ```
-   Using &lt;U+NNNN&gt; replacement workaround: 
+  Using &lt;U+NNNN&gt; replacement workaround: 
     ```no-highlight
     [1] "Cyryllic: Щурячий бугай із їжаком-харцизом в'ючись підписали ґешефт у єнах."
     [1] "Gaelic: Mus d'fhag Ce rop I le aon tiub."
@@ -41,12 +41,21 @@ css: doc.css
   Note that the substitution is in the display only, the strings are correctly
   interpreted in R as UTF-8 strings.
 
-* stderr is correctly styled in Command Output console (although it appears 
-  clickable it does not take to the error line). 
-* fixed a problem with "Back to GlobalEnv" button not being activated in some 
+* `base::readline` and `utils::winProgressBar` are replaced with the
+  alternatives using Komodo dialogs (respectively, the prompt and progress bar
+  dialogs). Before, when R's `readline` was called (waiting for user input, e.g.
+  in `demo`), no output was shown in Komodo console and user had to switch to R
+  console to respond. Now, thanks for the replacement of `readline`, an "R
+  prompt" dialog pops up in Komodo window. <br />
+  On unloading `kor`, the original functions are restored.
+* `stderr` stream (errors, warnings, etc.) is now correctly styled in the
+  Command Output console (although it appears clickable it does not take to the
+  error line). 
+* fixed the problem with "Back to GlobalEnv" button not being activated in some 
   cases.
-
-
+  
+* New R functions for to put up a progress bar in Komodo (the usage is as other 
+  R progress bars). In R, see `?koProgressBar`.
 
 (Version 0.3.232b)
 
@@ -73,8 +82,8 @@ css: doc.css
   the issue with completions being left-trimmed when there are multibyte 
   characters in the completed line remains (issue #26)_.
 * Improved output from R (in some special cases errors or warnings were not 
-  printed correctly or were omitted. For example when an error occurred both in the 
-  function and in its `on.exit` code) (issue #12)
+  printed correctly or were omitted. For example when an error occurred both in
+  the function and in its `on.exit` code) (issue #12)
 * Added option for browsing R function body code (activated with the 
   Object Browser toolbar's cog menu item).
 * New button on R Toolbar to switch back to the evaluation in `.GlobalEnv` 
@@ -89,7 +98,8 @@ css: doc.css
   that reconnects with R session in case of a disruption 
   (`Toolbox -> R Tools -> Troubleshooting -> Fix R Connection settings`). 
 * R code formatting now calls `style_file` from R package `styler` with hardcoded 
-  `tidyverse_style` formatting options. Ultimately, the code formatter will be implemented internally in JS.
+  `tidyverse_style` formatting options. Ultimately, the code formatter will be
+  implemented internally in JS.
 * Slightly refurbished "R Help window" and "R Package Manager" (SVG icons etc.)
   
 (Version 0.3.52)
@@ -117,26 +127,38 @@ css: doc.css
 * Fixed (?) R object tree panel not being activated at startup.
 * Improved socket server restarting procedure.
 * Fixed broken R object removal (from R object browser).
-* Dropping a package name or workspace file name (*.RData) on the "search path" panel now attaches the package/workspace at the position where it was dropped (previously, it was always immediately following `.GlobalEnv`).
-* R Preferences panel: icons visibility in menu lists (country flags should now be visible in the dropdown menu; application type has got icons 
-  /gui or console/).
+* Dropping a package name or workspace file name (*.RData) on the "search path"
+  panel now attaches the package/workspace at the position where it was dropped
+  (previously, it was always immediately following `.GlobalEnv`).
+* R Preferences panel: icons visibility in menu lists (country flags should now
+  be visible in the dropdown menu; application type has got icons /gui or
+  console/).
 * Updated __R Tools__
 
 (Version 0.3.10b)
 
 * R object browser:
 
-    - large "start R session" button is displayed in place of the R objects tree if no R session is connected.
-    - "R Search Path" panel has been refurbished. It displays dependences for each item and packages which depend on the item. Items (with dependencies) can be detached via command buttons or by pressing Delete (or Shift+Delete).
-    - object list is being automatically updated after a command is executed by R. To use manual refresh uncheck the option in "R Preferences".
+    - large "start R session" button is displayed in place of the R objects tree
+      if no R session is connected.
+    - "R Search Path" panel has been refurbished. It displays dependences for
+      each item and packages which depend on the item. Items (with dependencies)
+      can be detached via command buttons or by pressing Delete (or
+      Shift+Delete).
+    - object list is being automatically updated after a command is executed by
+      R. To use manual refresh uncheck the option in "R Preferences".
 
 * "R preferences" page:
 
     - User can edit the command to start R.
-    - Information about R version string is shown upon choosing the R application path.
-    - Package `formatR` is detected (and installed) via command line, so also when no R session is connected. 
-    - On Linux, some additional terminal emulators to run R within have been added.
-    - On Mac, added an option to use `xterm` (this has not been tested and is likely not to work).
+    - Information about R version string is shown upon choosing the R
+      application path.
+    - Package `formatR` is detected (and installed) via command line, so also
+      when no R session is connected. 
+    - On Linux, some additional terminal emulators to run R within have been
+      added.
+    - On Mac, added an option to use `xterm` (this has not been tested and is
+      likely not to work).
     
 * "R Tools" toolbox has a new folder "Troubleshooting" with some tools that may 
   come in handy when things when something breaks.
@@ -144,7 +166,8 @@ css: doc.css
 * Command Output panel:
   
     - Large outputs from R no longer cause Komodo freeze.
-    - R output's printing width is set to match the width of the Command Output panel. 
+    - R output's printing width is set to match the width of the Command Output
+      panel. 
 
 * R Package Manager has a new style that matches application theme.
 
@@ -165,7 +188,6 @@ css: doc.css
 * Most internal R commands are executed asynchronously.
 
 
-
 (Previous Version)
 
 * Much improved "R object browser" widget:
@@ -174,8 +196,10 @@ css: doc.css
       or `formula`)
     - listing of objects' attributes (menu under 
       <img src="chrome://komodor/skin/images/cog.svg" width="16" 
-      style="vertical-align: middle;" alt="cog" /> button on the widget's toolbar)
-    - removal of formal function arguments (only non-package functions) and objects' attributes (Shift+Del)
+      style="vertical-align: middle;" alt="cog" /> button on the widget's
+      toolbar)
+    - removal of formal function arguments (only non-package functions) and
+      objects' attributes (Shift+Del)
     - listing of the current evaluation environment in the 
       [debugging mode](chrome://komodor/content/doc/koDebug.html)
     - new SVG icons, simplified style

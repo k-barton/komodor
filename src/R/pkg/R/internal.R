@@ -62,3 +62,9 @@ function(x, value, envir) {
 	assign(x, value, envir = envir)
     }, error = function(e) NULL)
 }
+
+.message <- 
+function(..., level = 0L) {
+	if(level < getOption('ko.info.level', -1L))
+        message(.packageName, "::", deparse(sys.call(sys.nframe() - 1L)[[1L]], control = NULL), ": ", ...)
+}
